@@ -69,6 +69,10 @@ class SimpleCLIConnection:
             timeout = 15.0
 
         prompt = b"917>: " if self._in_sl_cli else b">: "
+        if self._in_sl_cli and command.strip() == "exit":
+            # leaving 917 mode lands back on the main prompt; waiting for `917>: `
+            # here just burns the whole timeout before giving up
+            prompt = b">: "
         response_str = ""
 
         for attempt in (1, 2):
@@ -78,6 +82,13 @@ class SimpleCLIConnection:
                     return ""
             try:
                 self.logger.debug(f"Executing command: {repr(command)}")
+                # Drop whatever a previous (timed-out) command left in the buffer
+                # *before* writing, instead of reading up to the echo afterwards:
+                # a read-to-echo can silently consume the real response when the
+                # device echoes differently. `_clean_response()` strips the echo.
+                stale = self.tn.read_very_eager()
+                if stale:
+                    self.logger.debug(f"Discarded {len(stale)} stale bytes")
                 self.tn.write(f"{command}\r\n".encode("utf-8"))
 
                 if command.strip() == "device_info":
@@ -240,54 +251,93 @@ class SimpleCLIConnection:
         self.connected = False
         self._in_sl_cli = False
 
-    def reboot_and_wait_for_api(self, base_url: str, timeout: float = 60.0) -> bool:
-        """Send `power reboot sw` and wait for the HTTP API to come back.
+    def _read_boot_time(self, base_url: str, session: "requests.Session"):
+        """Return the device boot timestamp from ``/api/status/system``.
 
-        Sends the command without reading the prompt back (the prompt won't
-        return — the device reboots), then closes the telnet socket and
-        polls `${base_url}/api/version` until it sees the device drop and
-        return. Re-establishes the CLI on success so the caller can keep
-        using the same fixture-scoped instance afterwards.
+        Returns ``None`` if the device is unreachable or the response is
+        unusable. ``boot_time`` is the RTC timestamp captured at boot, so a
+        changed value proves the device actually restarted — independent of
+        whether we caught the brief TCP outage.
+        """
+        try:
+            with session.get(f"{base_url}/api/status/system", timeout=2) as response:
+                if response.status_code != 200:
+                    return None
+                return response.json().get("boot_time")
+        except (requests.RequestException, ValueError):
+            return None
+
+    def reboot_and_wait_for_api(self, base_url: str, timeout: float = 60.0) -> bool:
+        """Send `power reboot sw` and wait for the device to actually reboot.
+
+        The reboot is confirmed by the device's ``boot_time`` changing, not by
+        catching a TCP drop. A drop-based check is unreliable in both
+        directions: a fast reboot can complete between polls (the outage is
+        missed), and — worse — if `power reboot sw` is silently dropped the
+        device never goes away, so the old check waited the whole timeout and
+        reported "did not come back" when the truth was "never rebooted".
+        Reading ``boot_time`` tells those two cases apart and survives a missed
+        outage. Re-establishes the CLI on success so the caller can keep using
+        the same fixture-scoped instance afterwards.
         """
         if not self.connected or not self.tn:
             if not self.connect():
                 return False
 
-        self.logger.info("Sending `power reboot sw`...")
+        # Reuse one local HTTP session without forcing server-side
+        # Connection: close; otherwise the firmware can accumulate TCP PCBs
+        # while reboot polling.
+        session = requests.Session()
+        session.headers.update({"User-Agent": "BSB-AutoTest/1.0"})
         try:
-            self.tn.write(b"power reboot sw\r\n")
-            time.sleep(0.3)
-        except Exception as exc:
-            self.logger.error(f"Failed to send reboot command: {exc}")
+            # Without a baseline the loop below can never confirm the reboot,
+            # so retry a transient HTTP glitch before committing to it.
+            before = self._read_boot_time(base_url, session)
+            for _ in range(3):
+                if before is not None:
+                    break
+                time.sleep(1.0)
+                before = self._read_boot_time(base_url, session)
+
+            self.logger.info("Sending `power reboot sw`...")
+            try:
+                self.tn.write(b"power reboot sw\r\n")
+                time.sleep(0.3)
+            except Exception as exc:
+                self.logger.error(f"Failed to send reboot command: {exc}")
+                return False
+            finally:
+                try:
+                    self.tn.close()
+                except Exception:
+                    pass
+                self.tn = None
+                self.connected = False
+                self._in_sl_cli = False
+
+            t0 = time.monotonic()
+            while time.monotonic() - t0 < timeout:
+                after = self._read_boot_time(base_url, session)
+                if before is not None and after is not None and after != before:
+                    # One more good read so we don't hand back a device that
+                    # resets the next connection right after boot.
+                    time.sleep(0.5)
+                    if self._read_boot_time(base_url, session) is not None:
+                        self.logger.info(
+                            f"Device rebooted; API recovered after "
+                            f"{time.monotonic() - t0:.1f}s"
+                        )
+                        self.connect()  # re-establish the CLI for downstream uses
+                        return True
+                time.sleep(0.5)
+
+            if before is not None:
+                self.logger.error(
+                    f"Device did not reboot within {timeout}s "
+                    f"(boot_time unchanged: {before})"
+                )
+            else:
+                self.logger.error(f"Device did not come back within {timeout}s")
             return False
         finally:
-            try:
-                self.tn.close()
-            except Exception:
-                pass
-            self.tn = None
-            self.connected = False
-            self._in_sl_cli = False
-
-        # Wait for the device to drop and come back. Reuse one local HTTP
-        # session without forcing server-side Connection: close; otherwise the
-        # firmware can accumulate TCP PCBs while reboot polling.
-        t0 = time.monotonic()
-        gone = False
-        with requests.Session() as session:
-            session.headers.update({"User-Agent": "BSB-AutoTest/1.0"})
-            while time.monotonic() - t0 < timeout:
-                try:
-                    with session.get(f"{base_url}/api/version", timeout=2) as response:
-                        if gone and response.status_code == 200:
-                            self.logger.info(
-                                f"API recovered after {time.monotonic() - t0:.1f}s"
-                            )
-                            # Re-establish the CLI for downstream uses.
-                            self.connect()
-                            return True
-                except requests.RequestException:
-                    gone = True
-                time.sleep(0.5)
-        self.logger.error(f"Device did not come back within {timeout}s")
-        return False
+            session.close()

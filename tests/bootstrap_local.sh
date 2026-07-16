@@ -77,8 +77,8 @@ fi
 if [[ -z "${SKIP_SMOKE:-}" ]]; then
     say "Running smoke tests"
     "$VENV/bin/pytest" -v --timeout=60 -o "addopts=" \
-        integration/cli/test_commands.py::TestCLICommandsSession::test_cli_command_help \
-        integration/cli/test_commands.py::TestCLICommandsSession::test_cli_command_uptime
+        integration/cli/test_shell.py::TestCLIShell::test_cli_command_help \
+        integration/cli/test_diagnostics.py::TestCLIDiagnostics::test_cli_command_uptime
 fi
 
 say "Done. Activate with: source .venv/bin/activate"

@@ -8,6 +8,7 @@ fixtures are available to all frontend test suites (not just display/).
 from __future__ import annotations
 
 import time
+from datetime import datetime
 
 import requests
 
@@ -24,6 +25,10 @@ TS_MAX_FUTURE_MS = 60 * 1000
 TS_FUTURE_WAIT_TIMEOUT_S = 20.0
 TS_FUTURE_POLL_INTERVAL_S = 0.1
 
+# A reflash (or a mid-run reset) leaves the RTC at 2000-01-01 until NTP re-syncs.
+# Any year below this means the clock is unset, not merely lagging.
+MIN_SANE_YEAR = 2020
+
 # Time (seconds) to wait after setting a busy timer snapshot so the busy app
 # processes the state change and updates the loader priority.  0.3 s was too
 # short in CI environments.
@@ -36,20 +41,63 @@ def get_snapshot(session: requests.Session, base_url: str) -> dict:
     return resp.json()
 
 
+def device_now_ms(session: requests.Session, base_url: str) -> int:
+    """Return the device's current RTC time in ms (GET /api/time).
+
+    The busy_timer future-window check compares against the DEVICE RTC, not
+    the test host clock. Right after a reflash the RTC may lag the runner by
+    more than the 60 s tolerance until NTP syncs, so host time is unusable.
+    """
+    resp = session.get(f"{base_url}/api/time", timeout=10)
+    resp.raise_for_status()
+    return int(datetime.fromisoformat(resp.json()["timestamp"]).timestamp() * 1000)
+
+
+def ensure_device_clock_synced(session: requests.Session, base_url: str) -> None:
+    """Set the device clock to host time if its RTC is unset (year < 2020).
+
+    After a reflash — or after a mid-run reset, e.g. the web server being wedged
+    by the schema-conformance fuzzer — the RTC drops back to 2000-01-01 and only
+    NTP re-syncs it. Until then a busy snapshot cannot be timestamped: the stored
+    snapshot sits decades ahead of the RTC, so no value is both newer than it and
+    within the 60 s future window, and next_timestamp() would just time out.
+
+    The device timezone is stored separately from the clock and survives the
+    reset, so GET /api/time still reports the right offset. Stamp host time *in
+    that offset* — the firmware sets the RTC from the wall-clock part, so matching
+    the offset keeps the resulting epoch aligned with the runner's.
+    """
+    resp = session.get(f"{base_url}/api/time", timeout=10)
+    resp.raise_for_status()
+    device_dt = datetime.fromisoformat(resp.json()["timestamp"])
+    if device_dt.year >= MIN_SANE_YEAR:
+        return
+
+    host_local = datetime.now(device_dt.tzinfo).replace(microsecond=0)
+    resp = session.post(
+        f"{base_url}/api/time/timestamp",
+        params={"timestamp": host_local.isoformat()},
+        data=b"",
+        timeout=10,
+    )
+    resp.raise_for_status()
+
+
 def next_timestamp(session: requests.Session, base_url: str) -> int:
     """Return a valid timestamp strictly greater than the current device snapshot.
 
-    The firmware rejects snapshots from more than 15 seconds in the future. If
-    the current device snapshot is already close to that limit, advance it by
-    the smallest possible amount instead of pushing the test state past the
-    accepted future window.
+    The firmware rejects snapshots from more than 60 seconds ahead of its own
+    RTC. If the current device snapshot is already close to that limit,
+    advance it by the smallest possible amount instead of pushing the test
+    state past the accepted future window.
     """
+    ensure_device_clock_synced(session, base_url)
     deadline = time.monotonic() + TS_FUTURE_WAIT_TIMEOUT_S
 
     while True:
         current = get_snapshot(session, base_url)
         device_ts = current.get("snapshot_timestamp_ms", 0)
-        now_ms = int(time.time() * 1000)
+        now_ms = device_now_ms(session, base_url)
         future_limit_ms = now_ms + TS_MAX_FUTURE_MS
 
         candidate = max(device_ts + TS_MIN_ADVANCE_MS, now_ms + TS_ADVANCE_MS)
@@ -68,7 +116,12 @@ def next_timestamp(session: requests.Session, base_url: str) -> int:
 
 def set_snapshot(session: requests.Session, base_url: str, body: dict) -> None:
     resp = session.put(f"{base_url}/api/busy/snapshot", json=body, timeout=10)
-    resp.raise_for_status()
+    if not resp.ok:
+        # Surface the device's error body — a bare 400 is undiagnosable.
+        raise requests.HTTPError(
+            f"{resp.status_code} for PUT /api/busy/snapshot: {resp.text}",
+            response=resp,
+        )
 
 
 # After the device reports the new snapshot type, wait a short residual for the

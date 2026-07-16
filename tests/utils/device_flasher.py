@@ -11,6 +11,7 @@ import subprocess
 import time
 
 import allure
+import requests
 
 from config.config import config
 
@@ -29,12 +30,14 @@ class DeviceFlasher:
     def __init__(
         self,
         device_ip: str = None,
+        base_url: str = None,
         firmware_path: str = None,
         platform_json: str = None,
         firmware_dir: str = None,
         serial: str = None,
     ):
         self.device_ip = device_ip or config.BUSYBAR_IP
+        self.base_url = (base_url or f"http://{self.device_ip}").rstrip("/")
         self.firmware_path = firmware_path or config.FIRMWARE_ELF
         self.platform_json = platform_json or config.PLATFORM_JSON
         self.firmware_dir = firmware_dir or config.BSB_FIRMWARE_PATH
@@ -158,13 +161,46 @@ class DeviceFlasher:
             logger.error(f"Device reset error: {e}")
             return False
 
-    def check_device_available(self) -> bool:
-        """Check if device is reachable via TCP connection."""
+    def wait_for_api_ready(
+        self, wait_timeout: float = 15.0, poll_interval: float = 0.5
+    ) -> bool:
+        """Wait until the HTTP API is ready to serve requests."""
+        deadline = time.time() + wait_timeout
+        while time.time() < deadline:
+            if self.check_device_available():
+                return True
+            time.sleep(poll_interval)
+        return False
+
+    def _check_tcp_port(self, timeout: float = 2.0) -> bool:
+        """Check whether the device accepts TCP connections on port 80."""
         try:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.settimeout(1.0)
-            result = sock.connect_ex((self.device_ip, 80))
-            sock.close()
-            return result == 0
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                sock.settimeout(timeout)
+                return sock.connect_ex((self.device_ip, 80)) == 0
         except socket.error:
             return False
+
+    def _check_http_api_ready(self, timeout: float = 2.0) -> bool:
+        """Check whether the device HTTP API responds with valid JSON."""
+        try:
+            response = requests.get(
+                f"{self.base_url}/api/version", timeout=timeout
+            )
+            if response.status_code != 200:
+                logger.debug(
+                    "HTTP API readiness check returned %s",
+                    response.status_code,
+                )
+                return False
+            response.json()
+            return True
+        except (requests.RequestException, ValueError) as exc:
+            logger.debug("HTTP API readiness check failed: %s", exc)
+            return False
+
+    def check_device_available(self) -> bool:
+        """Check whether the device TCP endpoint and HTTP API are ready."""
+        if not self._check_tcp_port():
+            return False
+        return self._check_http_api_ready()

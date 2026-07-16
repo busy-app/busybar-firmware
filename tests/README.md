@@ -69,14 +69,14 @@ print('DAPLINK_U5_ID     =', Config.DAPLINK_U5_ID or '<unset>')
 source .venv/bin/activate
 
 # Single file
-pytest -v integration/cli/test_commands.py --timeout=120 -o "addopts="
+pytest -v integration/cli/ --timeout=120 -o "addopts="
 
 # By marker
 pytest -v -m "cli and not regression"
 pytest -v -m "state_publisher and not uses_si917"
 
 # Allure report
-pytest integration/cli/test_commands.py
+pytest integration/cli/
 allure serve allure-results
 ```
 
