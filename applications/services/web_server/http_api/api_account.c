@@ -111,7 +111,7 @@ static void mqtt_link_timeout(void* data) {
     furi_assert(data);
     MqttLinkContext* link_ctx = data;
 
-    MG_REPLY_ERROR_CLOSE(link_ctx->conn, 500, "PIN request timeout");
+    MG_REPLY_ERROR_CLOSE(link_ctx->conn, 503, "PIN request timeout");
     link_ctx->conn->is_draining = true;
 }
 
@@ -246,7 +246,7 @@ static void http_api_account_mqtt_backend_get(struct mg_connection* conn) {
         MG_REPLY_OK_BODY(conn, "%s\n", json_text);
         free(json_text);
     } else {
-        MG_REPLY_INTERNAL_ERROR(conn);
+        MG_REPLY_SERVICE_UNAVAILABLE(conn);
     }
 }
 

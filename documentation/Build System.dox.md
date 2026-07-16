@@ -90,18 +90,22 @@ The `flash_usb` family of targets builds an update bundle and uploads it over th
 
 Each preset is a separate target. Only one preset may be built at a time.
 
-| Target            | U5 resources | Si917 M4 firmware | Si917 NWP radio firmware |
-| :---------------- | :----------: | :---------------: | :----------------------: |
-| `flash_usb`       |     yes      |        no         |           no             |
-| `flash_usb_full`  |     yes      |        yes        |           yes            |
-| `flash_usb_min`   |     no       |        no         |           no             |
-| `flash_usb_main`  |     no       |        yes        |           no             |
+| Target                    | U5 resources | Si917 M4 firmware | Si917 NWP radio firmware | Signed |
+| :------------------------ | :----------: | :---------------: | :----------------------: | :----: |
+| `flash_usb`               |     yes      |        no         |           no             |  yes   |
+| `flash_usb_full`          |     yes      |        yes        |           yes            |  yes   |
+| `flash_usb_min`           |     no       |        no         |           no             |  yes   |
+| `flash_usb_main`          |     no       |        yes        |           no             |  yes   |
+| `flash_usb_unsigned`      |     yes      |        no         |           no             |   no   |
+| `flash_usb_full_unsigned` |     yes      |        yes        |           yes            |   no   |
+| `flash_usb_min_unsigned`  |     no       |        no         |           no             |   no   |
+| `flash_usb_main_unsigned` |     no       |        yes        |           no             |   no   |
 
-On secured production devices, only the U5 firmware can be flashed — the Si917 firmware must be signed (secure boot), so flashing any Si917 M4/NWP components requires the `--signed` flag (see below).
+Production (secured) devices can only be flashed with the signed presets, and the Si917 firmware must be signed to be flashed on them.
 
 ## Component flags
 
-The presets define defaults that can be overridden with component flags. The flags are only valid on the `flash_usb` target:
+The presets define defaults that can be overridden with component flags. The flags are only valid on the `flash_usb_*` targets:
 
 - `--resources` / `--no-resources` — include or exclude the U5 resources.
 - `--sil-m4` / `--no-sil-m4` — include or exclude the Si917 M4 firmware.
@@ -140,6 +144,7 @@ Notable options:
 - `DEBUG_INTERFACE` — SWD probe type (`auto`, `stlink`, `cmsis-dap`).
 - `LANG_SERVER` — language server for `vscode_dist` (`clangd`, `cpptools`).
 - `SVD_FILE` — path to an SVD file for peripheral register view in the debugger.
+- `INTERCOM_FORCE_VERSION` — force the intercom (Si917) handshake version, overriding the default git-hash-based check. Only effective when flashing a bundle without the Si917 M4 firmware (for example, `flash_usb`).
 
 ## Firmware application set
 

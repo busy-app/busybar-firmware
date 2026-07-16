@@ -96,7 +96,7 @@ static bool api_assets_delete_callback(
         if(success) {
             MG_REPLY_OK(conn);
         } else {
-            MG_REPLY_INTERNAL_ERROR(conn, "File delete failed");
+            MG_REPLY_SERVICE_UNAVAILABLE(conn, "File delete failed");
         }
     } while(0);
 

@@ -43,8 +43,10 @@ The build output is placed in the `dist/` folder. See the [Build System document
 With the device connected via USB and its virtual ethernet interface initialised, the firmware can be flashed with:
 
 ```shell
-./fbt flash_usb --signed
+./fbt flash_usb
 ```
+
+The `INTERCOM_FORCE_VERSION` variable may be used to override the intercom (Si917) version check when it differs from the build — see the [Build System documentation](documentation/Build%20System.dox.md) for details.
 
 ### Using an in-circuit debugger (Main firmware only)
 

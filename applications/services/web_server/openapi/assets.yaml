@@ -54,6 +54,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "508":
+          description: Failed to write uploaded file
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
     delete:
       tags:
@@ -83,7 +89,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "500":
+        "503":
           description: Delete failed
           content:
             application/json:
@@ -169,13 +175,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
         "400":
-          description: Invalid file path or file not found
+          description: Invalid file path
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "500":
-          description: Audio system error
+        "404":
+          description: Audio file not found or is unplayable
           content:
             application/json:
               schema:
@@ -200,7 +206,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "500":
+        "503":
           description: Audio system error
           content:
             application/json:
