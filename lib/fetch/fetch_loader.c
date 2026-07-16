@@ -196,8 +196,17 @@ static int32_t fetch_loader_thread_callback(void* context) {
     return 0;
 }
 
+static void fetch_loader_reset(FetchLoader* instance) {
+    instance->is_error_occurred = false;
+    instance->is_stop_requested = false;
+}
+
 void fetch_loader_start(FetchLoader* instance, const char* remote_url, const char* file_path) {
     furi_check(instance);
+    furi_check(remote_url);
+    furi_check(file_path);
+
+    fetch_loader_reset(instance);
 
     furi_string_set(instance->remote_url, remote_url);
     furi_string_set(instance->file_path, file_path);
