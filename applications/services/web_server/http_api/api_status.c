@@ -240,7 +240,7 @@ bool http_api_status_callback(
         if(success) {
             MG_REPLY_OK_BODY(conn, "{%s}\n", furi_string_get_cstr(json_response));
         } else {
-            MG_REPLY_INTERNAL_ERROR(conn, "Failed to get status");
+            MG_REPLY_SERVICE_UNAVAILABLE(conn, "Failed to get status");
         }
 
         furi_string_free(json_response);
@@ -265,7 +265,7 @@ bool http_api_status_callback(
             if(success) {
                 MG_REPLY_OK_BODY(conn, "%s\n", furi_string_get_cstr(json_response));
             } else {
-                MG_REPLY_INTERNAL_ERROR(conn, "Failed to get status");
+                MG_REPLY_SERVICE_UNAVAILABLE(conn, "Failed to get status");
             }
 
             furi_string_free(json_response);

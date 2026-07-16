@@ -224,10 +224,14 @@ if sil_sign_keystore or service_signing_enabled:
 # --- flash_usb targets: presets are defaults; component flags override them ---
 
 _FLASH_USB_PRESETS = {
-    "flash_usb":      {"use_resources": True,  "use_sil_m4": False, "use_sil_nwp": False},
-    "flash_usb_full": {"use_resources": True,  "use_sil_m4": True,  "use_sil_nwp": True},
-    "flash_usb_min":  {"use_resources": False, "use_sil_m4": False, "use_sil_nwp": False},
-    "flash_usb_main": {"use_resources": False, "use_sil_m4": True,  "use_sil_nwp": False},
+    "flash_usb":               {"use_resources": True,  "use_sil_m4": False, "use_sil_nwp": False, "signed": True},
+    "flash_usb_full":          {"use_resources": True,  "use_sil_m4": True,  "use_sil_nwp": True,  "signed": True},
+    "flash_usb_min":           {"use_resources": False, "use_sil_m4": False, "use_sil_nwp": False, "signed": True},
+    "flash_usb_main":          {"use_resources": False, "use_sil_m4": True,  "use_sil_nwp": False, "signed": True},
+    "flash_usb_unsigned":      {"use_resources": True,  "use_sil_m4": False, "use_sil_nwp": False, "signed": False},
+    "flash_usb_full_unsigned": {"use_resources": True,  "use_sil_m4": True,  "use_sil_nwp": True,  "signed": False},
+    "flash_usb_min_unsigned":  {"use_resources": False, "use_sil_m4": False, "use_sil_nwp": False, "signed": False},
+    "flash_usb_main_unsigned": {"use_resources": False, "use_sil_m4": True,  "use_sil_nwp": False, "signed": False},
 }
 
 _flash_usb_targets = [n for n in _FLASH_USB_PRESETS if n in BUILD_TARGETS]
@@ -240,13 +244,13 @@ if _flash_usb_targets:
     
     _name = _flash_usb_targets[0]
     _params = dict(_FLASH_USB_PRESETS[_name])
-    _params["signed"] = GetOption("flash_signed") is True
     _params.update(
         (k, v)
         for k, v in {
             "use_resources": GetOption("flash_resources"),
             "use_sil_m4": GetOption("flash_sil_m4"),
             "use_sil_nwp": GetOption("flash_sil_nwp"),
+            "signed": GetOption("flash_signed"),
         }.items()
         if v is not None
     )

@@ -34,7 +34,7 @@ typedef struct {
 
 static const ApiWifiResponseData wifi_response_data[WifiStatusMax] = {
     [WifiStatusOk] = {.code = 200, "OK"},
-    [WifiStatusError] = {.code = 500, "Generic error"},
+    [WifiStatusError] = {.code = 503, "Generic error"},
     [WifiStatusTimeout] = {.code = 400, "Command timed out"},
     [WifiStatusAlreadyConnected] = {.code = 400, "Already connected"},
     [WifiStatusAlreadyDisconnected] = {.code = 400, "Already disconnected"},
@@ -119,7 +119,7 @@ static bool api_wifi_parse_ip_method(FuriString* method_str, WifiIpManagement* m
 
 static bool api_wifi_check_record_exists(struct mg_connection* conn) {
     if(!furi_record_exists(RECORD_WIFI)) {
-        MG_REPLY_ERROR(conn, 503, "WiFi service not available");
+        MG_REPLY_SERVICE_UNAVAILABLE(conn, "WiFi service not available");
         return false;
     }
     return true;

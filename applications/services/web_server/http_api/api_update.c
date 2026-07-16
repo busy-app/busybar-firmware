@@ -229,7 +229,7 @@ static void api_update_on_data_cb(struct mg_connection* conn, struct mg_iobuf* i
 
     if(!update_ctx || !update_ctx->update_file) {
         FURI_LOG_E(TAG, "on_data: Context or file saver invalid/closed. Draining.");
-        MG_REPLY_ERROR_CLOSE(conn, 500, "Update context invalid");
+        MG_REPLY_ERROR_CLOSE(conn, 409, "Update context invalid");
         mg_iobuf_del(io, 0, io->len); // Consume data to prevent further calls
         conn->is_draining = 1; // Mark connection to be closed
         return;
@@ -261,7 +261,7 @@ static void api_update_on_data_cb(struct mg_connection* conn, struct mg_iobuf* i
         if(!temp_file_write(update_ctx->update_file, io->buf, data_len)) {
             FURI_LOG_E(
                 TAG, "on_data: Failed to write data to temp TAR file. Wrote %zu bytes.", data_len);
-            MG_REPLY_ERROR_CLOSE(conn, 500, "Failed to save update package (write error).");
+            MG_REPLY_ERROR_CLOSE(conn, 508, "Failed to save update package (write error).");
             conn->is_draining = 1;
             mg_iobuf_del(io, 0, io->len);
             return;
@@ -311,7 +311,7 @@ static void api_update_on_poll_cb(struct mg_connection* conn) {
 
     if(mg_timer_expired(&update_ctx->timeout_stamp, UPDATE_UPLOAD_IDLE_TIMEOUT_MS, mg_millis())) {
         FURI_LOG_E(TAG, "Connection data timeout (%lu)", conn->id);
-        MG_REPLY_ERROR_CLOSE(conn, 408, "Upload timeout");
+        MG_REPLY_TIMEOUT(conn, "Upload timeout");
         conn->is_draining = 1; // Force close hanging connection
     }
 }
@@ -372,7 +372,7 @@ static bool api_update_raw_hdr_callback(
             TAG,
             "on_headers: Failed to initialize file saver for: %s",
             UPDATER_DEFAULT_DOWNLOAD_PATH);
-        MG_REPLY_ERROR_CLOSE(conn, 500, "Failed to save update package (file init error).");
+        MG_REPLY_ERROR_CLOSE(conn, 508, "Failed to save update package (file init error).");
         conn->is_draining = 1;
         return true;
     }
@@ -438,7 +438,7 @@ static bool api_update_check_callback(
         break;
 
     default:
-        error_code = 500;
+        error_code = 503;
         break;
     }
 
@@ -592,7 +592,7 @@ static bool api_update_install_callback(
                     break;
 
                 default:
-                    error_code = 500;
+                    error_code = 503;
                     break;
                 }
 
@@ -843,7 +843,7 @@ static void api_update_autoupdate_set(struct mg_connection* conn, struct mg_http
         if(is_success) {
             MG_REPLY_OK(conn);
         } else {
-            MG_REPLY_INTERNAL_ERROR(conn, "Failed to apply updater settings");
+            MG_REPLY_SERVICE_UNAVAILABLE(conn, "Failed to apply updater settings");
         }
     } while(false);
 

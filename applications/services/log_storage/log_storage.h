@@ -21,7 +21,7 @@ extern "C" {
 /**
  * @brief Default file path used when log_storage_dump() is called with NULL.
  */
-#define LOG_STORAGE_DUMP_DEFAULT_FILE_PATH "/ext/dump.log"
+#define LOG_STORAGE_DUMP_DEFAULT_FILE_PATH "/ext/log.txt"
 
 /**
  * @brief Opaque log storage instance.
