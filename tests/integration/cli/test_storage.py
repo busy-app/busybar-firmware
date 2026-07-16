@@ -150,7 +150,8 @@ class TestCLIStorageMutating:
     @allure.title("CLI. Command log_dump.")
     def test_log_dump(self, persistent_cli_connection):
         cli = persistent_cli_connection
-        path = "/ext/dump.txt"
+        # LOG_STORAGE_DUMP_DEFAULT_FILE_PATH in applications/services/log_storage/log_storage.h
+        path = "/ext/log.txt"
         try:
             response = cli.execute_command("log_dump", timeout=15, slow_command=True)
             assert f"Log successfully saved to {path}" in response, response
