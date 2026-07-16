@@ -343,7 +343,6 @@ FetchStatus fetch_run(Fetch* instance, const FetchRequest* request) {
     furi_check(request->headers.count < FETCH_HEADERS_COUNT_MAX);
 
     instance->request = request;
-    instance->is_running = true;
 
     Network* network = furi_record_open(RECORD_NETWORK);
     network_init_current_thread(network);
@@ -362,6 +361,7 @@ FetchStatus fetch_run(Fetch* instance, const FetchRequest* request) {
 
     if(conn != NULL) {
         instance->activity_timer = coarse_timer_create(FETCH_INACTIVITY_TIMEOUT_MS);
+        instance->is_running = true;
 
         while(instance->is_running) {
             if(coarse_timer_is_expired(instance->activity_timer)) {
