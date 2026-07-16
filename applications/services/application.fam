@@ -41,7 +41,6 @@ App(
         "sysctl",
         "cli_socket",
         "cli_intercom",
-        "lottie",
         "usb_srv",
         "web_server",
         "mqtt",

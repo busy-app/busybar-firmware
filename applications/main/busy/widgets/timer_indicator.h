@@ -26,10 +26,11 @@ typedef struct {
 } TimerIndicatorBgConfig;
 
 typedef struct {
-    const char* lottie_path;
+    const char* anim_path;
+    const char* mask_path;
     TimerIndicatorProgressDirection direction;
-    uint8_t start_offset_px;
-    uint8_t end_offset_px;
+    int8_t start_offset_px;
+    int8_t end_offset_px;
 } TimerIndicatorProgressConfig;
 
 typedef struct {
@@ -78,7 +79,8 @@ Widget* timer_indicator_get_base(TimerIndicator* instance);
  *
  * TimerIndicator presets consist of the following parts:
  * - Background animation (.anim sequence file)
- * - Lottie animation, used for a visual progress representation
+ * - Progress animation, used for a visual progress representation (.anim sequence file)
+ * - Mask image, usually used for rounded corners and other effects (.image image file)
  * - Foreground image, containing static elements (.image image file)
  *
  * Any of these parts may be omitted, in that case NULL should be passed
@@ -94,9 +96,9 @@ void timer_indicator_set_preset(
     const TimerIndicatorTransition* transition);
 
 /**
- * @brief Set the progress value for the progress Lottie animation.
+ * @brief Set the progress value for the progress animation.
  *
- * @note If no Lottie animation is present in the current
+ * @note If no progress animation is present in the current
  *       preset, this function will do nothing
  *
  * @param[in,out] instance pointer to the TimerIndicator instance to be modified

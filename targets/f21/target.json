@@ -110,7 +110,6 @@
         "lwip",
         "netstat",
         "cjson",
-        "thorvg",
         "lvgl",
         "network",
         "mongoose",

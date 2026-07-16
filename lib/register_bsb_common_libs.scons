@@ -10,7 +10,6 @@ for libname in [
     "cjson",
     "cli",
     "containers",
-    "thorvg",
     "lvgl",
     "lvgl_addons",
     "network",
