@@ -49,7 +49,7 @@ static void low_power_exit(LowPower* instance) {
 
 static LowPower* low_power_alloc(void) {
     LowPower* instance = malloc(sizeof(LowPower));
-    instance->api_queue = furi_message_queue_alloc(16, sizeof(LowPowerApiMessage));
+    instance->api_queue = furi_message_queue_alloc(API_QUEUE_SIZE, sizeof(LowPowerApiMessage));
     instance->lock_count = 1; // Locked by default
     instance->in_low_power = false;
 
