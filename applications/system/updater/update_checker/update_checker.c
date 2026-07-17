@@ -2,7 +2,7 @@
 #include "../updater_paths.h"
 #include "../helpers/update_parser.h"
 
-#include <toolbox/fetch/fetch_loader.h>
+#include <fetch/fetch_loader.h>
 
 #define TAG "UpdateChecker"
 
@@ -28,13 +28,13 @@ struct UpdateChecker {
     void* done_callback_context;
 };
 
-static void directory_load_done_callback(FetchLoaderDoneStatus done_status, void* context) {
+static void directory_load_done_callback(FetchStatus done_status, void* context) {
     UpdateChecker* instance = context;
 
     furi_thread_flags_set(
         furi_thread_get_id(instance->thread),
-        (done_status == FetchLoaderDoneStatusSuccess) ? ThreadFlagDirectoryLoadSuccess :
-                                                        ThreadFlagDirectoryLoadFailure);
+        (done_status == FetchStatusOk) ? ThreadFlagDirectoryLoadSuccess :
+                                         ThreadFlagDirectoryLoadFailure);
 }
 
 static int32_t thread_callback(void* context) {
@@ -42,11 +42,12 @@ static int32_t thread_callback(void* context) {
     const char* url = furi_string_get_cstr(instance->url);
 
     FetchLoader* directory_loader = fetch_loader_alloc();
-    fetch_loader_set_done_callback(directory_loader, directory_load_done_callback, instance);
+    fetch_loader_set_callback_context(directory_loader, instance);
+    fetch_loader_set_done_callback(directory_loader, directory_load_done_callback);
 
     FURI_LOG_D(
         TAG, "Downloading directory file from %s to %s...", url, UPDATER_CHECK_DIRECTORY_PATH);
-    fetch_loader_run(directory_loader, url, UPDATER_CHECK_DIRECTORY_PATH);
+    fetch_loader_start(directory_loader, url, UPDATER_CHECK_DIRECTORY_PATH);
 
     uint32_t flags = furi_thread_flags_wait(
         ThreadFlagDirectoryLoadSuccess | ThreadFlagDirectoryLoadFailure,

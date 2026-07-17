@@ -77,4 +77,5 @@ tests/ @ssecsd @iMalkav
 /lib/setting_provider/ @hedger @vanyww
 /lib/settings_helpers/ @hedger @vanyww @nminaylov @portasynthinca3
 /lib/sl_glue/ @hedger @gsurkov @Skorpionm
+/lib/storage_utils/ @hedger @gsurkov @vanyww @nminaylov @portasynthinca3
 /lib/toolbox/ @hedger @gsurkov @vanyww @nminaylov @portasynthinca3

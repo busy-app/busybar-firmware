@@ -586,6 +586,18 @@ bool storage_simply_remove_recursive(Storage* storage, const char* path);
 bool storage_simply_mkdir(Storage* storage, const char* path);
 
 /**
+ * @brief Create a directory and its full path.
+ *
+ * Unlike storage_simply_mkdir(), the path to the target directory
+ * does not need to be present and will be created if necessary.
+ *
+ * @param storage pointer to a storage API instance.
+ * @param path pointer to a zero-terminated string containing the path.
+ * @return @c true on success or if the path already exists, @c false otherwise.
+ */
+bool storage_simply_mkpath(Storage* storage, const char* path);
+
+/**
  * @brief Simply read the entire file into memory.
  * 
  * @param storage pointer to a storage API instance.

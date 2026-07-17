@@ -4,10 +4,40 @@
 #include <cli/cli_ansi.h>
 #include <FreeRTOSConfig.h>
 #include "unit_tests.h"
+#include <toolbox/strint.h>
+
+static uint32_t unit_tests_get_index(const FuriString* args) {
+    uint32_t index = UNIT_TEST_COUNT;
+
+    if(strint_to_uint32(furi_string_get_cstr(args), NULL, &index, 0) == StrintParseNoError) {
+        index = MIN(index, UNIT_TEST_COUNT);
+    }
+
+    return index;
+}
+
+static bool unit_tests_run(uint32_t index) {
+    bool success = false;
+
+    if(index < UNIT_TEST_COUNT) {
+        TestCallback run_test = unit_test_callbacks[index];
+        run_test();
+        success = true;
+    }
+
+    return success;
+}
+
+static void unit_tests_run_all(void) {
+    for(size_t i = 0; i < UNIT_TEST_COUNT; i++) {
+        TestCallback run_test = unit_test_callbacks[i];
+        run_test();
+        if(minunit_fail) break;
+    }
+}
 
 void unit_tests_cli_command(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
-    UNUSED(args);
     UNUSED(context);
 
     Storage* storage = furi_record_open(RECORD_STORAGE);
@@ -23,10 +53,8 @@ void unit_tests_cli_command(PipeSide* pipe, FuriString* args, void* context) {
     int32_t heap_before = memmgr_get_free_heap();
     uint32_t time_before = furi_get_tick();
 
-    for(size_t i = 0; i < UNIT_TEST_COUNT; i++) {
-        TestCallback run_test = unit_test_callbacks[i];
-        run_test();
-        if(minunit_fail) break;
+    if(!unit_tests_run(unit_tests_get_index(args))) {
+        unit_tests_run_all();
     }
 
     uint32_t time_after = furi_get_tick();

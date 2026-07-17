@@ -1,0 +1,23 @@
+Import("env")
+
+env.Append(
+    CPPPATH=[
+        Dir(".").srcnode(),
+    ],
+    LINT_SOURCES=[
+        Dir(".").srcnode(),
+    ],
+    SDK_HEADERS=[
+        File("dir_walk.h"),
+        File("temp_file.h"),
+    ],
+)
+
+libenv = env.Clone(FW_LIB_NAME="storage_utils")
+libenv.ApplyLibFlags()
+
+sources = libenv.Glob("*.c", source=True)
+
+lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
+libenv.Install("${LIB_DIST_DIR}", lib)
+Return("lib")

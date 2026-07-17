@@ -2,10 +2,10 @@
 #include <core/record.h>
 #include <storage/storage.h>
 #include <storage/storage_i.h> // IWYU pragma: keep
+#include <storage_utils/dir_walk.h>
 #include <storage/storage_message.h>
 #include <toolbox/stream/file_stream.h>
-#include <toolbox/dir_walk.h>
-#include "toolbox/path.h"
+#include <toolbox/path.h>
 
 #define MAX_NAME_LENGTH  256
 #define MAX_EXT_LEN      16
@@ -1104,6 +1104,46 @@ bool storage_simply_mkdir(Storage* storage, const char* path) {
     FS_Error result;
     result = storage_common_mkdir(storage, path);
     return result == FSE_OK || result == FSE_EXIST;
+}
+
+bool storage_simply_mkpath(Storage* storage, const char* path) {
+    furi_check(storage);
+    furi_check(path);
+
+    bool success = true;
+
+    if(storage_simply_mkdir(storage, path)) {
+        return success;
+    }
+
+    const size_t path_len = strlen(path);
+
+    FuriString* tmp = furi_string_alloc();
+    furi_string_reserve(tmp, path_len + 1);
+
+    for(size_t i = 1; i < path_len;) {
+        const char* sep = strchr(path + i, '/');
+
+        size_t subpath_len;
+        if(sep != NULL) {
+            subpath_len = sep - path;
+        } else {
+            subpath_len = path_len;
+        }
+
+        furi_string_set_strn(tmp, path, subpath_len);
+
+        if(!storage_simply_mkdir(storage, furi_string_get_cstr(tmp))) {
+            success = false;
+            break;
+        }
+
+        i = subpath_len + 1;
+    }
+
+    furi_string_free(tmp);
+
+    return success;
 }
 
 size_t storage_simply_read_entire_file(

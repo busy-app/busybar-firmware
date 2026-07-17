@@ -1,3 +1,7 @@
+/**
+ * @file dir_walk.h
+ * @brief Library for directory content listing.
+ */
 #pragma once
 #include <storage/storage.h>
 

@@ -37,10 +37,9 @@ static void tar_config_setup(void) {
     Storage* storage = furi_record_open(RECORD_STORAGE);
     File* file_handle1 = storage_file_alloc(storage);
     File* file_handle2 = storage_file_alloc(storage);
-    FuriString* path = furi_string_alloc_printf("%s", TAR_UNIT_TESTS_PATH);
 
     do {
-        if(path_recursive_create_dir(storage, path) != FSE_OK) {
+        if(!storage_simply_mkpath(storage, TAR_UNIT_TESTS_PATH)) {
             FURI_LOG_E(TAG, "Failed to create unit test directory: %s", TAR_UNIT_TESTS_PATH);
             break;
         }
@@ -90,7 +89,6 @@ static void tar_config_setup(void) {
     storage_file_free(file_handle1);
     storage_file_free(file_handle2);
     furi_record_close(RECORD_STORAGE);
-    furi_string_free(path);
 }
 
 static void tar_config_teardown(void) {
@@ -223,14 +221,10 @@ static bool check_file_contnents(Storage* storage, const char* path, const char*
 
 MU_TEST(tar_test_gzip) {
     Storage* storage = furi_record_open(RECORD_STORAGE);
+    mu_check(storage_simply_mkpath(storage, GZIP_EXTRACT_PATH));
+
     TarArchive* tar = tar_archive_alloc(storage);
 
-    {
-        FuriString* gzip_extract_path = furi_string_alloc_set_str(GZIP_EXTRACT_PATH);
-        FS_Error e = path_recursive_create_dir(storage, gzip_extract_path);
-        mu_assert_int_eq(FSE_OK, e);
-        furi_string_free(gzip_extract_path);
-    }
     do {
         bool r = tar_archive_open(tar, GZIP_FILE, TarOpenModeReadAuto);
         mu_assert(r, "tar_archive_open");

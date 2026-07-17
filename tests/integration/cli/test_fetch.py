@@ -61,12 +61,12 @@ class TestCLIFetch:
     @allure.title("CLI. Command fetch (usage).")
     def test_fetch_usage(self, persistent_cli_connection):
         response = persistent_cli_connection.execute_command("fetch")
-        assert "fetch <url> [path]" in response, response
+        assert "fetch [options] <url>" in response, response
 
     @allure.title("CLI. Command fetch (download to stdout).")
     def test_fetch_to_stdout(self, persistent_cli_connection, http_server):
         response = persistent_cli_connection.execute_command(
-            f"fetch {http_server}", timeout=25, slow_command=True
+            f"fetch -v {http_server}", timeout=25, slow_command=True
         )
         assert "HTTP/1.0 200 OK" in response, response
         assert "busybar-fetch-test" in response, response
@@ -77,9 +77,9 @@ class TestCLIFetch:
         cli.execute_command(f"storage remove {self.DEST}")
         try:
             response = cli.execute_command(
-                f"fetch {http_server} {self.DEST}", timeout=25, slow_command=True
+                f"fetch {http_server} -o {self.DEST}", timeout=25, slow_command=True
             )
-            assert f"File successfully saved to {self.DEST}" in response, response
+            assert "Downloaded: 100%" in response, response
 
             stat = cli.execute_command(f"storage stat {self.DEST}")
             assert f"size: {len(self.PAYLOAD)}b" in stat, stat

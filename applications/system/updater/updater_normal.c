@@ -162,7 +162,7 @@ UpdaterStatus updater_internal_do_check_for_update(Updater* instance, UpdaterMes
     return (is_check_start_successful) ? UpdaterStatusOk : UpdaterStatusBusy;
 }
 
-static void download_status_callback(const FetchLoaderStatus* status, void* context) {
+static void download_status_callback(const FetchProgress* status, void* context) {
     Updater* instance = context;
 
     UpdaterUpdateState* update_state = furi_state_acquire(instance->update_state);
@@ -173,29 +173,29 @@ static void download_status_callback(const FetchLoaderStatus* status, void* cont
     furi_state_release(instance->update_state);
 }
 
-static void download_state_callback(const FuriString* state, void* context) {
+static void download_state_callback(const char* state, void* context) {
     Updater* instance = context;
 
     UpdaterUpdateState* update_state = furi_state_acquire(instance->update_state);
     update_state->event = UpdaterUpdateEventDetailChange;
-    strncpy(update_state->detail, furi_string_get_cstr(state), sizeof(update_state->detail));
+    strlcpy(update_state->detail, state, sizeof(update_state->detail));
     furi_state_release(instance->update_state);
 }
 
-static void download_done_callback(FetchLoaderDoneStatus done_status, void* context) {
+static void download_done_callback(FetchStatus done_status, void* context) {
     Updater* instance = context;
 
     UpdaterStatus update_status;
     switch(done_status) {
-    case FetchLoaderDoneStatusSuccess:
+    case FetchStatusOk:
         update_status = UpdaterStatusOk;
         break;
 
-    case FetchLoaderDoneStatusFailure:
+    case FetchStatusError:
         update_status = UpdaterStatusDownloadFailure;
         break;
 
-    case FetchLoaderDoneStatusAbort:
+    case FetchStatusAborted:
         update_status = UpdaterStatusDownloadAbort;
         break;
 
@@ -221,18 +221,18 @@ UpdaterStatus updater_internal_do_download(Updater* instance, UpdaterMessage* me
 
     instance->download_loader = fetch_loader_alloc();
 
-    fetch_loader_set_status_callback(
-        instance->download_loader, download_status_callback, instance);
-    fetch_loader_set_state_callback(instance->download_loader, download_state_callback, instance);
-    fetch_loader_set_done_callback(instance->download_loader, download_done_callback, instance);
+    fetch_loader_set_callback_context(instance->download_loader, instance);
+    fetch_loader_set_progress_callback(instance->download_loader, download_status_callback);
+    fetch_loader_set_state_callback(instance->download_loader, download_state_callback);
+    fetch_loader_set_done_callback(instance->download_loader, download_done_callback);
 
-    fetch_loader_run(instance->download_loader, url, path);
+    fetch_loader_start(instance->download_loader, url, path);
 
     DownloadQueueMessage download_message;
     furi_message_queue_get(instance->download_queue, &download_message, FuriWaitForever);
 
     if(download_message.is_abort_request) {
-        fetch_loader_forced_done(instance->download_loader);
+        fetch_loader_stop(instance->download_loader);
 
         do {
             furi_message_queue_get(instance->download_queue, &download_message, FuriWaitForever);
@@ -318,8 +318,7 @@ UpdaterStatus updater_internal_do_unpack(Updater* instance, UpdaterMessage* mess
     do {
         FURI_LOG_D(TAG, "Creating staging directory...");
 
-        if(path_recursive_create_dir(instance->storage, message->as_unpack.staging_path) !=
-           FSE_OK) {
+        if(!storage_simply_mkpath(instance->storage, staging_path)) {
             FURI_LOG_E(TAG, "Failed to create staging directory %s", staging_path);
             update_status = UpdaterStatusUnpackCreateStagingDirectoryFailure;
             break;
