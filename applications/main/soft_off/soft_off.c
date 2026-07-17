@@ -64,6 +64,8 @@ int32_t soft_off_app(void* arg) {
         anim_player_set_section(anim_player, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION);
     });
 
+    bool is_low_power_reached = false;
+
     while(1) {
         uint32_t flags = furi_thread_flags_wait(
             SoftOffThreadFlagExit | SoftOffThreadFlagAnimationCompleted,
@@ -75,10 +77,14 @@ int32_t soft_off_app(void* arg) {
         }
         if(flags & SoftOffThreadFlagAnimationCompleted) {
             low_power_unlock(low_power);
+            is_low_power_reached = true;
         }
     }
     with_gui(gui, { anim_player_free(anim_player); });
-    low_power_lock(low_power);
+
+    if(is_low_power_reached) {
+        low_power_lock(low_power);
+    }
 
     furi_record_close(RECORD_GUI);
     furi_record_close(RECORD_LOADER);
