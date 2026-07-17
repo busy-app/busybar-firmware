@@ -49,6 +49,7 @@ typedef enum {
     IntercomChannelIdTlsCrypto, /**< TLS Crypto handling */
     IntercomChannelIdMatter, /**< Matter smart home protocol */
     IntercomChannelIdSlInfo, /**< Wireless co-processor info channel */
+    IntercomChannelIdLogDump, /**< Remote log dump channel */
     /* Add more channels here as needed */
     IntercomChannelIdDebug, /**< Testing, debugging, etc */
     IntercomChannelIdMax, /**< Special value for internal use */
