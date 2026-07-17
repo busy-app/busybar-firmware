@@ -1,34 +1,47 @@
-#include <furi.h>
 #include "low_power.h"
+
+#include <furi.h>
+
 #include <back_display/back_display.h>
 #include <front_display/front_display.h>
 #include <light_sensor/light_sensor.h>
 
 #define TAG "LowPower"
 
+#define API_QUEUE_SIZE       (16)
+#define API_QUEUE_TIMEOUT_MS (1000)
+
 typedef enum {
-    LowPowerThreadFlagLock = (1 << 0),
-    LowPowerThreadFlagUnlock = (1 << 1),
-} LowPowerThreadFlag;
+    LowPowerApiMessageLock,
+    LowPowerApiMessageUnlock,
+} LowPowerApiMessage;
 
 struct LowPower {
-    FuriThread* thread;
-    uint32_t lock_count;
-    bool in_low_power;
-
+    FuriMessageQueue* api_queue;
     BackDisplaySrv* back_display;
     FrontDisplaySrv* front_display;
+
+    uint32_t lock_count;
+    bool in_low_power;
 };
 
+static void low_power_send_api_message(LowPower* instance, LowPowerApiMessage message) {
+    const FuriStatus status = furi_message_queue_put(
+        instance->api_queue, &message, furi_ms_to_ticks(API_QUEUE_TIMEOUT_MS));
+
+    if(status != FuriStatusOk) {
+        furi_check(status == FuriStatusErrorTimeout);
+        FURI_LOG_E(TAG, "Service is not responding, dropping request");
+    }
+}
+
 static void low_power_enter(LowPower* instance) {
-    UNUSED(instance);
     front_display_sleep_mode(instance->front_display, true);
     back_display_sleep_mode(instance->back_display, true);
     light_sensor_sleep(true);
 }
 
 static void low_power_exit(LowPower* instance) {
-    UNUSED(instance);
     front_display_sleep_mode(instance->front_display, false);
     back_display_sleep_mode(instance->back_display, false);
     light_sensor_sleep(false);
@@ -36,7 +49,7 @@ static void low_power_exit(LowPower* instance) {
 
 static LowPower* low_power_alloc(void) {
     LowPower* instance = malloc(sizeof(LowPower));
-    instance->thread = furi_thread_get_current();
+    instance->api_queue = furi_message_queue_alloc(API_QUEUE_SIZE, sizeof(LowPowerApiMessage));
     instance->lock_count = 1; // Locked by default
     instance->in_low_power = false;
 
@@ -52,18 +65,20 @@ int32_t low_power_srv(void* arg) {
     furi_record_create(RECORD_LOW_POWER, instance);
 
     while(1) {
-        uint32_t flags = furi_thread_flags_wait(
-            LowPowerThreadFlagLock | LowPowerThreadFlagUnlock, FuriFlagWaitAny, FuriWaitForever);
-        furi_check((flags & FuriFlagError) == 0);
-        if(flags & LowPowerThreadFlagLock) {
+        LowPowerApiMessage message;
+        furi_check(
+            furi_message_queue_get(instance->api_queue, &message, FuriWaitForever) ==
+            FuriStatusOk);
+
+        if(message == LowPowerApiMessageLock) {
             instance->lock_count++;
 
             if((instance->lock_count > 0) && (instance->in_low_power)) {
                 low_power_exit(instance);
                 instance->in_low_power = false;
             }
-        }
-        if(flags & LowPowerThreadFlagUnlock) {
+
+        } else if(message == LowPowerApiMessageUnlock) {
             if(instance->lock_count > 0) {
                 instance->lock_count--;
             }
@@ -72,6 +87,9 @@ int32_t low_power_srv(void* arg) {
                 low_power_enter(instance);
                 instance->in_low_power = true;
             }
+
+        } else {
+            furi_crash("Invalid LowPowerApiMessage value");
         }
     }
 
@@ -80,10 +98,10 @@ int32_t low_power_srv(void* arg) {
 
 void low_power_lock(LowPower* instance) {
     furi_assert(instance);
-    furi_thread_flags_set(instance->thread, LowPowerThreadFlagLock);
+    low_power_send_api_message(instance, LowPowerApiMessageLock);
 }
 
 void low_power_unlock(LowPower* instance) {
     furi_assert(instance);
-    furi_thread_flags_set(instance->thread, LowPowerThreadFlagUnlock);
+    low_power_send_api_message(instance, LowPowerApiMessageUnlock);
 }

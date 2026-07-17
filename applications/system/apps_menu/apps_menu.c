@@ -137,6 +137,7 @@ static AppsMenu* apps_menu_alloc(void* launching_application) {
         nav_bar_set_header_text(instance->back_nav_bar, "APPS");
         widget_set_height(nav_bar_get_base(instance->back_nav_bar), 14);
         widget_set_padding(nav_bar_get_base(instance->back_nav_bar), 1, 0, 0, 0);
+        widget_set_visible(nav_bar_get_base(instance->back_nav_bar), false);
 
         instance->back_scene_window = widget_alloc(flex_layout_get_base(instance->back_container));
         flex_layout_set_child_widget_grow(
