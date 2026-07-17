@@ -19,7 +19,7 @@ App(
     provides=[
         "update_cli",
         "crypto_backup",
-        "fetch",
+        "fetch_cli",
         "tar_cli",
     ],
     targets=["f20", "f21", "f22"],

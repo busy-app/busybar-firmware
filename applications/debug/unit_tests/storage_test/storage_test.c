@@ -261,10 +261,25 @@ MU_TEST(storage_dir_exists_test) {
     furi_record_close(RECORD_STORAGE);
 }
 
+MU_TEST(storage_dir_mkpath_test) {
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+
+    const char* test_path = STORAGE_TEST_DIR "/long/nested/path";
+
+    mu_check(!storage_dir_exists(storage, STORAGE_TEST_DIR));
+    mu_check(storage_simply_mkpath(storage, test_path));
+    mu_check(storage_dir_exists(storage, test_path));
+
+    storage_simply_remove_recursive(storage, STORAGE_TEST_DIR);
+
+    furi_record_close(RECORD_STORAGE);
+}
+
 MU_TEST_SUITE(storage_dir) {
     MU_RUN_TEST(storage_dir_open_close);
     MU_RUN_TEST(storage_dir_open_lock);
     MU_RUN_TEST(storage_dir_exists_test);
+    MU_RUN_TEST(storage_dir_mkpath_test);
 }
 
 static const char* const storage_copy_test_paths[] = {

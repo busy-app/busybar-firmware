@@ -7,10 +7,10 @@
 #include <cli/cli_ansi.h>
 #include <cli/args.h>
 #include <toolbox/md5_calc.h>
-#include <toolbox/dir_walk.h>
 #include <toolbox/tar/tar_archive.h>
 #include <storage/storage.h>
 #include <storage/storage_sd_api.h>
+#include <storage_utils/dir_walk.h>
 #include <power/power_service/power.h>
 
 #define MAX_NAME_LENGTH 255

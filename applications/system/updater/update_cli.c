@@ -14,7 +14,6 @@
 #include <toolbox/update_lib/common_vals.h>
 #include <toolbox/tar/tar_archive.h>
 #include <toolbox/path.h>
-#include <applications/system/fetch/fetch.h>
 
 #define TAG                 "UpdaterCli"
 #define UPDATE_STAGING_ROOT "update"

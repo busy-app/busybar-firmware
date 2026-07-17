@@ -381,9 +381,9 @@ class TestWifiFetch:
         path = f"/ext/_test_fetch_{uuid.uuid4().hex[:8]}.json"
         try:
             out = persistent_cli_connection.execute_command(
-                f"fetch {self._UPDATE_DIR} {path}", timeout=60, slow_command=True,
+                f"fetch {self._UPDATE_DIR} -o {path}", timeout=60, slow_command=True,
             )
-            assert "File successfully saved" in out, out
+            assert "Downloaded: 100%" in out, out
         finally:
             persistent_cli_connection.execute_command(f"storage remove {path}")
 
@@ -409,9 +409,9 @@ class TestWifiFetch:
         path = f"/ext/_test_fetch_{uuid.uuid4().hex[:8]}.bin"
         try:
             out = persistent_cli_connection.execute_command(
-                f"fetch {url} {path}", timeout=300, slow_command=True,
+                f"fetch {url} -o {path}", timeout=300, slow_command=True,
             )
-            assert "File successfully saved" in out, out
+            assert "Downloaded: 100%" in out, out
 
             md5_out = persistent_cli_connection.execute_command(
                 f"storage md5 {path}", timeout=60, slow_command=True,
