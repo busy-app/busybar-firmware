@@ -63,6 +63,7 @@ _PYTEST_MARKERS = (
     "external_service: talks to service outside the device",
     "state_publisher: state publisher transport and protobuf contract tests",
     "uses_ble: requires BLE adapter/hardware path",
+    "matter: requires a Matter controller (Home Assistant)",
     "rate_limiter: state publisher rate limiter tests",
     "long_running: long-running hardware regression tests",
     "regression: Heavy regression tests; excluded from PR/dev runs, only fire on -rc tags",

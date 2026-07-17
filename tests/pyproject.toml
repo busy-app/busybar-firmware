@@ -56,6 +56,7 @@ markers = [
     "external_service: marks tests that talk to services outside the device",
     "state_publisher: marks state publisher transport/protobuf tests",
     "uses_ble: marks tests that require BLE adapter/hardware path",
+    "matter: marks tests that require a Matter controller (Home Assistant)",
     "rate_limiter: marks state publisher rate limiter tests",
     "long_running: marks long-running hardware regression tests",
     "regression: marks heavy regression tests",
