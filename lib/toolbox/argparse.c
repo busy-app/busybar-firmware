@@ -22,12 +22,18 @@ static size_t parse_option_argument(const char* args, const char** out) {
     size_t consumed_len = 0;
 
     do {
-        const char* cursor = args;
-        const char* opening_quote = strchr(quote_chars, *cursor);
-        if(opening_quote != NULL) {
-            cursor += CHAR_OFFSET;
+        const char first_char = *args;
+        if(first_char == '\0') {
+            break;
+        }
 
-            const char* closing_quote = strchr(cursor, *opening_quote);
+        const char* args_cursor = args;
+        const char* opening_quote = strchr(quote_chars, first_char);
+
+        if(opening_quote != NULL) {
+            args_cursor += CHAR_OFFSET;
+
+            const char* closing_quote = strchr(args_cursor, *opening_quote);
             if(closing_quote == NULL) {
                 break;
             }
@@ -35,10 +41,10 @@ static size_t parse_option_argument(const char* args, const char** out) {
             consumed_len = closing_quote - args;
 
         } else {
-            consumed_len = strcspn(cursor, space_chars);
+            consumed_len = strcspn(args_cursor, space_chars);
         }
 
-        *out = cursor;
+        *out = args_cursor;
 
     } while(false);
 
@@ -49,7 +55,7 @@ static size_t parse_option(const char* args, const char* opts, ParsedOption* out
     size_t consumed_len = 0;
 
     do {
-        if((opts == NULL) || (strlen(opts) == 0)) {
+        if(opts == NULL) {
             break;
         }
 
@@ -64,27 +70,27 @@ static size_t parse_option(const char* args, const char* opts, ParsedOption* out
         }
 
         const char* optarg = NULL;
-        const char* cursor = args + CHAR_OFFSET;
+        const char* args_cursor = args + CHAR_OFFSET;
 
         if(is_option_argument_required(matched_opt)) {
-            cursor += strspn(cursor, space_chars);
+            args_cursor += strspn(args_cursor, space_chars);
 
-            if(*cursor == OPTION_DELIMITER) {
+            if(*args_cursor == OPTION_DELIMITER) {
                 break;
             }
 
-            const size_t optval_len = parse_option_argument(cursor, &optarg);
+            const size_t optval_len = parse_option_argument(args_cursor, &optarg);
             if(optval_len == 0) {
                 break;
             }
 
-            cursor += optval_len;
+            args_cursor += optval_len;
         }
 
         out->opt = opt;
         out->optarg = optarg;
 
-        consumed_len = cursor - args;
+        consumed_len = args_cursor - args;
 
     } while(false);
 
