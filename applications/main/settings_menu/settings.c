@@ -105,6 +105,7 @@ static SettingsApp* settings_alloc(void* app_arg) {
         nav_bar_set_header_text(instance->back_nav_bar, "SETTINGS");
         widget_set_height(nav_bar_get_base(instance->back_nav_bar), SETTINGS_NAV_BAR_HEIGHT);
         widget_set_padding(nav_bar_get_base(instance->back_nav_bar), 1, 0, 0, 2);
+        widget_set_visible(nav_bar_get_base(instance->back_nav_bar), false);
 
         instance->back_scene_window = widget_alloc(flex_layout_get_base(instance->back_container));
         flex_layout_set_child_widget_grow(
