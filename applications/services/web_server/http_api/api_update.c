@@ -1,6 +1,7 @@
 #include "http_api.h" // Should contain ConnectionContext and other common defs
 
 #include <furi.h>
+#include <toolbox/timers.h>
 
 #include <storage_utils/temp_file.h>
 
@@ -31,7 +32,7 @@
 #define UPDATE_JSON_KEY_AUTOUPDATE_START   "interval_start"
 #define UPDATE_JSON_KEY_AUTOUPDATE_END     "interval_end"
 
-#define UPDATE_UPLOAD_IDLE_TIMEOUT_MS 3000
+#define UPDATE_UPLOAD_IDLE_TIMEOUT_MS 5000
 
 // Context for the update handler (raw upload)
 typedef struct {
@@ -46,7 +47,7 @@ typedef struct {
 
     bool file_fully_received; // Flag: true if all bytes received and temp file closed
 
-    uint64_t timeout_stamp;
+    CoarseTimer timeout_timer;
 } HttpUpdateHandlerCtx;
 
 static const char* const update_status_strings[] = {
@@ -235,7 +236,7 @@ static void api_update_on_data_cb(struct mg_connection* conn, struct mg_iobuf* i
         return;
     }
 
-    update_ctx->timeout_stamp = mg_millis() + UPDATE_UPLOAD_IDLE_TIMEOUT_MS;
+    update_ctx->timeout_timer = coarse_timer_create(UPDATE_UPLOAD_IDLE_TIMEOUT_MS);
 
     size_t data_len = io->len;
     FURI_LOG_T(
@@ -309,7 +310,7 @@ static void api_update_on_poll_cb(struct mg_connection* conn) {
     HttpUpdateHandlerCtx* update_ctx = conn_ctx->context;
     furi_assert(update_ctx);
 
-    if(mg_timer_expired(&update_ctx->timeout_stamp, UPDATE_UPLOAD_IDLE_TIMEOUT_MS, mg_millis())) {
+    if(coarse_timer_is_expired(update_ctx->timeout_timer)) {
         FURI_LOG_E(TAG, "Connection data timeout (%lu)", conn->id);
         MG_REPLY_TIMEOUT(conn, "Upload timeout");
         conn->is_draining = 1; // Force close hanging connection
@@ -351,7 +352,7 @@ static bool api_update_raw_hdr_callback(
     conn_ctx->on_close = api_update_on_close_cb;
     conn_ctx->context = update_ctx;
 
-    update_ctx->timeout_stamp = mg_millis() + UPDATE_UPLOAD_IDLE_TIMEOUT_MS;
+    update_ctx->timeout_timer = coarse_timer_create(UPDATE_UPLOAD_IDLE_TIMEOUT_MS);
     update_ctx->total_file_size = msg->body.len;
     if(update_ctx->total_file_size > MAX_UPLOAD_FILE_SIZE) {
         FURI_LOG_E(
