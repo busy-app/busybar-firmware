@@ -88,6 +88,10 @@ static void mqtt_set_status(Mqtt* instance, MqttStatus status) {
     }
 }
 
+static void mqtt_reset_reconnect_delay(Mqtt* instance) {
+    instance->reconnect_delay_ms = MQTT_RECONNECT_DELAY_MIN;
+}
+
 static const char* mqtt_get_server_url(const Mqtt* instance) {
     const MqttConfig* config = &instance->settings.config;
     if(strcmp(config->server_url, MQTT_CONFIG_SERVER_URL_DEFAULT) == 0) {
@@ -229,8 +233,6 @@ static void mqtt_open_mg_event_handler(
             mqtt_set_status(instance, MqttStatusConnectedNotLinked);
         }
 
-        instance->reconnect_delay_ms = MQTT_RECONNECT_DELAY_MIN;
-
         MqttSubscriptionList_it_ct it;
         for(MqttSubscriptionList_it(it, instance->subscriptions); !MqttSubscriptionList_end_p(it);
             MqttSubscriptionList_next(it)) {
@@ -276,13 +278,16 @@ static void mqtt_close_mg_event_handler(
 static void mqtt_handle_subscribe_error(Mqtt* instance, MqttReasonCode reason_code) {
     FURI_LOG_E(TAG, "Failed to subscribe, reason: 0x%02X", reason_code);
 
+    bool should_reconnect_now = false;
+
     if((reason_code == MqttReasonCodeNotAuthorized) &&
        (instance->status == MqttStatusConnectedLinked)) {
         FURI_LOG_W(TAG, "Outdated or invalid credentials, resetting");
         mqtt_reset_saved_state(instance);
+        should_reconnect_now = true;
     }
 
-    mqtt_connection_close(instance, false);
+    mqtt_connection_close(instance, should_reconnect_now);
 }
 
 static void mqtt_mqtt_cmd_mg_event_handler(
@@ -299,6 +304,8 @@ static void mqtt_mqtt_cmd_mg_event_handler(
 
         if(reason_code > MqttReasonCodeGrantedQoS2) {
             mqtt_handle_subscribe_error(instance, reason_code);
+        } else {
+            mqtt_reset_reconnect_delay(instance);
         }
 
     } else if(cmd == MQTT_CMD_PINGRESP) {
