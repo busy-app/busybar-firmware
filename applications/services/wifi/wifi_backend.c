@@ -9,8 +9,10 @@
 #include "wifi_config.h"
 #include "wifi_backend_util.h"
 
-#define EVENT_QUEUE_SIZE       8
+#define EVENT_QUEUE_SIZE       16
 #define EVENT_QUEUE_TIMEOUT_MS 200
+
+#define REQUEST_QUEUE_SIZE 1
 
 #define NUM_CONNECTION_ATTEMPTS 3
 #define SCAN_INTERVAL_S         5
@@ -35,15 +37,10 @@
 #define INFO_TIMER_PERIOD_MS (15 * 1000)
 
 typedef enum {
-    WifiEventTypeRequestReceived,
     WifiEventTypeScanFinished,
     WifiEventTypeModuleStats,
     WifiEventTypeMax,
 } WifiEventType;
-
-typedef struct {
-    WifiRequest request;
-} WifiRequestReceivedEvent;
 
 typedef struct {
     sl_status_t status;
@@ -57,7 +54,6 @@ typedef struct {
 typedef struct {
     WifiEventType type;
     union {
-        WifiRequestReceivedEvent request_received;
         WifiScanFinishedEvent scan_finished;
         WifiModuleStatsEvent module_stats;
     };
@@ -274,19 +270,8 @@ static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* 
 
     Wifi* instance = context;
 
-    WifiEvent wifi_event = {
-        .type = WifiEventTypeRequestReceived,
-    };
-
-    memcpy(&wifi_event.request_received, data, data_size);
-
-    const FuriStatus status = furi_message_queue_put(
-        instance->event_queue, &wifi_event, furi_ms_to_ticks(EVENT_QUEUE_TIMEOUT_MS));
-
-    if(status != FuriStatusOk) {
-        furi_check(status == FuriStatusErrorTimeout);
-        FURI_LOG_E(TAG, "BUG: %s failed to deliver event", __FUNCTION__);
-    }
+    const WifiRequest* request = data;
+    furi_check(furi_message_queue_put(instance->request_queue, request, 0) == FuriStatusOk);
 }
 
 static void wifi_net_intercom_rx_callback(const void* data, size_t data_size, void* context) {
@@ -300,23 +285,6 @@ static void wifi_net_intercom_rx_callback(const void* data, size_t data_size, vo
         ++instance->tx_drop_count;
         FURI_LOG_W(
             TAG, "TX: Dropped packet (%lu total), reason: 0x%lX", instance->tx_drop_count, status);
-    }
-}
-
-static void
-    wifi_request_received_event_handler(Wifi* instance, const WifiRequestReceivedEvent* event) {
-    const WifiRequest* request = &event->request;
-    const WifiRequestType request_type = request->type;
-    furi_check(request_type < WifiRequestTypeBackendInfo);
-
-    WifiResponse response = {0};
-    const sl_status_t status = wifi_request_handlers[request_type](instance, request, &response);
-
-    if(status != SL_STATUS_IN_PROGRESS) {
-        response.type = request_type;
-        response.status = wifi_decode_sl_status(status);
-
-        wifi_send_response(instance, &response);
     }
 }
 
@@ -477,9 +445,7 @@ static void wifi_event_queue_callback(FuriEventLoopObject* object, void* context
     while(furi_message_queue_get(instance->event_queue, &event, 0) == FuriStatusOk) {
         const WifiEventType event_type = event.type;
 
-        if(event_type == WifiEventTypeRequestReceived) {
-            wifi_request_received_event_handler(instance, &event.request_received);
-        } else if(event_type == WifiEventTypeScanFinished) {
+        if(event_type == WifiEventTypeScanFinished) {
             wifi_scan_finished_event_handler(instance, &event.scan_finished);
         } else if(event_type == WifiEventTypeModuleStats) {
             wifi_module_stats_event_handler(instance, &event.module_stats);
@@ -487,6 +453,45 @@ static void wifi_event_queue_callback(FuriEventLoopObject* object, void* context
             furi_crash("Invalid WifiEventType");
         }
     }
+}
+
+static void wifi_request_queue_callback(FuriEventLoopObject* object, void* context) {
+    furi_assert(context);
+
+    Wifi* instance = context;
+    furi_assert(object == instance->request_queue);
+
+    WifiRequest request;
+    furi_check(furi_message_queue_get(instance->request_queue, &request, 0) == FuriStatusOk);
+
+    const WifiRequestType request_type = request.type;
+    furi_check(request_type < WifiRequestTypeBackendInfo);
+
+    WifiResponse response = {0};
+    const sl_status_t status = wifi_request_handlers[request_type](instance, &request, &response);
+
+    if(status != SL_STATUS_IN_PROGRESS) {
+        response.type = request_type;
+        response.status = wifi_decode_sl_status(status);
+
+        wifi_send_response(instance, &response);
+    }
+}
+
+static bool wifi_send_event(Wifi* instance, const WifiEvent* event) {
+    bool success;
+
+    const FuriStatus status = furi_message_queue_put(
+        instance->event_queue, event, furi_ms_to_ticks(EVENT_QUEUE_TIMEOUT_MS));
+
+    if(status == FuriStatusOk) {
+        success = true;
+    } else {
+        furi_check(status == FuriStatusErrorTimeout);
+        success = false;
+    }
+
+    return success;
 }
 
 static sl_status_t wifi_scan_callback(
@@ -517,11 +522,7 @@ static sl_status_t wifi_scan_callback(
                 },
         };
 
-        const FuriStatus status = furi_message_queue_put(
-            instance->event_queue, &wifi_event, furi_ms_to_ticks(EVENT_QUEUE_TIMEOUT_MS));
-
-        if(status != FuriStatusOk) {
-            furi_check(status == FuriStatusErrorTimeout);
+        if(!wifi_send_event(instance, &wifi_event)) {
             FURI_LOG_E(TAG, "BUG: %s failed to deliver event", __FUNCTION__);
         }
     }
@@ -554,11 +555,7 @@ static sl_status_t
                 },
         };
 
-        const FuriStatus status = furi_message_queue_put(
-            instance->event_queue, &wifi_event, furi_ms_to_ticks(EVENT_QUEUE_TIMEOUT_MS));
-
-        if(status != FuriStatusOk) {
-            furi_check(status == FuriStatusErrorTimeout);
+        if(!wifi_send_event(instance, &wifi_event)) {
             FURI_LOG_E(TAG, "BUG: %s failed to deliver event", __FUNCTION__);
         }
     }
@@ -621,6 +618,7 @@ static Wifi* wifi_alloc(void) {
 
     instance->event_loop = furi_event_loop_alloc();
     instance->event_queue = furi_message_queue_alloc(EVENT_QUEUE_SIZE, sizeof(WifiEvent));
+    instance->request_queue = furi_message_queue_alloc(REQUEST_QUEUE_SIZE, sizeof(WifiRequest));
     instance->event_pubsub = furi_pubsub_alloc();
     instance->info_timer = furi_event_loop_timer_alloc(
         instance->event_loop, wifi_backend_info_callback, FuriEventLoopTimerTypePeriodic, instance);
@@ -634,6 +632,13 @@ static Wifi* wifi_alloc(void) {
         instance->event_queue,
         FuriEventLoopEventIn,
         wifi_event_queue_callback,
+        instance);
+
+    furi_event_loop_subscribe_message_queue(
+        instance->event_loop,
+        instance->request_queue,
+        FuriEventLoopEventIn,
+        wifi_request_queue_callback,
         instance);
 
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
