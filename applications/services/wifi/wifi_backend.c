@@ -19,17 +19,18 @@
 #define STATE_CODE_UPPER_MASK 0xF0
 #define REASON_CODE_MSB_MASK  0x7F
 
-#define STATE_CODE_NO_REASON    0x00
+#define STATE_CODE_UNSPECIFIED  0x00
 #define STATE_CODE_ASSOCIATED   0x80
 #define STATE_CODE_DEASSOCIATED 0x90
 
-#define REASON_CODE_NO_REASON    0x00
+#define REASON_CODE_UNSPECIFIED  0x00
 #define REASON_CODE_NO_RESPONSE  0x01
 #define REASON_CODE_ASSOC_DENIAL 0x02
 #define REASON_CODE_AP_NOT_FOUND 0x03
 #define REASON_CODE_DEAUTH_USER  0x06
 #define REASON_CODE_KEY_FAILURE  0x08
 #define REASON_CODE_BEACON_LOSS  0x10
+#define REASON_CODE_UNKNOWN_ERR  0x0F
 
 #define INFO_TIMER_PERIOD_MS (15 * 1000)
 
@@ -433,15 +434,20 @@ static void wifi_module_stats_event_handler(Wifi* instance, const WifiModuleStat
                 FURI_LOG_T(TAG, "Authentication error");
             }
 
+        } else if(reason_code == REASON_CODE_UNKNOWN_ERR) {
+            if(instance->state != WifiBackendStateDisconnected) {
+                FURI_LOG_W(TAG, "Unknown error while connected/reconnecting");
+            }
+
         } else {
             wifi_log_unhandled_reason_code(state_code, reason_code);
         }
 
         wifi_stop_info_polling(instance);
 
-    } else if(state_code == STATE_CODE_NO_REASON) {
-        if(reason_code == REASON_CODE_NO_REASON) {
-            /* Nothing */
+    } else if(state_code == STATE_CODE_UNSPECIFIED) {
+        if(reason_code == REASON_CODE_UNSPECIFIED) {
+            /* Nothing, occurs under normal operation */
         } else if(reason_code == REASON_CODE_ASSOC_DENIAL) {
             FURI_LOG_W(TAG, "Forcefully disconnected from AP");
 
