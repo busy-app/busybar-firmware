@@ -416,6 +416,11 @@ static void wifi_module_stats_event_handler(Wifi* instance, const WifiModuleStat
     } else if(state_code == STATE_CODE_UNSPECIFIED) {
         if(reason_code == REASON_CODE_UNSPECIFIED) {
             /* Nothing, occurs under normal operation */
+        } else if(reason_code == REASON_CODE_NO_RESPONSE) {
+            if(instance->state != WifiBackendStateReconnecting) {
+                FURI_LOG_W(TAG, "No response from AP while connected/disconnected");
+            }
+
         } else if(reason_code == REASON_CODE_ASSOC_DENIAL) {
             FURI_LOG_W(TAG, "Forcefully disconnected from AP");
 
@@ -424,6 +429,11 @@ static void wifi_module_stats_event_handler(Wifi* instance, const WifiModuleStat
                 wifi_net_tcpip_netif_down(instance);
 
                 wifi_stop_info_polling(instance);
+            }
+
+        } else if(reason_code == REASON_CODE_AP_NOT_FOUND) {
+            if(instance->state != WifiBackendStateReconnecting) {
+                FURI_LOG_W(TAG, "AP not found while connected/disconnected");
             }
 
         } else {
