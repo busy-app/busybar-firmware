@@ -35,7 +35,9 @@ class HAMatterClient:
 
         ws_url = self.base_url.replace("http", "ws", 1) + "/api/websocket"
         self.ws = websocket.create_connection(ws_url, timeout=timeout)
-        assert json.loads(self.ws.recv())["type"] == "auth_required"
+        greeting = json.loads(self.ws.recv())
+        if greeting.get("type") != "auth_required":
+            raise HAError(f"unexpected HA WebSocket greeting: {greeting}")
         self.ws.send(json.dumps({"type": "auth", "access_token": token}))
         reply = json.loads(self.ws.recv())
         if reply.get("type") != "auth_ok":
@@ -51,11 +53,18 @@ class HAMatterClient:
 
     def ws_cmd(self, payload: dict, timeout: float = 60.0):
         message_id = next(self._ids)
+        self.ws.settimeout(timeout)
         self.ws.send(json.dumps({"id": message_id, **payload}))
         deadline = time.monotonic() + timeout
-        self.ws.settimeout(timeout)
-        while time.monotonic() < deadline:
-            msg = json.loads(self.ws.recv())
+        while True:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                break
+            self.ws.settimeout(remaining)
+            try:
+                msg = json.loads(self.ws.recv())
+            except websocket.WebSocketTimeoutException:
+                break
             if msg.get("id") != message_id or msg.get("type") != "result":
                 continue  # subscription events etc.
             if not msg.get("success"):
