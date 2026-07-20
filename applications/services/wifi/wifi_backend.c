@@ -16,8 +16,8 @@
 #define SCAN_INTERVAL_S         5
 #define BEACON_MISSED_COUNT     40
 
-#define STATE_CODE_MASK  0xF0
-#define REASON_CODE_MASK 0x0F
+#define STATE_CODE_UPPER_MASK 0xF0
+#define REASON_CODE_MSB_MASK  0x7F
 
 #define STATE_CODE_NO_REASON    0x00
 #define STATE_CODE_ASSOCIATED   0x80
@@ -29,6 +29,7 @@
 #define REASON_CODE_AP_NOT_FOUND 0x03
 #define REASON_CODE_DEAUTH_USER  0x06
 #define REASON_CODE_KEY_FAILURE  0x08
+#define REASON_CODE_BEACON_LOSS  0x10
 
 #define INFO_TIMER_PERIOD_MS (15 * 1000)
 
@@ -388,8 +389,8 @@ static void wifi_log_unhandled_reason_code(uint8_t state_code, uint8_t reason_co
 }
 
 static void wifi_module_stats_event_handler(Wifi* instance, const WifiModuleStatsEvent* event) {
-    const uint8_t state_code = event->state_code & STATE_CODE_MASK;
-    const uint8_t reason_code = event->reason_code & REASON_CODE_MASK;
+    const uint8_t state_code = event->state_code & STATE_CODE_UPPER_MASK;
+    const uint8_t reason_code = event->reason_code & REASON_CODE_MSB_MASK;
 
     if(state_code == STATE_CODE_ASSOCIATED) {
         if(instance->state == WifiBackendStateReconnecting) {
@@ -408,7 +409,7 @@ static void wifi_module_stats_event_handler(Wifi* instance, const WifiModuleStat
                 FURI_LOG_W(TAG, "Deassociation by user request while disconnected");
             }
 
-        } else if(reason_code == REASON_CODE_NO_REASON || reason_code == REASON_CODE_NO_RESPONSE) {
+        } else if(reason_code == REASON_CODE_NO_RESPONSE || reason_code == REASON_CODE_BEACON_LOSS) {
             if(instance->state == WifiBackendStateConnected) {
                 wifi_set_state(instance, WifiBackendStateReconnecting);
                 wifi_net_tcpip_netif_down(instance);
