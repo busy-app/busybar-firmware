@@ -270,9 +270,10 @@ static void fetch_adjust_url(FuriString* url, const char* src_url) {
        (strncmp(src_url, HTTPS_PREFIX, strlen(HTTPS_PREFIX)) != 0)) {
         FURI_LOG_D(TAG, "No protocol prefix given, assuming http");
         furi_string_set(url, HTTP_PREFIX);
+        furi_string_cat(url, src_url);
+    } else {
+        furi_string_set(url, src_url);
     }
-
-    furi_string_cat(url, src_url);
 }
 
 static void fetch_cli_option_callback(char opt, const char* optarg, void* context) {
