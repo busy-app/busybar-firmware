@@ -37,8 +37,8 @@ static void soft_off_animation_finished_callback(
     if(frame->flags & AnimFileFrameFlagError) return;
     if(!(frame->flags & AnimFileFrameFlagFinished)) return;
 
-    FuriThread* thread = context;
-    furi_thread_flags_set(thread, SoftOffThreadFlagAnimationCompleted);
+    FuriThreadId* thread_id = context;
+    furi_thread_flags_set(thread_id, SoftOffThreadFlagAnimationCompleted);
 }
 
 int32_t soft_off_app(void* arg) {
@@ -50,7 +50,7 @@ int32_t soft_off_app(void* arg) {
     LowPower* low_power = furi_record_open(RECORD_LOW_POWER);
 
     FuriThread* thread = furi_thread_get_current();
-    furi_thread_set_signal_callback(thread, soft_off_signal_callback, thread);
+    furi_thread_set_signal_callback(thread, soft_off_signal_callback, furi_thread_get_id(thread));
 
     AnimPlayer* anim_player;
     with_gui(gui, {
