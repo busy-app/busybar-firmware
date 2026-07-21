@@ -1,34 +1,21 @@
 /**
- * @file log_storage.h
- * @brief Log capture service API.
+ * @file log_storage_u5.h
+ * @brief Log capture service — U5 dump API.
  */
 #pragma once
 
+#include "common/log_storage.h"
+
 #include <stdbool.h>
-#include <furi.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * @brief The string key for the LogStorage instance access.
- *
- * Get the instance pointer by calling `furi_record_open(RECORD_LOG_STORAGE)`.
- */
-#define RECORD_LOG_STORAGE "log_storage"
-
-/**
  * @brief Default file path used when log_storage_dump() is called with NULL.
  */
 #define LOG_STORAGE_DUMP_DEFAULT_FILE_PATH "/ext/log.txt"
-
-/**
- * @brief Opaque log storage instance.
- *
- * Obtain it via `furi_record_open(RECORD_LOG_STORAGE)`.
- */
-typedef struct LogStorage LogStorage;
 
 /**
  * @brief Snapshot the captured log buffer into a file on the /ext partition.

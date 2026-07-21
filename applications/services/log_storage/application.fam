@@ -3,11 +3,24 @@ App(
     apptype=FlipperAppType.STARTUP,
     entry_point="log_storage_on_system_start",
     stack_size=2 * 1024,
-    order=125,
+    order=3,
+    cdefines=["LOG_STORAGE_LOG_BUFFER_SIZE=(16u * 1024u)"],
     provides=["log_storage_cli"],
     targets=["f20", "f21", "f22"],
-    sdk_headers=["log_storage.h"],
-    sources=["log_storage.c"],
+    sdk_headers=["common/log_storage.h", "log_storage_u5.h"],
+    sources=["common/log_storage.c", "log_storage_u5.c"],
+)
+
+App(
+    appid="log_storage",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="log_storage_srv",
+    stack_size=2 * 1024,
+    order=3,
+    cdefines=["LOG_STORAGE_LOG_BUFFER_SIZE=(8u * 1024u)"],
+    targets=["f64", "f65"],
+    sdk_headers=["common/log_storage.h"],
+    sources=["common/log_storage.c", "log_storage_917.c"],
 )
 
 App(

@@ -79,6 +79,7 @@ App(
         "matter",
         "startup_dfu_hook",
         "device_info",
+        "log_storage",
     ],
     targets=["f64", "f65"],
 )
