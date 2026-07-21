@@ -25,9 +25,11 @@ from utils.busy_timer import (
 pytestmark = [pytest.mark.regression, pytest.mark.api]
 
 
-# --------------------------------------------------------------------- AC3
+@allure.feature("State Publisher")
+@allure.story("Published events")
+@allure.title("Device name change publishes a StateUpdate")
 def test_device_name_change_publishes(state_publisher_ws, settings_api):
-    """AC3: setting a new device name emits a ``device_name`` StateUpdate."""
+    """Setting a new device name emits a ``device_name`` StateUpdate."""
     original = settings_api.get_name().name
     new_name = f"reg-{int(time.time()) % 100000}"
     if new_name == original:
@@ -35,16 +37,19 @@ def test_device_name_change_publishes(state_publisher_ws, settings_api):
 
     try:
         state_publisher_ws.drain()
-        with allure.step(f"POST /api/name -> {new_name!r}"):
+        with allure.step(f"Change the device name to {new_name!r}"):
             settings_api.set_name(new_name)
 
-        update = state_publisher_ws.wait_for(
-            lambda u: u.WhichOneof("state") == "device_name"
-            and u.device_name.name == new_name,
-            timeout=5.0,
-        )
-        assert update.WhichOneof("state") == "device_name"
-        assert update.device_name.name == new_name
+        with allure.step("Wait for the device-name StateUpdate"):
+            update = state_publisher_ws.wait_for(
+                lambda u: u.WhichOneof("state") == "device_name"
+                and u.device_name.name == new_name,
+                timeout=5.0,
+            )
+
+        with allure.step("Verify the published device name"):
+            assert update.WhichOneof("state") == "device_name"
+            assert update.device_name.name == new_name
     finally:
         try:
             settings_api.set_name(original)
@@ -52,25 +57,30 @@ def test_device_name_change_publishes(state_publisher_ws, settings_api):
             pass
 
 
-# --------------------------------------------------------------------- AC4
+@allure.feature("State Publisher")
+@allure.story("Published events")
+@allure.title("Audio volume change publishes a StateUpdate")
 def test_audio_volume_change_publishes(state_publisher_ws, settings_api):
-    """AC4: setting a new volume emits an ``audio_volume`` StateUpdate."""
+    """Setting a new volume emits an ``audio_volume`` StateUpdate."""
     current = int(settings_api.get_volume().volume)
     candidates = [v for v in (10, 50, 90) if v != current]
     new_volume = candidates[0]
 
     try:
         state_publisher_ws.drain()
-        with allure.step(f"POST /api/audio/volume?volume={new_volume}"):
+        with allure.step(f"Change the audio volume to {new_volume}"):
             settings_api.set_volume(new_volume)
 
-        update = state_publisher_ws.wait_for(
-            lambda u: u.WhichOneof("state") == "audio_volume"
-            and u.audio_volume.volume == new_volume,
-            timeout=5.0,
-        )
-        assert update.WhichOneof("state") == "audio_volume"
-        assert update.audio_volume.volume == new_volume
+        with allure.step("Wait for the audio-volume StateUpdate"):
+            update = state_publisher_ws.wait_for(
+                lambda u: u.WhichOneof("state") == "audio_volume"
+                and u.audio_volume.volume == new_volume,
+                timeout=5.0,
+            )
+
+        with allure.step("Verify the published audio volume"):
+            assert update.WhichOneof("state") == "audio_volume"
+            assert update.audio_volume.volume == new_volume
     finally:
         try:
             settings_api.set_volume(current)
@@ -78,13 +88,15 @@ def test_audio_volume_change_publishes(state_publisher_ws, settings_api):
             pass
 
 
-# --------------------------------------------------------------------- AC5
 def _brightness_mode_for(value: str) -> str:
     return "automatic" if value.lower() == "auto" else "manual"
 
 
+@allure.feature("State Publisher")
+@allure.story("Published events")
+@allure.title("Brightness change publishes a StateUpdate")
 def test_brightness_change_publishes(state_publisher_ws, settings_api):
-    """AC5: changing brightness emits a ``brightness`` StateUpdate.
+    """Changing brightness emits a ``brightness`` StateUpdate.
 
     We only assert on the oneof discriminator (``automatic`` vs ``manual``)
     because the numeric ``actual_brightness`` depends on hardware and the
@@ -97,16 +109,19 @@ def test_brightness_change_publishes(state_publisher_ws, settings_api):
 
     try:
         state_publisher_ws.drain()
-        with allure.step(f"POST /api/display/brightness?value={new_value}"):
+        with allure.step(f"Change the display brightness to {new_value}"):
             settings_api.set_brightness(new_value)
 
-        update = state_publisher_ws.wait_for(
-            lambda u: u.WhichOneof("state") == "brightness"
-            and u.brightness.WhichOneof("setting") == expected_mode,
-            timeout=5.0,
-        )
-        assert update.WhichOneof("state") == "brightness"
-        assert update.brightness.WhichOneof("setting") == expected_mode
+        with allure.step("Wait for the brightness StateUpdate"):
+            update = state_publisher_ws.wait_for(
+                lambda u: u.WhichOneof("state") == "brightness"
+                and u.brightness.WhichOneof("setting") == expected_mode,
+                timeout=5.0,
+            )
+
+        with allure.step("Verify the published brightness mode"):
+            assert update.WhichOneof("state") == "brightness"
+            assert update.brightness.WhichOneof("setting") == expected_mode
     finally:
         try:
             settings_api.set_brightness(current)
@@ -114,9 +129,11 @@ def test_brightness_change_publishes(state_publisher_ws, settings_api):
             pass
 
 
-# --------------------------------------------------------------------- AC6
+@allure.feature("State Publisher")
+@allure.story("Published events")
+@allure.title("Timezone change publishes a StateUpdate")
 def test_timezone_change_publishes(state_publisher_ws, system_api):
-    """AC6: setting a new timezone emits a ``timezone`` StateUpdate."""
+    """Setting a new timezone emits a ``timezone`` StateUpdate."""
     current = system_api.get_timezone().name
     tz_list = [item.name for item in system_api.get_timezone_list().list]
     candidates = [tz for tz in tz_list if tz != current]
@@ -126,16 +143,19 @@ def test_timezone_change_publishes(state_publisher_ws, system_api):
 
     try:
         state_publisher_ws.drain()
-        with allure.step(f"POST /api/time/timezone?timezone={new_tz}"):
+        with allure.step(f"Change the device timezone to {new_tz}"):
             system_api.set_timezone(new_tz)
 
-        update = state_publisher_ws.wait_for(
-            lambda u: u.WhichOneof("state") == "timezone"
-            and u.timezone.name == new_tz,
-            timeout=5.0,
-        )
-        assert update.WhichOneof("state") == "timezone"
-        assert update.timezone.name == new_tz
+        with allure.step("Wait for the timezone StateUpdate"):
+            update = state_publisher_ws.wait_for(
+                lambda u: u.WhichOneof("state") == "timezone"
+                and u.timezone.name == new_tz,
+                timeout=5.0,
+            )
+
+        with allure.step("Verify the published timezone"):
+            assert update.WhichOneof("state") == "timezone"
+            assert update.timezone.name == new_tz
     finally:
         try:
             system_api.set_timezone(current)
@@ -143,29 +163,35 @@ def test_timezone_change_publishes(state_publisher_ws, system_api):
             pass
 
 
-# --------------------------------------------------------------------- AC7
+@allure.feature("State Publisher")
+@allure.story("Published events")
+@allure.title("BLE enable and disable transitions publish StateUpdates")
 def test_ble_enable_disable_publishes(state_publisher_ws, ble_api):
-    """AC7: each BLE enable/disable transition emits a ``ble`` StateUpdate."""
+    """Each BLE enable/disable transition emits a ``ble`` StateUpdate."""
     initial = ble_api.get_status().status
     started_enabled = initial not in ("disabled", "reset", "initialization")
 
     def _toggle_off():
         state_publisher_ws.drain()
-        with allure.step("POST /api/ble/disable"):
+        with allure.step("Disable BLE"):
             ble_api.disable()
-        update = state_publisher_ws.wait_for(
-            lambda u: u.WhichOneof("state") == "ble", timeout=5.0
-        )
-        assert update.WhichOneof("state") == "ble"
+        with allure.step("Wait for the BLE-disabled StateUpdate"):
+            update = state_publisher_ws.wait_for(
+                lambda u: u.WhichOneof("state") == "ble", timeout=5.0
+            )
+        with allure.step("Verify the BLE-disabled update discriminator"):
+            assert update.WhichOneof("state") == "ble"
 
     def _toggle_on():
         state_publisher_ws.drain()
-        with allure.step("POST /api/ble/enable"):
+        with allure.step("Enable BLE"):
             ble_api.enable()
-        update = state_publisher_ws.wait_for(
-            lambda u: u.WhichOneof("state") == "ble", timeout=5.0
-        )
-        assert update.WhichOneof("state") == "ble"
+        with allure.step("Wait for the BLE-enabled StateUpdate"):
+            update = state_publisher_ws.wait_for(
+                lambda u: u.WhichOneof("state") == "ble", timeout=5.0
+            )
+        with allure.step("Verify the BLE-enabled update discriminator"):
+            assert update.WhichOneof("state") == "ble"
 
     try:
         if started_enabled:
@@ -184,14 +210,16 @@ def test_ble_enable_disable_publishes(state_publisher_ws, ble_api):
             pass
 
 
-# --------------------------------------------------------------------- AC8
+@allure.feature("State Publisher")
+@allure.story("Published events")
+@allure.title("Busy timer change publishes a StateUpdate")
 def test_busy_timer_change_publishes(
     state_publisher_ws,
     api_session,
     web_base_url,
     busy_state_guard,
 ):
-    """AC8: mutating the busy-timer snapshot emits a ``timer`` StateUpdate.
+    """Mutating the busy-timer snapshot emits a ``timer`` StateUpdate.
 
     The payload (``BSB_Util.Json``) is opaque to this test — we only assert
     that some ``timer`` update arrives. ``busy_state_guard`` autorestores
@@ -210,10 +238,13 @@ def test_busy_timer_change_publishes(
     }
 
     state_publisher_ws.drain()
-    with allure.step("PUT /api/busy/snapshot (INFINITE, active)"):
+    with allure.step("Start an active INFINITE busy timer"):
         set_snapshot(api_session, web_base_url, body)
 
-    update = state_publisher_ws.wait_for(
-        lambda u: u.WhichOneof("state") == "timer", timeout=5.0
-    )
-    assert update.WhichOneof("state") == "timer"
+    with allure.step("Wait for the timer StateUpdate"):
+        update = state_publisher_ws.wait_for(
+            lambda u: u.WhichOneof("state") == "timer", timeout=5.0
+        )
+
+    with allure.step("Verify the published timer update discriminator"):
+        assert update.WhichOneof("state") == "timer"
