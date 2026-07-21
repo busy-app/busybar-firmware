@@ -316,6 +316,22 @@ static void fetch_reset(Fetch* instance) {
     instance->is_stop_requested = false;
 }
 
+static bool fetch_verify_response_body_size(Fetch* instance) {
+    bool success = true;
+
+    if(!(instance->is_stop_requested || instance->is_error_occurred)) {
+        const FetchProgress* progress = &instance->progress;
+        const size_t expected_size = progress->total_download_size;
+        const size_t actual_size = progress->received_download_size;
+
+        if((expected_size != 0) && (expected_size != actual_size)) {
+            success = false;
+        }
+    }
+
+    return success;
+}
+
 Fetch* fetch_alloc(void) {
     Fetch* instance = malloc(sizeof(Fetch));
     return instance;
@@ -370,6 +386,10 @@ FetchStatus fetch_run(Fetch* instance, const FetchRequest* request) {
             }
 
             mg_mgr_poll(&instance->mgr, 1000);
+        }
+
+        if(!fetch_verify_response_body_size(instance)) {
+            fetch_raise_error(instance, "Incomplete response body");
         }
 
     } else {
