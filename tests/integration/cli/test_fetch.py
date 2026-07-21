@@ -13,6 +13,7 @@ pytestmark = pytest.mark.cli
 
 
 KNOWN_PAYLOAD = b"busybar-fetch-test\n" * 10
+TRUNCATED_PAYLOAD = b"truncated-fetch-test\n" * 3
 UNKNOWN_LENGTH_PAYLOAD = b"close-delimited-fetch-payload\n" * 7
 NOT_FOUND_PAYLOAD = b"fetch-route-not-found\n"
 REQUEST_RESPONSE = b"request-captured\n"
@@ -63,6 +64,15 @@ class FetchRequestHandler(http.server.BaseHTTPRequestHandler):
 
         if self.path == "/known.bin":
             self._send_payload(200, KNOWN_PAYLOAD)
+        elif self.path == "/truncated.bin":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/octet-stream")
+            self.send_header("Content-Length", str(len(TRUNCATED_PAYLOAD) * 2))
+            self.send_header("Connection", "close")
+            self.end_headers()
+            self.wfile.write(TRUNCATED_PAYLOAD)
+            self.wfile.flush()
+            self.close_connection = True
         elif self.path == "/request":
             self._send_payload(200, REQUEST_RESPONSE)
         elif self.path == "/not-found":
@@ -103,6 +113,7 @@ class TestCLIFetch:
     """Exercise the real device Fetch path through a local host server."""
 
     DEST = "/ext/fetch_test.bin"
+    TRUNCATED_DEST = "/ext/fetch_truncated.bin"
     UNKNOWN_DEST = "/ext/fetch_unknown_length.bin"
     TIMEOUT_DEST = "/ext/fetch_timeout.bin"
 
@@ -187,6 +198,30 @@ class TestCLIFetch:
             self._assert_saved_payload(cli, self.DEST, KNOWN_PAYLOAD)
         finally:
             cli.execute_command(f"storage remove {self.DEST}")
+
+    @allure.title("CLI. Command fetch rejects a truncated known-length response.")
+    def test_fetch_truncated_content_length_removes_output(
+        self, persistent_cli_connection, http_server
+    ):
+        cli = persistent_cli_connection
+        cli.execute_command(f"storage remove {self.TRUNCATED_DEST}")
+        try:
+            response = cli.execute_command(
+                f"fetch {http_server.url('/truncated.bin')} -o {self.TRUNCATED_DEST}",
+                timeout=25,
+                slow_command=True,
+            )
+            with allure.step("Verify truncated response failure"):
+                assert "Error: Incomplete response body" in response, response
+
+            with allure.step("Verify incomplete destination was removed"):
+                stat = cli.execute_command(f"storage stat {self.TRUNCATED_DEST}")
+                assert "Storage error: file/dir not exist" in stat, (
+                    f"expected no file at {self.TRUNCATED_DEST}, got {stat!r}; "
+                    f"Fetch output was {response!r}"
+                )
+        finally:
+            cli.execute_command(f"storage remove {self.TRUNCATED_DEST}")
 
     @allure.title("CLI. Command fetch preserves method, body, and custom header.")
     def test_fetch_request_semantics(self, persistent_cli_connection, http_server):
