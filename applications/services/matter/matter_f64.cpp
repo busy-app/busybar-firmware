@@ -48,7 +48,8 @@ class BsbFabricTableDelegate : public FabricTable::Delegate {
 class MatterSrv {
 public:
     MatterSrv(void);
-    CHIP_ERROR init(void);
+    bool init(void);
+    void deinit(void);
 
     IntercomChannel* m_intercom_ch;
     StatusLights* m_status_lights;
@@ -208,7 +209,7 @@ static void matter_handle_frame(const void* data, size_t data_size, void* contex
 }
 
 /**
- * @brief Notifies u5 about an updated state 
+ * @brief Notifies u5 about an updated state
  */
 static void matter_send_state_update(MatterSrv* matter, bool state) {
     MatterIntercomFrame frame = {
@@ -338,7 +339,9 @@ MatterSrv::MatterSrv(void)
     m_initialization_received = furi_semaphore_alloc(1, 0);
 }
 
-CHIP_ERROR MatterSrv::init(void) {
+bool MatterSrv::init(void) {
+    bool is_stack_inited = false;
+
     CHIP_ERROR err;
 
     do {
@@ -351,6 +354,8 @@ CHIP_ERROR MatterSrv::init(void) {
         if(err != CHIP_NO_ERROR) {
             break;
         }
+
+        is_stack_inited = true;
 
         StackLock lock;
 
@@ -394,7 +399,16 @@ CHIP_ERROR MatterSrv::init(void) {
 
     } while(false);
 
-    return err;
+    if(err != CHIP_NO_ERROR) {
+        FURI_LOG_E(TAG, "Initialization failed: 0x%lx", err.Format());
+    }
+
+    return is_stack_inited;
+}
+
+void MatterSrv::deinit(void) {
+    PlatformMgr().Shutdown();
+    furi_thread_suspend(furi_thread_get_current_id());
 }
 
 extern "C" {
@@ -406,14 +420,10 @@ int matter_srv(void* arg) {
 
     matter_global_srv = new MatterSrv;
 
-    const auto err = matter_global_srv->init();
-
-    if(err == CHIP_NO_ERROR) {
+    if(matter_global_srv->init()) {
         PlatformMgr().RunEventLoop();
-
     } else {
-        FURI_LOG_E(TAG, "Failed to start: 0x%lx", err.Format());
-        furi_thread_suspend(furi_thread_get_current_id());
+        matter_global_srv->deinit();
     }
 
     return 0;
