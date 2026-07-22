@@ -11,9 +11,12 @@
 
 #define LOG_STORAGE_SNAPSHOT_CHUNKS_COUNT 2u
 
-typedef enum {
-    LogIntercomRequestDump = 0x01,
-} LogIntercomRequest;
+enum {
+    LogStorageBaseIntercomRequestDump = 0x01,
+};
+
+typedef uint8_t LogStorageBaseIntercomRequestType;
+typedef uint32_t LogStorageBaseIntercomLengthType;
 
 typedef struct {
     FuriMutex* lock;

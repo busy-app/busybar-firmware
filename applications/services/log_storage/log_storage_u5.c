@@ -43,7 +43,7 @@ static void log_storage_intercom_rx_callback(const void* data, size_t data_size,
 }
 
 static void log_storage_dump_remote(LogStorage* instance, File* file) {
-    uint8_t request = LogIntercomRequestDump;
+    LogStorageBaseIntercomRequestType request = LogStorageBaseIntercomRequestDump;
     if(intercom_tx(
            instance->channel, &request, sizeof(request), LOG_STORAGE_INTERCOM_TX_TIMEOUT_MS) !=
        sizeof(request)) {
@@ -51,7 +51,7 @@ static void log_storage_dump_remote(LogStorage* instance, File* file) {
         return;
     }
 
-    uint32_t dump_length = 0;
+    LogStorageBaseIntercomLengthType dump_length;
     if(furi_stream_buffer_receive(
            instance->rx_stream,
            &dump_length,

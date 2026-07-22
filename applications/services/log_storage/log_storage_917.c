@@ -17,12 +17,14 @@ typedef enum {
 } LogStorageThreadFlag;
 
 static void log_storage_intercom_rx_callback(const void* data, size_t data_size, void* context) {
-    furi_assert(data_size == sizeof(uint8_t));
+    furi_assert(data_size == sizeof(LogStorageBaseIntercomRequestType));
 
     LogStorage* instance = context;
 
-    LogIntercomRequest request = *(const uint8_t*)data;
-    if(request == LogIntercomRequestDump) {
+    LogStorageBaseIntercomRequestType request;
+    memcpy(&request, data, sizeof(request));
+
+    if(request == LogStorageBaseIntercomRequestDump) {
         furi_thread_flags_set(instance->thread_id, LogStorageThreadFlagDumpRequest);
     } else {
         FURI_LOG_E(TAG, "Unknown request type received: %u", request);
@@ -30,7 +32,7 @@ static void log_storage_intercom_rx_callback(const void* data, size_t data_size,
 }
 
 static void log_storage_send_dump(IntercomChannel* channel, const LogStorageSnapshot* snapshot) {
-    uint32_t dump_length = 0;
+    LogStorageBaseIntercomLengthType dump_length = 0;
     for(size_t i = 0; i < LOG_STORAGE_SNAPSHOT_CHUNKS_COUNT; i++) {
         dump_length += snapshot->chunks[i].length;
     }
