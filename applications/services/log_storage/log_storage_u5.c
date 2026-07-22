@@ -26,7 +26,6 @@ struct LogStorage {
     IntercomChannel* channel;
     FuriStreamBuffer* rx_stream;
 
-    _Atomic bool is_917_side_ready;
     _Atomic bool is_917_side_active;
 #endif /* SRV_INTERCOM */
 };
@@ -135,13 +134,11 @@ bool log_storage_dump(LogStorage* instance, const char* path) {
             }
 
 #ifdef SRV_INTERCOM
-            if(instance->is_917_side_ready) {
-                furi_stream_buffer_reset(instance->rx_stream);
+            furi_stream_buffer_reset(instance->rx_stream);
 
-                instance->is_917_side_active = true;
-                log_storage_dump_remote(instance, file);
-                instance->is_917_side_active = false;
-            }
+            instance->is_917_side_active = true;
+            log_storage_dump_remote(instance, file);
+            instance->is_917_side_active = false;
 #endif /* SRV_INTERCOM */
 
             is_successful = true;
@@ -165,13 +162,12 @@ void log_storage_on_system_start(void) {
 
 #ifdef SRV_INTERCOM
     instance->rx_stream = furi_stream_buffer_alloc(INTERCOM_FRAME_DATA_SIZE, 1);
-    instance->is_917_side_ready = false;
     instance->is_917_side_active = false;
 
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
     instance->channel = intercom_channel_open(
         intercom, IntercomChannelIdLogDump, log_storage_intercom_rx_callback, instance);
-
-    instance->is_917_side_ready = true;
 #endif /* SRV_INTERCOM */
+
+    furi_record_create(RECORD_LOG_STORAGE, instance);
 }

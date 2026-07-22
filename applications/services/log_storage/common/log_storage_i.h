@@ -1,7 +1,5 @@
 #pragma once
 
-#include "log_storage.h"
-
 #include <furi.h>
 
 #define LOG_STORAGE_LOCK_TIMEOUT_MS 1000u

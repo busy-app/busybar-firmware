@@ -87,8 +87,6 @@ void log_storage_base_init(LogStorageBase* instance) {
     instance->head_idx = 0;
     instance->did_not_wrap = true;
 
-    furi_record_create(RECORD_LOG_STORAGE, instance);
-
     furi_check(furi_log_add_handler((FuriLogHandler){
         .callback = log_storage_base_on_log,
         .context = instance,

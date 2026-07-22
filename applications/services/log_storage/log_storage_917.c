@@ -6,11 +6,11 @@
 
 #define LOG_STORAGE_INTERCOM_TX_TIMEOUT_MS 1500u
 
-struct LogStorage {
+typedef struct {
     LogStorageBase base;
     IntercomChannel* channel;
     FuriThreadId* thread_id;
-};
+} LogStorage;
 
 typedef enum {
     LogStorageThreadFlagDumpRequest = 1 << 0,
@@ -91,8 +91,9 @@ int32_t log_storage_srv(void* context) {
         furi_check((flags & FuriFlagError) == 0);
 
         if(flags & LogStorageThreadFlagDumpRequest) {
-            FURI_LOG_D(TAG, "Log dump request received");
             log_storage_handle_request(instance);
+
+            FURI_LOG_D(TAG, "Log dump request handled");
         }
     }
 
