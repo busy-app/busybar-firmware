@@ -422,9 +422,9 @@ int matter_srv(void* arg) {
 
     if(matter_global_srv->init()) {
         PlatformMgr().RunEventLoop();
-    } else {
-        matter_global_srv->deinit();
     }
+
+    matter_global_srv->deinit();
 
     return 0;
 }
