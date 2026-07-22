@@ -171,7 +171,6 @@ void log_storage_on_system_start(void) {
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
     instance->channel = intercom_channel_open(
         intercom, IntercomChannelIdLogDump, log_storage_intercom_rx_callback, instance);
-    furi_record_close(RECORD_INTERCOM);
 
     instance->is_917_side_ready = true;
 #endif /* SRV_INTERCOM */
