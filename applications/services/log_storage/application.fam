@@ -18,6 +18,7 @@ App(
     stack_size=2 * 1024,
     order=3,
     cdefines=["LOG_STORAGE_LOG_BUFFER_SIZE=(8u * 1024u)"],
+    requires=["intercom"],
     targets=["f64", "f65"],
     sdk_headers=["common/log_storage.h"],
     sources=["common/log_storage.c", "log_storage_917.c"],

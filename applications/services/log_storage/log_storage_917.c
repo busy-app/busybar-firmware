@@ -1,8 +1,6 @@
 #include "common/log_storage_i.h"
 
-#ifdef SRV_INTERCOM
 #include <intercom/intercom.h>
-#endif /* SRV_INTERCOM */
 
 #define TAG "LogStorage"
 
@@ -10,18 +8,14 @@
 
 struct LogStorage {
     LogStorageBase base;
-
-#ifdef SRV_INTERCOM
     IntercomChannel* channel;
     FuriThreadId* thread_id;
-#endif /* SRV_INTERCOM */
 };
 
 typedef enum {
     LogStorageThreadFlagDumpRequest = 1 << 0,
 } LogStorageThreadFlag;
 
-#ifdef SRV_INTERCOM
 static void log_storage_intercom_rx_callback(const void* data, size_t data_size, void* context) {
     furi_assert(data_size == sizeof(uint8_t));
 
@@ -76,7 +70,6 @@ static void log_storage_handle_request(LogStorage* instance) {
             LOG_STORAGE_INTERCOM_TX_TIMEOUT_MS);
     }
 }
-#endif /* SRV_INTERCOM */
 
 int32_t log_storage_srv(void* context) {
     UNUSED(context);
@@ -84,7 +77,6 @@ int32_t log_storage_srv(void* context) {
     LogStorage* instance = malloc(sizeof(*instance));
     log_storage_base_setup(&instance->base);
 
-#ifdef SRV_INTERCOM
     instance->thread_id = furi_thread_get_current_id();
 
     Intercom* intercom = furi_record_open(RECORD_INTERCOM);
@@ -103,9 +95,6 @@ int32_t log_storage_srv(void* context) {
             log_storage_handle_request(instance);
         }
     }
-#else /* SRV_INTERCOM */
-    furi_delay_tick(FuriWaitForever);
-#endif /* SRV_INTERCOM */
 
     return 0;
 }
