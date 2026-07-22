@@ -16,7 +16,7 @@ import time
 import allure
 import pytest
 
-from utils.busy_timer import WORK_CARD_UUID, next_timestamp, wait_for_snapshot_type
+from utils.busy_timer import WORK_CARD_UUID, next_timestamp
 
 pytestmark = [
     pytest.mark.matter,
@@ -26,27 +26,74 @@ pytestmark = [
 ]
 
 
-def _wait_for(predicate, timeout: float = 20.0, interval: float = 0.3):
-    deadline = time.monotonic() + timeout
-    while time.monotonic() < deadline:
-        if predicate():
-            return True
-        time.sleep(interval)
-    return predicate()
-
-
-def _wait_for_state(getter, expected: str, timeout: float = 30.0):
-    """Poll getter() until it returns expected; return (ok, samples)."""
-    samples = []
+def _wait_for_switch_state(
+    ha,
+    matter_smart_home_api,
+    entity: str,
+    expected: bool,
+    timeout: float = 30.0,
+    interval: float = 0.3,
+):
+    """Wait until HA and the device report the same expected switch state."""
     deadline = time.monotonic() + timeout
     t0 = time.monotonic()
+    samples = []
+    expected_ha = "on" if expected else "off"
+
     while time.monotonic() < deadline:
-        value = getter()
-        if not samples or samples[-1][1] != value:
-            samples.append((round(time.monotonic() - t0, 1), value))
-        if value == expected:
+        observed = (
+            ha.get_state(entity),
+            matter_smart_home_api.get_switch_state().state,
+        )
+        if not samples or samples[-1][1] != observed:
+            samples.append((round(time.monotonic() - t0, 1), observed))
+        if observed == (expected_ha, expected):
             return True, samples
-        time.sleep(0.3)
+        time.sleep(interval)
+    return False, samples
+
+
+def _assert_switch_state(
+    ha, matter_smart_home_api, entity: str, expected: bool
+) -> None:
+    ok, samples = _wait_for_switch_state(ha, matter_smart_home_api, entity, expected)
+    expected_name = "on" if expected else "off"
+    assert ok, (
+        f"switch did not become {expected_name} in HA and on the device; "
+        f"observed (t, (ha, device)): {samples}"
+    )
+
+
+def _set_ha_switch(ha, matter_smart_home_api, entity: str, state: bool) -> None:
+    ha.set_switch(entity, state)
+    _assert_switch_state(ha, matter_smart_home_api, entity, state)
+
+
+def _set_device_switch(ha, matter_smart_home_api, entity: str, state: bool) -> None:
+    resp = matter_smart_home_api.set_switch_state(state)
+    assert resp.status_code == 200, resp.text
+    _assert_switch_state(ha, matter_smart_home_api, entity, state)
+
+
+def _wait_for_timer_type(
+    busy_api,
+    expected_type: str,
+    *,
+    equal: bool = True,
+    timeout: float = 20.0,
+    interval: float = 0.3,
+):
+    deadline = time.monotonic() + timeout
+    t0 = time.monotonic()
+    samples = []
+
+    while time.monotonic() < deadline:
+        snapshot_type = busy_api.get_snapshot().snapshot.get("type")
+        if not samples or samples[-1][1] != snapshot_type:
+            samples.append((round(time.monotonic() - t0, 1), snapshot_type))
+        if (snapshot_type == expected_type) is equal:
+            return True, samples
+        time.sleep(interval)
     return False, samples
 
 
@@ -70,15 +117,18 @@ def test_commissioning(ha, matter_smart_home_api, commissioned_device):
 @allure.title("Home Assistant turns the device switch {param_id}")
 @pytest.mark.timeout(120)
 @pytest.mark.parametrize("state", [True, False], ids=["on", "off"])
-def test_ha_sets_device_switch(ha, matter_smart_home_api, commissioned_device, state):
+def test_ha_sets_device_switch(ha, matter_smart_home_api, idle_lamp_off, state):
     """HA switch service call is reflected in the device switch state."""
+    entity = idle_lamp_off
+
+    with allure.step("Establish the opposite device-side switch state"):
+        _set_device_switch(ha, matter_smart_home_api, entity, not state)
+
     with allure.step(f"Turn the Home Assistant switch {'on' if state else 'off'}"):
-        ha.set_switch(commissioned_device["switch_entity"], state)
+        ha.set_switch(entity, state)
 
     with allure.step("Wait for and verify the device switch state"):
-        assert _wait_for(
-            lambda: matter_smart_home_api.get_switch_state().state is state
-        ), f"device switch did not become {state}"
+        _assert_switch_state(ha, matter_smart_home_api, entity, state)
 
 
 def _busy_settings(trigger_smart_home: bool) -> dict:
@@ -90,13 +140,29 @@ def _busy_settings(trigger_smart_home: bool) -> dict:
 
 
 def _set_timer(busy_api, snapshot: dict) -> None:
+    timestamp = next_timestamp(busy_api.session, busy_api.base_url)
     body = {
         "snapshot": snapshot,
-        "snapshot_timestamp_ms": next_timestamp(busy_api.session, busy_api.base_url),
+        "snapshot_timestamp_ms": timestamp,
     }
     resp = busy_api.set_snapshot_raw(body)
     assert resp.status_code == 200, resp.text
-    wait_for_snapshot_type(busy_api.session, busy_api.base_url, snapshot["type"])
+
+    deadline = time.monotonic() + 5.0
+    samples = []
+    while time.monotonic() < deadline:
+        current = busy_api.get_snapshot()
+        observed = (current.snapshot_timestamp_ms, current.snapshot.get("type"))
+        if not samples or samples[-1] != observed:
+            samples.append(observed)
+        if observed == (timestamp, snapshot["type"]):
+            return
+        time.sleep(0.1)
+
+    raise AssertionError(
+        f"timer snapshot was not applied: expected timestamp/type "
+        f"{timestamp}/{snapshot['type']}, observed: {samples}"
+    )
 
 
 def _running_timer_snapshot(trigger_smart_home: bool) -> dict:
@@ -145,39 +211,43 @@ def busy_api(matter_module_api_factory):
     return matter_module_api_factory(BusyAPI)
 
 
+def _establish_idle_lamp_off(ha, matter_smart_home_api, busy_api, entity: str) -> None:
+    _set_timer(busy_api, _stopped_timer_snapshot(True))
+    _set_ha_switch(ha, matter_smart_home_api, entity, False)
+
+
+@pytest.fixture()
+def idle_lamp_off(ha, matter_smart_home_api, commissioned_device, busy_api):
+    """Give each stateful test an idle timer and synchronized OFF switch."""
+    entity = commissioned_device["switch_entity"]
+
+    with allure.step("Establish an idle timer and lamp-off precondition"):
+        _establish_idle_lamp_off(ha, matter_smart_home_api, busy_api, entity)
+
+    yield entity
+
+    with allure.step("Restore the idle timer and lamp-off state"):
+        _establish_idle_lamp_off(ha, matter_smart_home_api, busy_api, entity)
+
+
 @allure.feature("Matter")
 @allure.story("Home Assistant integration")
 @allure.title("Smart-home timer controls the Home Assistant lamp")
 @pytest.mark.timeout(180)
 def test_timer_with_smart_home_lights_lamp(
-    ha, matter_smart_home_api, commissioned_device, busy_api, request
+    ha, matter_smart_home_api, busy_api, idle_lamp_off
 ):
     """Running work timer with 'trigger smart home' ON turns the lamp on;
     stopping the timer turns it off."""
-    request.addfinalizer(lambda: _set_timer(busy_api, _stopped_timer_snapshot(True)))
-    entity = commissioned_device["switch_entity"]
-
-    with allure.step("Establish a stopped timer and lamp-off baseline"):
-        _set_timer(busy_api, _stopped_timer_snapshot(True))
-        assert _wait_for(
-            lambda: matter_smart_home_api.get_switch_state().state is False
-        )
+    entity = idle_lamp_off
 
     with allure.step("Start the timer and verify the lamp turns on"):
         _set_timer(busy_api, _running_timer_snapshot(True))
-        assert _wait_for(
-            lambda: matter_smart_home_api.get_switch_state().state is True
-        ), "running work timer did not turn the device switch on"
-        ok, samples = _wait_for_state(lambda: ha.get_state(entity), "on")
-        assert ok, f"HA lamp did not turn on with the timer; observed: {samples}"
+        _assert_switch_state(ha, matter_smart_home_api, entity, True)
 
     with allure.step("Stop the timer and verify the lamp turns off"):
         _set_timer(busy_api, _stopped_timer_snapshot(True))
-        assert _wait_for(
-            lambda: matter_smart_home_api.get_switch_state().state is False
-        ), "stopping the timer did not turn the device switch off"
-        ok, samples = _wait_for_state(lambda: ha.get_state(entity), "off")
-        assert ok, f"HA lamp did not turn off after timer stop; observed: {samples}"
+        _assert_switch_state(ha, matter_smart_home_api, entity, False)
 
 
 @allure.feature("Matter")
@@ -187,19 +257,14 @@ def test_timer_with_smart_home_lights_lamp(
 )
 @pytest.mark.timeout(180)
 def test_timer_without_smart_home_keeps_lamp_off(
-    ha, matter_smart_home_api, commissioned_device, busy_api, request
+    ha, matter_smart_home_api, busy_api, idle_lamp_off
 ):
     """Running timer with 'trigger smart home' OFF must not touch the lamp."""
-    request.addfinalizer(lambda: _set_timer(busy_api, _stopped_timer_snapshot(False)))
-    entity = commissioned_device["switch_entity"]
+    entity = idle_lamp_off
 
-    with allure.step("Establish a stopped timer and lamp-off baseline"):
+    with allure.step("Disable smart-home control while keeping the lamp off"):
         _set_timer(busy_api, _stopped_timer_snapshot(False))
-        assert _wait_for(
-            lambda: matter_smart_home_api.get_switch_state().state is False
-        )
-        ok, _ = _wait_for_state(lambda: ha.get_state(entity), "off")
-        assert ok, "baseline: HA lamp is not off"
+        _assert_switch_state(ha, matter_smart_home_api, entity, False)
 
     with allure.step("Run the timer with smart-home control disabled"):
         _set_timer(busy_api, _running_timer_snapshot(False))
@@ -222,33 +287,22 @@ def test_timer_without_smart_home_keeps_lamp_off(
 @allure.story("Home Assistant integration")
 @allure.title("Pausing and resuming the timer toggles the Home Assistant lamp")
 @pytest.mark.timeout(180)
-def test_timer_pause_toggles_lamp(
-    ha, matter_smart_home_api, commissioned_device, busy_api, request
-):
+def test_timer_pause_toggles_lamp(ha, matter_smart_home_api, busy_api, idle_lamp_off):
     """Pausing a running work timer turns the lamp off; resuming turns it on."""
-    request.addfinalizer(lambda: _set_timer(busy_api, _stopped_timer_snapshot(True)))
-    entity = commissioned_device["switch_entity"]
+    entity = idle_lamp_off
 
     with allure.step("Establish a running timer and lamp-on baseline"):
         _set_timer(busy_api, _running_timer_snapshot(True))
-        assert _wait_for(lambda: matter_smart_home_api.get_switch_state().state is True)
+        _assert_switch_state(ha, matter_smart_home_api, entity, True)
 
     with allure.step("Pause the timer and verify the lamp turns off"):
         paused = dict(_running_timer_snapshot(True), is_paused=True)
         _set_timer(busy_api, paused)
-        assert _wait_for(
-            lambda: matter_smart_home_api.get_switch_state().state is False
-        ), "pausing the timer did not turn the device switch off"
-        ok, samples = _wait_for_state(lambda: ha.get_state(entity), "off")
-        assert ok, f"HA lamp did not turn off on pause; observed: {samples}"
+        _assert_switch_state(ha, matter_smart_home_api, entity, False)
 
     with allure.step("Resume the timer and verify the lamp turns on"):
         _set_timer(busy_api, _running_timer_snapshot(True))
-        assert _wait_for(
-            lambda: matter_smart_home_api.get_switch_state().state is True
-        ), "resuming the timer did not turn the device switch back on"
-        ok, samples = _wait_for_state(lambda: ha.get_state(entity), "on")
-        assert ok, f"HA lamp did not turn back on after resume; observed: {samples}"
+        _assert_switch_state(ha, matter_smart_home_api, entity, True)
 
 
 @allure.feature("Matter")
@@ -256,27 +310,18 @@ def test_timer_pause_toggles_lamp(
 @allure.title("Work and rest intervals toggle the Home Assistant lamp")
 @pytest.mark.timeout(180)
 def test_timer_rest_interval_turns_lamp_off(
-    ha, matter_smart_home_api, commissioned_device, busy_api, request
+    ha, matter_smart_home_api, busy_api, idle_lamp_off
 ):
     """In INTERVAL mode the lamp is on during WORK and off during REST."""
-    request.addfinalizer(lambda: _set_timer(busy_api, _stopped_timer_snapshot(True)))
-    entity = commissioned_device["switch_entity"]
+    entity = idle_lamp_off
 
     with allure.step("Start a work interval and verify the lamp turns on"):
         _set_timer(busy_api, _interval_timer_snapshot(0, True))  # WORK
-        assert _wait_for(
-            lambda: matter_smart_home_api.get_switch_state().state is True
-        ), "WORK interval did not turn the device switch on"
-        ok, samples = _wait_for_state(lambda: ha.get_state(entity), "on")
-        assert ok, f"HA lamp is not on during WORK interval; observed: {samples}"
+        _assert_switch_state(ha, matter_smart_home_api, entity, True)
 
     with allure.step("Start a rest interval and verify the lamp turns off"):
         _set_timer(busy_api, _interval_timer_snapshot(1, True))  # REST
-        assert _wait_for(
-            lambda: matter_smart_home_api.get_switch_state().state is False
-        ), "REST interval did not turn the device switch off"
-        ok, samples = _wait_for_state(lambda: ha.get_state(entity), "off")
-        assert ok, f"HA lamp is not off during REST interval; observed: {samples}"
+        _assert_switch_state(ha, matter_smart_home_api, entity, False)
 
 
 @allure.feature("Matter")
@@ -284,36 +329,27 @@ def test_timer_rest_interval_turns_lamp_off(
 @allure.title("Home Assistant lamp starts and stops the device timer")
 @pytest.mark.timeout(180)
 def test_ha_lamp_starts_and_stops_timer(
-    ha, matter_smart_home_api, commissioned_device, busy_api, request
+    ha, matter_smart_home_api, busy_api, idle_lamp_off
 ):
     """Reverse direction: HA lamp ON starts the busy timer on the device,
     lamp OFF stops it."""
-    request.addfinalizer(lambda: _set_timer(busy_api, _stopped_timer_snapshot(True)))
-    entity = commissioned_device["switch_entity"]
-
-    with allure.step("Establish a stopped timer and lamp-off baseline"):
-        _set_timer(busy_api, _stopped_timer_snapshot(True))
-        assert _wait_for(
-            lambda: matter_smart_home_api.get_switch_state().state is False
-        )
+    entity = idle_lamp_off
 
     with allure.step("Turn on the Home Assistant lamp and verify the timer starts"):
-        ha.set_switch(entity, True)
-        assert _wait_for(
-            lambda: matter_smart_home_api.get_switch_state().state is True
-        ), "HA lamp ON did not turn the device switch on"
-        assert _wait_for(
-            lambda: busy_api.get_snapshot().snapshot.get("type") != "NOT_STARTED"
-        ), "HA lamp ON did not start the busy timer (snapshot stayed NOT_STARTED)"
+        _set_ha_switch(ha, matter_smart_home_api, entity, True)
+        ok, samples = _wait_for_timer_type(busy_api, "NOT_STARTED", equal=False)
+        assert ok, (
+            "HA lamp ON did not start the busy timer; "
+            f"observed snapshot types: {samples}"
+        )
 
     with allure.step("Turn off the Home Assistant lamp and verify the timer stops"):
-        ha.set_switch(entity, False)
-        assert _wait_for(
-            lambda: matter_smart_home_api.get_switch_state().state is False
-        ), "HA lamp OFF did not turn the device switch off"
-        assert _wait_for(
-            lambda: busy_api.get_snapshot().snapshot.get("type") == "NOT_STARTED"
-        ), "HA lamp OFF did not stop the busy timer"
+        _set_ha_switch(ha, matter_smart_home_api, entity, False)
+        ok, samples = _wait_for_timer_type(busy_api, "NOT_STARTED")
+        assert ok, (
+            "HA lamp OFF did not stop the busy timer; "
+            f"observed snapshot types: {samples}"
+        )
 
 
 @allure.feature("Matter")
@@ -321,23 +357,16 @@ def test_ha_lamp_starts_and_stops_timer(
 @allure.title("Device switch state is visible in Home Assistant as {param_id}")
 @pytest.mark.timeout(120)
 @pytest.mark.parametrize("state", [True, False], ids=["on", "off"])
-def test_device_switch_visible_in_ha(
-    ha, matter_smart_home_api, commissioned_device, state
-):
+def test_device_switch_visible_in_ha(ha, matter_smart_home_api, idle_lamp_off, state):
     """Device-side switch change is visible as the HA entity state."""
+    entity = idle_lamp_off
+
+    with allure.step("Establish the opposite Home Assistant switch state"):
+        _set_ha_switch(ha, matter_smart_home_api, entity, not state)
+
     with allure.step(f"Turn the device switch {'on' if state else 'off'}"):
         resp = matter_smart_home_api.set_switch_state(state)
         assert resp.status_code == 200, resp.text
 
     with allure.step("Wait for and verify the Home Assistant entity state"):
-        expected = "on" if state else "off"
-        ok, samples = _wait_for_state(
-            lambda: (
-                f"ha={ha.get_state(commissioned_device['switch_entity'])}"
-                f"/dev={matter_smart_home_api.get_switch_state().state}"
-            ),
-            f"ha={expected}/dev={state}",
-        )
-        assert (
-            ok
-        ), f"HA entity did not become {expected}; observed (t, ha/device): {samples}"
+        _assert_switch_state(ha, matter_smart_home_api, entity, state)
