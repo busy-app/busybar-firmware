@@ -80,7 +80,7 @@ void log_storage_base_snapshot_release(LogStorageBase* instance) {
     furi_check(furi_mutex_release(instance->lock) == FuriStatusOk);
 }
 
-void log_storage_base_setup(LogStorageBase* instance) {
+void log_storage_base_init(LogStorageBase* instance) {
     furi_check(instance);
 
     instance->lock = furi_mutex_alloc(FuriMutexTypeNormal);

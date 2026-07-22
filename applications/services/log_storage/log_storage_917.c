@@ -75,7 +75,7 @@ int32_t log_storage_srv(void* context) {
     UNUSED(context);
 
     LogStorage* instance = malloc(sizeof(*instance));
-    log_storage_base_setup(&instance->base);
+    log_storage_base_init(&instance->base);
 
     instance->thread_id = furi_thread_get_current_id();
 

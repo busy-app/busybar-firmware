@@ -159,7 +159,7 @@ bool log_storage_dump(LogStorage* instance, const char* path) {
 
 void log_storage_on_system_start(void) {
     LogStorage* instance = malloc(sizeof(*instance));
-    log_storage_base_setup(&instance->base);
+    log_storage_base_init(&instance->base);
 
     instance->dump_lock = furi_mutex_alloc(FuriMutexTypeNormal);
 

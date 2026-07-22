@@ -34,7 +34,7 @@ typedef struct {
     LogStorageSnapshotChunk chunks[LOG_STORAGE_SNAPSHOT_CHUNKS_COUNT];
 } LogStorageSnapshot;
 
-void log_storage_base_setup(LogStorageBase* instance);
+void log_storage_base_init(LogStorageBase* instance);
 
 bool log_storage_base_snapshot_take(LogStorageBase* instance, LogStorageSnapshot* snapshot);
 void log_storage_base_snapshot_release(LogStorageBase* instance);
