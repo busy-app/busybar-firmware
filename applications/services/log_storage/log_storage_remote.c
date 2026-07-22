@@ -1,4 +1,4 @@
-#include "common/log_storage_i.h"
+#include "log_storage_common_i.h"
 
 #include <intercom/intercom.h>
 

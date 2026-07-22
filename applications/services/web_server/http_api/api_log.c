@@ -1,5 +1,5 @@
 #include "http_api.h"
-#include <log_storage/log_storage_u5.h>
+#include <log_storage/log_storage.h>
 
 #include <toolbox/path.h>
 

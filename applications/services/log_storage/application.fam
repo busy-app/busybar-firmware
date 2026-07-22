@@ -7,8 +7,8 @@ App(
     cdefines=["LOG_STORAGE_LOG_BUFFER_SIZE=(16u * 1024u)"],
     provides=["log_storage_cli"],
     targets=["f20", "f21", "f22"],
-    sdk_headers=["common/log_storage.h", "log_storage_u5.h"],
-    sources=["common/log_storage.c", "log_storage_u5.c"],
+    sdk_headers=["log_storage.h"],
+    sources=["log_storage_common.c", "log_storage.c"],
 )
 
 App(
@@ -20,8 +20,7 @@ App(
     cdefines=["LOG_STORAGE_LOG_BUFFER_SIZE=(8u * 1024u)"],
     requires=["intercom"],
     targets=["f64", "f65"],
-    sdk_headers=["common/log_storage.h"],
-    sources=["common/log_storage.c", "log_storage_917.c"],
+    sources=["log_storage_common.c", "log_storage_remote.c"],
 )
 
 App(

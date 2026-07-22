@@ -1,6 +1,6 @@
 /**
- * @file log_storage_u5.h
- * @brief Log capture service — U5 dump API.
+ * @file log_storage.h
+ * @brief Log capture service API.
  */
 #pragma once
 
