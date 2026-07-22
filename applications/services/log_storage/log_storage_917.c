@@ -57,6 +57,8 @@ static void log_storage_send_dump(IntercomChannel* channel, const LogStorageSnap
 static void log_storage_handle_request(LogStorage* instance) {
     LogStorageSnapshot snapshot;
     if(log_storage_base_snapshot_take(&instance->base, &snapshot)) {
+        FURI_LOG_D(TAG, "Log dump request handling started");
+
         log_storage_send_dump(instance->channel, &snapshot);
         log_storage_base_snapshot_release(&instance->base);
     } else {
@@ -92,8 +94,6 @@ int32_t log_storage_srv(void* context) {
 
         if(flags & LogStorageThreadFlagDumpRequest) {
             log_storage_handle_request(instance);
-
-            FURI_LOG_D(TAG, "Log dump request handled");
         }
     }
 
