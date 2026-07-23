@@ -79,7 +79,7 @@ JsRunnerError js_runner_run(
     JsRunner* instance,
     const char* path,
     size_t heap_size,
-    JsRunnerConsoleWriteCallback console_write_cb,
+    JsRunnerConsoleOutCallback console_write_cb,
     void* console_write_context) {
     FURI_LOG_I(TAG, "Running script: %s", path);
 

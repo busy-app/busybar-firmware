@@ -31,13 +31,27 @@ static bool create_file(Storage* storage, const char* path, const char* data) {
     return result;
 }
 
-static void
-    js_console_cb(JsRunnerConsoleSeverity severity, const char* buf, size_t size, void* context) {
+static void js_console_cb(
+    JsRunnerConsoleSeverity severity,
+    const char* buf,
+    size_t size,
+    JsRunnerConsoleSeparator separator,
+    void* context) {
     UNUSED(severity);
 
     char* out_buf = context;
     size_t out_buf_len = strlen(out_buf);
     memcpy(out_buf + out_buf_len, buf, size);
+    switch(separator) {
+    case JsRunnerConsoleSeparatorNone:
+        break;
+    case JsRunnerConsoleSeparatorSpace:
+        out_buf[out_buf_len + size] = ' ';
+        break;
+    case JsRunnerConsoleSeparatorNewline:
+        out_buf[out_buf_len + size] = '\n';
+        break;
+    }
 }
 
 MU_TEST(js_tests_console) {
@@ -80,12 +94,10 @@ static void interval_test_js_console_cb(
     JsRunnerConsoleSeverity severity,
     const char* buf,
     size_t size,
+    JsRunnerConsoleSeparator separator,
     void* context) {
     UNUSED(severity);
-
-    if(size == 1 && buf[0] == '\n') {
-        return;
-    }
+    UNUSED(separator);
 
     FuriMessageQueue* queue = context;
 

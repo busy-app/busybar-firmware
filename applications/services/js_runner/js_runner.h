@@ -18,10 +18,17 @@ typedef enum JsRunnerConsoleSeverity {
     JsRunnerConsoleSeverityError,
 } JsRunnerConsoleSeverity;
 
-typedef void (*JsRunnerConsoleWriteCallback)(
+typedef enum JsRunnerConsoleSeparator {
+    JsRunnerConsoleSeparatorNone,
+    JsRunnerConsoleSeparatorSpace,
+    JsRunnerConsoleSeparatorNewline,
+} JsRunnerConsoleSeparator;
+
+typedef void (*JsRunnerConsoleOutCallback)(
     JsRunnerConsoleSeverity severity,
     const char* buf,
     size_t size,
+    JsRunnerConsoleSeparator separator,
     void* context);
 
 /** @brief Run a JS application.
@@ -39,5 +46,5 @@ JsRunnerError js_runner_run(
     JsRunner* instance,
     const char* path,
     size_t heap_size,
-    JsRunnerConsoleWriteCallback console_write_cb,
+    JsRunnerConsoleOutCallback console_write_cb,
     void* console_write_context);

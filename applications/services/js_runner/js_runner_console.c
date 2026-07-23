@@ -3,7 +3,7 @@
 #define TAG "JsRunnerConsole"
 
 typedef struct {
-    JsRunnerConsoleWriteCallback write;
+    JsRunnerConsoleOutCallback write;
     void* context;
     JsRunnerConsoleSeverity severity;
 } ConsoleContext;
@@ -39,15 +39,13 @@ static jerry_value_t console_log(
 
         jerry_string_to_buffer(str, JERRY_ENCODING_UTF8, (jerry_char_t*)buf, size);
 
-        ctx->write(severity, buf, size, ctx->context);
+        JsRunnerConsoleSeparator separator =
+            i + 1 == args_count ? JsRunnerConsoleSeparatorNewline : JsRunnerConsoleSeparatorSpace;
+        ctx->write(severity, buf, size, separator, ctx->context);
         free(buf);
-
-        if(i + 1 != args_count) ctx->write(severity, " ", 1, ctx->context);
 
         jerry_value_free(str);
     }
-
-    ctx->write(severity, "\n", 1, ctx->context);
 
     return jerry_undefined();
 }
@@ -56,7 +54,7 @@ static void add_logging_method(
     jerry_value_t console_obj,
     const char* name,
     JsRunnerConsoleSeverity severity,
-    JsRunnerConsoleWriteCallback console_callback,
+    JsRunnerConsoleOutCallback console_callback,
     void* console_write_context) {
     ConsoleContext* fn_context = malloc(sizeof(ConsoleContext));
     fn_context->write = console_callback;
@@ -71,7 +69,7 @@ static void add_logging_method(
 }
 
 void js_runner_setup_console(
-    JsRunnerConsoleWriteCallback console_callback,
+    JsRunnerConsoleOutCallback console_callback,
     void* console_write_context) {
     jerry_value_t global_obj = jerry_current_realm();
 

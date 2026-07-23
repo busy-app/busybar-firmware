@@ -4,8 +4,12 @@
 #include <cli/args.h>
 #include <js_runner/js_runner.h>
 
-static void
-    js_console_cb(JsRunnerConsoleSeverity severity, const char* buf, size_t size, void* context) {
+static void js_console_cb(
+    JsRunnerConsoleSeverity severity,
+    const char* buf,
+    size_t size,
+    JsRunnerConsoleSeparator separator,
+    void* context) {
     UNUSED(context);
 
     static const char* const preamble[] = {
@@ -21,6 +25,16 @@ static void
     printf("%s", preamble[severity]);
     printf("%.*s", size, buf);
     printf("%s", postamble[severity]);
+    switch(separator) {
+    case JsRunnerConsoleSeparatorNone:
+        break;
+    case JsRunnerConsoleSeparatorSpace:
+        printf(" ");
+        break;
+    case JsRunnerConsoleSeparatorNewline:
+        printf("\r\n");
+        break;
+    }
 }
 
 void cli_command_js(PipeSide* pipe, FuriString* args, void* context) {

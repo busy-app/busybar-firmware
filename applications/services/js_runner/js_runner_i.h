@@ -25,7 +25,7 @@ typedef struct JsRunnerApp {
     size_t heap_size;
     void* jrs_context;
     FuriEventLoop* event_loop;
-    JsRunnerConsoleWriteCallback console_callback;
+    JsRunnerConsoleOutCallback console_callback;
     FuriString* root_path;
     IntervalDict_t intervals;
     uint32_t last_interval_id;
@@ -68,7 +68,7 @@ void js_runner_check_event_loop(JsRunnerApp* app);
 
 void js_runner_setup_interval_methods(void);
 void js_runner_setup_console(
-    JsRunnerConsoleWriteCallback console_callback,
+    JsRunnerConsoleOutCallback console_callback,
     void* console_write_context);
 
 /** @brief Allocate Jerryscript context for current thread. This function is used by jerryscript glue. */
