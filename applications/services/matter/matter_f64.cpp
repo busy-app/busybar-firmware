@@ -50,12 +50,15 @@ public:
     MatterSrv(void);
     bool init(void);
     void deinit(void);
+    void run(void);
 
     IntercomChannel* m_intercom_ch;
     StatusLights* m_status_lights;
     FuriSemaphore* m_initialization_received;
 
 private:
+    void init_internal(void);
+
     CommonCaseDeviceServerInitParams m_server_init_params;
     BsbFabricTableDelegate m_fabric_delegate;
     ::Identify m_identify;
@@ -340,9 +343,8 @@ MatterSrv::MatterSrv(void)
 }
 
 bool MatterSrv::init(void) {
-    bool is_stack_inited = false;
-
     CHIP_ERROR err;
+    bool success = false;
 
     do {
         err = MemoryInit();
@@ -355,8 +357,22 @@ bool MatterSrv::init(void) {
             break;
         }
 
-        is_stack_inited = true;
+        success = true;
 
+    } while(false);
+
+    if(!success) {
+        FURI_LOG_E(TAG, "Early initialization failed: 0x%lx", err.Format());
+    }
+
+    return success;
+}
+
+void MatterSrv::init_internal(void) {
+    CHIP_ERROR err;
+    bool success = false;
+
+    do {
         StackLock lock;
 
         auto intercom = static_cast<Intercom*>(furi_record_open(RECORD_INTERCOM));
@@ -392,23 +408,30 @@ bool MatterSrv::init(void) {
 
         matter_send_current_state(this);
         matter_send_fabric_count_update(this);
-        MatterIntercomFrame notification = {
+
+        const MatterIntercomFrame notification = {
             .type = MatterIntercomFrameTypeBackendReady,
         };
+
         matter_send_frame(this, &notification);
+
+        success = true;
 
     } while(false);
 
-    if(err != CHIP_NO_ERROR) {
+    if(!success) {
         FURI_LOG_E(TAG, "Initialization failed: 0x%lx", err.Format());
     }
-
-    return is_stack_inited;
 }
 
 void MatterSrv::deinit(void) {
     PlatformMgr().Shutdown();
     furi_thread_suspend(furi_thread_get_current_id());
+}
+
+void MatterSrv::run(void) {
+    init_internal();
+    PlatformMgr().RunEventLoop();
 }
 
 extern "C" {
@@ -421,7 +444,7 @@ int matter_srv(void* arg) {
     matter_global_srv = new MatterSrv;
 
     if(matter_global_srv->init()) {
-        PlatformMgr().RunEventLoop();
+        matter_global_srv->run();
     }
 
     matter_global_srv->deinit();
