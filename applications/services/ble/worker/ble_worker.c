@@ -8,10 +8,6 @@
 
 #define TAG "BleWorker"
 
-///TODO: Remove after all connection issues will be resolved
-// Uncomment macro below in order to force ble advertising with public address only
-// #define BLE_DEBUG_ADVERTISE_FORCE_PUBLIC
-
 #define BLE_DEFAULT_LOCAL_NAME "BUSY Bar"
 
 //===========================================================================================
