@@ -113,7 +113,7 @@ static bool desktop_should_handle_switch_start(const Desktop* instance) {
            (!desktop_startup_app_is_running(instance));
 }
 
-static bool desktop_should_process_switch_pos(const Desktop* instance) {
+static bool desktop_should_handle_switch_pos(const Desktop* instance) {
     return desktop_is_initial_switch_pos_received(instance) ||
            desktop_startup_app_is_running(instance);
 }
@@ -228,7 +228,7 @@ void desktop_input_queue_callback(FuriEventLoopObject* object, void* context) {
             continue;
         }
 
-        if(desktop_should_process_switch_pos(instance)) {
+        if(desktop_should_handle_switch_pos(instance)) {
             desktop_update_switch_direction(instance, next_switch_pos);
 
             if(desktop_should_handle_switch_start(instance)) {
