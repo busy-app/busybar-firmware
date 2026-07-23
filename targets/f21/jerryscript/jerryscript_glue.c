@@ -1,6 +1,6 @@
 #include <furi/furi.h>
 #include <time/time.h>
-#include <js_runner/js_runner.h>
+#include <js_runner/js_runner_i.h>
 #include <storage/storage.h>
 #include <path.h>
 

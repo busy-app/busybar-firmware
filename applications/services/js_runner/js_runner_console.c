@@ -1,5 +1,7 @@
 #include "js_runner_i.h"
 
+#define TAG "JsRunnerConsole"
+
 typedef struct {
     JsRunnerConsoleWriteCallback write;
     void* context;

@@ -41,16 +41,3 @@ JsRunnerError js_runner_run(
     size_t heap_size,
     JsRunnerConsoleWriteCallback console_write_cb,
     void* console_write_context);
-
-/** @brief Allocate Jerryscript context for current thread. This function is used by jerryscript glue. */
-size_t js_runner_context_alloc(JsRunner* instance, size_t context_size);
-
-/** @brief Free Jerryscript context for current thread. This function is used by jerryscript glue. */
-void js_runner_context_free(JsRunner* instance);
-
-/** @brief Get Jerryscript context for current thread. This function is used by jerryscript glue. */
-void* js_runner_context_get(JsRunner* instance);
-
-/** @brief Get root path of the current JS app (folder containg entry point).
- * This function is used by jerryscript glue. */
-void js_runner_get_root_path(JsRunner* instance, FuriString* path);

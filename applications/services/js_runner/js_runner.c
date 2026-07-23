@@ -1,5 +1,7 @@
 #include "js_runner_i.h"
 
+#define TAG "JsRunner"
+
 size_t js_runner_context_alloc(JsRunner* instance, size_t context_size) {
     size_t alloc_size = 0;
     WITH_APP(app, {
