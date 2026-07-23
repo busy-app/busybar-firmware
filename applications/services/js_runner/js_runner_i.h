@@ -48,7 +48,7 @@ typedef struct JsRunner {
     AppDict_t apps;
 } JsRunner;
 
-#define WITH_APP(APP, BLOCK)                                             \
+#define WITH_JS_RUNNER_APP(APP, BLOCK)                                   \
     do {                                                                 \
         furi_mutex_acquire(instance->apps_mutex, FuriWaitForever);       \
         FuriThread* current_thread = furi_thread_get_current();          \

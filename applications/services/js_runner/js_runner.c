@@ -4,7 +4,7 @@
 
 size_t js_runner_context_alloc(JsRunner* instance, size_t context_size) {
     size_t alloc_size = 0;
-    WITH_APP(app, {
+    WITH_JS_RUNNER_APP(app, {
         furi_check(!app->jrs_context);
         alloc_size = context_size + app->heap_size;
         app->jrs_context = malloc(alloc_size);
@@ -13,7 +13,7 @@ size_t js_runner_context_alloc(JsRunner* instance, size_t context_size) {
 }
 
 void js_runner_context_free(JsRunner* instance) {
-    WITH_APP(app, {
+    WITH_JS_RUNNER_APP(app, {
         furi_check(app->jrs_context);
         free(app->jrs_context);
         app->jrs_context = NULL;
@@ -22,7 +22,7 @@ void js_runner_context_free(JsRunner* instance) {
 
 void* js_runner_context_get(JsRunner* instance) {
     void* result = NULL;
-    WITH_APP(app, {
+    WITH_JS_RUNNER_APP(app, {
         furi_check(app->jrs_context);
         result = app->jrs_context;
     });
@@ -30,7 +30,7 @@ void* js_runner_context_get(JsRunner* instance) {
 }
 
 void js_runner_get_root_path(JsRunner* instance, FuriString* path) {
-    WITH_APP(app, { furi_string_set(path, app->root_path); });
+    WITH_JS_RUNNER_APP(app, { furi_string_set(path, app->root_path); });
 }
 
 static const jerry_object_native_info_t global_native_info = {
