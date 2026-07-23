@@ -27,6 +27,8 @@
 #include <platform/internal/GenericConnectivityManagerImpl_NoThread.h>
 #include <platform/internal/GenericConnectivityManagerImpl_WiFi.h>
 
+#include <network/network.h>
+
 namespace chip {
 namespace DeviceLayer {
 
@@ -59,6 +61,7 @@ private:
     static ConnectivityManagerImpl sInstance;
 
     static void WifiEvent(const void* message, void* context);
+    Network* mNetwork;
     FuriPubSub* mWifiPubSub;
     FuriPubSubSubscription* mPubSubSub;
     bool mIsConnected = false;

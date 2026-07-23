@@ -26,8 +26,6 @@
 
 #include <app/server/Server.h>
 
-#include <network/network.h>
-
 #include <wifi/wifi_common_i.h>
 
 namespace chip {
@@ -76,8 +74,8 @@ CHIP_ERROR ConnectivityManagerImpl::_Init(void) {
         return CHIP_NO_ERROR;
     }
 
-    auto* network = static_cast<Network*>(furi_record_open(RECORD_NETWORK));
-    network_init_current_thread(network);
+    mNetwork = static_cast<Network*>(furi_record_open(RECORD_NETWORK));
+    network_init_current_thread(mNetwork);
 
     mWifiPubSub = static_cast<FuriPubSub*>(furi_record_open(RECORD_WIFI));
     mPubSubSub = furi_pubsub_subscribe(mWifiPubSub, ConnectivityManagerImpl::WifiEvent, this);
@@ -98,6 +96,12 @@ void ConnectivityManagerImpl::_Shutdown(void) {
     }
 
     furi_pubsub_unsubscribe(mWifiPubSub, mPubSubSub);
+    furi_record_close(RECORD_WIFI);
+
+    network_deinit_current_thread(mNetwork);
+    furi_record_close(RECORD_NETWORK);
+
+    mIsInitialized = false;
 }
 
 } // namespace DeviceLayer
