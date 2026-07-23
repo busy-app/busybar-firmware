@@ -6,8 +6,6 @@ static void interval_callback(void* context) {
     uint32_t timer_id = (uint32_t)context;
     JsRunner* instance = js_runner_get_instance();
 
-    FURI_LOG_D(TAG, "Interval callback (id=%lu)", timer_id);
-
     WITH_JS_RUNNER_APP(app, {
         const IntervalContext* interval_context = IntervalDict_cget(app->intervals, timer_id);
         if(interval_context) {
@@ -41,8 +39,6 @@ static jerry_value_t set_interval_or_timeout(
     if(timeout_ms < MIN_INTERVAL_DELAY_MS) {
         timeout_ms = MIN_INTERVAL_DELAY_MS;
     }
-
-    FURI_LOG_D(TAG, "set_interval timeout = %d, once = %d", (int)timeout_ms, once);
 
     uint32_t timer_id = 0;
     WITH_JS_RUNNER_APP(app, {
@@ -97,7 +93,6 @@ static jerry_value_t clear_interval(
         return jerry_throw_sz(JERRY_ERROR_COMMON, "Wrong argument count");
     }
     uint32_t timer_id = (uint32_t)jerry_value_as_number(args[0]);
-    FURI_LOG_D(TAG, "clear_interval id = %lu", timer_id);
 
     WITH_JS_RUNNER_APP(app, {
         const IntervalContext* interval_context = IntervalDict_cget(app->intervals, timer_id);

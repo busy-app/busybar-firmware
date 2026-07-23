@@ -1,3 +1,8 @@
+/**
+ * @file js_runner_i.h
+ *
+ * @brief Javascript app runner - private declarations
+ */
 #pragma once
 #include "js_runner.h"
 #include <furi/furi.h>
