@@ -4,6 +4,7 @@
 #include "ble_intercom_types.h"
 
 // #define BLE_DEBUG
+// #define BLE_DEBUG_ADVERTISE_FORCE_PUBLIC
 
 #ifdef BLE_DEBUG
 #define BLE_LOG_D(...) FURI_LOG_D(TAG, __VA_ARGS__)

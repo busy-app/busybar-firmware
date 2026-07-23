@@ -404,8 +404,6 @@ bool ble_device_process_write_request(
             instance->receiver, entry->service, entry->char_index, handle, data_size, data);
     } else {
         BLE_LOG_W("Not found: %04X", handle);
-        // ble_receiver_transfer_confirm(BleReceiverContext *instance, uint16_t handle, uint8_t cccd_value)
-        // sl_status_t status = ble_worker_write_response(instance->remote_dev_address, 0);
     }
 
     return result;
