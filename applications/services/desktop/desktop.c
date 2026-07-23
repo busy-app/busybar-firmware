@@ -74,13 +74,6 @@ static void desktop_handle_switch_start(Desktop* instance) {
     loader_send_signal(instance->loader, FuriSignalAboutToExit, NULL);
 }
 
-// Called on each new position of the rotary switch if steady state has not been reached
-static void desktop_handle_switch_update(Desktop* instance) {
-    UNUSED(instance);
-
-    FURI_LOG_D(TAG, "Switch position updated");
-}
-
 // Called after the app has been started, due to rotary switch interaction or programmatically
 static void desktop_handle_switch_finished(Desktop* instance) {
     FURI_LOG_D(TAG, "Switch interaction finished");
@@ -100,7 +93,7 @@ static void desktop_run_startup_app(Desktop* instance) {
     }
 }
 
-static bool desktop_startup_app_is_running(Desktop* instance) {
+static bool desktop_startup_app_is_running(const Desktop* instance) {
     FuriString* current_app_name = furi_string_alloc();
 
     loader_get_application_name(instance->loader, current_app_name);
@@ -110,10 +103,24 @@ static bool desktop_startup_app_is_running(Desktop* instance) {
     return result;
 }
 
+static bool desktop_is_initial_switch_pos_received(const Desktop* instance) {
+    return instance->switch_pos != InputSwitchPositionMAX;
+}
+
 // Check if desktop_handle_switch_start() should be called
-static bool desktop_should_handle_switch_start(Desktop* instance) {
+static bool desktop_should_handle_switch_start(const Desktop* instance) {
     return (!desktop_overlay_show_requested(instance->overlay)) &&
            (!desktop_startup_app_is_running(instance));
+}
+
+static bool desktop_should_handle_switch_pos(const Desktop* instance) {
+    return desktop_is_initial_switch_pos_received(instance) ||
+           desktop_startup_app_is_running(instance);
+}
+
+static void desktop_update_switch_direction(Desktop* instance, InputSwitchPosition switch_pos) {
+    instance->switch_direction = (switch_pos > instance->switch_pos) ? DesktopSwitchDirectionDown :
+                                                                       DesktopSwitchDirectionUp;
 }
 
 // Called if the requested app failed to start (Shows error message via the Message app)
@@ -215,27 +222,23 @@ void desktop_input_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(instance->input_queue == object);
 
     InputSwitchPosition next_switch_pos;
-    bool switch_position_changed = false;
 
     while(furi_message_queue_get(instance->input_queue, &next_switch_pos, 0) == FuriStatusOk) {
-        if(instance->switch_pos == next_switch_pos) continue;
+        if(instance->switch_pos == next_switch_pos) {
+            continue;
+        }
 
-        instance->switch_direction = (next_switch_pos > instance->switch_pos) ?
-                                         DesktopSwitchDirectionDown :
-                                         DesktopSwitchDirectionUp;
+        if(desktop_should_handle_switch_pos(instance)) {
+            desktop_update_switch_direction(instance, next_switch_pos);
 
-        if(desktop_should_handle_switch_start(instance)) {
-            desktop_handle_switch_start(instance);
+            if(desktop_should_handle_switch_start(instance)) {
+                desktop_handle_switch_start(instance);
+            }
+
+            furi_event_loop_timer_start(instance->switch_timer, SWITCH_DELAY_MS);
         }
 
         instance->switch_pos = next_switch_pos;
-        switch_position_changed = true;
-
-        desktop_handle_switch_update(instance);
-    }
-
-    if(switch_position_changed) {
-        furi_event_loop_timer_start(instance->switch_timer, SWITCH_DELAY_MS);
     }
 }
 
@@ -244,7 +247,7 @@ static void desktop_switch_timer_callback(void* context) {
     furi_assert(context);
     Desktop* instance = context;
 
-    if(instance->switch_pos != InputSwitchPositionMAX) {
+    if(desktop_is_initial_switch_pos_received(instance)) {
         const DesktopDefaultApp* default_app = desktop_get_current_default_app(instance);
         desktop_enqueue_start_request(instance, default_app->name, default_app->args, true);
     }

@@ -10,7 +10,6 @@
 typedef struct {
     uint16_t tx_pending_handle;
     FuriSemaphore* indication_sem;
-    ///TODO: Add reset method for this
     BleDebugCanary* indicate_error_canary;
 } BleTransmitterIndicateContext;
 
@@ -71,14 +70,26 @@ bool ble_transmitter_indicate_chunk(
     return result;
 }
 
-void ble_transmitter_indicate_done(BleTransmitterGeneric* transport) {
-    furi_assert(transport);
-    BleTransmitterIndicateContext* instance = transport;
-
+static inline void
+    ble_transmitter_indicate_release_if_pending(BleTransmitterIndicateContext* instance) {
     if(instance->tx_pending_handle) {
         furi_semaphore_release(instance->indication_sem);
         instance->tx_pending_handle = 0;
     }
+}
+
+void ble_transmitter_indicate_reset(BleTransmitterGeneric* transport) {
+    furi_assert(transport);
+    BleTransmitterIndicateContext* instance = transport;
+
+    ble_transmitter_indicate_done(instance);
+    ble_debug_canary_reset(instance->indicate_error_canary);
+}
+
+void ble_transmitter_indicate_done(BleTransmitterGeneric* transport) {
+    furi_assert(transport);
+    BleTransmitterIndicateContext* instance = transport;
+    ble_transmitter_indicate_release_if_pending(instance);
 }
 
 BleTransmitterGeneric* ble_transmitter_indicate_alloc() {

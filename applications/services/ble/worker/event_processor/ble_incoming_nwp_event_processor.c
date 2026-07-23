@@ -1,9 +1,7 @@
 #include "ble_incoming_nwp_event_processor.h"
 #include "ble_incoming_nwp_event.h"
 
-#include "ble_event_handlers_gap.h"
-#include "ble_event_handlers_gatt.h"
-#include "ble_event_handlers_smp.h"
+#include "ble_event_handlers.h"
 
 #include "../../ble_common.h"
 
@@ -28,7 +26,7 @@ bool ble_event_handler_dummy(size_t data_size, void* data, void* context) {
 
 static const BleWorkerEventHandler event_handlers[BleIncomingNwpEventTypeCount] = {
     [BleIncomingNwpEventTypeUnknown] = ble_event_handler_dummy,
-    [BleIncomingNwpEventTypeExit] = ble_event_handler_gap_exit,
+    [BleIncomingNwpEventTypeExit] = ble_event_handler_cmd_exit,
     [BleIncomingNwpEventTypeConnected] = ble_event_handler_gap_connected,
     [BleIncomingNwpEventTypeDisconnected] = ble_event_handler_gap_disconnected,
     [BleIncomingNwpEventTypePhyUpdateComplete] = ble_event_handler_gap_phy_update_complete,

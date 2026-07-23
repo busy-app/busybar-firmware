@@ -230,9 +230,6 @@ static int32_t ble_streaming_thread(void* context) {
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, ble_streaming_event_loop_callback, instance);
 
-    ///TODO: Remove this when Ble streaming could be started from other side
-    ///when connection parameters will be updated
-    furi_delay_ms(5000);
     FURI_LOG_D(TAG, "Stream start");
 
     furi_event_loop_run(instance->event_loop);

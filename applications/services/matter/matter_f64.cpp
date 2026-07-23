@@ -48,13 +48,17 @@ class BsbFabricTableDelegate : public FabricTable::Delegate {
 class MatterSrv {
 public:
     MatterSrv(void);
-    CHIP_ERROR init(void);
+    bool init(void);
+    void deinit(void);
+    void run(void);
 
     IntercomChannel* m_intercom_ch;
     StatusLights* m_status_lights;
     FuriSemaphore* m_initialization_received;
 
 private:
+    void init_internal(void);
+
     CommonCaseDeviceServerInitParams m_server_init_params;
     BsbFabricTableDelegate m_fabric_delegate;
     ::Identify m_identify;
@@ -208,7 +212,7 @@ static void matter_handle_frame(const void* data, size_t data_size, void* contex
 }
 
 /**
- * @brief Notifies u5 about an updated state 
+ * @brief Notifies u5 about an updated state
  */
 static void matter_send_state_update(MatterSrv* matter, bool state) {
     MatterIntercomFrame frame = {
@@ -338,8 +342,9 @@ MatterSrv::MatterSrv(void)
     m_initialization_received = furi_semaphore_alloc(1, 0);
 }
 
-CHIP_ERROR MatterSrv::init(void) {
+bool MatterSrv::init(void) {
     CHIP_ERROR err;
+    bool success = false;
 
     do {
         err = MemoryInit();
@@ -352,6 +357,22 @@ CHIP_ERROR MatterSrv::init(void) {
             break;
         }
 
+        success = true;
+
+    } while(false);
+
+    if(!success) {
+        FURI_LOG_E(TAG, "Early initialization failed: 0x%lx", err.Format());
+    }
+
+    return success;
+}
+
+void MatterSrv::init_internal(void) {
+    CHIP_ERROR err;
+    bool success = false;
+
+    do {
         StackLock lock;
 
         auto intercom = static_cast<Intercom*>(furi_record_open(RECORD_INTERCOM));
@@ -387,14 +408,30 @@ CHIP_ERROR MatterSrv::init(void) {
 
         matter_send_current_state(this);
         matter_send_fabric_count_update(this);
-        MatterIntercomFrame notification = {
+
+        const MatterIntercomFrame notification = {
             .type = MatterIntercomFrameTypeBackendReady,
         };
+
         matter_send_frame(this, &notification);
+
+        success = true;
 
     } while(false);
 
-    return err;
+    if(!success) {
+        FURI_LOG_E(TAG, "Initialization failed: 0x%lx", err.Format());
+    }
+}
+
+void MatterSrv::deinit(void) {
+    PlatformMgr().Shutdown();
+    furi_thread_suspend(furi_thread_get_current_id());
+}
+
+void MatterSrv::run(void) {
+    init_internal();
+    PlatformMgr().RunEventLoop();
 }
 
 extern "C" {
@@ -406,15 +443,11 @@ int matter_srv(void* arg) {
 
     matter_global_srv = new MatterSrv;
 
-    const auto err = matter_global_srv->init();
-
-    if(err == CHIP_NO_ERROR) {
-        PlatformMgr().RunEventLoop();
-
-    } else {
-        FURI_LOG_E(TAG, "Failed to start: 0x%lx", err.Format());
-        furi_thread_suspend(furi_thread_get_current_id());
+    if(matter_global_srv->init()) {
+        matter_global_srv->run();
     }
+
+    matter_global_srv->deinit();
 
     return 0;
 }

@@ -18,9 +18,6 @@ from pydantic import BaseModel
 from .base import BaseAPI
 
 
-# === Response Models ===
-
-
 class PairingStatus(BaseModel):
     """Pairing status details."""
 

@@ -45,7 +45,7 @@ static const BleTransmitterContract ble_transmitters[BleTransmitterTypeCount] = 
             .free = ble_transmitter_indicate_free,
             .send = ble_transmitter_indicate_chunk,
             .done = ble_transmitter_indicate_done,
-            .reset = ble_transmitter_indicate_done,
+            .reset = ble_transmitter_indicate_reset,
             .subscribe = NULL,
             .unsubscribe = NULL,
         },

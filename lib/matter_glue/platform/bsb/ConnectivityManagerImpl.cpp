@@ -26,8 +26,6 @@
 
 #include <app/server/Server.h>
 
-#include <network/network.h>
-
 #include <wifi/wifi_common_i.h>
 
 namespace chip {
@@ -72,18 +70,38 @@ void ConnectivityManagerImpl::WifiEvent(const void* message, void* context) {
 }
 
 CHIP_ERROR ConnectivityManagerImpl::_Init(void) {
-    auto* network = static_cast<Network*>(furi_record_open(RECORD_NETWORK));
-    network_init_current_thread(network);
+    if(mIsInitialized) {
+        return CHIP_NO_ERROR;
+    }
 
-    mIsConnected = false;
+    mNetwork = static_cast<Network*>(furi_record_open(RECORD_NETWORK));
+    network_init_current_thread(mNetwork);
+
     mWifiPubSub = static_cast<FuriPubSub*>(furi_record_open(RECORD_WIFI));
     mPubSubSub = furi_pubsub_subscribe(mWifiPubSub, ConnectivityManagerImpl::WifiEvent, this);
+
+    mIsConnected = false;
+    mIsInitialized = true;
 
     return CHIP_NO_ERROR;
 }
 
 void ConnectivityManagerImpl::_OnPlatformEvent(const ChipDeviceEvent* event) {
     ChipLogDetail(DeviceLayer, "Platform event of type %hu", event->Type);
+}
+
+void ConnectivityManagerImpl::_Shutdown(void) {
+    if(!mIsInitialized) {
+        return;
+    }
+
+    furi_pubsub_unsubscribe(mWifiPubSub, mPubSubSub);
+    furi_record_close(RECORD_WIFI);
+
+    network_deinit_current_thread(mNetwork);
+    furi_record_close(RECORD_NETWORK);
+
+    mIsInitialized = false;
 }
 
 } // namespace DeviceLayer

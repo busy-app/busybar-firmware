@@ -102,6 +102,7 @@ void PlatformManagerImpl::UpdateOperationalHours(System::Layer* systemLayer, voi
 }
 
 void PlatformManagerImpl::_Shutdown() {
+    ConnectivityMgrImpl()._Shutdown();
     Internal::GenericPlatformManagerImpl_Furi<PlatformManagerImpl>::_Shutdown();
 }
 

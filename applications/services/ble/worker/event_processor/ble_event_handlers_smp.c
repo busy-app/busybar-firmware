@@ -1,6 +1,4 @@
 
-#include "ble_event_handlers_smp.h"
-
 #include "../ble_worker_i.h"
 
 #define TAG "BleSMPEvent"
@@ -29,7 +27,11 @@ bool ble_event_handler_smp_encrypt_started(size_t data_size, void* data, void* c
     rsi_bt_event_encryption_enabled_t* enc_enabled = data;
     ble_device_handle_encryption_start(instance->device, enc_enabled);
 
-    ble_device_connection_update(instance->device, instance->event_loop);
+    ble_device_connection_update(
+        instance->device,
+        instance->event_loop,
+        (BleConnectionUpdateParametersDoneCallback)ble_worker_invoke_connect_callback,
+        instance);
     return true;
 }
 
@@ -42,11 +44,9 @@ bool ble_event_handler_smp_ltk_request(size_t data_size, void* data, void* conte
     do {
         if(!ble_device_send_encryption_response(instance->device)) break;
 
-        if(ble_device_is_paired(instance->device)) {
-            ble_worker_invoke_connect_callback(instance);
-        } else {
-            ble_device_request_pairing(instance->device);
-        }
+        if(ble_device_is_paired(instance->device)) break;
+
+        ble_device_request_pairing(instance->device);
     } while(false);
 
     return true;
@@ -69,9 +69,6 @@ bool ble_event_handler_smp_security_keys(size_t data_size, void* data, void* con
         }
 
         BLE_LOG_I("RPA keys saved");
-
-        ble_worker_invoke_connect_callback(instance);
-
     } while(false);
 
     return true;

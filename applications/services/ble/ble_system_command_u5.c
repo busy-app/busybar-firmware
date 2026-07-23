@@ -114,7 +114,6 @@ static bool ble_command_enable_request(BleIntercomFrameGeneric* frame, void* con
     Ble* instance = context;
     const BleServiceStatus state = instance->status;
 
-    ///TODO: replace this with some preprocess function which will check if command is allowed in this state
     bool result = false;
     if(state == BleServiceStatusReady) {
         result = ble_command_request_process(frame, context);
@@ -155,7 +154,6 @@ static bool ble_command_disable_request(BleIntercomFrameGeneric* frame, void* co
     Ble* instance = context;
     const BleServiceStatus state = instance->status;
 
-    ///TODO: replace this with some preprocess function which will check if command is allowed in this state
     bool result = false;
     if(state == BleServiceStatusError) {
         BLE_LOG_W("No disable, error occurred");

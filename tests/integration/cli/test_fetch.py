@@ -1,10 +1,8 @@
-"""`fetch` against an HTTP server served from the test host itself.
-
-Coverage matrix and plan: scratchpad/cli_coverage_matrix.md.
-"""
+"""`fetch` against a deterministic HTTP server on the pytest host."""
 
 import hashlib
 import http.server
+import queue
 import socketserver
 import threading
 
@@ -14,78 +12,349 @@ import pytest
 pytestmark = pytest.mark.cli
 
 
+KNOWN_PAYLOAD = b"busybar-fetch-test\n" * 10
+TRUNCATED_PAYLOAD = b"truncated-fetch-test\n" * 3
+UNKNOWN_LENGTH_PAYLOAD = b"close-delimited-fetch-payload\n" * 7
+NOT_FOUND_PAYLOAD = b"fetch-route-not-found\n"
+REQUEST_RESPONSE = b"request-captured\n"
+
+
+class FetchHTTPServer(http.server.ThreadingHTTPServer):
+    """Threaded host server with request capture and deterministic stall release."""
+
+    daemon_threads = True
+
+    def __init__(self, server_address, handler_class):
+        self.requests = queue.Queue()
+        self.release_stall = threading.Event()
+        super().__init__(server_address, handler_class)
+
+    def server_bind(self):
+        # HTTPServer.server_bind() calls getfqdn(), which stalls on the USB-net
+        # address because the bench has no reverse DNS.
+        socketserver.TCPServer.server_bind(self)
+        self.server_name, self.server_port = self.server_address[:2]
+
+    def url(self, path):
+        host, port = self.server_address[:2]
+        return f"http://{host}:{port}{path}"
+
+
+class FetchRequestHandler(http.server.BaseHTTPRequestHandler):
+    protocol_version = "HTTP/1.0"
+
+    def do_GET(self):
+        self._handle_request()
+
+    def do_PUT(self):
+        self._handle_request()
+
+    def _handle_request(self):
+        content_length = int(self.headers.get("Content-Length", "0"))
+        body = self.rfile.read(content_length) if content_length else b""
+        headers = {name.lower(): value for name, value in self.headers.items()}
+        self.server.requests.put(
+            {
+                "method": self.command,
+                "path": self.path,
+                "body": body,
+                "headers": headers,
+            }
+        )
+
+        if self.path == "/known.bin":
+            self._send_payload(200, KNOWN_PAYLOAD)
+        elif self.path == "/truncated.bin":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/octet-stream")
+            self.send_header("Content-Length", str(len(TRUNCATED_PAYLOAD) * 2))
+            self.send_header("Connection", "close")
+            self.end_headers()
+            self.wfile.write(TRUNCATED_PAYLOAD)
+            self.wfile.flush()
+            self.close_connection = True
+        elif self.path == "/request":
+            self._send_payload(200, REQUEST_RESPONSE)
+        elif self.path == "/not-found":
+            self._send_payload(404, NOT_FOUND_PAYLOAD)
+        elif self.path == "/unknown.bin":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/octet-stream")
+            self.send_header("Connection", "close")
+            self.end_headers()
+            self.wfile.write(UNKNOWN_LENGTH_PAYLOAD)
+            self.wfile.flush()
+            self.close_connection = True
+        elif self.path == "/stall":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/octet-stream")
+            self.send_header("Content-Length", "1")
+            self.end_headers()
+            self.wfile.flush()
+            self.server.release_stall.wait(timeout=15)
+        else:
+            self._send_payload(404, NOT_FOUND_PAYLOAD)
+
+    def _send_payload(self, status, payload):
+        self.send_response(status)
+        self.send_header("Content-Type", "application/octet-stream")
+        self.send_header("Content-Length", str(len(payload)))
+        self.end_headers()
+        self.wfile.write(payload)
+
+    def log_message(self, *args):
+        pass
+
+
 @allure.epic("BSB CLI Testing")
 @allure.feature("6. CLI")
 @allure.story("Commands Check")
 class TestCLIFetch:
-    """`fetch` against an HTTP server served from the test host itself.
+    """Exercise the real device Fetch path through a local host server."""
 
-    The device reaches the host over the same link the CLI runs on, so bind the
-    server to the local end of the telnet socket — no bench configuration needed.
-    """
-
-    PAYLOAD = b"busybar-fetch-test\n" * 10
     DEST = "/ext/fetch_test.bin"
+    TRUNCATED_DEST = "/ext/fetch_truncated.bin"
+    UNKNOWN_DEST = "/ext/fetch_unknown_length.bin"
+    TIMEOUT_DEST = "/ext/fetch_timeout.bin"
 
     @pytest.fixture
     def http_server(self, persistent_cli_connection):
-        payload = self.PAYLOAD
-
-        class Handler(http.server.BaseHTTPRequestHandler):
-            def do_GET(self):
-                self.send_response(200)
-                self.send_header("Content-Type", "application/octet-stream")
-                self.send_header("Content-Length", str(len(payload)))
-                self.end_headers()
-                self.wfile.write(payload)
-
-            def log_message(self, *args):
-                pass
-
-        class Server(http.server.ThreadingHTTPServer):
-            # HTTPServer.server_bind() resolves the bound address with getfqdn(),
-            # which stalls ~5s on the bench (no reverse DNS for the USB-net range)
-            def server_bind(self):
-                socketserver.TCPServer.server_bind(self)
-                self.server_name, self.server_port = self.server_address[:2]
-
         host_ip = persistent_cli_connection.tn.sock.getsockname()[0]
-        server = Server((host_ip, 0), Handler)
-        threading.Thread(target=server.serve_forever, daemon=True).start()
+        server = FetchHTTPServer((host_ip, 0), FetchRequestHandler)
+        server_thread = threading.Thread(target=server.serve_forever, daemon=True)
+        server_thread.start()
         try:
-            yield f"http://{host_ip}:{server.server_address[1]}/payload.bin"
+            yield server
         finally:
+            server.release_stall.set()
             server.shutdown()
+            server_thread.join(timeout=2)
             server.server_close()
 
-    @allure.title("CLI. Command fetch (usage).")
-    def test_fetch_usage(self, persistent_cli_connection):
-        response = persistent_cli_connection.execute_command("fetch")
-        assert "fetch [options] <url>" in response, response
+    @staticmethod
+    def _assert_saved_payload(cli, path, payload):
+        with allure.step(f"Verify exact saved payload at {path}"):
+            stat = cli.execute_command(f"storage stat {path}")
+            assert (
+                f"size: {len(payload)}b" in stat
+            ), f"expected {len(payload)} bytes at {path}, got stat output {stat!r}"
 
-    @allure.title("CLI. Command fetch (download to stdout).")
+            expected_md5 = hashlib.md5(payload).hexdigest()
+            actual_md5 = cli.execute_command(f"storage md5 {path}")
+            assert (
+                expected_md5 in actual_md5
+            ), f"expected MD5 {expected_md5} for {path}, got {actual_md5!r}"
+
+    @allure.title("CLI. Command fetch requires a URL.")
+    def test_fetch_requires_url(self, persistent_cli_connection):
+        response = persistent_cli_connection.execute_command("fetch")
+
+        with allure.step("Verify missing-URL error and usage"):
+            assert "Error: no url specified" in response, response
+            assert "fetch [options] <url>" in response, response
+
+    @allure.title("CLI. Command fetch rejects invalid arguments.")
+    @pytest.mark.parametrize(
+        "command",
+        ["fetch -Z", "fetch -o"],
+        ids=["unknown-option", "missing-option-value"],
+    )
+    def test_fetch_rejects_invalid_arguments(self, persistent_cli_connection, command):
+        response = persistent_cli_connection.execute_command(command)
+
+        with allure.step("Verify argument error and usage"):
+            assert (
+                "Error: invalid arguments" in response
+            ), f"expected invalid-arguments error for {command!r}, got {response!r}"
+            assert (
+                "fetch [options] <url>" in response
+            ), f"expected Fetch usage for {command!r}, got {response!r}"
+
+    @allure.title("CLI. Command fetch streams verbose response to stdout.")
     def test_fetch_to_stdout(self, persistent_cli_connection, http_server):
         response = persistent_cli_connection.execute_command(
-            f"fetch -v {http_server}", timeout=25, slow_command=True
+            f"fetch -v {http_server.url('/known.bin')}",
+            timeout=25,
+            slow_command=True,
         )
-        assert "HTTP/1.0 200 OK" in response, response
-        assert "busybar-fetch-test" in response, response
 
-    @allure.title("CLI. Command fetch (download to file).")
+        with allure.step("Verify response headers and payload marker"):
+            assert "HTTP/1.0 200 OK" in response, response
+            assert "busybar-fetch-test" in response, response
+
+    @allure.title("CLI. Command fetch writes an exact known-length file.")
     def test_fetch_to_file(self, persistent_cli_connection, http_server):
         cli = persistent_cli_connection
         cli.execute_command(f"storage remove {self.DEST}")
         try:
             response = cli.execute_command(
-                f"fetch {http_server} -o {self.DEST}", timeout=25, slow_command=True
+                f"fetch {http_server.url('/known.bin')} -o {self.DEST}",
+                timeout=25,
+                slow_command=True,
             )
-            assert "Downloaded: 100%" in response, response
+            with allure.step("Verify known-length completion output"):
+                assert "Downloaded: 100%" in response, response
 
-            stat = cli.execute_command(f"storage stat {self.DEST}")
-            assert f"size: {len(self.PAYLOAD)}b" in stat, stat
-            md5 = cli.execute_command(f"storage md5 {self.DEST}")
-            assert hashlib.md5(self.PAYLOAD).hexdigest() in md5, (
-                f"downloaded file differs from what was served: {md5!r}"
-            )
+            self._assert_saved_payload(cli, self.DEST, KNOWN_PAYLOAD)
         finally:
             cli.execute_command(f"storage remove {self.DEST}")
+
+    @allure.title("CLI. Command fetch rejects a truncated known-length response.")
+    def test_fetch_truncated_content_length_removes_output(
+        self, persistent_cli_connection, http_server
+    ):
+        cli = persistent_cli_connection
+        cli.execute_command(f"storage remove {self.TRUNCATED_DEST}")
+        try:
+            response = cli.execute_command(
+                f"fetch {http_server.url('/truncated.bin')} -o {self.TRUNCATED_DEST}",
+                timeout=25,
+                slow_command=True,
+            )
+            with allure.step("Verify truncated response failure"):
+                assert "Error: Incomplete response body" in response, response
+
+            with allure.step("Verify incomplete destination was removed"):
+                stat = cli.execute_command(f"storage stat {self.TRUNCATED_DEST}")
+                assert "Storage error: file/dir not exist" in stat, (
+                    f"expected no file at {self.TRUNCATED_DEST}, got {stat!r}; "
+                    f"Fetch output was {response!r}"
+                )
+        finally:
+            cli.execute_command(f"storage remove {self.TRUNCATED_DEST}")
+
+    @allure.title("CLI. Command fetch preserves method, body, and custom header.")
+    def test_fetch_request_semantics(self, persistent_cli_connection, http_server):
+        body = "body value with spaces"
+        header_value = "header value with spaces"
+        command = (
+            f'fetch -X PUT -d "{body}" {http_server.url("/request")} '
+            f'-H "X-Fetch-Test: {header_value}"'
+        )
+        response = persistent_cli_connection.execute_command(
+            command, timeout=25, slow_command=True
+        )
+
+        with allure.step("Read the request captured by the host server"):
+            try:
+                captured = http_server.requests.get(timeout=1)
+            except queue.Empty:
+                pytest.fail(
+                    f"host server captured no request; Fetch output was {response!r}"
+                )
+
+        with allure.step("Verify method, quoted values, and request framing"):
+            assert (
+                captured["method"] == "PUT"
+            ), f"expected method PUT, captured {captured!r}"
+            assert (
+                captured["body"] == body.encode()
+            ), f"expected body {body.encode()!r}, captured {captured!r}"
+            assert (
+                captured["headers"].get("x-fetch-test") == header_value
+            ), f"expected custom header {header_value!r}, captured {captured!r}"
+            assert captured["headers"].get("content-length") == str(
+                len(body.encode())
+            ), f"expected Content-Length {len(body.encode())}, captured {captured!r}"
+            assert (
+                captured["headers"].get("transfer-encoding") != "chunked"
+            ), f"request must not be chunked, captured {captured!r}"
+            assert REQUEST_RESPONSE.decode().strip() in response, response
+
+    @allure.title("CLI. Command fetch exposes a 404 status and response body.")
+    def test_fetch_http_error_passthrough(self, persistent_cli_connection, http_server):
+        response = persistent_cli_connection.execute_command(
+            f"fetch {http_server.url('/not-found')} -v",
+            timeout=25,
+            slow_command=True,
+        )
+
+        with allure.step("Verify HTTP error passthrough"):
+            assert "HTTP/1.0 404 Not Found" in response, response
+            assert NOT_FOUND_PAYLOAD.decode().strip() in response, response
+
+    @allure.title("CLI. Command fetch saves a close-delimited response.")
+    def test_fetch_without_content_length(self, persistent_cli_connection, http_server):
+        cli = persistent_cli_connection
+        cli.execute_command(f"storage remove {self.UNKNOWN_DEST}")
+        try:
+            response = cli.execute_command(
+                f"fetch -v {http_server.url('/unknown.bin')} -o {self.UNKNOWN_DEST}",
+                timeout=25,
+                slow_command=True,
+            )
+            try:
+                captured = http_server.requests.get(timeout=1)
+            except queue.Empty:
+                pytest.fail(
+                    f"host server captured no request; Fetch output was {response!r}"
+                )
+
+            with allure.step("Verify close-delimited response framing"):
+                assert captured["path"] == "/unknown.bin", (
+                    f"expected request path '/unknown.bin', captured {captured!r}; "
+                    f"Fetch output was {response!r}"
+                )
+                assert "HTTP/1.0 200 OK" in response, (
+                    f"expected close-delimited success for {captured!r}, got {response!r}"
+                )
+                assert "Content-Length" not in response, response
+                assert "Transfer-Encoding" not in response, response
+
+            self._assert_saved_payload(cli, self.UNKNOWN_DEST, UNKNOWN_LENGTH_PAYLOAD)
+        finally:
+            cli.execute_command(f"storage remove {self.UNKNOWN_DEST}")
+
+    @allure.title("CLI. Command fetch accepts a scheme-less explicit-port URL.")
+    def test_fetch_scheme_less_url(self, persistent_cli_connection, http_server):
+        scheme_less_url = http_server.url("/known.bin").removeprefix("http://")
+        response = persistent_cli_connection.execute_command(
+            f"fetch -v {scheme_less_url}",
+            timeout=25,
+            slow_command=True,
+        )
+        try:
+            captured = http_server.requests.get(timeout=1)
+        except queue.Empty:
+            pytest.fail(
+                f"host server captured no request for {scheme_less_url!r}; "
+                f"Fetch output was {response!r}"
+            )
+
+        with allure.step("Verify scheme-less URL request path and response"):
+            assert captured["path"] == "/known.bin", (
+                f"expected request path '/known.bin' for {scheme_less_url!r}, "
+                f"captured {captured!r}; Fetch output was {response!r}"
+            )
+            assert "HTTP/1.0 200 OK" in response, (
+                f"expected scheme-less URL success, captured {captured!r}; "
+                f"Fetch output was {response!r}"
+            )
+            assert KNOWN_PAYLOAD.decode().strip() in response, (
+                f"expected payload {KNOWN_PAYLOAD!r}, captured {captured!r}; "
+                f"Fetch output was {response!r}"
+            )
+
+    @allure.title("CLI. Command fetch removes output after inactivity timeout.")
+    def test_fetch_inactivity_removes_output(
+        self, persistent_cli_connection, http_server
+    ):
+        cli = persistent_cli_connection
+        cli.execute_command(f"storage remove {self.TIMEOUT_DEST}")
+        try:
+            response = cli.execute_command(
+                f"fetch {http_server.url('/stall')} -o {self.TIMEOUT_DEST}",
+                timeout=12,
+                slow_command=True,
+            )
+            with allure.step("Verify deterministic inactivity failure"):
+                assert "Inactivity timeout" in response, response
+
+            with allure.step("Verify failed destination was removed"):
+                stat = cli.execute_command(f"storage stat {self.TIMEOUT_DEST}")
+                assert (
+                    "Storage error: file/dir not exist" in stat
+                ), f"expected no file at {self.TIMEOUT_DEST}, got {stat!r}"
+        finally:
+            http_server.release_stall.set()
+            cli.execute_command(f"storage remove {self.TIMEOUT_DEST}")

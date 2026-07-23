@@ -5,14 +5,11 @@
 
 static void
     ble_service_generic_access_device_name_update(size_t data_size, void* data, void* context) {
+    UNUSED(data_size);
+    UNUSED(context);
+
     const char* name = data;
     ble_worker_set_name(name);
-
-    ///TODO: Remove this block when chars will be maintained on our side, not nwp
-    BleCharacteristicObject* ch = context;
-    const uint16_t handle = ble_characteristic_get_handle(ch);
-    const uint8_t cccd_value = ble_characteristic_get_cccd_value(ch);
-    ble_worker_send(handle, data_size, data, cccd_value);
 }
 
 bool ble_service_generic_access_init(void* object) {

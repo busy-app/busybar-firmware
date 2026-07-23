@@ -27,6 +27,8 @@
 #include <platform/internal/GenericConnectivityManagerImpl_NoThread.h>
 #include <platform/internal/GenericConnectivityManagerImpl_WiFi.h>
 
+#include <network/network.h>
+
 namespace chip {
 namespace DeviceLayer {
 
@@ -43,10 +45,12 @@ class ConnectivityManagerImpl final
     // Allow the ConnectivityManager interface class to delegate method calls to
     // the implementation methods provided by this class.
     friend class ConnectivityManager;
+    friend class PlatformManagerImpl;
 
 private:
     // ===== Members that implement the ConnectivityManager abstract interface.
     CHIP_ERROR _Init(void);
+    void _Shutdown(void);
     void _OnPlatformEvent(const ChipDeviceEvent* event);
     bool _IsWiFiStationConnected(void);
 
@@ -57,9 +61,11 @@ private:
     static ConnectivityManagerImpl sInstance;
 
     static void WifiEvent(const void* message, void* context);
+    Network* mNetwork;
     FuriPubSub* mWifiPubSub;
     FuriPubSubSubscription* mPubSubSub;
-    bool mIsConnected;
+    bool mIsConnected = false;
+    bool mIsInitialized = false;
 };
 
 /**

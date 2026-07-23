@@ -46,7 +46,13 @@ typedef struct {
  * If @p method is @c NULL, a `GET` request is assumed.
  */
 typedef struct {
-    const char* url; /**< Pointer to the remote URL string. */
+    /**
+      * @brief Pointer to the remote URL string.
+      *
+      * @note The string MUST begin with a valid protocol prefix,
+      *       e.g. `http://` or `https://`.
+      */
+    const char* url;
     const char* method; /**< Pointer to the HTTP method string. */
     FetchRequestHeaders headers; /**< Request headers (optional). */
     FetchRequestBody body; /**< Request body (optional).*/

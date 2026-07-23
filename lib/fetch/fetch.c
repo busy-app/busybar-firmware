@@ -18,9 +18,6 @@
     "AppleWebKit/537.36 (KHTML, like Gecko) "    \
     "Chrome/138.0.0.0 Safari/537.36"
 
-#define HTTP_PREFIX  "http://"
-#define HTTPS_PREFIX "https://"
-
 #ifdef FETCH_DEBUG
 #define FETCH_LOG_I(...) FURI_LOG_I(__VA_ARGS__)
 #define FETCH_LOG_E(...) FURI_LOG_E(__VA_ARGS__)
@@ -296,18 +293,6 @@ static void fetch_mg_handler(struct mg_connection* conn, int event, void* ev_dat
     }
 }
 
-static void fetch_get_request_url(FuriString* url, const FetchRequest* request) {
-    const char* src_url = request->url;
-
-    if((strncmp(src_url, HTTP_PREFIX, strlen(HTTP_PREFIX)) != 0) &&
-       (strncmp(src_url, HTTPS_PREFIX, strlen(HTTPS_PREFIX)) != 0)) {
-        FURI_LOG_D(TAG, "No protocol prefix given, assuming http");
-        furi_string_set(url, HTTP_PREFIX);
-    }
-
-    furi_string_cat(url, src_url);
-}
-
 static FetchStatus fetch_get_status(const Fetch* instance) {
     FetchStatus status;
 
@@ -329,6 +314,22 @@ static void fetch_reset(Fetch* instance) {
     instance->count_receive_packets = 0;
     instance->is_error_occurred = false;
     instance->is_stop_requested = false;
+}
+
+static bool fetch_verify_response_body_size(Fetch* instance) {
+    bool success = true;
+
+    if(!(instance->is_stop_requested || instance->is_error_occurred)) {
+        const FetchProgress* progress = &instance->progress;
+        const size_t expected_size = progress->total_download_size;
+        const size_t actual_size = progress->received_download_size;
+
+        if((expected_size != 0) && (expected_size != actual_size)) {
+            success = false;
+        }
+    }
+
+    return success;
 }
 
 Fetch* fetch_alloc(void) {
@@ -356,9 +357,6 @@ FetchStatus fetch_run(Fetch* instance, const FetchRequest* request) {
     Network* network = furi_record_open(RECORD_NETWORK);
     network_init_current_thread(network);
 
-    FuriString* url = furi_string_alloc();
-    fetch_get_request_url(url, request);
-
 #ifdef FETCH_DEBUG
     mg_log_set(MG_LL_VERBOSE);
 #endif
@@ -366,7 +364,7 @@ FetchStatus fetch_run(Fetch* instance, const FetchRequest* request) {
     mg_mgr_init(&instance->mgr);
 
     struct mg_connection* conn =
-        mg_http_connect(&instance->mgr, furi_string_get_cstr(url), fetch_mg_handler, instance);
+        mg_http_connect(&instance->mgr, request->url, fetch_mg_handler, instance);
 
     if(conn != NULL) {
         instance->request = request;
@@ -390,13 +388,15 @@ FetchStatus fetch_run(Fetch* instance, const FetchRequest* request) {
             mg_mgr_poll(&instance->mgr, 1000);
         }
 
+        if(!fetch_verify_response_body_size(instance)) {
+            fetch_raise_error(instance, "Incomplete response body");
+        }
+
     } else {
         fetch_raise_error(instance, "Failed to connect to server");
     }
 
     mg_mgr_free(&instance->mgr);
-
-    furi_string_free(url);
 
     network_deinit_current_thread(network);
     furi_record_close(RECORD_NETWORK);

@@ -14,12 +14,16 @@
 
 #define PROGRESS_BAR_SEGMENT_COUNT (20)
 
+#define HTTP_PREFIX  "http://"
+#define HTTPS_PREFIX "https://"
+
 typedef enum {
     FetchCliCustomEventFinished = 1UL << 0,
 } FetchCliCustomEvent;
 
 typedef struct {
     FetchRequest request;
+    FuriString* url_store;
     const char* output_path;
     bool is_full_output;
 } FetchCliParams;
@@ -261,6 +265,17 @@ static void fetch_cli_print_usage(void) {
            "\t-v Enable full output\r\n");
 }
 
+static void fetch_adjust_url(FuriString* url, const char* src_url) {
+    if((strncmp(src_url, HTTP_PREFIX, strlen(HTTP_PREFIX)) != 0) &&
+       (strncmp(src_url, HTTPS_PREFIX, strlen(HTTPS_PREFIX)) != 0)) {
+        FURI_LOG_D(TAG, "No protocol prefix given, assuming http");
+        furi_string_set(url, HTTP_PREFIX);
+        furi_string_cat(url, src_url);
+    } else {
+        furi_string_set(url, src_url);
+    }
+}
+
 static void fetch_cli_option_callback(char opt, const char* optarg, void* context) {
     furi_assert(context);
     FetchCliParams* params = context;
@@ -268,7 +283,8 @@ static void fetch_cli_option_callback(char opt, const char* optarg, void* contex
     FetchRequest* request = &params->request;
 
     if(opt == '\0') {
-        request->url = optarg;
+        fetch_adjust_url(params->url_store, optarg);
+        request->url = furi_string_get_cstr(params->url_store);
     } else if(opt == 'H') {
         if(request->headers.count < FETCH_HEADERS_COUNT_MAX) {
             request->headers.data[request->headers.count++] = optarg;
@@ -285,7 +301,18 @@ static void fetch_cli_option_callback(char opt, const char* optarg, void* contex
     }
 }
 
-static bool fetch_cli_validate_params(const FetchCliParams* params) {
+static FetchCliParams* fetch_cli_params_alloc(void) {
+    FetchCliParams* params = malloc(sizeof(FetchCliParams));
+    params->url_store = furi_string_alloc();
+    return params;
+}
+
+static void fetch_cli_params_free(FetchCliParams* params) {
+    furi_string_free(params->url_store);
+    free(params);
+}
+
+static bool fetch_cli_params_validate(const FetchCliParams* params) {
     bool is_valid = false;
 
     do {
@@ -307,18 +334,18 @@ void fetch_cli_command(PipeSide* pipe, FuriString* args, void* context) {
 
     bool success = false;
 
-    do {
-        FetchCliParams params = {0};
+    FetchCliParams* params = fetch_cli_params_alloc();
 
-        if(!parse_args(args, "o:d:H:X:v", fetch_cli_option_callback, &params)) {
+    do {
+        if(!parse_args(args, "o:d:H:X:v", fetch_cli_option_callback, params)) {
             printf("Error: invalid arguments\r\n");
             break;
         }
-        if(!fetch_cli_validate_params(&params)) {
+        if(!fetch_cli_params_validate(params)) {
             break;
         }
 
-        fetch_cli_run(&params);
+        fetch_cli_run(params);
         success = true;
 
     } while(false);
@@ -326,4 +353,6 @@ void fetch_cli_command(PipeSide* pipe, FuriString* args, void* context) {
     if(!success) {
         fetch_cli_print_usage();
     }
+
+    fetch_cli_params_free(params);
 }

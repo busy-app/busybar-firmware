@@ -334,7 +334,7 @@ class TestBusyThemeRegressions:
 @pytest.mark.frontend
 @pytest.mark.regression
 class TestBusySnapshotRegressions:
-    @allure.title("BUSY SIMPLE and INTERVAL snapshots round-trip")
+    @allure.title("BUSY {expected_type} snapshot round-trips")
     @pytest.mark.parametrize(
         "factory,expected_type",
         [(_simple_snapshot, "SIMPLE"), (_interval_snapshot, "INTERVAL")],
@@ -351,16 +351,22 @@ class TestBusySnapshotRegressions:
         settings = _current_busy_settings(busy_state_guard)
         body = factory(next_timestamp(api_session, web_base_url), settings)
 
-        response = busy_api.set_snapshot_raw(body)
-        assert response.status_code == 200
-        time.sleep(STATE_SETTLE_S)
+        with allure.step(f"Submit a {expected_type} snapshot"):
+            response = busy_api.set_snapshot_raw(body)
+            assert response.status_code == 200
+            time.sleep(STATE_SETTLE_S)
 
-        updated = busy_api.get_snapshot()
-        assert updated.snapshot["type"] == expected_type
-        assert isinstance(updated.snapshot["is_paused"], bool)
-        assert updated.snapshot["busy_bar_settings"] == settings
-        if expected_type == "SIMPLE":
-            assert 0 < updated.snapshot["time_left_ms"] <= body["snapshot"]["time_left_ms"]
+        with allure.step(f"Verify the {expected_type} snapshot round-trips"):
+            updated = busy_api.get_snapshot()
+            assert updated.snapshot["type"] == expected_type
+            assert isinstance(updated.snapshot["is_paused"], bool)
+            assert updated.snapshot["busy_bar_settings"] == settings
+            if expected_type == "SIMPLE":
+                assert (
+                    0
+                    < updated.snapshot["time_left_ms"]
+                    <= body["snapshot"]["time_left_ms"]
+                )
 
     @allure.title("BUSY timer ignores stale snapshots")
     def test_busy_timer_stale_snapshot_is_ignored(
@@ -377,17 +383,21 @@ class TestBusySnapshotRegressions:
             "snapshot_timestamp_ms": accepted_ts - 1,
         }
 
-        assert busy_api.set_snapshot_raw(accepted).status_code == 200
-        time.sleep(STATE_SETTLE_S)
-        current = busy_api.get_snapshot()
-        stale["snapshot_timestamp_ms"] = current.snapshot_timestamp_ms - 1
-        assert busy_api.set_snapshot_raw(stale).status_code == 200
-        time.sleep(STATE_SETTLE_S)
+        with allure.step("Establish an accepted SIMPLE snapshot baseline"):
+            assert busy_api.set_snapshot_raw(accepted).status_code == 200
+            time.sleep(STATE_SETTLE_S)
+            current = busy_api.get_snapshot()
 
-        updated = busy_api.get_snapshot()
-        assert updated.snapshot_timestamp_ms == current.snapshot_timestamp_ms
-        assert updated.snapshot["type"] == "SIMPLE"
-        assert 0 < updated.snapshot["time_left_ms"] <= 240000
+        with allure.step("Submit an older NOT_STARTED snapshot"):
+            stale["snapshot_timestamp_ms"] = current.snapshot_timestamp_ms - 1
+            assert busy_api.set_snapshot_raw(stale).status_code == 200
+            time.sleep(STATE_SETTLE_S)
+
+        with allure.step("Verify the stale snapshot is ignored and state is preserved"):
+            updated = busy_api.get_snapshot()
+            assert updated.snapshot_timestamp_ms == current.snapshot_timestamp_ms
+            assert updated.snapshot["type"] == "SIMPLE"
+            assert 0 < updated.snapshot["time_left_ms"] <= 240000
 
     @allure.title("BUSY timer rejects snapshots more than 60 seconds in the future")
     def test_busy_timer_future_snapshot_is_rejected(
@@ -397,28 +407,37 @@ class TestBusySnapshotRegressions:
         baseline = _simple_snapshot(
             next_timestamp(api_session, web_base_url), settings, time_left_ms=240000
         )
-        assert busy_api.set_snapshot_raw(baseline).status_code == 200
-        time.sleep(STATE_SETTLE_S)
-        before = busy_api.get_snapshot()
+        with allure.step("Establish an accepted SIMPLE snapshot baseline"):
+            assert busy_api.set_snapshot_raw(baseline).status_code == 200
+            time.sleep(STATE_SETTLE_S)
+            before = busy_api.get_snapshot()
 
         # anchor to the device RTC: the firmware checks the window against its own
         # clock, so a host-clock timestamp lands inside the window whenever the RTC
         # runs ahead of the runner — and the device would accept what we expect it
         # to reject
-        future_ts = device_now_ms(api_session, web_base_url) + TS_MAX_FUTURE_MS + 15000
-        future = _infinite_snapshot(future_ts, settings)
-        response = busy_api.set_snapshot_raw(future)
-        assert response.status_code == 400, (
-            "Expected BUSY snapshot parser to reject timestamps more than "
-            f"{TS_MAX_FUTURE_MS}ms in the future, got {response.status_code}: "
-            f"{response.text[:200]}"
-        )
+        with allure.step("Submit a snapshot beyond the future timestamp limit"):
+            future_ts = (
+                device_now_ms(api_session, web_base_url) + TS_MAX_FUTURE_MS + 15000
+            )
+            future = _infinite_snapshot(future_ts, settings)
+            response = busy_api.set_snapshot_raw(future)
 
-        after = busy_api.get_snapshot()
-        assert after.snapshot_timestamp_ms == before.snapshot_timestamp_ms
-        assert after.snapshot == before.snapshot
+        with allure.step(
+            "Verify the future snapshot is rejected and state is preserved"
+        ):
+            assert response.status_code == 400, (
+                "Expected BUSY snapshot parser to reject timestamps more than "
+                f"{TS_MAX_FUTURE_MS}ms in the future, got {response.status_code}: "
+                f"{response.text[:200]}"
+            )
+            after = busy_api.get_snapshot()
+            assert after.snapshot_timestamp_ms == before.snapshot_timestamp_ms
+            assert after.snapshot == before.snapshot
 
-    @allure.title("BUSY timer invalid semantic snapshots do not change current state")
+    @allure.title(
+        "BUSY timer invalid semantic snapshot {param_id} does not change current state"
+    )
     @pytest.mark.parametrize(
         "mutator",
         [
@@ -431,44 +450,58 @@ class TestBusySnapshotRegressions:
         self, busy_api: BusyAPI, api_session, web_base_url, busy_state_guard, mutator
     ):
         settings = _current_busy_settings(busy_state_guard)
-        baseline = _infinite_snapshot(next_timestamp(api_session, web_base_url), settings)
-        assert busy_api.set_snapshot_raw(baseline).status_code == 200
-        time.sleep(STATE_SETTLE_S)
-        before = busy_api.get_snapshot()
+        baseline = _infinite_snapshot(
+            next_timestamp(api_session, web_base_url), settings
+        )
+        with allure.step("Establish an accepted INFINITE snapshot baseline"):
+            assert busy_api.set_snapshot_raw(baseline).status_code == 200
+            time.sleep(STATE_SETTLE_S)
+            before = busy_api.get_snapshot()
 
-        invalid = _simple_snapshot(next_timestamp(api_session, web_base_url), settings)
-        mutator(invalid)
-        response = busy_api.set_snapshot_raw(invalid)
-        assert response.status_code in {200, 400}
-        time.sleep(STATE_SETTLE_S)
+        with allure.step("Submit the invalid SIMPLE snapshot"):
+            invalid = _simple_snapshot(
+                next_timestamp(api_session, web_base_url), settings
+            )
+            mutator(invalid)
+            response = busy_api.set_snapshot_raw(invalid)
+            assert response.status_code in {200, 400}
+            time.sleep(STATE_SETTLE_S)
 
-        after = busy_api.get_snapshot()
-        assert after.snapshot_timestamp_ms == before.snapshot_timestamp_ms
-        assert after.snapshot == before.snapshot
+        with allure.step("Verify the invalid snapshot does not change current state"):
+            after = busy_api.get_snapshot()
+            assert after.snapshot_timestamp_ms == before.snapshot_timestamp_ms
+            assert after.snapshot == before.snapshot
 
     @allure.title("BUSY timer invalid INTERVAL state does not change current state")
     def test_busy_timer_invalid_interval_snapshot_does_not_apply(
         self, busy_api: BusyAPI, api_session, web_base_url, busy_state_guard
     ):
         settings = _current_busy_settings(busy_state_guard)
-        baseline = _infinite_snapshot(next_timestamp(api_session, web_base_url), settings)
-        assert busy_api.set_snapshot_raw(baseline).status_code == 200
-        time.sleep(STATE_SETTLE_S)
-        before = busy_api.get_snapshot()
-
-        invalid = _interval_snapshot(next_timestamp(api_session, web_base_url), settings)
-        invalid["snapshot"]["current_interval_time_left_ms"] = (
-            invalid["snapshot"]["current_interval_time_total_ms"] + 1
+        baseline = _infinite_snapshot(
+            next_timestamp(api_session, web_base_url), settings
         )
-        response = busy_api.set_snapshot_raw(invalid)
-        assert response.status_code in {200, 400}
-        time.sleep(STATE_SETTLE_S)
+        with allure.step("Establish an accepted INFINITE snapshot baseline"):
+            assert busy_api.set_snapshot_raw(baseline).status_code == 200
+            time.sleep(STATE_SETTLE_S)
+            before = busy_api.get_snapshot()
 
-        after = busy_api.get_snapshot()
-        assert after.snapshot_timestamp_ms == before.snapshot_timestamp_ms
-        assert after.snapshot == before.snapshot
+        with allure.step("Submit an INTERVAL snapshot with time left beyond its total"):
+            invalid = _interval_snapshot(
+                next_timestamp(api_session, web_base_url), settings
+            )
+            invalid["snapshot"]["current_interval_time_left_ms"] = (
+                invalid["snapshot"]["current_interval_time_total_ms"] + 1
+            )
+            response = busy_api.set_snapshot_raw(invalid)
+            assert response.status_code in {200, 400}
+            time.sleep(STATE_SETTLE_S)
 
-    @allure.title("BUSY timer invalid snapshot field matrix does not change state")
+        with allure.step("Verify the invalid snapshot does not change current state"):
+            after = busy_api.get_snapshot()
+            assert after.snapshot_timestamp_ms == before.snapshot_timestamp_ms
+            assert after.snapshot == before.snapshot
+
+    @allure.title("BUSY timer invalid snapshot field {param_id} does not change state")
     @pytest.mark.parametrize(
         "factory,mutator",
         [
@@ -510,20 +543,25 @@ class TestBusySnapshotRegressions:
         mutator,
     ):
         settings = _current_busy_settings(busy_state_guard)
-        baseline = _infinite_snapshot(next_timestamp(api_session, web_base_url), settings)
-        assert busy_api.set_snapshot_raw(baseline).status_code == 200
-        time.sleep(STATE_SETTLE_S)
-        before = busy_api.get_snapshot()
+        baseline = _infinite_snapshot(
+            next_timestamp(api_session, web_base_url), settings
+        )
+        with allure.step("Establish an accepted INFINITE snapshot baseline"):
+            assert busy_api.set_snapshot_raw(baseline).status_code == 200
+            time.sleep(STATE_SETTLE_S)
+            before = busy_api.get_snapshot()
 
-        invalid = factory(next_timestamp(api_session, web_base_url), settings)
-        mutator(invalid)
-        response = busy_api.set_snapshot_raw(invalid)
-        assert response.status_code in {200, 400}
-        time.sleep(STATE_SETTLE_S)
+        with allure.step("Submit a snapshot with an invalid field value"):
+            invalid = factory(next_timestamp(api_session, web_base_url), settings)
+            mutator(invalid)
+            response = busy_api.set_snapshot_raw(invalid)
+            assert response.status_code in {200, 400}
+            time.sleep(STATE_SETTLE_S)
 
-        after = busy_api.get_snapshot()
-        assert after.snapshot_timestamp_ms == before.snapshot_timestamp_ms
-        assert after.snapshot == before.snapshot
+        with allure.step("Verify the invalid snapshot does not change current state"):
+            after = busy_api.get_snapshot()
+            assert after.snapshot_timestamp_ms == before.snapshot_timestamp_ms
+            assert after.snapshot == before.snapshot
 
     @allure.title("BUSY timer newer snapshot timestamp wins")
     def test_busy_timer_newer_snapshot_timestamp_wins(
@@ -534,18 +572,22 @@ class TestBusySnapshotRegressions:
             next_timestamp(api_session, web_base_url), settings, time_left_ms=240000
         )
 
-        assert busy_api.set_snapshot_raw(older).status_code == 200
-        time.sleep(STATE_SETTLE_S)
-        newer = _simple_snapshot(
-            next_timestamp(api_session, web_base_url), settings, time_left_ms=120000
-        )
-        assert busy_api.set_snapshot_raw(newer).status_code == 200
-        time.sleep(STATE_SETTLE_S)
+        with allure.step("Submit the older SIMPLE snapshot"):
+            assert busy_api.set_snapshot_raw(older).status_code == 200
+            time.sleep(STATE_SETTLE_S)
 
-        updated = busy_api.get_snapshot()
-        assert updated.snapshot_timestamp_ms >= newer["snapshot_timestamp_ms"]
-        assert updated.snapshot["type"] == "SIMPLE"
-        assert 0 < updated.snapshot["time_left_ms"] <= 120000
+        with allure.step("Submit a newer SIMPLE snapshot"):
+            newer = _simple_snapshot(
+                next_timestamp(api_session, web_base_url), settings, time_left_ms=120000
+            )
+            assert busy_api.set_snapshot_raw(newer).status_code == 200
+            time.sleep(STATE_SETTLE_S)
+
+        with allure.step("Verify the newer snapshot wins"):
+            updated = busy_api.get_snapshot()
+            assert updated.snapshot_timestamp_ms >= newer["snapshot_timestamp_ms"]
+            assert updated.snapshot["type"] == "SIMPLE"
+            assert 0 < updated.snapshot["time_left_ms"] <= 120000
 
     @allure.title("BUSY timer snapshot preserves non-default busy bar settings")
     def test_busy_timer_snapshot_preserves_busy_bar_settings(
@@ -561,11 +603,13 @@ class TestBusySnapshotRegressions:
         )
         body = _simple_snapshot(next_timestamp(api_session, web_base_url), settings)
 
-        assert busy_api.set_snapshot_raw(body).status_code == 200
-        time.sleep(STATE_SETTLE_S)
+        with allure.step("Submit a snapshot with non-default busy bar settings"):
+            assert busy_api.set_snapshot_raw(body).status_code == 200
+            time.sleep(STATE_SETTLE_S)
 
-        updated = busy_api.get_snapshot()
-        assert updated.snapshot["busy_bar_settings"] == settings
+        with allure.step("Verify the busy bar settings round-trip unchanged"):
+            updated = busy_api.get_snapshot()
+            assert updated.snapshot["busy_bar_settings"] == settings
 
     @allure.title("Paused BUSY SIMPLE snapshot is restored after reboot")
     def test_busy_timer_paused_simple_snapshot_persists_after_reboot(
@@ -584,8 +628,9 @@ class TestBusySnapshotRegressions:
             time_left_ms=expected_time_left_ms,
         )
 
-        assert busy_api.set_snapshot_raw(body).status_code == 200
-        time.sleep(STATE_SETTLE_S)
+        with allure.step("Submit a paused SIMPLE snapshot"):
+            assert busy_api.set_snapshot_raw(body).status_code == 200
+            time.sleep(STATE_SETTLE_S)
 
         with allure.step("Reboot device via CLI and wait for API"):
             assert persistent_cli_connection.reboot_and_wait_for_api(

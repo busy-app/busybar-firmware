@@ -1,5 +1,3 @@
-#include "ble_event_handlers_gatt.h"
-
 #include "../ble_worker_i.h"
 
 #define TAG "BleGATTEvent"
