@@ -1,3 +1,7 @@
+/**
+ * @file ble_advertise.h
+ * @brief Advertise logic
+ */
 #pragma once
 
 #include "../_nwp_callbacks/ble_nwp_headers.h"
