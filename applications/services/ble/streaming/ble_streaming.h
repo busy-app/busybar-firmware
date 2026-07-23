@@ -1,3 +1,9 @@
+/**
+ * @file ble_streaming.h
+ * @brief API for streaming device state and screen over ble
+ *
+ * Streams data provided by state publisher to HM10 Uart characteristics
+ */
 #pragma once
 
 #include "../ble.h"
@@ -11,7 +17,7 @@ typedef struct BleStreaming BleStreaming;
  * @brief Allocates streaming instance for future use.
  *
  * @param[in] ble Pointer to Ble service.
- * @param[out] BleStreaming* Pointer to streaming instance.
+ * @return pointer to streaming instance.
  */
 BleStreaming* ble_streaming_alloc(Ble* ble);
 
