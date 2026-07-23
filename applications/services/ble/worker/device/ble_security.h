@@ -1,3 +1,7 @@
+/**
+ * @file ble_security.h
+ * @brief Pairing keys save logic and rpa
+ */
 #pragma once
 
 #include "rsi_ble.h"

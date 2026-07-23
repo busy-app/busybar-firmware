@@ -43,7 +43,7 @@ In short:
 - Use `@command` instead of `\command` syntax.
 - Use a `@file` [command](https://www.doxygen.nl/manual/commands.html#cmdfile) at the top of each file to be processed by *Doxygen*.
 - Provide function [parameter](https://www.doxygen.nl/manual/commands.html#cmdparam) directions (`[in]`, `[out]` or `[in,out]`).
-- Use [groups](https://www.doxygen.nl/manual/commands.html#cmdaddtogroup) to link related entities togeter (they will show up in the [Topics](topics.html) section).
+- Use [groups](https://www.doxygen.nl/manual/commands.html#cmdaddtogroup) to link related entities together (they will show up in the [Topics](topics.html) section).
 - Use group nesting in order to provide additional structure to the Topics section.
 - Do not simply repeat the function signature in *Doxygen* blocks, instead provide some actual information.
 
@@ -56,7 +56,7 @@ Group labels should be in kebab case, e.g. `@defgroup my-awesome-group My awesom
 Standalone files are hybrid [Markdown](https://www.doxygen.nl/manual/markdown.html) files with [custom](https://www.doxygen.nl/manual/additional.html) `.dox.md` extension. They are found in the `documentation` folder in the project root directory and their purpose is to provide top-level structure for the documentation.
 
 ### Labeling
-Each standalone file must contan a title in the form of a Markdown top-level heading with a page label, e.g: `# My awesome page {#my-awesome-page}`. Page labels must be short, single word or several words in kebab case.
+Each standalone file must contain a title in the form of a Markdown top-level heading with a page label, e.g: `# My awesome page {#my-awesome-page}`. Page labels must be short, single word or several words in kebab case.
 
 ### Hierarchy
 Standalone files may also include other files as [subpages](https://www.doxygen.nl/manual/commands.html#cmdsubpage) or [reference](https://www.doxygen.nl/manual/commands.html#cmdref) any other label or symbol in the project.
