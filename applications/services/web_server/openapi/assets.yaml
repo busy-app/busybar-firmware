@@ -8,7 +8,9 @@ paths:
       tags:
         - Assets
       summary: Upload asset file with app ID
-      description: Uploads a file to a specific app's assets directory
+      description: |
+        Upload a file to the application-specific assets directory. If the directory does not yet exist, it will be created automatically.
+        Additionally, if the file name contains a subdirectory, it will be created as well, and the file will be placed inside of it.
       operationId: uploadAssetWithAppId
       parameters:
         - name: application_name
@@ -16,6 +18,8 @@ paths:
           required: true
           schema:
             type: string
+            minLength: 1
+            maxLength: 32
             pattern: "^[a-zA-Z0-9._-]+$"
           description: Application ID for organizing assets
           example: "my_app"
@@ -24,9 +28,11 @@ paths:
           required: true
           schema:
             type: string
-            pattern: "^[a-zA-Z0-9._-]+$"
-          description: Filename for the uploaded asset
-          example: "data.png"
+            minLength: 1
+            maxLength: 64
+            pattern: "^[a-zA-Z0-9._-/]+$"
+          description: File name for the uploaded asset
+          example: "image.png"
       requestBody:
         required: true
         content:
@@ -240,7 +246,7 @@ schemas:
         type: string
         pattern: "^#[a-fA-F0-9]{8}$"
         description: >-
-          Color to blink the status LED, in #RRGGBBAA format. 
+          Color to blink the status LED, in #RRGGBBAA format.
           If not specified, the LED will not blink.
         example: "#FF0000FF"
       elements:
@@ -488,7 +494,7 @@ schemas:
             type: string
             enum: [when_non_zero, always]
             description: When to show the hours position
-  
+
   RectangleElement:
     allOf:
       - $ref: "#/components/schemas/DisplayElement"
