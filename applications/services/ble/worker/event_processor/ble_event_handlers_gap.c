@@ -26,19 +26,6 @@ bool ble_event_handler_gap_connected(size_t data_size, void* data, void* context
     BLE_LOG_I("Connected, address : %s", furi_string_get_cstr(addr));
     furi_string_free(addr);
 
-    // const BleDeviceCommon* peer = ble_connection_get_peer()
-    // ble_device_set_address
-
-    ///TODO: Commented due to issues with connect to different phones remove when interaction logic will be finalized
-    //! Setting MTU Exchange event
-    // status =
-    //     rsi_ble_mtu_exchange_event(instance->remote_dev_address, BLE_WORKER_MAX_MTU_SIZE);
-    // if(status != RSI_SUCCESS) {
-    //     BLE_LOG_W("MTU request cmd failed with error code = 0x%08lx", status);
-    //     furi_crash();
-    // } else {
-    //     BLE_LOG_I("MTU sent");
-    // }
 #ifdef BLE_DEBUG_ADVERTISE_FORCE_PUBLIC
     if(result) {
         ble_worker_invoke_connect_callback(instance);

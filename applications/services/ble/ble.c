@@ -39,7 +39,6 @@ static void
 
         if(api_lock_is_locked(instance->current_command_api_lock)) {
             instance->current_command->header.result = false;
-            ///TODO: maybe add error here
             api_lock_unlock(instance->current_command_api_lock);
         }
     } else if(instance->service_post_process_callback) {
