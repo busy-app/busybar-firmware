@@ -122,8 +122,6 @@ static bool api_assets_delete_callback(
 
         const char* dir_path_str = furi_string_get_cstr(dir_path);
 
-        FURI_LOG_W(TAG, "!!!!!!!!!!!! %s", dir_path_str);
-
         if(!storage_dir_exists(storage, dir_path_str)) {
             MG_REPLY_ERROR(conn, 404, "Assets not found");
             break;
