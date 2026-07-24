@@ -8,23 +8,79 @@
 
 #define ASSETS_UPLOAD_DIR EXT_PATH("user_assets")
 
-#define APP_NAME_LEN_MAX  32
+#define APP_NAME_LEN_MIN 1
+#define APP_NAME_LEN_MAX 32
+
+#define FILE_NAME_LEN_MIN 1
 #define FILE_NAME_LEN_MAX 64
 
 #define APP_NAME_PARAM_KEY  "application_name"
 #define FILE_NAME_PARAM_KEY "file"
 
+#define APP_NAME_EXTRA_CHARS  "._-"
+#define FILE_NAME_EXTRA_CHARS APP_NAME_EXTRA_CHARS "/"
+
+static bool api_assets_isalnum_or_extra(char c, const char* extra_chars) {
+    return isalnum(c) || (strchr(extra_chars, c) != NULL);
+}
+
+static bool api_assets_app_name_is_valid(const char* app_name, uint32_t app_name_len) {
+    bool is_valid = true;
+
+    for(uint32_t i = 0; i < app_name_len; ++i) {
+        const char c = app_name[i];
+
+        if(!api_assets_isalnum_or_extra(c, APP_NAME_EXTRA_CHARS)) {
+            is_valid = false;
+            break;
+        }
+    }
+
+    return is_valid;
+}
+
+static bool api_assets_file_name_is_valid(const char* file_name, uint32_t file_name_len) {
+    bool is_valid = true;
+
+    for(uint32_t i = 0; i < file_name_len; ++i) {
+        const char c = file_name[i];
+
+        if(api_assets_isalnum_or_extra(c, FILE_NAME_EXTRA_CHARS)) {
+            is_valid = false;
+            break;
+        }
+
+        if(c == '/') {
+            if((i == 0) || (i == file_name_len - 1) || (file_name[i + 1] == c)) {
+                is_valid = false;
+                break;
+            }
+        }
+    }
+
+    return is_valid;
+}
+
 static bool api_assets_get_app_directory_path(const struct mg_str* params, FuriString* out_path) {
     bool success = false;
 
-    char app_name[APP_NAME_LEN_MAX];
-    const int app_name_len =
-        mg_http_get_var(params, APP_NAME_PARAM_KEY, app_name, sizeof(app_name));
+    do {
+        char app_name[APP_NAME_LEN_MAX + 1];
+        const int app_name_len =
+            mg_http_get_var(params, APP_NAME_PARAM_KEY, app_name, sizeof(app_name));
 
-    if(app_name_len > 0) {
+        if((app_name_len < APP_NAME_LEN_MIN) || (app_name_len >= APP_NAME_LEN_MAX)) {
+            break;
+        }
+
+        if(!api_assets_app_name_is_valid(app_name, app_name_len)) {
+            break;
+        }
+
         furi_string_printf(out_path, "%s/%.*s", ASSETS_UPLOAD_DIR, app_name_len, app_name);
         success = true;
-    }
+
+    } while(false);
 
     return success;
 }
@@ -33,14 +89,23 @@ static bool
     api_assets_append_target_file_subpath(const struct mg_str* params, FuriString* out_path) {
     bool success = false;
 
-    char file_name[FILE_NAME_LEN_MAX];
-    const int file_name_len =
-        mg_http_get_var(params, FILE_NAME_PARAM_KEY, file_name, sizeof(file_name));
+    do {
+        char file_name[FILE_NAME_LEN_MAX + 1];
+        const int file_name_len =
+            mg_http_get_var(params, FILE_NAME_PARAM_KEY, file_name, sizeof(file_name));
 
-    if(file_name_len > 0) {
+        if((file_name_len < FILE_NAME_LEN_MIN) || (file_name_len > FILE_NAME_LEN_MAX)) {
+            break;
+        }
+
+        if(!api_assets_file_name_is_valid(file_name, file_name_len)) {
+            break;
+        }
+
         furi_string_cat_printf(out_path, "/%.*s", file_name_len, file_name);
         success = true;
-    }
+
+    } while(false);
 
     return success;
 }
