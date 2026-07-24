@@ -1,8 +1,4 @@
 #include "http_api.h"
-#include <loader/loader.h>
-#include <desktop/desktop.h>
-#include <gui/gui.h>
-#include <toolbox/path.h>
 
 #define TAG "HttpAssets"
 
@@ -45,13 +41,22 @@ static bool api_assets_file_name_is_valid(const char* file_name, uint32_t file_n
     for(uint32_t i = 0; i < file_name_len; ++i) {
         const char c = file_name[i];
 
-        if(api_assets_isalnum_or_extra(c, FILE_NAME_EXTRA_CHARS)) {
+        if(!api_assets_isalnum_or_extra(c, FILE_NAME_EXTRA_CHARS)) {
             is_valid = false;
             break;
         }
 
         if(c == '/') {
+            // Forbid starting, trailing or run-together slashes
+            // (e.g. "/file", "file/", "dir//file")
             if((i == 0) || (i == file_name_len - 1) || (file_name[i + 1] == c)) {
+                is_valid = false;
+                break;
+            }
+
+        } else if(c == '.') {
+            // Forbid run-together dots (e.g. "..")
+            if((i < file_name_len - 1) && (file_name[i + 1] == c)) {
                 is_valid = false;
                 break;
             }
@@ -117,13 +122,12 @@ static bool api_assets_get_target_file_path(const struct mg_str* params, FuriStr
         if(params->len == 0) {
             break;
         }
+
         if(!api_assets_get_app_directory_path(params, out_path)) {
             break;
         }
+
         if(!api_assets_append_target_file_subpath(params, out_path)) {
-            break;
-        }
-        if(!mg_path_is_sane(mg_str(furi_string_get_cstr(out_path)))) {
             break;
         }
 
@@ -185,7 +189,9 @@ static bool api_assets_delete_callback(
             break;
         }
 
-        if(!storage_simply_remove_recursive(storage, furi_string_get_cstr(dir_path))) {
+        const char* dir_path_str = furi_string_get_cstr(dir_path);
+
+        if(!storage_simply_remove_recursive(storage, dir_path_str)) {
             MG_REPLY_SERVICE_UNAVAILABLE(conn, "File delete failed");
             break;
         }
