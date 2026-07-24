@@ -231,7 +231,7 @@ schemas:
     properties:
       application_name:
         $ref: "#/components/schemas/ApplicationName"
-        description: Application ID for organizing assets
+        description: Application name for organizing assets
       priority:
         type: integer
         minimum: 1
@@ -546,7 +546,7 @@ schemas:
       - properties:
           application_name:
             $ref: "#/components/schemas/ApplicationName"
-            description: Application ID for organizing assets
+            description: Application name for organizing assets
         required:
           - application_name
       - oneOf:
