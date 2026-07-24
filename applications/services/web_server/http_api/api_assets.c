@@ -185,14 +185,7 @@ static bool api_assets_delete_callback(
             break;
         }
 
-        const char* dir_path_str = furi_string_get_cstr(dir_path);
-
-        if(!storage_dir_exists(storage, dir_path_str)) {
-            MG_REPLY_ERROR(conn, 404, "Assets not found");
-            break;
-        }
-
-        if(!storage_simply_remove_recursive(storage, dir_path_str)) {
+        if(!storage_simply_remove_recursive(storage, furi_string_get_cstr(dir_path))) {
             MG_REPLY_SERVICE_UNAVAILABLE(conn, "File delete failed");
             break;
         }
