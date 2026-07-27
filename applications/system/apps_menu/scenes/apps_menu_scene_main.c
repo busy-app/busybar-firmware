@@ -3,8 +3,12 @@
 #include "apps_menu_scenes.h"
 #include "../app_list.h"
 
+#include <furi_hal_nvm.h>
+
 #include <desktop/desktop.h>
 #include <gui/modules/menu.h>
+
+#include <js_app/js_app_registry.h>
 
 typedef enum {
     SceneCustomEventMenuItemClicked = AppsMenuCustomEventSceneEventsStart,
@@ -14,8 +18,15 @@ typedef struct {
     Menu* front_menu;
     Menu* back_menu;
 
-    _Atomic AppsMenuEntryIdx menu_idx;
+    uint32_t item_count;
+    _Atomic uint32_t menu_idx;
 } AppsMenuSceneMain;
+
+typedef struct {
+    AppsMenu* instance;
+    AppsMenuSceneMain* data;
+} AppsMenuSceneMainContext;
+
 
 static void apps_scene_setup_menu_callback(uint32_t index, void* context) {
     furi_assert(context);
@@ -29,6 +40,71 @@ static void apps_scene_setup_menu_callback(uint32_t index, void* context) {
         instance->event_queue, &(uint32_t){SceneCustomEventMenuItemClicked}, FuriWaitForever);
 }
 
+static void apps_menu_scene_main_list_native_apps(AppsMenu* instance, AppsMenuSceneMain* data) {
+    menu_add_item(
+        data->front_menu,
+        "Clock",
+        "",
+        APPS_MENU_IMG_PATH("clock_front_8x8.image"),
+        AppsMenuEntryIdxClock,
+        apps_scene_setup_menu_callback,
+        instance);
+
+    menu_add_item(
+        data->back_menu,
+        "Clock",
+        "",
+        APPS_MENU_IMG_PATH("clock_back_11x11.image"),
+        AppsMenuEntryIdxClock,
+        NULL,
+        NULL);
+
+    data->item_count = AppsMenuEntryIdxsCount;
+}
+
+static void app_menu_scene_main_js_app_list_callback(const JsAppInfo* info, void* context) {
+    furi_assert(info);
+    furi_assert(context);
+
+    if(info->is_debug && !furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {
+        return;
+    }
+
+    const AppsMenuSceneMainContext* ctx = context;
+
+    AppsMenu* instance = ctx->instance;
+    AppsMenuSceneMain* data = ctx->data;
+
+    menu_add_item(
+        data->front_menu,
+        info->name,
+        "",
+        APPS_MENU_IMG_PATH("soon_front_8x8.image"),
+        data->item_count,
+        apps_scene_setup_menu_callback,
+        instance);
+
+    menu_add_item(
+        data->back_menu,
+        info->name,
+        "",
+        APPS_MENU_IMG_PATH("soon_back_11x11.image"),
+        data->item_count,
+        NULL,
+        NULL);
+
+    ++data->item_count;
+}
+
+static void apps_menu_scene_main_list_js_apps(AppsMenu* instance, AppsMenuSceneMain* data) {
+    AppsMenuSceneMainContext ctx = {
+        .instance = instance,
+        .data = data,
+    };
+
+    js_app_registry_list_apps(app_menu_scene_main_js_app_list_callback, &ctx);
+}
+
 static void apps_menu_scene_main_on_enter(void* context) {
     furi_assert(context);
     AppsMenu* instance = context;
@@ -36,44 +112,13 @@ static void apps_menu_scene_main_on_enter(void* context) {
         scene_manager_get_scene_data(instance->scene_manager, AppsMenuSceneIdMain);
 
     with_gui(instance->gui, {
-        // front:
         data->front_menu = menu_alloc(instance->front_scene_window);
-        menu_add_item(
-            data->front_menu,
-            "Clock",
-            "",
-            APPS_MENU_IMG_PATH("clock_front_8x8.image"),
-            AppsMenuEntryIdxClock,
-            apps_scene_setup_menu_callback,
-            instance);
-        menu_add_item(
-            data->front_menu,
-            "Coming soon...",
-            "",
-            APPS_MENU_IMG_PATH("soon_front_8x8.image"),
-            AppsMenuEntryIdxComingSoon,
-            apps_scene_setup_menu_callback,
-            instance);
-        menu_set_selected_item_index(data->front_menu, data->menu_idx);
-
-        // back:
         data->back_menu = menu_alloc(instance->back_scene_window);
-        menu_add_item(
-            data->back_menu,
-            "Clock",
-            "",
-            APPS_MENU_IMG_PATH("clock_back_11x11.image"),
-            0,
-            NULL,
-            NULL);
-        menu_add_item(
-            data->back_menu,
-            "Coming soon...",
-            "",
-            APPS_MENU_IMG_PATH("soon_back_11x11.image"),
-            0,
-            NULL,
-            NULL);
+
+        apps_menu_scene_main_list_native_apps(instance, data);
+        apps_menu_scene_main_list_js_apps(instance, data);
+
+        menu_set_selected_item_index(data->front_menu, data->menu_idx);
         menu_set_selected_item_index(data->back_menu, data->menu_idx);
 
         widget_set_scrollbar_enabled(menu_get_base(data->front_menu), true);
@@ -95,41 +140,51 @@ static void apps_menu_scene_main_on_exit(void* context) {
     });
 }
 
+static void apps_menu_scene_main_start_native_app(AppsMenu* instance, uint32_t app_idx) {
+    AppsMenuSettings* settings = &instance->settings;
+    const char* app_name = apps_menu_entries[app_idx];
+
+    strlcpy(
+        settings->active_application,
+        app_name,
+        sizeof(settings->active_application));
+
+    apps_menu_settings_save(settings);
+
+    Desktop* desktop = furi_record_open(RECORD_DESKTOP);
+    desktop_replace_current_app(desktop, app_name, NULL);
+    furi_record_close(RECORD_DESKTOP);
+}
+
+static void apps_menu_scene_main_start_js_app(AppsMenu* instance, uint32_t app_idx) {
+    UNUSED(instance);
+
+    // TODO: Implementation
+    FURI_LOG_I("AppsMenu", "Running JS application with index %lu...", app_idx);
+}
+
 static bool apps_menu_scene_main_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
+
+    bool consumed = false;
 
     AppsMenu* instance = context;
     AppsMenuSceneMain* data =
         scene_manager_get_scene_data(instance->scene_manager, AppsMenuSceneIdMain);
 
     if(event->type == SceneManagerEventTypeCustom) {
-        switch(event->event) {
-        case SceneCustomEventMenuItemClicked:
-            furi_check(data->menu_idx < AppsMenuEntryIdxsCount);
-
-            const char* target_application = apps_menu_entries[data->menu_idx];
-
-            if(target_application) {
-                strlcpy(
-                    instance->settings.active_application,
-                    target_application,
-                    sizeof(instance->settings.active_application));
-                apps_menu_settings_save(&instance->settings);
-
-                Desktop* desktop = furi_record_open(RECORD_DESKTOP);
-                desktop_replace_current_app(desktop, target_application, NULL);
-                furi_record_close(RECORD_DESKTOP);
+        if(event->event == SceneCustomEventMenuItemClicked) {
+            if(data->menu_idx < AppsMenuEntryIdxsCount) {
+                apps_menu_scene_main_start_native_app(instance, data->menu_idx);
             } else {
-                scene_manager_next_scene(instance->scene_manager, AppsMenuSceneIdComingSoon);
+                apps_menu_scene_main_start_js_app(instance, data->menu_idx);
             }
-            return true;
 
-        default:
-            break;
+            consumed = true;
         }
     }
 
-    return false;
+    return consumed;
 }
 
 const Scene apps_menu_scene_main = {
