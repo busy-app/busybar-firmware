@@ -3,7 +3,7 @@
  */
 #pragma once
 
-#include "js_app_common.h"
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -13,9 +13,9 @@ typedef struct JsAppManifest JsAppManifest;
 
 typedef struct {
     const char* name;
+    const char* version;
     const char* descritption;
     const char* author;
-    JsAppVersion version;
     bool is_debug;
 } JsAppManifestInfo;
 
