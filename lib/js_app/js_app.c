@@ -60,15 +60,21 @@ static bool js_app_process_manifest(JsApp* instance, const char* dir_path) {
     return success;
 }
 
+static void js_apps_process_root_directory(JsApp* instance, const char* dir_path) {
+    furi_string_set(instance->root_path, dir_path);
+}
+
 static void js_app_process_icons(JsApp* instance, const char* dir_path) {
     Storage* storage = furi_record_open(RECORD_STORAGE);
 
     path_concat(dir_path, APP_FRONT_ICON_PATH, instance->front_icon_path);
+
     if(!js_app_is_file_present(storage, instance->front_icon_path)) {
         furi_string_set(instance->front_icon_path, FRONT_DEFAULT_ICON_PATH);
     }
 
     path_concat(dir_path, APP_BACK_ICON_PATH, instance->back_icon_path);
+
     if(!js_app_is_file_present(storage, instance->back_icon_path)) {
         furi_string_set(instance->back_icon_path, BACK_DEFAULT_ICON_PATH);
     }
@@ -109,6 +115,7 @@ bool js_app_parse_from_dir(JsApp* instance, const char* dir_path) {
             break;
         }
 
+        js_apps_process_root_directory(instance, dir_path);
         js_app_process_icons(instance, dir_path);
 
         success = true;
