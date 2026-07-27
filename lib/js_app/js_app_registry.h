@@ -3,7 +3,7 @@
  */
 #pragma once
 
-#include "js_app_common.h"
+#include "js_app.h"
 
 #ifdef __cplusplus
 extern "C" {

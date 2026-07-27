@@ -65,7 +65,9 @@ static void app_menu_scene_main_js_app_list_callback(const JsAppInfo* info, void
     furi_assert(info);
     furi_assert(context);
 
-    if(info->is_debug && !furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {
+    const JsAppManifestInfo* manifest_info = &info->manifest;
+
+    if(manifest_info->is_debug && !furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {
         return;
     }
 
@@ -74,9 +76,11 @@ static void app_menu_scene_main_js_app_list_callback(const JsAppInfo* info, void
     AppsMenu* instance = ctx->instance;
     AppsMenuSceneMain* data = ctx->data;
 
+    const char* app_name = manifest_info->name;
+
     menu_add_item(
         data->front_menu,
-        info->name,
+        app_name,
         "",
         APPS_MENU_IMG_PATH("soon_front_8x8.image"),
         data->item_count,
@@ -85,7 +89,7 @@ static void app_menu_scene_main_js_app_list_callback(const JsAppInfo* info, void
 
     menu_add_item(
         data->back_menu,
-        info->name,
+        app_name,
         "",
         APPS_MENU_IMG_PATH("soon_back_11x11.image"),
         data->item_count,
