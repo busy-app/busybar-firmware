@@ -2,6 +2,8 @@
 
 #include <string.h>
 
+#define LOG_STORAGE_LOCK_TIMEOUT_MS 1000u
+
 static void log_storage_base_on_log(const uint8_t* data, size_t size, void* context) {
     LogStorageBase* instance = context;
 
@@ -13,7 +15,7 @@ static void log_storage_base_on_log(const uint8_t* data, size_t size, void* cont
     if(size > space_till_wrap) {
         memcpy(instance->log_buffer, &data[space_till_wrap], size - space_till_wrap);
         instance->head_idx = size - space_till_wrap;
-        instance->did_not_wrap = false;
+        instance->did_wrap = true;
     } else {
         instance->head_idx = instance->head_idx + size;
     }
@@ -39,14 +41,7 @@ bool log_storage_base_snapshot_take(LogStorageBase* instance, LogStorageSnapshot
     tail_chunk->length = 0;
 
     size_t head_idx = instance->head_idx;
-    if(instance->did_not_wrap) {
-        uint8_t* tail_trim = memrchr(instance->log_buffer, '\n', head_idx);
-
-        if(tail_trim) {
-            head_chunk->data = instance->log_buffer;
-            head_chunk->length = tail_trim - instance->log_buffer + 1;
-        }
-    } else {
+    if(instance->did_wrap) {
         size_t head_length = LOG_STORAGE_LOG_BUFFER_SIZE - head_idx;
 
         uint8_t* head_trim = memchr(&instance->log_buffer[head_idx], '\n', head_length) ?:
@@ -70,6 +65,13 @@ bool log_storage_base_snapshot_take(LogStorageBase* instance, LogStorageSnapshot
                 tail_chunk->length = tail_trim_idx;
             }
         }
+    } else {
+        uint8_t* tail_trim = memrchr(instance->log_buffer, '\n', head_idx);
+
+        if(tail_trim) {
+            head_chunk->data = instance->log_buffer;
+            head_chunk->length = tail_trim - instance->log_buffer + 1;
+        }
     }
 
     return true;
@@ -85,7 +87,7 @@ void log_storage_base_init(LogStorageBase* instance) {
 
     instance->lock = furi_mutex_alloc(FuriMutexTypeNormal);
     instance->head_idx = 0;
-    instance->did_not_wrap = true;
+    instance->did_wrap = false;
 
     furi_check(furi_log_add_handler((FuriLogHandler){
         .callback = log_storage_base_on_log,

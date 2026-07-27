@@ -2,8 +2,6 @@
 
 #include <furi.h>
 
-#define LOG_STORAGE_LOCK_TIMEOUT_MS 1000u
-
 /* default value - overridden by application.fam */
 #ifndef LOG_STORAGE_LOG_BUFFER_SIZE
 #define LOG_STORAGE_LOG_BUFFER_SIZE (4u * 1024u)
@@ -11,19 +9,20 @@
 
 #define LOG_STORAGE_SNAPSHOT_CHUNKS_COUNT 2u
 
-enum {
-    LogStorageBaseIntercomRequestDump = 0x01,
-};
+typedef struct {
+    uint32_t length;
+} LogStorageBaseIntercomRequest;
 
-typedef uint8_t LogStorageBaseIntercomRequestType;
-typedef uint32_t LogStorageBaseIntercomLengthType;
+typedef union {
+    uint32_t length;
+} LogStorageBaseIntercomResponseHeader;
 
 typedef struct {
     FuriMutex* lock;
 
     uint8_t log_buffer[LOG_STORAGE_LOG_BUFFER_SIZE];
     size_t head_idx;
-    bool did_not_wrap;
+    bool did_wrap;
 } LogStorageBase;
 
 typedef struct {
