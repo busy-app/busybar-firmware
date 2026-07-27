@@ -77,24 +77,19 @@ static void app_menu_scene_main_js_app_list_callback(const JsAppInfo* info, void
     AppsMenuSceneMain* data = ctx->data;
 
     const char* app_name = manifest_info->name;
+    const JsAppIconInfo* icon_info = &info->icons;
 
     menu_add_item(
         data->front_menu,
         app_name,
         "",
-        APPS_MENU_IMG_PATH("soon_front_8x8.image"),
+        icon_info->front_path,
         data->item_count,
         apps_scene_setup_menu_callback,
         instance);
 
     menu_add_item(
-        data->back_menu,
-        app_name,
-        "",
-        APPS_MENU_IMG_PATH("soon_back_11x11.image"),
-        data->item_count,
-        NULL,
-        NULL);
+        data->back_menu, app_name, "", icon_info->back_path, data->item_count, NULL, NULL);
 
     ++data->item_count;
 }

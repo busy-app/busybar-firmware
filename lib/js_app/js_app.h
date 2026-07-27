@@ -12,7 +12,13 @@ extern "C" {
 typedef struct JsApp JsApp;
 
 typedef struct {
+    const char* front_path;
+    const char* back_path;
+} JsAppIconInfo;
+
+typedef struct {
     JsAppManifestInfo manifest;
+    JsAppIconInfo icons;
 } JsAppInfo;
 
 JsApp* js_app_alloc(void);
