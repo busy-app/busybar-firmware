@@ -27,7 +27,6 @@ typedef struct {
     AppsMenuSceneMain* data;
 } AppsMenuSceneMainContext;
 
-
 static void apps_scene_setup_menu_callback(uint32_t index, void* context) {
     furi_assert(context);
 
@@ -144,10 +143,7 @@ static void apps_menu_scene_main_start_native_app(AppsMenu* instance, uint32_t a
     AppsMenuSettings* settings = &instance->settings;
     const char* app_name = apps_menu_entries[app_idx];
 
-    strlcpy(
-        settings->active_application,
-        app_name,
-        sizeof(settings->active_application));
+    strlcpy(settings->active_application, app_name, sizeof(settings->active_application));
 
     apps_menu_settings_save(settings);
 
