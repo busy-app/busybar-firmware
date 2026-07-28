@@ -10,6 +10,11 @@
 
 #include <js_app/js_app_registry.h>
 
+#include <m-array.h>
+#include <toolbox/m_cstr_dup.h>
+
+ARRAY_DEF(JsAppIdArray, const char*, M_CSTR_DUP_OPLIST)
+
 typedef enum {
     SceneCustomEventMenuItemClicked = AppsMenuCustomEventSceneEventsStart,
 } SceneCustomEvent;
@@ -17,6 +22,7 @@ typedef enum {
 typedef struct {
     Menu* front_menu;
     Menu* back_menu;
+    JsAppIdArray_t js_app_ids;
 
     uint32_t item_count;
     _Atomic uint32_t menu_idx;
@@ -90,6 +96,8 @@ static void app_menu_scene_main_js_app_list_callback(const JsAppInfo* info, void
 
     menu_add_item(data->back_menu, app_name, "", paths->icon.back, data->item_count, NULL, NULL);
 
+    JsAppIdArray_push_back(data->js_app_ids, info->id);
+
     ++data->item_count;
 }
 
@@ -107,6 +115,8 @@ static void apps_menu_scene_main_on_enter(void* context) {
     AppsMenu* instance = context;
     AppsMenuSceneMain* data =
         scene_manager_get_scene_data(instance->scene_manager, AppsMenuSceneIdMain);
+
+    JsAppIdArray_init(data->js_app_ids);
 
     with_gui(instance->gui, {
         data->front_menu = menu_alloc(instance->front_scene_window);
@@ -135,11 +145,13 @@ static void apps_menu_scene_main_on_exit(void* context) {
         menu_free(data->front_menu);
         menu_free(data->back_menu);
     });
+
+    JsAppIdArray_clear(data->js_app_ids);
 }
 
-static void apps_menu_scene_main_start_native_app(AppsMenu* instance, uint32_t app_idx) {
+static void apps_menu_scene_main_start_native_app(AppsMenu* instance, const AppsMenuSceneMain* data) {
     AppsMenuSettings* settings = &instance->settings;
-    const char* app_name = apps_menu_entries[app_idx];
+    const char* app_name = apps_menu_entries[data->menu_idx];
 
     strlcpy(settings->active_application, app_name, sizeof(settings->active_application));
 
@@ -150,11 +162,14 @@ static void apps_menu_scene_main_start_native_app(AppsMenu* instance, uint32_t a
     furi_record_close(RECORD_DESKTOP);
 }
 
-static void apps_menu_scene_main_start_js_app(AppsMenu* instance, uint32_t app_idx) {
+static void apps_menu_scene_main_start_js_app(AppsMenu* instance, const AppsMenuSceneMain* data) {
     UNUSED(instance);
 
+    const uint32_t array_idx = data->menu_idx - AppsMenuEntryIdxsCount;
+    const char* js_app_id = *JsAppIdArray_cget(data->js_app_ids, array_idx);
+
     // TODO: Implementation
-    FURI_LOG_I("AppsMenu", "Running JS application with index %lu...", app_idx);
+    FURI_LOG_I("AppsMenu", "Running JS application with id \"%s\"", js_app_id);
 }
 
 static bool apps_menu_scene_main_on_event(const SceneManagerEvent* event, void* context) {
@@ -169,9 +184,9 @@ static bool apps_menu_scene_main_on_event(const SceneManagerEvent* event, void* 
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == SceneCustomEventMenuItemClicked) {
             if(data->menu_idx < AppsMenuEntryIdxsCount) {
-                apps_menu_scene_main_start_native_app(instance, data->menu_idx);
+                apps_menu_scene_main_start_native_app(instance, data);
             } else {
-                apps_menu_scene_main_start_js_app(instance, data->menu_idx);
+                apps_menu_scene_main_start_js_app(instance, data);
             }
 
             consumed = true;

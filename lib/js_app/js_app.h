@@ -17,11 +17,11 @@ typedef struct {
 } JsAppIconPath;
 
 typedef struct {
-    const char* root;
     JsAppIconPath icon;
 } JsAppPathInfo;
 
 typedef struct {
+    const char* id;
     JsAppManifestInfo manifest;
     JsAppPathInfo path;
 } JsAppInfo;

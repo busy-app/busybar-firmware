@@ -23,7 +23,7 @@
 
 struct JsApp {
     JsAppManifest* manifest;
-    FuriString* root_path;
+    FuriString* id;
     FuriString* front_icon_path;
     FuriString* back_icon_path;
 };
@@ -61,7 +61,7 @@ static bool js_app_process_manifest(JsApp* instance, const char* dir_path) {
 }
 
 static void js_apps_process_root_directory(JsApp* instance, const char* dir_path) {
-    furi_string_set(instance->root_path, dir_path);
+    path_extract_basename(dir_path, instance->id);
 }
 
 static void js_app_process_icons(JsApp* instance, const char* dir_path) {
@@ -86,7 +86,7 @@ JsApp* js_app_alloc(void) {
     JsApp* instance = malloc(sizeof(JsApp));
 
     instance->manifest = js_app_manifest_alloc();
-    instance->root_path = furi_string_alloc();
+    instance->id = furi_string_alloc();
     instance->front_icon_path = furi_string_alloc();
     instance->back_icon_path = furi_string_alloc();
 
@@ -97,7 +97,7 @@ void js_app_free(JsApp* instance) {
     furi_check(instance);
 
     js_app_manifest_free(instance->manifest);
-    furi_string_free(instance->root_path);
+    furi_string_free(instance->id);
     furi_string_free(instance->front_icon_path);
     furi_string_free(instance->back_icon_path);
 
@@ -131,8 +131,9 @@ bool js_app_get_info(const JsApp* instance, JsAppInfo* info) {
     bool success = false;
 
     if(js_app_manifest_get_info(instance->manifest, &info->manifest)) {
+        info->id = furi_string_get_cstr(instance->id);
+
         JsAppPathInfo* path = &info->path;
-        path->root = furi_string_get_cstr(instance->root_path);
         path->icon.front = furi_string_get_cstr(instance->front_icon_path);
         path->icon.back = furi_string_get_cstr(instance->back_icon_path);
 
