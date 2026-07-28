@@ -149,7 +149,8 @@ static void apps_menu_scene_main_on_exit(void* context) {
     JsAppIdArray_clear(data->js_app_ids);
 }
 
-static void apps_menu_scene_main_start_native_app(AppsMenu* instance, const AppsMenuSceneMain* data) {
+static void
+    apps_menu_scene_main_start_native_app(AppsMenu* instance, const AppsMenuSceneMain* data) {
     AppsMenuSettings* settings = &instance->settings;
     const char* app_name = apps_menu_entries[data->menu_idx];
 
