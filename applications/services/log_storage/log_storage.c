@@ -88,7 +88,7 @@ static void log_storage_api_queue_callback(FuriEventLoopObject* object, void* co
     LogStorage* instance = context;
 
     LogStorageApiMessage message;
-    furi_message_queue_get(instance->api_message_queue, &message, 0);
+    furi_check(furi_message_queue_get(instance->api_message_queue, &message, 0) == FuriStatusOk);
 
     if(message.type == LogStorageApiMessageTypeDump) {
         *message.is_successful = log_storage_do_dump(instance, message.dump_path);
