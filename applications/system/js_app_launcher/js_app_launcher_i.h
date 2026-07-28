@@ -5,6 +5,7 @@
 #include <gui/gui.h>
 #include <gui/scene_manager.h>
 #include <gui/modules/nav_bar.h>
+#include <gui/modules/flex_layout.h>
 
 #include <desktop/desktop.h>
 
@@ -18,6 +19,11 @@ typedef struct {
     Gui* gui;
     Desktop* desktop;
     const char* app_id;
+
+    Widget* front_window;
+    Widget* back_window;
+    FlexLayout* back_container;
+    NavBar* nav_bar;
 } JsAppLauncher;
 
 typedef enum {

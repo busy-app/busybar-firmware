@@ -1,9 +1,13 @@
 #include "js_app_launcher_i.h"
 
+#include <storage/storage.h>
+
 #include "scenes/js_app_launcher_scenes.h"
 
 #define INPUT_QUEUE_SIZE (8)
 #define EVENT_QUEUE_SIZE (8)
+
+#define NAV_BAR_HEIGHT (14)
 
 static bool js_app_launcher_gui_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
@@ -59,8 +63,7 @@ static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
 
     instance->event_loop = furi_event_loop_alloc();
     instance->input_queue = furi_message_queue_alloc(INPUT_QUEUE_SIZE, sizeof(InputEvent));
-    instance->event_queue =
-        furi_message_queue_alloc(EVENT_QUEUE_SIZE, sizeof(JsAppLauncherCustomEvent));
+    instance->event_queue = furi_message_queue_alloc(EVENT_QUEUE_SIZE, sizeof(uint32_t));
     instance->scene_manager =
         scene_manager_alloc(js_app_launcher_scenes, JsAppLauncherSceneIdMax, instance);
     instance->gui = furi_record_open(RECORD_GUI);
@@ -70,6 +73,21 @@ static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(layer, js_app_launcher_gui_input_callback, instance);
+
+        instance->front_window = widget_alloc(gui_layer_get_root_widget(layer, GuiDisplayIdFront));
+        instance->back_container = flex_layout_alloc(
+            gui_layer_get_root_widget(layer, GuiDisplayIdBack), FlexLayoutTypeColumn);
+
+        instance->nav_bar = nav_bar_alloc(flex_layout_get_base(instance->back_container));
+        widget_set_height(nav_bar_get_base(instance->nav_bar), NAV_BAR_HEIGHT);
+        widget_set_margin(nav_bar_get_base(instance->nav_bar), 1, 0, 0, 2);
+        nav_bar_set_header_image(instance->nav_bar, SHARED_IMG_PATH("apps_menu_back_12x12.image"));
+        flex_layout_set_child_widget_grow(
+            instance->back_container, nav_bar_get_base(instance->nav_bar), 0);
+        nav_bar_push_location(instance->nav_bar, instance->app_id);
+
+        instance->back_window = widget_alloc(flex_layout_get_base(instance->back_container));
+        flex_layout_set_child_widget_grow(instance->back_container, instance->back_window, 1);
     });
 
     furi_event_loop_subscribe_message_queue(
@@ -95,6 +113,9 @@ static void js_app_launcher_free(JsAppLauncher* instance) {
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(layer, js_app_launcher_gui_input_callback);
+
+        widget_free(instance->front_window);
+        flex_layout_free(instance->back_container);
     });
 
     furi_record_close(RECORD_GUI);
