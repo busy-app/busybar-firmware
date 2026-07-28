@@ -85,6 +85,7 @@ static AppsMenu* apps_menu_alloc(void* launching_application) {
     if(launching_application) {
         strcpy(settings.active_application, "");
         apps_menu_settings_save(&settings);
+
     } else if(strnlen(settings.active_application, sizeof(settings.active_application)) > 0) {
         Desktop* desktop = furi_record_open(RECORD_DESKTOP);
 
@@ -107,7 +108,6 @@ static AppsMenu* apps_menu_alloc(void* launching_application) {
 
     AppsMenu* instance = malloc(sizeof(*instance));
 
-    instance->launching_application = launching_application;
     instance->settings = settings;
 
     instance->event_loop = furi_event_loop_alloc();
@@ -158,7 +158,7 @@ static AppsMenu* apps_menu_alloc(void* launching_application) {
             instance->back_container, instance->back_scene_window, 1);
     });
 
-    if(instance->launching_application) {
+    if(launching_application) {
         static const uint32_t scenes[] = {AppsMenuSceneIdStart, AppsMenuSceneIdMain};
         scene_manager_next_scenes(instance->scene_manager, scenes, COUNT_OF(scenes));
     } else {

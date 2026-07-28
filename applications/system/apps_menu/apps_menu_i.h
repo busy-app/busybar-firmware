@@ -12,8 +12,6 @@
 #include "settings/settings.h"
 
 typedef struct {
-    const char* launching_application;
-
     FuriEventLoop* event_loop;
     FuriMessageQueue* input_queue;
     FuriMessageQueue* event_queue;
