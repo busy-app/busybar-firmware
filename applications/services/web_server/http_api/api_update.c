@@ -537,7 +537,7 @@ static bool api_update_install_callback(
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
     int error_code;
-    const char* error_text;
+    const char *error_text, *error_code_text;
     bool is_success = false;
     do {
         char version[MAX_VERSION_LENGTH];
@@ -545,6 +545,7 @@ static bool api_update_install_callback(
         if(version_length <= 0) {
             error_code = 400;
             error_text = "Version parameter missing";
+            error_code_text = "version_missing";
             break;
         }
 
@@ -562,6 +563,7 @@ static bool api_update_install_callback(
             if(check_state.result != UpdaterCheckResultAvailable) {
                 error_code = 400;
                 error_text = "Update not available";
+                error_code_text = "not_available";
                 break;
             }
 
@@ -578,6 +580,7 @@ static bool api_update_install_callback(
             if(strcmp(furi_string_get_cstr(check_version), version) != 0) {
                 error_code = 400;
                 error_text = "Version mismatch";
+                error_code_text = "version_mismatch";
                 break;
             }
 
@@ -598,6 +601,7 @@ static bool api_update_install_callback(
                 }
 
                 error_text = updater_get_status_string(session_status);
+                error_code_text = update_status_strings[session_status];
                 break;
             }
 
@@ -616,7 +620,12 @@ static bool api_update_install_callback(
     if(is_success) {
         MG_REPLY_OK(conn);
     } else {
-        MG_REPLY_ERROR(conn, error_code, error_text);
+        _MG_JSON_RESULT(
+            conn,
+            error_code,
+            "{\"error\":\"%M\", \"error_code\":\"%s\"}\n",
+            MG_ESC(error_text),
+            error_code_text);
     }
 
     return true;
