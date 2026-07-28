@@ -151,12 +151,8 @@ static void apps_menu_scene_main_on_exit(void* context) {
 
 static void
     apps_menu_scene_main_start_native_app(AppsMenu* instance, const AppsMenuSceneMain* data) {
-    AppsMenuSettings* settings = &instance->settings;
     const char* app_name = apps_menu_entries[data->menu_idx];
-
-    strlcpy(settings->active_application, app_name, sizeof(settings->active_application));
-
-    apps_menu_settings_save(settings);
+    apps_menu_set_active_app(instance, app_name);
 
     Desktop* desktop = furi_record_open(RECORD_DESKTOP);
     desktop_replace_current_app(desktop, app_name, NULL);
@@ -168,9 +164,9 @@ static void apps_menu_scene_main_start_js_app(AppsMenu* instance, const AppsMenu
 
     const uint32_t array_idx = data->menu_idx - AppsMenuEntryIdxsCount;
     const char* js_app_id = *JsAppIdArray_cget(data->js_app_ids, array_idx);
+    apps_menu_set_active_app(instance, js_app_id);
 
-    // TODO: Implementation
-    FURI_LOG_I("AppsMenu", "Running JS application with id \"%s\"", js_app_id);
+    scene_manager_next_scene(instance->scene_manager, AppsMenuSceneIdJsApp);
 }
 
 static bool apps_menu_scene_main_on_event(const SceneManagerEvent* event, void* context) {

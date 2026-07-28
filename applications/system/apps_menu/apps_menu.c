@@ -185,6 +185,16 @@ void apps_menu_send_custom_event(AppsMenu* app, AppsMenuCustomEvent event) {
     furi_check(furi_message_queue_put(app->event_queue, &event, FuriWaitForever) == FuriStatusOk);
 }
 
+void apps_menu_set_active_app(AppsMenu* instance, const char* app_id) {
+    furi_assert(instance);
+    furi_assert(app_id);
+
+    AppsMenuSettings* settings = &instance->settings;
+
+    strlcpy(settings->active_application, app_id, sizeof(settings->active_application));
+    apps_menu_settings_save(settings);
+}
+
 int32_t apps_menu_app(void* argument) {
     UNUSED(argument);
 
