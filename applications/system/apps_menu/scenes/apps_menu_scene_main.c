@@ -150,8 +150,8 @@ static void apps_menu_scene_main_on_exit(void* context) {
 }
 
 static void
-    apps_menu_scene_main_start_native_app(AppsMenu* instance, const AppsMenuSceneMain* data) {
-    const char* app_name = apps_menu_entries[data->menu_idx];
+    apps_menu_scene_main_start_builtin_app(AppsMenu* instance, const AppsMenuSceneMain* data) {
+    const char* app_name = apps_list_get_item(data->menu_idx);
     apps_menu_set_active_app(instance, app_name);
 
     Desktop* desktop = furi_record_open(RECORD_DESKTOP);
@@ -166,7 +166,9 @@ static void apps_menu_scene_main_start_js_app(AppsMenu* instance, const AppsMenu
     const char* js_app_id = *JsAppIdArray_cget(data->js_app_ids, array_idx);
     apps_menu_set_active_app(instance, js_app_id);
 
-    scene_manager_next_scene(instance->scene_manager, AppsMenuSceneIdJsApp);
+    Desktop* desktop = furi_record_open(RECORD_DESKTOP);
+    desktop_replace_current_app(desktop, "js_app_launcher", js_app_id);
+    furi_record_close(RECORD_DESKTOP);
 }
 
 static bool apps_menu_scene_main_on_event(const SceneManagerEvent* event, void* context) {
@@ -181,7 +183,7 @@ static bool apps_menu_scene_main_on_event(const SceneManagerEvent* event, void* 
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == SceneCustomEventMenuItemClicked) {
             if(data->menu_idx < AppsMenuEntryIdxsCount) {
-                apps_menu_scene_main_start_native_app(instance, data);
+                apps_menu_scene_main_start_builtin_app(instance, data);
             } else {
                 apps_menu_scene_main_start_js_app(instance, data);
             }

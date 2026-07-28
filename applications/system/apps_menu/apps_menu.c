@@ -1,5 +1,6 @@
 #include "apps_menu_i.h"
 #include "scenes/apps_menu_scenes.h"
+#include "app_list.h"
 
 #include <storage/storage.h>
 #include <gui/modules/submenu.h>
@@ -86,7 +87,20 @@ static AppsMenu* apps_menu_alloc(void* launching_application) {
         apps_menu_settings_save(&settings);
     } else if(strnlen(settings.active_application, sizeof(settings.active_application)) > 0) {
         Desktop* desktop = furi_record_open(RECORD_DESKTOP);
-        desktop_replace_current_app(desktop, settings.active_application, "-s");
+
+        const char* app_name;
+        const char* app_args;
+
+        if(apps_list_contains(settings.active_application)) {
+            app_name = settings.active_application;
+            app_args = "-s";
+        } else {
+            app_name = "js_app_launcher";
+            app_args = settings.active_application;
+        }
+
+        desktop_replace_current_app(desktop, app_name, app_args);
+
         furi_record_close(RECORD_DESKTOP);
         return NULL;
     }

@@ -1,10 +1,13 @@
 #pragma once
 
-#include <furi.h>
+#include <stdbool.h>
+#include <stdint.h>
 
 typedef enum {
     AppsMenuEntryIdxClock,
     AppsMenuEntryIdxsCount,
 } AppsMenuEntryIdx;
 
-extern const char* const apps_menu_entries[];
+const char* apps_list_get_item(uint32_t index);
+
+bool apps_list_contains(const char* item);
