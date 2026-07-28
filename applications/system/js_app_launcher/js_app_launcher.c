@@ -2,6 +2,8 @@
 
 #include <storage/storage.h>
 
+#include <js_app/js_app_registry.h>
+
 #include "scenes/js_app_launcher_scenes.h"
 
 #define INPUT_QUEUE_SIZE (8)
@@ -58,6 +60,17 @@ static void js_app_launcher_event_queue_callback(FuriEventLoopObject* object, vo
     }
 }
 
+static void js_app_launcher_set_navbar_text(const JsAppLauncher* instance) {
+    JsAppInfo info;
+    js_app_get_info(instance->js_app, &info);
+
+    FuriString* tmp = furi_string_alloc_set(info.manifest.name);
+    furi_string_to_upper_in_place(tmp);
+
+    nav_bar_push_location(instance->nav_bar, furi_string_get_cstr(tmp));
+    furi_string_free(tmp);
+}
+
 static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
     JsAppLauncher* instance = malloc(sizeof(JsAppLauncher));
 
@@ -68,7 +81,7 @@ static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
         scene_manager_alloc(js_app_launcher_scenes, JsAppLauncherSceneIdMax, instance);
     instance->gui = furi_record_open(RECORD_GUI);
     instance->desktop = furi_record_open(RECORD_DESKTOP);
-    instance->app_id = app_id;
+    instance->js_app = js_app_registry_get_app(app_id);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -84,10 +97,13 @@ static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
         nav_bar_set_header_image(instance->nav_bar, SHARED_IMG_PATH("apps_menu_back_12x12.image"));
         flex_layout_set_child_widget_grow(
             instance->back_container, nav_bar_get_base(instance->nav_bar), 0);
-        nav_bar_push_location(instance->nav_bar, instance->app_id);
 
         instance->back_window = widget_alloc(flex_layout_get_base(instance->back_container));
         flex_layout_set_child_widget_grow(instance->back_container, instance->back_window, 1);
+
+        if(instance->js_app) {
+            js_app_launcher_set_navbar_text(instance);
+        }
     });
 
     furi_event_loop_subscribe_message_queue(
@@ -104,7 +120,11 @@ static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
         js_app_launcher_event_queue_callback,
         instance);
 
-    scene_manager_next_scene(instance->scene_manager, JsAppLauncherSceneIdStart);
+    if(instance->js_app) {
+        scene_manager_next_scene(instance->scene_manager, JsAppLauncherSceneIdStart);
+    } else {
+        // TODO: Error scene
+    }
 
     return instance;
 }
@@ -120,6 +140,10 @@ static void js_app_launcher_free(JsAppLauncher* instance) {
 
     furi_record_close(RECORD_GUI);
     furi_record_close(RECORD_DESKTOP);
+
+    if(instance->js_app) {
+        js_app_free(instance->js_app);
+    }
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->input_queue);
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);

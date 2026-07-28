@@ -4,6 +4,7 @@
 #include <core/check.h>
 
 #include <storage_utils/dir_walk.h>
+#include <toolbox/path.h>
 
 #define TAG "JsAppRegistry"
 
@@ -56,4 +57,21 @@ void js_app_registry_list_apps(JsAppRegistryListCallback callback, void* context
     dir_walk_free(dir_walk);
 
     furi_record_close(RECORD_STORAGE);
+}
+
+JsApp* js_app_registry_get_app(const char* app_id) {
+    furi_check(app_id);
+
+    FuriString* app_path = furi_string_alloc();
+    path_concat(JS_APPS_PATH, app_id, app_path);
+
+    JsApp* js_app = js_app_alloc();
+
+    if(!js_app_parse_from_dir(js_app, furi_string_get_cstr(app_path))) {
+        js_app_free(js_app);
+        js_app = NULL;
+    }
+
+    furi_string_free(app_path);
+    return js_app;
 }

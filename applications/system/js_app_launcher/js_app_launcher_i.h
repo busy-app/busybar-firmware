@@ -9,6 +9,8 @@
 
 #include <desktop/desktop.h>
 
+#include <js_app/js_app.h>
+
 #define TAG "JsAppLauncher"
 
 typedef struct {
@@ -18,12 +20,13 @@ typedef struct {
     SceneManager* scene_manager;
     Gui* gui;
     Desktop* desktop;
-    const char* app_id;
 
     Widget* front_window;
     Widget* back_window;
     FlexLayout* back_container;
     NavBar* nav_bar;
+
+    JsApp* js_app;
 } JsAppLauncher;
 
 typedef enum {
