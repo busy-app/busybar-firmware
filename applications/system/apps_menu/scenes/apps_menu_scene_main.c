@@ -9,6 +9,7 @@
 #include <gui/modules/menu.h>
 
 #include <js_app/js_app_registry.h>
+#include <js_app_launcher/js_app_launcher.h>
 
 #include <m-array.h>
 #include <toolbox/m_cstr_dup.h>
@@ -156,7 +157,7 @@ static void apps_menu_scene_main_on_exit(void* context) {
 static void
     apps_menu_scene_main_start_builtin_app(AppsMenu* instance, const AppsMenuSceneMain* data) {
     const char* app_id = apps_list_get_item(data->menu_idx)->id;
-    apps_menu_set_active_app(instance, app_id);
+    apps_menu_set_active_application(&instance->settings, app_id);
 
     Desktop* desktop = furi_record_open(RECORD_DESKTOP);
     desktop_replace_current_app(desktop, app_id, NULL);
@@ -168,10 +169,10 @@ static void apps_menu_scene_main_start_js_app(AppsMenu* instance, const AppsMenu
 
     const uint32_t array_idx = data->menu_idx - AppsMenuEntryIdxsCount;
     const char* js_app_id = *JsAppIdArray_cget(data->js_app_ids, array_idx);
-    apps_menu_set_active_app(instance, js_app_id);
+    apps_menu_set_active_application(&instance->settings, js_app_id);
 
     Desktop* desktop = furi_record_open(RECORD_DESKTOP);
-    desktop_replace_current_app(desktop, "js_app_launcher", js_app_id);
+    desktop_replace_current_app(desktop, JS_APP_LAUNCHER_APP_ID, js_app_id);
     furi_record_close(RECORD_DESKTOP);
 }
 

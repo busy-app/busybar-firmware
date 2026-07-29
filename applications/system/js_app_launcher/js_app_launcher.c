@@ -1,5 +1,6 @@
 #include "js_app_launcher_i.h"
 
+#include <apps_menu/apps_menu.h>
 #include <storage/storage.h>
 
 #include <js_app/js_app_registry.h>
@@ -41,7 +42,9 @@ static void js_app_launcher_input_queue_callback(FuriEventLoopObject* object, vo
         if(event.type == InputTypeShort) {
             if(event.key == InputKeyBack) {
                 if(!scene_manager_handle_back_event(instance->scene_manager)) {
-                    desktop_replace_current_app(instance->desktop, "apps_menu", "a");
+                    if(!apps_menu_start(AppsMenuModeShowMenu)) {
+                        FURI_LOG_E(TAG, "Failed to exit to apps menu");
+                    }
                 }
             }
         }
@@ -80,7 +83,6 @@ static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
     instance->scene_manager =
         scene_manager_alloc(js_app_launcher_scenes, JsAppLauncherSceneIdMax, instance);
     instance->gui = furi_record_open(RECORD_GUI);
-    instance->desktop = furi_record_open(RECORD_DESKTOP);
     instance->js_app = js_app_registry_get_app(app_id);
 
     with_gui(instance->gui, {
@@ -139,7 +141,6 @@ static void js_app_launcher_free(JsAppLauncher* instance) {
     });
 
     furi_record_close(RECORD_GUI);
-    furi_record_close(RECORD_DESKTOP);
 
     if(instance->js_app) {
         js_app_free(instance->js_app);

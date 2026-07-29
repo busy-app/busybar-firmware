@@ -1,11 +1,17 @@
+#include "apps_menu.h"
 #include "apps_menu_i.h"
 #include "scenes/apps_menu_scenes.h"
 #include "app_list.h"
 
 #include <storage/storage.h>
 #include <gui/modules/submenu.h>
+#include <js_app_launcher/js_app_launcher.h>
 
 #define TAG "AppsMenu"
+
+#define APPS_MENU_APP_ID          "apps_menu"
+#define APPS_MENU_ARG_RESET       "reset"
+#define APPS_MENU_ACTIVE_APP_NONE ""
 
 static bool apps_menu_thread_signal_callback(uint32_t signal, void* arg, void* context) {
     UNUSED(arg);
@@ -76,34 +82,57 @@ static bool apps_menu_gui_input_callback(const InputEvent* event, void* context)
     return consumed;
 }
 
-static AppsMenu* apps_menu_alloc(void* launching_application) {
+static AppsMenuMode apps_menu_get_mode(const char* arg_str) {
+    AppsMenuMode mode = AppsMenuModeResume;
+
+    if(arg_str != NULL) {
+        if(strcmp(APPS_MENU_ARG_RESET, arg_str) == 0) {
+            mode = AppsMenuModeShowMenu;
+        }
+    }
+
+    return mode;
+}
+
+static bool apps_menu_has_active_application(const AppsMenuSettings* settings) {
+    return strnlen(settings->active_application, sizeof(settings->active_application)) > 0;
+}
+
+static bool apps_menu_start_active_application(const AppsMenuSettings* settings) {
+    Desktop* desktop = furi_record_open(RECORD_DESKTOP);
+    const char* active_app = settings->active_application;
+
+    const char* app_name;
+    const char* app_args;
+
+    if(apps_list_contains(active_app)) {
+        app_name = active_app;
+        app_args = "-s";
+    } else {
+        app_name = JS_APP_LAUNCHER_APP_ID;
+        app_args = active_app;
+    }
+
+    const bool success = desktop_replace_current_app(desktop, app_name, app_args);
+    furi_record_close(RECORD_DESKTOP);
+
+    return success;
+}
+
+static AppsMenu* apps_menu_alloc(void* arg) {
     FuriThread* thread = furi_thread_get_current();
+    const AppsMenuMode mode = apps_menu_get_mode(arg);
 
     AppsMenuSettings settings;
     apps_menu_settings_load(&settings);
 
-    if(launching_application) {
-        strcpy(settings.active_application, "");
-        apps_menu_settings_save(&settings);
+    if(mode == AppsMenuModeShowMenu) {
+        apps_menu_set_active_application(&settings, APPS_MENU_ACTIVE_APP_NONE);
 
-    } else if(strnlen(settings.active_application, sizeof(settings.active_application)) > 0) {
-        Desktop* desktop = furi_record_open(RECORD_DESKTOP);
-
-        const char* app_name;
-        const char* app_args;
-
-        if(apps_list_contains(settings.active_application)) {
-            app_name = settings.active_application;
-            app_args = "-s";
-        } else {
-            app_name = "js_app_launcher";
-            app_args = settings.active_application;
+    } else if(apps_menu_has_active_application(&settings)) {
+        if(apps_menu_start_active_application(&settings)) {
+            return NULL;
         }
-
-        desktop_replace_current_app(desktop, app_name, app_args);
-
-        furi_record_close(RECORD_DESKTOP);
-        return NULL;
     }
 
     AppsMenu* instance = malloc(sizeof(*instance));
@@ -158,7 +187,7 @@ static AppsMenu* apps_menu_alloc(void* launching_application) {
             instance->back_container, instance->back_scene_window, 1);
     });
 
-    if(launching_application) {
+    if(mode == AppsMenuModeShowMenu) {
         static const uint32_t scenes[] = {AppsMenuSceneIdStart, AppsMenuSceneIdMain};
         scene_manager_next_scenes(instance->scene_manager, scenes, COUNT_OF(scenes));
     } else {
@@ -199,20 +228,37 @@ void apps_menu_send_custom_event(AppsMenu* app, AppsMenuCustomEvent event) {
     furi_check(furi_message_queue_put(app->event_queue, &event, FuriWaitForever) == FuriStatusOk);
 }
 
-void apps_menu_set_active_app(AppsMenu* instance, const char* app_id) {
-    furi_assert(instance);
+void apps_menu_set_active_application(AppsMenuSettings* settings, const char* app_id) {
+    furi_assert(settings);
     furi_assert(app_id);
-
-    AppsMenuSettings* settings = &instance->settings;
 
     strlcpy(settings->active_application, app_id, sizeof(settings->active_application));
     apps_menu_settings_save(settings);
 }
 
-int32_t apps_menu_app(void* argument) {
-    UNUSED(argument);
+bool apps_menu_start(AppsMenuMode mode) {
+    bool success;
+    const char* args;
 
-    AppsMenu* instance = apps_menu_alloc(argument);
+    if(mode == AppsMenuModeResume) {
+        args = NULL;
+    } else if(mode == AppsMenuModeShowMenu) {
+        args = APPS_MENU_ARG_RESET;
+    } else {
+        furi_crash("Invalid AppsMenuMode value");
+    }
+
+    Desktop* desktop = furi_record_open(RECORD_DESKTOP);
+    success = desktop_replace_current_app(desktop, APPS_MENU_APP_ID, args);
+    furi_record_close(RECORD_DESKTOP);
+
+    return success;
+}
+
+int32_t apps_menu_app(void* arg) {
+    UNUSED(arg);
+
+    AppsMenu* instance = apps_menu_alloc(arg);
 
     if(instance) {
         furi_event_loop_run(instance->event_loop);

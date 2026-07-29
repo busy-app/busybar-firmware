@@ -41,4 +41,4 @@ static_assert(sizeof(AppsMenuCustomEvent) == sizeof(uint32_t));
 
 void apps_menu_send_custom_event(AppsMenu* app, AppsMenuCustomEvent event);
 
-void apps_menu_set_active_app(AppsMenu* instance, const char* app_id);
+void apps_menu_set_active_application(AppsMenuSettings* settings, const char* app_id);

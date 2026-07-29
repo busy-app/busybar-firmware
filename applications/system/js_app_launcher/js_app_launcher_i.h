@@ -7,8 +7,6 @@
 #include <gui/modules/nav_bar.h>
 #include <gui/modules/flex_layout.h>
 
-#include <desktop/desktop.h>
-
 #include <js_app/js_app.h>
 
 #define TAG "JsAppLauncher"
@@ -19,7 +17,6 @@ typedef struct {
     FuriMessageQueue* event_queue;
     SceneManager* scene_manager;
     Gui* gui;
-    Desktop* desktop;
 
     Widget* front_window;
     Widget* back_window;
