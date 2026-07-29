@@ -11,6 +11,7 @@
 
 #define APPS_MENU_APP_ID          "apps_menu"
 #define APPS_MENU_ARG_RESET       "reset"
+#define APPS_MENU_ARG_SKIP_MENU   "-s"
 #define APPS_MENU_ACTIVE_APP_NONE ""
 
 static bool apps_menu_thread_signal_callback(uint32_t signal, void* arg, void* context) {
@@ -223,7 +224,7 @@ bool apps_menu_start_application(const char* app_id, bool is_skip_menu) {
 
     if(apps_list_contains(app_id)) {
         app_name = app_id;
-        app_args = is_skip_menu ? "-s" : NULL;
+        app_args = is_skip_menu ? APPS_MENU_ARG_SKIP_MENU : NULL;
 
     } else {
         app_name = JS_APP_LAUNCHER_APP_ID;
