@@ -1,5 +1,4 @@
 #include "../apps_menu_i.h"
-#include "../storage_macros.h"
 #include "apps_menu_scenes.h"
 #include "../app_list.h"
 
@@ -54,20 +53,13 @@ static void apps_menu_scene_main_list_native_apps(AppsMenu* instance, AppsMenuSc
         menu_add_item(
             data->front_menu,
             entry->name,
-            "",
-            APPS_MENU_IMG_PATH("clock_front_8x8.image"),
-            AppsMenuEntryIdxClock,
+            NULL,
+            entry->icon_path.front,
+            i,
             apps_scene_setup_menu_callback,
             instance);
 
-        menu_add_item(
-            data->back_menu,
-            entry->name,
-            "",
-            APPS_MENU_IMG_PATH("clock_back_11x11.image"),
-            AppsMenuEntryIdxClock,
-            NULL,
-            NULL);
+        menu_add_item(data->back_menu, entry->name, NULL, entry->icon_path.back, i, NULL, NULL);
     }
 
     data->item_count = AppsMenuEntryIdxsCount;
@@ -94,13 +86,13 @@ static void app_menu_scene_main_js_app_list_callback(const JsAppInfo* info, void
     menu_add_item(
         data->front_menu,
         app_name,
-        "",
+        NULL,
         paths->icon.front,
         data->item_count,
         apps_scene_setup_menu_callback,
         instance);
 
-    menu_add_item(data->back_menu, app_name, "", paths->icon.back, data->item_count, NULL, NULL);
+    menu_add_item(data->back_menu, app_name, NULL, paths->icon.back, data->item_count, NULL, NULL);
 
     JsAppIdArray_push_back(data->js_app_ids, manifest_info->id);
 
@@ -130,8 +122,12 @@ static void apps_menu_scene_main_start_selected_app(AppsMenu* instance) {
         app_id = *JsAppIdArray_cget(data->js_app_ids, array_idx);
     }
 
-    if(apps_menu_start_application(app_id, false)) {
-        apps_menu_set_active_application(&instance->settings, app_id);
+    if(app_id != NULL) {
+        if(apps_menu_start_application(app_id, false)) {
+            apps_menu_set_active_application(&instance->settings, app_id);
+        }
+    } else {
+        scene_manager_next_scene(instance->scene_manager, AppsMenuSceneIdComingSoon);
     }
 }
 
