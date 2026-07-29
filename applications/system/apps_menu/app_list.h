@@ -8,6 +8,15 @@ typedef enum {
     AppsMenuEntryIdxsCount,
 } AppsMenuEntryIdx;
 
-const char* apps_list_get_item(uint32_t index);
+typedef struct {
+    const char* id;
+    const char* name;
+    struct {
+        const char* front;
+        const char* back;
+    } icon_path;
+} AppsMenuEntry;
 
-bool apps_list_contains(const char* item);
+const AppsMenuEntry* apps_list_get_item(uint32_t index);
+
+bool apps_list_contains(const char* app_id);

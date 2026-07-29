@@ -46,23 +46,27 @@ static void apps_scene_setup_menu_callback(uint32_t index, void* context) {
 }
 
 static void apps_menu_scene_main_list_native_apps(AppsMenu* instance, AppsMenuSceneMain* data) {
-    menu_add_item(
-        data->front_menu,
-        "Clock",
-        "",
-        APPS_MENU_IMG_PATH("clock_front_8x8.image"),
-        AppsMenuEntryIdxClock,
-        apps_scene_setup_menu_callback,
-        instance);
+    for(uint32_t i = 0; i < AppsMenuEntryIdxsCount; ++i) {
+        const AppsMenuEntry* const entry = apps_list_get_item(i);
 
-    menu_add_item(
-        data->back_menu,
-        "Clock",
-        "",
-        APPS_MENU_IMG_PATH("clock_back_11x11.image"),
-        AppsMenuEntryIdxClock,
-        NULL,
-        NULL);
+        menu_add_item(
+            data->front_menu,
+            entry->name,
+            "",
+            APPS_MENU_IMG_PATH("clock_front_8x8.image"),
+            AppsMenuEntryIdxClock,
+            apps_scene_setup_menu_callback,
+            instance);
+
+        menu_add_item(
+            data->back_menu,
+            entry->name,
+            "",
+            APPS_MENU_IMG_PATH("clock_back_11x11.image"),
+            AppsMenuEntryIdxClock,
+            NULL,
+            NULL);
+    }
 
     data->item_count = AppsMenuEntryIdxsCount;
 }
@@ -151,11 +155,11 @@ static void apps_menu_scene_main_on_exit(void* context) {
 
 static void
     apps_menu_scene_main_start_builtin_app(AppsMenu* instance, const AppsMenuSceneMain* data) {
-    const char* app_name = apps_list_get_item(data->menu_idx);
-    apps_menu_set_active_app(instance, app_name);
+    const char* app_id = apps_list_get_item(data->menu_idx)->id;
+    apps_menu_set_active_app(instance, app_id);
 
     Desktop* desktop = furi_record_open(RECORD_DESKTOP);
-    desktop_replace_current_app(desktop, app_name, NULL);
+    desktop_replace_current_app(desktop, app_id, NULL);
     furi_record_close(RECORD_DESKTOP);
 }
 
