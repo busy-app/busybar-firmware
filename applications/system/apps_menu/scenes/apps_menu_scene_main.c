@@ -47,7 +47,9 @@ static void apps_scene_setup_menu_callback(uint32_t index, void* context) {
 }
 
 static void apps_menu_scene_main_list_native_apps(AppsMenu* instance, AppsMenuSceneMain* data) {
-    for(uint32_t i = 0; i < AppsMenuEntryIdxsCount; ++i) {
+    const uint32_t end_idx = AppsMenuEntryIdxsCount - (data->is_js_apps_enabled ? 1 : 0);
+
+    for(uint32_t i = 0; i < end_idx; ++i) {
         const AppsMenuEntry* const entry = apps_list_get_item(i);
 
         menu_add_item(
