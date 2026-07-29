@@ -21,7 +21,6 @@ typedef struct {
 } JsAppPathInfo;
 
 typedef struct {
-    const char* id;
     JsAppManifestInfo manifest;
     JsAppPathInfo path;
 } JsAppInfo;

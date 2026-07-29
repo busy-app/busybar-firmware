@@ -96,7 +96,7 @@ static void app_menu_scene_main_js_app_list_callback(const JsAppInfo* info, void
 
     menu_add_item(data->back_menu, app_name, "", paths->icon.back, data->item_count, NULL, NULL);
 
-    JsAppIdArray_push_back(data->js_app_ids, info->id);
+    JsAppIdArray_push_back(data->js_app_ids, manifest_info->id);
 
     ++data->item_count;
 }
