@@ -98,27 +98,6 @@ static bool apps_menu_has_active_application(const AppsMenuSettings* settings) {
     return strnlen(settings->active_application, sizeof(settings->active_application)) > 0;
 }
 
-static bool apps_menu_start_active_application(const AppsMenuSettings* settings) {
-    Desktop* desktop = furi_record_open(RECORD_DESKTOP);
-    const char* active_app = settings->active_application;
-
-    const char* app_name;
-    const char* app_args;
-
-    if(apps_list_contains(active_app)) {
-        app_name = active_app;
-        app_args = "-s";
-    } else {
-        app_name = JS_APP_LAUNCHER_APP_ID;
-        app_args = active_app;
-    }
-
-    const bool success = desktop_replace_current_app(desktop, app_name, app_args);
-    furi_record_close(RECORD_DESKTOP);
-
-    return success;
-}
-
 static AppsMenu* apps_menu_alloc(void* arg) {
     FuriThread* thread = furi_thread_get_current();
     const AppsMenuMode mode = apps_menu_get_mode(arg);
@@ -130,7 +109,7 @@ static AppsMenu* apps_menu_alloc(void* arg) {
         apps_menu_set_active_application(&settings, APPS_MENU_ACTIVE_APP_NONE);
 
     } else if(apps_menu_has_active_application(&settings)) {
-        if(apps_menu_start_active_application(&settings)) {
+        if(apps_menu_start_application(settings.active_application, true)) {
             return NULL;
         }
     }
@@ -234,6 +213,31 @@ void apps_menu_set_active_application(AppsMenuSettings* settings, const char* ap
 
     strlcpy(settings->active_application, app_id, sizeof(settings->active_application));
     apps_menu_settings_save(settings);
+}
+
+bool apps_menu_start_application(const char* app_id, bool is_skip_menu) {
+    bool success = false;
+
+    const char* app_name;
+    const char* app_args;
+
+    if(apps_list_contains(app_id)) {
+        app_name = app_id;
+        app_args = is_skip_menu ? "-s" : NULL;
+
+    } else {
+        app_name = JS_APP_LAUNCHER_APP_ID;
+        app_args = app_id;
+    }
+
+    Desktop* desktop = furi_record_open(RECORD_DESKTOP);
+
+    if(desktop_replace_current_app(desktop, app_name, app_args)) {
+        success = true;
+    }
+
+    furi_record_close(RECORD_DESKTOP);
+    return success;
 }
 
 bool apps_menu_start(AppsMenuMode mode) {

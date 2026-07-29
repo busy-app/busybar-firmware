@@ -115,6 +115,25 @@ static void apps_menu_scene_main_list_js_apps(AppsMenu* instance, AppsMenuSceneM
     js_app_registry_list_apps(app_menu_scene_main_js_app_list_callback, &ctx);
 }
 
+static void apps_menu_scene_main_start_selected_app(AppsMenu* instance) {
+    AppsMenuSceneMain* data =
+        scene_manager_get_scene_data(instance->scene_manager, AppsMenuSceneIdMain);
+
+    const char* app_id;
+
+    if(data->menu_idx < AppsMenuEntryIdxsCount) {
+        const AppsMenuEntry* entry = apps_list_get_item(data->menu_idx);
+        app_id = entry->id;
+    } else {
+        const uint32_t array_idx = data->menu_idx - AppsMenuEntryIdxsCount;
+        app_id = *JsAppIdArray_cget(data->js_app_ids, array_idx);
+    }
+
+    if(apps_menu_start_application(app_id, false)) {
+        apps_menu_set_active_application(&instance->settings, app_id);
+    }
+}
+
 static void apps_menu_scene_main_on_enter(void* context) {
     furi_assert(context);
     AppsMenu* instance = context;
@@ -154,45 +173,16 @@ static void apps_menu_scene_main_on_exit(void* context) {
     JsAppIdArray_clear(data->js_app_ids);
 }
 
-static void
-    apps_menu_scene_main_start_builtin_app(AppsMenu* instance, const AppsMenuSceneMain* data) {
-    const char* app_id = apps_list_get_item(data->menu_idx)->id;
-    apps_menu_set_active_application(&instance->settings, app_id);
-
-    Desktop* desktop = furi_record_open(RECORD_DESKTOP);
-    desktop_replace_current_app(desktop, app_id, NULL);
-    furi_record_close(RECORD_DESKTOP);
-}
-
-static void apps_menu_scene_main_start_js_app(AppsMenu* instance, const AppsMenuSceneMain* data) {
-    UNUSED(instance);
-
-    const uint32_t array_idx = data->menu_idx - AppsMenuEntryIdxsCount;
-    const char* js_app_id = *JsAppIdArray_cget(data->js_app_ids, array_idx);
-    apps_menu_set_active_application(&instance->settings, js_app_id);
-
-    Desktop* desktop = furi_record_open(RECORD_DESKTOP);
-    desktop_replace_current_app(desktop, JS_APP_LAUNCHER_APP_ID, js_app_id);
-    furi_record_close(RECORD_DESKTOP);
-}
-
 static bool apps_menu_scene_main_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(context);
 
     bool consumed = false;
 
     AppsMenu* instance = context;
-    AppsMenuSceneMain* data =
-        scene_manager_get_scene_data(instance->scene_manager, AppsMenuSceneIdMain);
 
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == SceneCustomEventMenuItemClicked) {
-            if(data->menu_idx < AppsMenuEntryIdxsCount) {
-                apps_menu_scene_main_start_builtin_app(instance, data);
-            } else {
-                apps_menu_scene_main_start_js_app(instance, data);
-            }
-
+            apps_menu_scene_main_start_selected_app(instance);
             consumed = true;
         }
     }
