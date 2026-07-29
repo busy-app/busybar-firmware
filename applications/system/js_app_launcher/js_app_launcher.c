@@ -132,16 +132,6 @@ static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
 }
 
 static void js_app_launcher_free(JsAppLauncher* instance) {
-    with_gui(instance->gui, {
-        GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
-        gui_layer_remove_input_callback(layer, js_app_launcher_gui_input_callback);
-
-        widget_free(instance->front_window);
-        flex_layout_free(instance->back_container);
-    });
-
-    furi_record_close(RECORD_GUI);
-
     if(instance->js_app) {
         js_app_free(instance->js_app);
     }
@@ -154,6 +144,16 @@ static void js_app_launcher_free(JsAppLauncher* instance) {
 
     furi_event_loop_free(instance->event_loop);
     scene_manager_free(instance->scene_manager);
+
+    with_gui(instance->gui, {
+        GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        gui_layer_remove_input_callback(layer, js_app_launcher_gui_input_callback);
+
+        widget_free(instance->front_window);
+        flex_layout_free(instance->back_container);
+    });
+
+    furi_record_close(RECORD_GUI);
 
     free(instance);
 }
