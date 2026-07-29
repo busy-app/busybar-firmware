@@ -4,6 +4,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -12,10 +13,12 @@ extern "C" {
 typedef struct JsAppManifest JsAppManifest;
 
 typedef struct {
+    const char* id;
     const char* name;
     const char* version;
     const char* descritption;
     const char* author;
+    uint32_t heap_size;
     bool is_debug;
 } JsAppManifestInfo;
 

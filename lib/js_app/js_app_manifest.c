@@ -11,13 +11,16 @@
 
 #define JS_APP_MANIFEST_MAX_FILE_SIZE (512)
 
-#define JS_APP_MANIFEST_FORMAT_VERSION (1)
+#define JS_APP_MANIFEST_FORMAT_VERSION    (1)
+#define JS_APP_MANIFEST_DEFAULT_HEAP_SIZE (8192)
 
 #define JS_APP_MANIFEST_FORMAT_VERSION_KEY "format_version"
+#define JS_APP_MANIFEST_ID_KEY             "id"
 #define JS_APP_MANIFEST_NAME_KEY           "name"
 #define JS_APP_MANIFEST_VERSION_KEY        "version"
 #define JS_APP_MANIFEST_DESCRIPTION_KEY    "description"
 #define JS_APP_MANIFEST_AUTHOR_KEY         "author"
+#define JS_APP_MANIFEST_HEAP_SIZE_KEY      "heap_size"
 #define JS_APP_MANIFEST_DEBUG_KEY          "debug"
 
 struct JsAppManifest {
@@ -57,8 +60,15 @@ static bool
         const uint32_t format_version = cJSON_GetNumberValue(item);
         if(format_version != JS_APP_MANIFEST_FORMAT_VERSION) {
             FURI_LOG_W(TAG, "Unknown format version: %lu", format_version);
-            // Print warning, but try anyway
+            // Emit a warning, but try anyway
         }
+
+        item = cJSON_GetObjectItem(json, JS_APP_MANIFEST_ID_KEY);
+        if(!cJSON_IsString(item)) {
+            break;
+        }
+
+        info->id = cJSON_GetStringValue(item);
 
         item = cJSON_GetObjectItem(json, JS_APP_MANIFEST_NAME_KEY);
         if(!cJSON_IsString(item)) {
@@ -75,25 +85,33 @@ static bool
         info->version = cJSON_GetStringValue(item);
 
         item = cJSON_GetObjectItem(json, JS_APP_MANIFEST_DESCRIPTION_KEY);
-        if(!cJSON_IsString(item)) {
-            break;
+        if(cJSON_IsString(item)) {
+            info->descritption = cJSON_GetStringValue(item);
+        } else {
+            info->descritption = "";
         }
-
-        info->descritption = cJSON_GetStringValue(item);
 
         item = cJSON_GetObjectItem(json, JS_APP_MANIFEST_AUTHOR_KEY);
-        if(!cJSON_IsString(item)) {
-            break;
+        if(cJSON_IsString(item)) {
+            info->author = cJSON_GetStringValue(item);
+        } else {
+            info->author = "";
         }
 
-        info->author = cJSON_GetStringValue(item);
+        item = cJSON_GetObjectItem(json, JS_APP_MANIFEST_HEAP_SIZE_KEY);
+
+        if(cJSON_IsNumber(item)) {
+            info->heap_size = cJSON_GetNumberValue(item) * 1024;
+        } else {
+            info->heap_size = JS_APP_MANIFEST_DEFAULT_HEAP_SIZE;
+        }
 
         item = cJSON_GetObjectItem(json, JS_APP_MANIFEST_DEBUG_KEY);
-        if(!cJSON_IsBool(item)) {
-            break;
+        if(cJSON_IsBool(item)) {
+            info->is_debug = cJSON_IsTrue(item);
+        } else {
+            info->is_debug = false;
         }
-
-        info->is_debug = cJSON_IsTrue(item);
 
         success = true;
     } while(false);
