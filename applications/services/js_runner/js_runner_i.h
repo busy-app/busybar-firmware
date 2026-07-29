@@ -31,6 +31,7 @@ typedef struct JsRunnerApp {
     void* jrs_context;
     FuriEventLoop* event_loop;
     JsRunnerConsoleOutCallback console_callback;
+    void* console_callback_context;
     FuriString* root_path;
     IntervalDict_t intervals;
     uint32_t last_interval_id;
@@ -72,9 +73,7 @@ void js_runner_check_and_free(jerry_value_t val);
 void js_runner_check_event_loop(JsRunnerApp* app);
 
 void js_runner_setup_interval_methods(void);
-void js_runner_setup_console(
-    JsRunnerConsoleOutCallback console_callback,
-    void* console_write_context);
+void js_runner_setup_console(JsRunnerApp* app);
 
 /** @brief Allocate Jerryscript context for current thread. This function is used by jerryscript glue. */
 size_t js_runner_context_alloc(JsRunner* instance, size_t context_size);
@@ -88,3 +87,10 @@ void* js_runner_context_get(JsRunner* instance);
 /** @brief Get root path of the current JS app (folder containg entry point).
  * This function is used by jerryscript glue. */
 void js_runner_get_root_path(JsRunner* instance, FuriString* path);
+
+/** @brief Create a string out of a JS exception.
+ *
+ * @param exception JS exception. This value is not freed.
+ * @return exception string or NULL if conversion failed.
+ */
+FuriString* js_runner_get_exception_string(jerry_value_t exception);

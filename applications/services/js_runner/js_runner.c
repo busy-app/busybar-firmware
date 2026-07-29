@@ -60,19 +60,28 @@ void js_runner_check_and_free(jerry_value_t val) {
     jerry_value_free(val);
 }
 
-static void log_exception(const char* msg, jerry_value_t exception) {
+FuriString* js_runner_get_exception_string(jerry_value_t exception) {
     jerry_value_t val = jerry_exception_value(exception, false);
     jerry_value_t str = jerry_value_to_string(val);
-    if(jerry_value_is_string(str)) {
-        char buf[64];
-        jerry_size_t size =
-            jerry_string_to_buffer(str, JERRY_ENCODING_UTF8, (jerry_char_t*)buf, sizeof(buf));
-        FURI_LOG_E(TAG, "%s: %.*s", msg, (int)size, buf);
-    } else {
-        FURI_LOG_E(TAG, "%s: XXXX (not a string)", msg);
-    }
+    jerry_size_t string_size = jerry_string_size(str, JERRY_ENCODING_UTF8);
+    char* buf = malloc(string_size + 1);
+    jerry_string_to_buffer(str, JERRY_ENCODING_UTF8, (jerry_char_t*)buf, string_size);
+    FuriString* result = furi_string_alloc();
+    furi_string_set_strn(result, buf, string_size);
+    free(buf);
     jerry_value_free(str);
     jerry_value_free(val);
+    return result;
+}
+
+static void log_exception(const char* msg, jerry_value_t exception) {
+    FuriString* exception_string = js_runner_get_exception_string(exception);
+    if(exception_string) {
+        FURI_LOG_E(TAG, "%s: %s", msg, furi_string_get_cstr(exception_string));
+        furi_string_free(exception_string);
+    } else {
+        FURI_LOG_E(TAG, "%s: (not a string)", msg);
+    }
 }
 
 JsRunnerError js_runner_run(
@@ -104,6 +113,7 @@ JsRunnerError js_runner_run(
             .jrs_context = NULL,
             .event_loop = furi_event_loop_alloc(),
             .console_callback = console_write_cb,
+            .console_callback_context = console_write_context,
             .root_path = furi_string_alloc(),
             .last_interval_id = 0,
         };
@@ -123,7 +133,7 @@ JsRunnerError js_runner_run(
             jerry_object_set_native_ptr(global_obj, &global_native_info, instance);
             jerry_value_free(global_obj);
         }
-        js_runner_setup_console(console_write_cb, console_write_context);
+        js_runner_setup_console(&app);
         js_runner_setup_interval_methods();
 
         FuriString* path_furi = furi_string_alloc_set_str(path);
@@ -147,16 +157,21 @@ JsRunnerError js_runner_run(
                 ret = JsRunnerParseException;
                 break;
             } else {
-                js_runner_check_and_free(jerry_module_link(parsed_script, NULL, NULL));
-                jerry_value_t result = jerry_module_evaluate(parsed_script);
-                if(jerry_value_is_exception(result)) {
-                    log_exception("Error running script", result);
+                jerry_value_t link_result = jerry_module_link(parsed_script, NULL, NULL);
+                if(jerry_value_is_exception(link_result)) {
+                    log_exception("Error linking modules", link_result);
                 } else {
-                    if(app_has_background_tasks(&app)) {
-                        furi_event_loop_run(app.event_loop);
+                    jerry_value_t result = jerry_module_evaluate(parsed_script);
+                    if(jerry_value_is_exception(result)) {
+                        log_exception("Error running script", result);
+                    } else {
+                        if(app_has_background_tasks(&app)) {
+                            furi_event_loop_run(app.event_loop);
+                        }
                     }
+                    jerry_value_free(result);
                 }
-                jerry_value_free(result);
+                jerry_value_free(link_result);
             }
         } while(false);
         jerry_value_free(parsed_script);

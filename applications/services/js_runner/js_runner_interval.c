@@ -9,7 +9,39 @@ static void interval_callback(void* context) {
     WITH_JS_RUNNER_APP(app, {
         const IntervalContext* interval_context = IntervalDict_cget(app->intervals, timer_id);
         if(interval_context) {
-            jerry_value_free(jerry_call(interval_context->callback, jerry_undefined(), NULL, 0));
+            jerry_value_t result =
+                jerry_call(interval_context->callback, jerry_undefined(), NULL, 0);
+            if(jerry_value_is_exception(result)) {
+                FuriString* exception_string = js_runner_get_exception_string(result);
+
+                if(exception_string) {
+                    if(app->console_callback) {
+                        app->console_callback(
+                            JsRunnerConsoleSeverityError,
+                            "Uncaught:",
+                            9,
+                            JsRunnerConsoleSeparatorSpace,
+                            app->console_callback_context);
+                        app->console_callback(
+                            JsRunnerConsoleSeverityError,
+                            furi_string_get_cstr(exception_string),
+                            furi_string_size(exception_string),
+                            JsRunnerConsoleSeparatorNewline,
+                            app->console_callback_context);
+                    }
+                    furi_string_free(exception_string);
+                } else {
+                    if(app->console_callback) {
+                        app->console_callback(
+                            JsRunnerConsoleSeverityError,
+                            "Uncaught exception",
+                            18,
+                            JsRunnerConsoleSeparatorNewline,
+                            app->console_callback_context);
+                    }
+                }
+            }
+            jerry_value_free(result);
         } else {
             FURI_LOG_E(TAG, "Dead interval timer with id = %lu", timer_id);
         }
