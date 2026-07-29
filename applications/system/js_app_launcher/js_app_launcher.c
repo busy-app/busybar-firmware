@@ -19,13 +19,10 @@ static bool js_app_launcher_gui_input_callback(const InputEvent* event, void* co
     JsAppLauncher* instance = context;
     bool consumed = false;
 
-    if(event->type == InputTypeShort) {
-        if(event->key == InputKeyBack) {
-            furi_check(
-                furi_message_queue_put(instance->input_queue, event, FuriWaitForever) ==
-                FuriStatusOk);
-            consumed = true;
-        }
+    if((event->type == InputTypeShort) && (event->key == InputKeyBack)) {
+        furi_check(
+            furi_message_queue_put(instance->input_queue, event, FuriWaitForever) == FuriStatusOk);
+        consumed = true;
     }
 
     return consumed;
@@ -39,12 +36,10 @@ static void js_app_launcher_input_queue_callback(FuriEventLoopObject* object, vo
 
     InputEvent event;
     while(furi_message_queue_get(instance->input_queue, &event, 0) == FuriStatusOk) {
-        if(event.type == InputTypeShort) {
-            if(event.key == InputKeyBack) {
-                if(!scene_manager_handle_back_event(instance->scene_manager)) {
-                    if(!apps_menu_start(AppsMenuModeShowMenu)) {
-                        FURI_LOG_E(TAG, "Failed to exit to apps menu");
-                    }
+        if((event.type == InputTypeShort) && (event.key == InputKeyBack)) {
+            if(!scene_manager_handle_back_event(instance->scene_manager)) {
+                if(!apps_menu_start(AppsMenuModeShowMenu)) {
+                    FURI_LOG_E(TAG, "Failed to exit to apps menu");
                 }
             }
         }
@@ -125,7 +120,7 @@ static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
     if(instance->js_app) {
         scene_manager_next_scene(instance->scene_manager, JsAppLauncherSceneIdStart);
     } else {
-        // TODO: Error scene
+        scene_manager_next_scene(instance->scene_manager, JsAppLauncherSceneIdError);
     }
 
     return instance;

@@ -87,15 +87,15 @@ static bool js_app_launcher_scene_start_on_event(const SceneManagerEvent* event,
     furi_assert(event);
     furi_assert(context);
 
+    JsAppLauncher* instance = context;
+
     bool consumed = false;
 
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == JsAppLauncherSceneStartMenuIdxStart) {
-            // TODO: Start the app
-            FURI_LOG_D(TAG, "App started...");
+            scene_manager_next_scene(instance->scene_manager, JsAppLauncherSceneIdRun);
         } else if(event->event == JsAppLauncherSceneStartMenuIdxSetup) {
-            // TODO: Go to setup
-            FURI_LOG_D(TAG, "Setup entered...");
+            scene_manager_next_scene(instance->scene_manager, JsAppLauncherSceneIdSetup);
         }
 
         consumed = true;
