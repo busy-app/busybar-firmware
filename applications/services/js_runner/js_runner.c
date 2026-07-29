@@ -76,12 +76,8 @@ FuriString* js_runner_get_exception_string(jerry_value_t exception) {
 
 static void log_exception(const char* msg, jerry_value_t exception) {
     FuriString* exception_string = js_runner_get_exception_string(exception);
-    if(exception_string) {
-        FURI_LOG_E(TAG, "%s: %s", msg, furi_string_get_cstr(exception_string));
-        furi_string_free(exception_string);
-    } else {
-        FURI_LOG_E(TAG, "%s: (not a string)", msg);
-    }
+    FURI_LOG_E(TAG, "%s: %s", msg, furi_string_get_cstr(exception_string));
+    furi_string_free(exception_string);
 }
 
 JsRunnerError js_runner_run(
