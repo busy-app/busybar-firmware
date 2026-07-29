@@ -27,6 +27,7 @@ typedef struct {
 
     uint32_t item_count;
     _Atomic uint32_t menu_idx;
+    bool is_js_apps_enabled;
 } AppsMenuSceneMain;
 
 typedef struct {
@@ -140,14 +141,18 @@ static void apps_menu_scene_main_on_enter(void* context) {
     AppsMenuSceneMain* data =
         scene_manager_get_scene_data(instance->scene_manager, AppsMenuSceneIdMain);
 
-    JsAppIdArray_init(data->js_app_ids);
+    data->is_js_apps_enabled = apps_menu_is_js_apps_enabled();
 
     with_gui(instance->gui, {
         data->front_menu = menu_alloc(instance->front_scene_window);
         data->back_menu = menu_alloc(instance->back_scene_window);
 
         apps_menu_scene_main_list_native_apps(instance, data);
-        apps_menu_scene_main_list_js_apps(instance, data);
+
+        if(data->is_js_apps_enabled) {
+            JsAppIdArray_init(data->js_app_ids);
+            apps_menu_scene_main_list_js_apps(instance, data);
+        }
 
         menu_set_selected_item_index(data->front_menu, data->menu_idx);
         menu_set_selected_item_index(data->back_menu, data->menu_idx);
@@ -170,7 +175,9 @@ static void apps_menu_scene_main_on_exit(void* context) {
         menu_free(data->back_menu);
     });
 
-    JsAppIdArray_clear(data->js_app_ids);
+    if(data->is_js_apps_enabled) {
+        JsAppIdArray_clear(data->js_app_ids);
+    }
 }
 
 static bool apps_menu_scene_main_on_event(const SceneManagerEvent* event, void* context) {
