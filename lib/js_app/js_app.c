@@ -14,9 +14,14 @@
 #define APPMETA_PREFIX     "appmeta"
 #define APPMETA_PATH(path) APPMETA_PREFIX "/" path
 
+#define SCRIPTS_PREFIX     "scripts"
+#define SCRIPTS_PATH(path) SCRIPTS_PREFIX "/" path
+
 #define APP_MANIFEST_PATH   APPMETA_PATH("manifest.json")
 #define APP_FRONT_ICON_PATH APPMETA_PATH("icon_front.png")
 #define APP_BACK_ICON_PATH  APPMETA_PATH("icon_back.png")
+
+#define APP_ENTRY_PATH SCRIPTS_PATH("main.js")
 
 #define FRONT_DEFAULT_ICON_PATH APPS_MENU_IMG_PATH("soon_front_8x8.image")
 #define BACK_DEFAULT_ICON_PATH  APPS_MENU_IMG_PATH("soon_back_11x11.image")
@@ -25,6 +30,7 @@ struct JsApp {
     JsAppManifest* manifest;
     FuriString* front_icon_path;
     FuriString* back_icon_path;
+    FuriString* entry_script_path;
 };
 
 static bool js_app_is_file_present(Storage* storage, const FuriString* file_path) {
@@ -81,6 +87,20 @@ static bool js_apps_process_root_directory(JsApp* instance, const char* dir_path
     return is_root_valid;
 }
 
+static bool js_app_process_scripts_directory(JsApp* instance, const char* dir_path) {
+    bool success = false;
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+
+    path_concat(dir_path, APP_ENTRY_PATH, instance->entry_script_path);
+
+    if(js_app_is_file_present(storage, instance->entry_script_path)) {
+        success = true;
+    }
+
+    furi_record_close(RECORD_STORAGE);
+    return success;
+}
+
 static void js_app_process_icons(JsApp* instance, const char* dir_path) {
     Storage* storage = furi_record_open(RECORD_STORAGE);
 
@@ -105,6 +125,7 @@ JsApp* js_app_alloc(void) {
     instance->manifest = js_app_manifest_alloc();
     instance->front_icon_path = furi_string_alloc();
     instance->back_icon_path = furi_string_alloc();
+    instance->entry_script_path = furi_string_alloc();
 
     return instance;
 }
@@ -115,6 +136,7 @@ void js_app_free(JsApp* instance) {
     js_app_manifest_free(instance->manifest);
     furi_string_free(instance->front_icon_path);
     furi_string_free(instance->back_icon_path);
+    furi_string_free(instance->entry_script_path);
 
     free(instance);
 }
@@ -134,6 +156,10 @@ bool js_app_parse_from_dir(JsApp* instance, const char* dir_path) {
             break;
         }
 
+        if(!js_app_process_scripts_directory(instance, dir_path)) {
+            break;
+        }
+
         js_app_process_icons(instance, dir_path);
 
         success = true;
@@ -150,6 +176,7 @@ bool js_app_get_info(const JsApp* instance, JsAppInfo* info) {
 
     if(js_app_manifest_get_info(instance->manifest, &info->manifest)) {
         JsAppPathInfo* path = &info->path;
+        path->entry = furi_string_get_cstr(instance->entry_script_path);
         path->icon.front = furi_string_get_cstr(instance->front_icon_path);
         path->icon.back = furi_string_get_cstr(instance->back_icon_path);
 

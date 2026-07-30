@@ -17,6 +17,7 @@ typedef struct {
 } JsAppIconPath;
 
 typedef struct {
+    const char* entry;
     JsAppIconPath icon;
 } JsAppPathInfo;
 
