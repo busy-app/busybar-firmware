@@ -35,7 +35,7 @@ static jerry_value_t console_log(
 
         jerry_size_t size = jerry_string_size(str, JERRY_ENCODING_UTF8);
 
-        char* buf = malloc(size);
+        char* buf = malloc(size ? size : 1);
 
         jerry_string_to_buffer(str, JERRY_ENCODING_UTF8, (jerry_char_t*)buf, size);
 

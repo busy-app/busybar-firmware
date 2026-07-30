@@ -111,7 +111,7 @@ jerry_char_t* jerry_port_source_read(const char* file_name_p, jerry_size_t* out_
             FURI_LOG_E(TAG, "File is too large %s", abs_path_cstr);
             break;
         }
-        result = malloc(file_size);
+        result = malloc(file_size ? file_size : 1);
         size_t read_bytes = storage_file_read(f, result, file_size);
         if(read_bytes != file_size) {
             FURI_LOG_E(TAG, "Error reading file %s", abs_path_cstr);

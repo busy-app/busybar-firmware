@@ -97,7 +97,7 @@ JsRunnerError js_runner_run(
             break;
         }
         uint64_t file_size = storage_file_size(f);
-        char* buf = malloc(file_size);
+        char* buf = malloc(file_size ? file_size : 1);
         if(storage_file_read(f, buf, file_size) != file_size) {
             ret = JsRunnerErrorCannotOpenFile;
             free(buf);
