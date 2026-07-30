@@ -16,13 +16,17 @@ static void js_app_launcher_scene_run_console_out_callback(
     size_t size,
     JsRunnerConsoleSeparator separator,
     void* context) {
-    UNUSED(severity);
-    UNUSED(size);
     UNUSED(separator);
     UNUSED(context);
 
-    // TODO: Better logging
-    FURI_LOG_I(TAG, "%s", buf);
+    // TODO: Better logging ?
+    if(severity == JsRunnerConsoleSeverityLog) {
+        FURI_LOG_D(TAG, "%.*s", size, buf);
+    } else if(severity == JsRunnerConsoleSeverityInfo) {
+        FURI_LOG_I(TAG, "%.*s", size, buf);
+    } else if(severity == JsRunnerConsoleSeverityError) {
+        FURI_LOG_E(TAG, "%.*s", size, buf);
+    }
 }
 
 static int32_t js_app_laucher_scene_run_thread_callback(void* arg) {
@@ -40,7 +44,11 @@ static int32_t js_app_laucher_scene_run_thread_callback(void* arg) {
 
     furi_record_close(RECORD_JS_RUNNER);
 
-    return status;
+    if(status != JsRunnerErrorNone) {
+        FURI_LOG_E(TAG, "JsRunner error: %d", status);
+    }
+
+    return 0;
 }
 
 static void js_app_laucher_scene_run_thread_state_callback(
@@ -95,6 +103,7 @@ static void js_app_launcher_scene_run_on_exit(void* context) {
     FuriThread* js_thread = data->js_thread;
 
     if(js_thread != NULL) {
+        // TODO: Ask JsRunner to stop the script
         furi_thread_join(data->js_thread);
         furi_thread_free(data->js_thread);
         data->js_thread = NULL;
@@ -110,7 +119,6 @@ static bool js_app_launcher_scene_run_on_event(const SceneManagerEvent* event, v
 
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == JsAppLauncherCustomEventScriptFinished) {
-            // TODO: Examine the run result and display logs if necessary
             scene_manager_previous_scene(instance->scene_manager);
         }
 
