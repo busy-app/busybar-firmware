@@ -4,8 +4,6 @@
 #include <core/log.h>
 
 #include <storage/storage.h>
-// TODO: Own default icons
-#include <apps_menu/storage_macros.h>
 
 #include <toolbox/path.h>
 
@@ -23,8 +21,8 @@
 
 #define APP_ENTRY_PATH SCRIPTS_PATH("main.js")
 
-#define FRONT_DEFAULT_ICON_PATH APPS_MENU_IMG_PATH("soon_front_8x8.image")
-#define BACK_DEFAULT_ICON_PATH  APPS_MENU_IMG_PATH("soon_back_11x11.image")
+#define FRONT_DEFAULT_ICON_PATH SHARED_IMG_PATH("unknown_app_front_8x8.image")
+#define BACK_DEFAULT_ICON_PATH  SHARED_IMG_PATH("unknown_app_back_11x11.image")
 
 struct JsApp {
     JsAppManifest* manifest;
