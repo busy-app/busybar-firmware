@@ -81,8 +81,7 @@ static void js_app_launcher_scene_run_on_enter(void* context) {
             js_app_laucher_scene_run_thread_callback,
             js_info);
 
-        furi_thread_set_state_callback(
-            js_thread, js_app_laucher_scene_run_thread_state_callback);
+        furi_thread_set_state_callback(js_thread, js_app_laucher_scene_run_thread_state_callback);
         furi_thread_set_state_context(js_thread, instance);
 
         data->js_thread = js_thread;
