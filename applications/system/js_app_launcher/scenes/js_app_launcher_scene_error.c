@@ -48,6 +48,13 @@ static bool js_app_launcher_scene_error_on_event(const SceneManagerEvent* event,
     furi_assert(context);
 
     bool consumed = false;
+    JsAppLauncher* instance = context;
+
+    if(event->type == SceneManagerEventTypeBack) {
+        consumed = scene_manager_search_and_switch_to_previous_scene(
+            instance->scene_manager, JsAppLauncherSceneIdStart);
+    }
+
     return consumed;
 }
 
