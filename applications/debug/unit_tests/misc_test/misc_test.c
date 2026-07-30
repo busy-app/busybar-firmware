@@ -1,6 +1,7 @@
 #include "../unit_tests.h"
 
 #include <wifi/wifi_util.h>
+#include <path.h>
 
 MU_TEST(misc_tests_ipv6_format) {
     char buf[40];
@@ -44,9 +45,34 @@ MU_TEST(misc_tests_ipv4_format) {
     mu_assert_string_eq("192.168.0.1", buf);
 }
 
+static void check_path_normalize(const char* src, const char* expected, bool allow_escape_root) {
+    FuriString* result = furi_string_alloc();
+    path_normalize(src, result, allow_escape_root);
+    mu_assert_string_eq(expected, furi_string_get_cstr(result));
+    furi_string_free(result);
+}
+
+MU_TEST(misc_tests_path_normalize) {
+    check_path_normalize("a/bar/cat", "a/bar/cat", true);
+    check_path_normalize("a/bar/cat", "a/bar/cat", false);
+    check_path_normalize("/a/bar/cat", "/a/bar/cat", true);
+    check_path_normalize("/a/bar/cat", "/a/bar/cat", false);
+
+    check_path_normalize("a/././bar/./cat", "a/bar/cat", true);
+    check_path_normalize("././a/bar/cat/.", "a/bar/cat", false);
+
+    check_path_normalize("a/bar/../foo/cat/../dog", "a/foo/dog", true);
+
+    check_path_normalize("/a/bar/cat/../../../../././././/.//.././", "/", false);
+    check_path_normalize("/a/bar/cat/../../../../././././/.//.././", "/", true);
+
+    check_path_normalize("a/../../../", "../..", true);
+}
+
 MU_TEST_SUITE(misc_test_suite) {
     MU_RUN_TEST(misc_tests_ipv6_format);
     MU_RUN_TEST(misc_tests_ipv4_format);
+    MU_RUN_TEST(misc_tests_path_normalize);
 }
 
 int run_minunit_misc_test(void) {

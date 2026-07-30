@@ -61,6 +61,7 @@ App(
         "state_publisher",
         "discovery",
         "low_power",
+        "js_runner",
     ],
     targets=["f20", "f21", "f22"],
 )
