@@ -274,6 +274,8 @@ static bool api_display_draw_parse_anim_player_element(
     bool result = false;
 
     do {
+        canvas_element->type = CanvasElementTypeAnimPlayer;
+
         if(!api_display_draw_parse_image_path(
                &canvas_element->anim_player.file_path,
                app_name,
@@ -305,7 +307,6 @@ static bool api_display_draw_parse_anim_player_element(
         if(opacity < 0 || opacity > 100) break;
         canvas_element->anim_player.opacity = opacity * 255 / 100;
 
-        canvas_element->type = CanvasElementTypeAnimPlayer;
         result = true;
     } while(0);
 
@@ -401,6 +402,8 @@ static bool api_display_draw_parse_rectangle_element(
     bool result = false;
 
     do {
+        canvas_element->type = CanvasElementTypeRectangle;
+
         long width = mg_json_get_long(json_element, "$.width", -1);
         long height = mg_json_get_long(json_element, "$.height", -1);
         if(width <= 0 || height <= 0) {
@@ -417,7 +420,6 @@ static bool api_display_draw_parse_rectangle_element(
             break;
         }
 
-        canvas_element->type = CanvasElementTypeRectangle;
         result = true;
     } while(0);
 
