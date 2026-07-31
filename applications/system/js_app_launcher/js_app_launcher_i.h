@@ -11,6 +11,24 @@
 
 #define TAG "JsAppLauncher"
 
+typedef enum {
+    JsAppLauncherErrorNone,
+    JsAppLauncherErrorLoadFailed,
+    JsAppLauncherErrorSyntaxError,
+    JsAppLauncherErrorProgramCrashed,
+    JsAppLauncherErrorMax,
+} JsAppLauncherError;
+
+typedef struct {
+    struct {
+        const char* front;
+        const char* back;
+    } primary;
+    struct {
+        const char* back;
+    } auxiliary;
+} JsAppLauncherErrorDesc;
+
 typedef struct {
     FuriEventLoop* event_loop;
     FuriMessageQueue* input_queue;
@@ -24,6 +42,7 @@ typedef struct {
     NavBar* nav_bar;
 
     JsApp* js_app;
+    JsAppLauncherError error;
 } JsAppLauncher;
 
 typedef enum {
@@ -32,3 +51,5 @@ typedef enum {
 } JsAppLauncherCustomEvent;
 
 void js_app_launcher_send_custom_event(JsAppLauncher* instance, uint32_t event);
+
+const JsAppLauncherErrorDesc* js_app_launcher_get_error_desc(const JsAppLauncher* instance);

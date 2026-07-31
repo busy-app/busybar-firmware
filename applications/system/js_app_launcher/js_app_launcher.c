@@ -120,6 +120,7 @@ static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
     if(instance->js_app) {
         scene_manager_next_scene(instance->scene_manager, JsAppLauncherSceneIdStart);
     } else {
+        instance->error = JsAppLauncherErrorLoadFailed;
         scene_manager_next_scene(instance->scene_manager, JsAppLauncherSceneIdError);
     }
 
