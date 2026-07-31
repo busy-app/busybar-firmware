@@ -31,8 +31,9 @@ static void js_app_launcher_scene_run_console_out_callback(
 
 static int32_t js_app_laucher_scene_run_thread_callback(void* arg) {
     furi_assert(arg);
-    const JsAppInfo* info = arg;
+    const JsAppLauncherSceneRun* data = arg;
 
+    const JsAppInfo* info = &data->js_info;
     JsRunner* runner = furi_record_open(RECORD_JS_RUNNER);
 
     const JsRunnerError status = js_runner_run(
@@ -73,13 +74,11 @@ static void js_app_launcher_scene_run_on_enter(void* context) {
         scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdRun);
 
     if(js_app_get_info(instance->js_app, &data->js_info)) {
-        JsAppInfo* js_info = &data->js_info;
-
         FuriThread* js_thread = furi_thread_alloc_ex(
-            js_info->manifest.name,
-            js_info->manifest.heap_size,
+            data->js_info.manifest.name,
+            JS_THREAD_STACK_SIZE,
             js_app_laucher_scene_run_thread_callback,
-            js_info);
+            data);
 
         furi_thread_set_state_callback(js_thread, js_app_laucher_scene_run_thread_state_callback);
         furi_thread_set_state_context(js_thread, instance);
@@ -103,8 +102,8 @@ static void js_app_launcher_scene_run_on_exit(void* context) {
 
     if(js_thread != NULL) {
         // TODO: Ask JsRunner to stop the script
-        furi_thread_join(data->js_thread);
-        furi_thread_free(data->js_thread);
+        furi_thread_join(js_thread);
+        furi_thread_free(js_thread);
         data->js_thread = NULL;
     }
 }
