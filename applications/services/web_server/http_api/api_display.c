@@ -274,6 +274,8 @@ static bool api_display_draw_parse_anim_player_element(
     bool result = false;
 
     do {
+        canvas_element->type = CanvasElementTypeAnimPlayer;
+
         if(!api_display_draw_parse_image_path(
                &canvas_element->anim_player.file_path,
                app_name,
@@ -305,7 +307,6 @@ static bool api_display_draw_parse_anim_player_element(
         if(opacity < 0 || opacity > 100) break;
         canvas_element->anim_player.opacity = opacity * 255 / 100;
 
-        canvas_element->type = CanvasElementTypeAnimPlayer;
         result = true;
     } while(0);
 
@@ -401,6 +402,8 @@ static bool api_display_draw_parse_rectangle_element(
     bool result = false;
 
     do {
+        canvas_element->type = CanvasElementTypeRectangle;
+
         long width = mg_json_get_long(json_element, "$.width", -1);
         long height = mg_json_get_long(json_element, "$.height", -1);
         if(width <= 0 || height <= 0) {
@@ -417,7 +420,6 @@ static bool api_display_draw_parse_rectangle_element(
             break;
         }
 
-        canvas_element->type = CanvasElementTypeRectangle;
         result = true;
     } while(0);
 
@@ -671,10 +673,6 @@ static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_m
         canvas_show_elements_async(
             canvas, app_name, priority, elements_array, canvas_draw_done_callback, ctx);
         furi_record_close(RECORD_CANVAS);
-
-        CanvasElementsArray_clear(elements_array);
-        free(app_name);
-        return; // response delivered asynchronously via mg_wakeup
     } while(0);
 
     CanvasElementsArray_clear(elements_array);
