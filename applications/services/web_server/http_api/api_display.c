@@ -671,10 +671,6 @@ static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_m
         canvas_show_elements_async(
             canvas, app_name, priority, elements_array, canvas_draw_done_callback, ctx);
         furi_record_close(RECORD_CANVAS);
-
-        CanvasElementsArray_clear(elements_array);
-        free(app_name);
-        return; // response delivered asynchronously via mg_wakeup
     } while(0);
 
     CanvasElementsArray_clear(elements_array);
