@@ -107,7 +107,11 @@ jerry_char_t* jerry_port_source_read(const char* file_name_p, jerry_size_t* out_
             break;
         }
         uint64_t file_size = storage_file_size(f);
-        if(file_size >= UINT32_MAX) {
+        if(file_size == 0) {
+            FURI_LOG_E(TAG, "File is empty %s", abs_path_cstr);
+            break;
+        }
+        if(file_size > JS_RUNNER_MAX_SCRIPT_SIZE) {
             FURI_LOG_E(TAG, "File is too large %s", abs_path_cstr);
             break;
         }
