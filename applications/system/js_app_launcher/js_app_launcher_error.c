@@ -49,3 +49,16 @@ const JsAppLauncherErrorDesc* js_app_launcher_get_error_desc(const JsAppLauncher
     furi_assert(instance->error != JsAppLauncherErrorNone);
     return &js_app_launcher_error_descs[instance->error];
 }
+
+JsAppLauncherError js_app_launcher_translate_from_js_runner_error(JsRunnerError js_runner_error) {
+    furi_assert(js_runner_error < JsRunnerErrorMax);
+    JsAppLauncherError translated_error;
+
+    if(js_runner_error == JsRunnerParseException) {
+        translated_error = JsAppLauncherErrorSyntaxError;
+    } else {
+        translated_error = JsAppLauncherErrorLoadFailed;
+    }
+
+    return translated_error;
+}

@@ -7,6 +7,8 @@
 #include <gui/modules/nav_bar.h>
 #include <gui/modules/flex_layout.h>
 
+#include <js_runner/js_runner.h>
+
 #include <js_app/js_app.h>
 
 #define TAG "JsAppLauncher"
@@ -53,3 +55,5 @@ typedef enum {
 void js_app_launcher_send_custom_event(JsAppLauncher* instance, uint32_t event);
 
 const JsAppLauncherErrorDesc* js_app_launcher_get_error_desc(const JsAppLauncher* instance);
+
+JsAppLauncherError js_app_launcher_translate_from_js_runner_error(JsRunnerError js_runner_error);

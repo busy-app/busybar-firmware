@@ -1,14 +1,12 @@
 #include "../js_app_launcher_i.h"
 #include "js_app_launcher_scenes.h"
 
-#include <js_runner/js_runner.h>
-
 #define JS_THREAD_STACK_SIZE (2048)
 
 typedef struct {
     FuriThread* js_thread;
     JsAppInfo js_info;
-    JsRunnerError js_status;
+    JsRunnerError js_error;
 } JsAppLauncherSceneRun;
 
 static void js_app_launcher_scene_run_console_out_callback(
@@ -37,7 +35,7 @@ static int32_t js_app_laucher_scene_run_thread_callback(void* arg) {
     const JsAppInfo* info = &data->js_info;
     JsRunner* runner = furi_record_open(RECORD_JS_RUNNER);
 
-    const JsRunnerError status = js_runner_run(
+    const JsRunnerError error = js_runner_run(
         runner,
         info->path.entry,
         info->manifest.heap_size,
@@ -46,11 +44,11 @@ static int32_t js_app_laucher_scene_run_thread_callback(void* arg) {
 
     furi_record_close(RECORD_JS_RUNNER);
 
-    if(status != JsRunnerErrorNone) {
-        FURI_LOG_E(TAG, "JsRunner error: %d", status);
+    if(error != JsRunnerErrorNone) {
+        FURI_LOG_E(TAG, "JsRunner error: %d", error);
     }
 
-    data->js_status = status;
+    data->js_error = error;
 
     return 0;
 }
@@ -123,11 +121,10 @@ static bool js_app_launcher_scene_run_on_event(const SceneManagerEvent* event, v
 
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == JsAppLauncherCustomEventScriptFinished) {
-            if(data->js_status == JsRunnerErrorNone) {
+            if(data->js_error == JsRunnerErrorNone) {
                 scene_manager_previous_scene(instance->scene_manager);
             } else {
-                // TODO: Different errors
-                instance->error = JsAppLauncherErrorProgramCrashed;
+                instance->error = js_app_launcher_translate_from_js_runner_error(data->js_error);
                 scene_manager_next_scene(instance->scene_manager, JsAppLauncherSceneIdError);
             }
         }
