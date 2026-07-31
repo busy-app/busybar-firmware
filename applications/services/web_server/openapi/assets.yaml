@@ -1,6 +1,6 @@
 tags:
-  - name: Assets
-    description: Asset file management and display control
+- name: Assets
+  description: Asset file management and display control
 
 paths:
   /api/assets/upload:
@@ -398,20 +398,20 @@ schemas:
       - type: object
         allOf:
           - oneOf:
-              - required:
-                  - path
-                properties:
-                  path:
-                    type: string
-                    pattern: "^[a-zA-Z0-9._/-]+$"
-                    description: Path to the image file in the app's assets
-              - required:
-                  - stock_path
-                properties:
-                  stock_path:
-                    type: string
-                    pattern: "shared/[a-z0-9_.]+$"
-                    description: Stock image file name
+            - required:
+                - path
+              properties:
+                path:
+                  type: string
+                  pattern: "^[a-zA-Z0-9._/-]+$"
+                  description: Path to the image file in the app's assets
+            - required:
+                - stock_path
+              properties:
+                stock_path:
+                  type: string
+                  pattern: "shared/[a-z0-9_.]+$"
+                  description: Stock image file name
           - properties:
               opacity:
                 type: integer
@@ -481,7 +481,7 @@ schemas:
             type: string
             enum: [when_non_zero, always]
             description: When to show the hours position
-
+  
   RectangleElement:
     allOf:
       - $ref: "#/components/schemas/DisplayElement"
@@ -539,18 +539,18 @@ schemas:
         required:
           - application_name
       - oneOf:
-          - properties:
-              path:
-                type: string
-                pattern: "^[a-zA-Z0-9._/-]+$"
-                description: Path to audio file within app's assets directory
-                example: "data.snd"
-            required:
-              - path
-          - properties:
-              stock_path:
-                type: string
-                pattern: "shared/[a-z0-9_.]+$"
-                description: Stock audio file name
-            required:
+        - properties:
+            path:
+              type: string
+              pattern: "^[a-zA-Z0-9._/-]+$"
+              description: Path to audio file within app's assets directory
+              example: "data.snd"
+          required:
+            - path
+        - properties:
+            stock_path:
+              type: string
+              pattern: "shared/[a-z0-9_.]+$"
+              description: Stock audio file name
+          required:
               - stock_path
