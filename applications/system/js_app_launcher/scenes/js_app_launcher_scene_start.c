@@ -2,8 +2,6 @@
 #include "js_app_launcher_scenes.h"
 
 #include <gui/modules/dialog.h>
-#include <gui/modules/flex_layout.h>
-#include <gui/modules/image.h>
 #include <gui/modules/menu.h>
 
 #include <storage/storage.h>
@@ -18,8 +16,6 @@ typedef enum {
 } JsAppLauncherSceneStartMenuIdx;
 
 typedef struct {
-    FlexLayout* front_flex;
-    Image* front_icon;
     Dialog* front_dialog;
     Menu* back_menu;
 } JsAppLauncherSceneStart;
@@ -43,24 +39,13 @@ static void js_app_launcher_scene_start_on_enter(void* context) {
     furi_check(js_app_get_info(instance->js_app, &info));
 
     with_gui(instance->gui, {
-        data->front_flex = flex_layout_alloc(instance->front_window, FlexLayoutTypeRow);
-        flex_layout_set_spacing(data->front_flex, 2);
-        flex_layout_set_align(
-            data->front_flex, FlexLayoutAlignStart, FlexLayoutAlignCenter, FlexLayoutAlignCenter);
-
-        data->front_icon = image_alloc(flex_layout_get_base(data->front_flex));
-        image_set_source(data->front_icon, info.path.icon.front);
-        widget_set_size_content(image_get_base(data->front_icon));
-
-        data->front_dialog = dialog_alloc(flex_layout_get_base(data->front_flex));
+        data->front_dialog = dialog_alloc(instance->front_window);
+        dialog_set_icon(data->front_dialog, info.path.icon.front);
         dialog_set_text(data->front_dialog, info.manifest.name);
         dialog_set_options(data->front_dialog, "Start", "Setup");
         dialog_set_option_colors(data->front_dialog, COLOR_START, COLOR_SETUP);
         dialog_set_callback(
             data->front_dialog, js_app_launcher_scene_start_menu_callback, instance);
-
-        flex_layout_set_child_widget_grow(
-            data->front_flex, dialog_get_base(data->front_dialog), 1);
 
         data->back_menu = menu_alloc(instance->back_window);
         menu_add_item(
@@ -78,7 +63,7 @@ static void js_app_launcher_scene_start_on_exit(void* context) {
         scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdStart);
 
     with_gui(instance->gui, {
-        flex_layout_free(data->front_flex);
+        dialog_free(data->front_dialog);
         menu_free(data->back_menu);
     });
 }
