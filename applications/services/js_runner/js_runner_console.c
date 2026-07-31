@@ -35,14 +35,20 @@ static jerry_value_t console_log(
 
         jerry_size_t size = jerry_string_size(str, JERRY_ENCODING_UTF8);
 
-        char* buf = malloc(size);
-
-        jerry_string_to_buffer(str, JERRY_ENCODING_UTF8, (jerry_char_t*)buf, size);
-
         JsRunnerConsoleSeparator separator =
             i + 1 == args_count ? JsRunnerConsoleSeparatorNewline : JsRunnerConsoleSeparatorSpace;
-        ctx->write(severity, buf, size, separator, ctx->context);
-        free(buf);
+
+        if(size > 0) {
+            char* buf = malloc(size);
+
+            jerry_string_to_buffer(str, JERRY_ENCODING_UTF8, (jerry_char_t*)buf, size);
+            ctx->write(severity, buf, size, separator, ctx->context);
+
+            free(buf);
+
+        } else {
+            ctx->write(severity, "", 0, separator, ctx->context);
+        }
 
         jerry_value_free(str);
     }

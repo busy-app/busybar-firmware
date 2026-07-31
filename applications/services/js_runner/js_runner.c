@@ -97,9 +97,13 @@ JsRunnerError js_runner_run(
             break;
         }
         uint64_t file_size = storage_file_size(f);
+        if((file_size == 0) || (file_size > JS_RUNNER_MAX_SCRIPT_SIZE)) {
+            ret = JsRunnerErrorInvalidFileSize;
+            break;
+        }
         char* buf = malloc(file_size);
         if(storage_file_read(f, buf, file_size) != file_size) {
-            ret = JsRunnerErrorCannotOpenFile;
+            ret = JsRunnerErrorCannotReadFile;
             free(buf);
             break;
         }
