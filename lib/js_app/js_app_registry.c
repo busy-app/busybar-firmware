@@ -19,7 +19,7 @@ static bool js_app_registry_is_dir_callback(const char* path, FileInfo* file_inf
     return file_info->flags & FSF_DIRECTORY;
 }
 
-static void js_app_registry_list_apps_dir(
+static void js_app_registry_list_apps_directory(
     DirWalk* dir_walk,
     JsAppRegistryListCallback callback,
     void* context) {
@@ -29,7 +29,7 @@ static void js_app_registry_list_apps_dir(
     JsAppInfo app_info;
 
     while(dir_walk_read(dir_walk, path, NULL) == DirWalkOK) {
-        if(js_app_parse_from_dir(js_app, furi_string_get_cstr(path))) {
+        if(js_app_load_from_directory(js_app, furi_string_get_cstr(path))) {
             if(js_app_get_info(js_app, &app_info)) {
                 callback(&app_info, context);
             }
@@ -50,7 +50,7 @@ void js_app_registry_list_apps(JsAppRegistryListCallback callback, void* context
     dir_walk_set_filter_cb(dir_walk, js_app_registry_is_dir_callback, NULL);
 
     if(dir_walk_open(dir_walk, JS_APPS_PATH)) {
-        js_app_registry_list_apps_dir(dir_walk, callback, context);
+        js_app_registry_list_apps_directory(dir_walk, callback, context);
     }
 
     dir_walk_close(dir_walk);
@@ -67,7 +67,7 @@ JsApp* js_app_registry_get_app(const char* app_id) {
 
     JsApp* js_app = js_app_alloc();
 
-    if(!js_app_parse_from_dir(js_app, furi_string_get_cstr(app_path))) {
+    if(!js_app_load_from_directory(js_app, furi_string_get_cstr(app_path))) {
         js_app_free(js_app);
         js_app = NULL;
     }

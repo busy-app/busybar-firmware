@@ -44,7 +44,7 @@ typedef struct JsAppManifest JsAppManifest;
  * All string fields are zero-terminated C strings.
  *
  * The data pointers are guaranteed to remain valid until
- * the manifest is parsed from file again or is deleted.
+ * the manifest is loaded from file again or is deleted.
  */
 typedef struct {
     const char* id; /**< Unique application identifier */

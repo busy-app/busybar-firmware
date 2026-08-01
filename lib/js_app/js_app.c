@@ -139,7 +139,7 @@ void js_app_free(JsApp* instance) {
     free(instance);
 }
 
-bool js_app_parse_from_dir(JsApp* instance, const char* dir_path) {
+bool js_app_load_from_directory(JsApp* instance, const char* dir_path) {
     furi_check(instance);
     furi_check(dir_path);
 
