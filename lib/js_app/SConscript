@@ -9,7 +9,6 @@ env.Append(
     ],
     SDK_HEADERS=[
         File("js_app.h"),
-        File("js_app_common.h"),
         File("js_app_manifest.h"),
         File("js_app_registry.h"),
     ],
