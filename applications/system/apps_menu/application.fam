@@ -4,7 +4,6 @@ App(
     apptype=FlipperAppType.SYSTEM,
     entry_point="apps_menu_app",
     requires=["gui"],
-    resources="resources",
     stack_size=2 * 1024,
     targets=["f20", "f21", "f22"],
 )
