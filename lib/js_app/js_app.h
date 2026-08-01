@@ -12,8 +12,8 @@
  * |-+ appmeta
  * | |- manifest.json
  * | |- config.json
- * | |- icon_front.png
- * | |- icon_back.png
+ * | |- icon_front_8x8.png
+ * | |- icon_back_11x11.png
  * |
  * |-+ scripts
  * | |- main.js
