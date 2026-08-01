@@ -24,7 +24,7 @@ typedef struct {
     Menu* back_menu;
     JsAppIdArray_t js_app_ids;
 
-    uint32_t item_count;
+    uint32_t next_item_idx;
     _Atomic uint32_t menu_idx;
     bool is_js_apps_enabled;
 } AppsMenuSceneMain;
@@ -47,8 +47,8 @@ static void apps_scene_setup_menu_callback(uint32_t index, void* context) {
 }
 
 static void apps_menu_scene_main_list_native_apps(AppsMenu* instance, AppsMenuSceneMain* data) {
-    const uint32_t end_idx = AppsMenuEntryIdxsCount - (data->is_js_apps_enabled ? 1 : 0);
-
+    const uint32_t end_idx = data->is_js_apps_enabled ? AppsMenuEntryIdxComingSoon :
+                                                        AppsMenuEntryIdxMax;
     for(uint32_t i = 0; i < end_idx; ++i) {
         const AppsMenuEntry* const entry = apps_list_get_item(i);
 
@@ -64,7 +64,10 @@ static void apps_menu_scene_main_list_native_apps(AppsMenu* instance, AppsMenuSc
         menu_add_item(data->back_menu, entry->name, NULL, entry->icon_path.back, i, NULL, NULL);
     }
 
-    data->item_count = AppsMenuEntryIdxsCount;
+    /* NOTE: next_item_idx is not an array index, but a unique numeric id
+     * to distinguish a menu item. It is safe to always start enumerating
+     * JS apps from AppsMenuEntryIdxMax. */
+    data->next_item_idx = AppsMenuEntryIdxMax;
 }
 
 static void app_menu_scene_main_js_app_list_callback(const JsAppInfo* info, void* context) {
@@ -90,15 +93,16 @@ static void app_menu_scene_main_js_app_list_callback(const JsAppInfo* info, void
         app_name,
         NULL,
         paths->icon.front,
-        data->item_count,
+        data->next_item_idx,
         apps_scene_setup_menu_callback,
         instance);
 
-    menu_add_item(data->back_menu, app_name, NULL, paths->icon.back, data->item_count, NULL, NULL);
+    menu_add_item(
+        data->back_menu, app_name, NULL, paths->icon.back, data->next_item_idx, NULL, NULL);
 
     JsAppIdArray_push_back(data->js_app_ids, manifest_info->id);
 
-    ++data->item_count;
+    ++data->next_item_idx;
 }
 
 static void apps_menu_scene_main_list_js_apps(AppsMenu* instance, AppsMenuSceneMain* data) {
@@ -116,11 +120,11 @@ static void apps_menu_scene_main_start_selected_app(AppsMenu* instance) {
 
     const char* app_id;
 
-    if(data->menu_idx < AppsMenuEntryIdxsCount) {
+    if(data->menu_idx < AppsMenuEntryIdxMax) {
         const AppsMenuEntry* entry = apps_list_get_item(data->menu_idx);
         app_id = entry->id;
     } else {
-        const uint32_t array_idx = data->menu_idx - AppsMenuEntryIdxsCount;
+        const uint32_t array_idx = data->menu_idx - AppsMenuEntryIdxMax;
         app_id = *JsAppIdArray_cget(data->js_app_ids, array_idx);
     }
 

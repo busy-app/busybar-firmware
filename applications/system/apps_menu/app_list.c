@@ -27,17 +27,17 @@ static const AppsMenuEntry apps_menu_entries[] = {
         },
 };
 
-static_assert(COUNT_OF(apps_menu_entries) == AppsMenuEntryIdxsCount);
+static_assert(COUNT_OF(apps_menu_entries) == AppsMenuEntryIdxMax);
 
 const AppsMenuEntry* apps_list_get_item(uint32_t index) {
-    furi_assert(index < AppsMenuEntryIdxsCount);
+    furi_assert(index < AppsMenuEntryIdxMax);
     return &apps_menu_entries[index];
 }
 
 bool apps_list_contains(const char* app_id) {
     bool is_in_list = false;
 
-    for(uint32_t i = 0; i < AppsMenuEntryIdxsCount; ++i) {
+    for(uint32_t i = 0; i < AppsMenuEntryIdxMax; ++i) {
         const char* id = apps_menu_entries[i].id;
         if((id != NULL) && (strcmp(app_id, id) == 0)) {
             is_in_list = true;
