@@ -16,8 +16,8 @@
 #define SCRIPTS_PATH(path) SCRIPTS_PREFIX "/" path
 
 #define APP_MANIFEST_PATH   APPMETA_PATH("manifest.json")
-#define APP_FRONT_ICON_PATH APPMETA_PATH("icon_front.png")
-#define APP_BACK_ICON_PATH  APPMETA_PATH("icon_back.png")
+#define APP_FRONT_ICON_PATH APPMETA_PATH("icon_front_8x8.png")
+#define APP_BACK_ICON_PATH  APPMETA_PATH("icon_back_11x11.png")
 
 #define APP_ENTRY_PATH SCRIPTS_PATH("main.js")
 
