@@ -20,7 +20,7 @@
 #define JS_APP_MANIFEST_VERSION_KEY        "version"
 #define JS_APP_MANIFEST_DESCRIPTION_KEY    "description"
 #define JS_APP_MANIFEST_AUTHOR_KEY         "author"
-#define JS_APP_MANIFEST_HEAP_SIZE_KEY      "heap_size"
+#define JS_APP_MANIFEST_HEAP_SIZE_KEY      "heap_size_kib"
 #define JS_APP_MANIFEST_DEBUG_KEY          "debug"
 
 struct JsAppManifest {
@@ -137,7 +137,7 @@ void js_app_manifest_free(JsAppManifest* instance) {
     free(instance);
 }
 
-bool js_app_manifest_parse_from_file(JsAppManifest* instance, const char* file_path) {
+bool js_app_manifest_load_from_file(JsAppManifest* instance, const char* file_path) {
     furi_check(instance);
     furi_check(file_path);
 

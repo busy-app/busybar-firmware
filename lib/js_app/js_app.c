@@ -57,7 +57,7 @@ static bool js_app_process_manifest(JsApp* instance, const char* dir_path) {
     path_concat(dir_path, APP_MANIFEST_PATH, tmp_path);
 
     const bool success =
-        js_app_manifest_parse_from_file(instance->manifest, furi_string_get_cstr(tmp_path));
+        js_app_manifest_load_from_file(instance->manifest, furi_string_get_cstr(tmp_path));
 
     furi_string_free(tmp_path);
     return success;
