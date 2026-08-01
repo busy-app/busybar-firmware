@@ -22,7 +22,7 @@ typedef enum {
  * @brief Replace the currently running application with AppsMenu.
  *
  * @param[in] mode value from @ref AppsMenuMode to select the operation model
- * @returns @c true if AppsMenu could be started, false otherwise
+ * @returns @c true if AppsMenu could be started, @c false otherwise
  */
 bool apps_menu_start(AppsMenuMode mode);
 
