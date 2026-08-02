@@ -100,7 +100,7 @@ Application manifest file is a JSON file that matches the following schema:
         },
         "name": {
             "type": "string",
-            "description": "Display name to be show in the UI"
+            "description": "Display name to be shown in the UI"
         },
         "version": {
             "type": "string",
