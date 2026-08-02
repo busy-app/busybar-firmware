@@ -6,7 +6,7 @@
 
 This documentation is intended for developers interested in modifying the @bsb firmware.
 
-If you are looking for the user manual, please visit the [User Documentation](https://busy.app/) instead.
+If you are looking for the user manual, please visit the [User Documentation](https://docs.busy.app/) instead.
 
 The documentation is divided into several sections. All of them are accessible from the sidebar on the left:
 
