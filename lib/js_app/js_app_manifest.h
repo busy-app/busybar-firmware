@@ -23,6 +23,7 @@
  * Fields marked as optonal may be omitted, in which case
  * they will be assigned their respective default values.
  *
+ * @see @ref javascript-applications for more info on the application manifests.
  */
 #pragma once
 

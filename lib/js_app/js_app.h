@@ -37,7 +37,8 @@
  * All sub-folders besides `appmeta` and `scripts` are free-form
  * and may or may not be present depending on the application.
  *
- * @see @ref js_app_manifest.h for more info on JS app manifests.
+ * @see @ref js_app_manifest.h for more info on JS application manifests.
+ * @see @ref javascript-applications for more info on JS applications.
  */
 #pragma once
 
