@@ -11,8 +11,11 @@
 
 #define JS_APP_MANIFEST_MAX_FILE_SIZE (512)
 
-#define JS_APP_MANIFEST_FORMAT_VERSION    (1)
-#define JS_APP_MANIFEST_DEFAULT_HEAP_SIZE (32 * 1024)
+#define JS_APP_MANIFEST_FORMAT_VERSION (1)
+
+#define JS_APP_MANIFEST_HEAP_SIZE_KIB_MIN     (1)
+#define JS_APP_MANIFEST_HEAP_SIZE_KIB_MAX     (256)
+#define JS_APP_MANIFEST_HEAP_SIZE_KIB_DEFAULT (32)
 
 #define JS_APP_MANIFEST_FORMAT_VERSION_KEY "format_version"
 #define JS_APP_MANIFEST_ID_KEY             "id"
@@ -33,6 +36,33 @@ static void js_app_manifest_reset(JsAppManifest* instance) {
         cJSON_Delete(instance->parsed_json);
         instance->parsed_json = NULL;
     }
+}
+
+static bool js_app_manifest_parse_heap_size(const cJSON* json, JsAppManifestInfo* info) {
+    bool success = false;
+
+    do {
+        int32_t heap_size_kib;
+
+        const cJSON* item = cJSON_GetObjectItem(json, JS_APP_MANIFEST_HEAP_SIZE_KEY);
+        if(cJSON_IsNumber(item)) {
+            heap_size_kib = cJSON_GetNumberValue(item);
+
+            if((heap_size_kib < JS_APP_MANIFEST_HEAP_SIZE_KIB_MIN) ||
+               (heap_size_kib > JS_APP_MANIFEST_HEAP_SIZE_KIB_MAX)) {
+                break;
+            }
+
+        } else {
+            heap_size_kib = JS_APP_MANIFEST_HEAP_SIZE_KIB_DEFAULT;
+        }
+        // Resulting value is in bytes for convenience
+        info->heap_size = heap_size_kib * 1024;
+        success = true;
+
+    } while(false);
+
+    return success;
 }
 
 static bool
@@ -98,12 +128,8 @@ static bool
             info->author = "";
         }
 
-        item = cJSON_GetObjectItem(json, JS_APP_MANIFEST_HEAP_SIZE_KEY);
-
-        if(cJSON_IsNumber(item)) {
-            info->heap_size = cJSON_GetNumberValue(item) * 1024;
-        } else {
-            info->heap_size = JS_APP_MANIFEST_DEFAULT_HEAP_SIZE;
+        if(js_app_manifest_parse_heap_size(json, info)) {
+            break;
         }
 
         item = cJSON_GetObjectItem(json, JS_APP_MANIFEST_DEBUG_KEY);
