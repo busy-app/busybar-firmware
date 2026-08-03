@@ -156,9 +156,6 @@ static void apps_menu_scene_main_on_enter(void* context) {
             apps_menu_scene_main_list_js_apps(instance, data);
         }
 
-        menu_set_selected_item_index(data->front_menu, data->menu_idx);
-        menu_set_selected_item_index(data->back_menu, data->menu_idx);
-
         widget_set_scrollbar_enabled(menu_get_base(data->front_menu), true);
         widget_set_scrollbar_enabled(menu_get_base(data->back_menu), true);
 
