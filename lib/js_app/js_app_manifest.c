@@ -116,9 +116,9 @@ static bool
 
         item = cJSON_GetObjectItem(json, JS_APP_MANIFEST_DESCRIPTION_KEY);
         if(cJSON_IsString(item)) {
-            info->descritption = cJSON_GetStringValue(item);
+            info->description = cJSON_GetStringValue(item);
         } else {
-            info->descritption = "";
+            info->description = "";
         }
 
         item = cJSON_GetObjectItem(json, JS_APP_MANIFEST_AUTHOR_KEY);

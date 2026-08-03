@@ -51,7 +51,7 @@ typedef struct {
     const char* id; /**< Unique application identifier */
     const char* name; /**< Display name (e.g. will show up in menus) */
     const char* version; /**< Application version in semver format (x.y.z) */
-    const char* descritption; /**< Application description (free form) */
+    const char* description; /**< Application description (free form) */
     const char* author; /**< Application author (free form) */
     uint32_t heap_size; /**< Heap size for the JS process, in bytes */
     bool is_debug; /**< If @c true, hide the application when not in developer mode */
