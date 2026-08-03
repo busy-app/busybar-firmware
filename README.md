@@ -1,12 +1,81 @@
-<picture>
-    <source media="(prefers-color-scheme: dark)" srcset="/.github/assets/dark_theme_banner.png">
-    <source media="(prefers-color-scheme: light)" srcset="/.github/assets/light_theme_banner.png">
-    <img
-        alt="Banner with the '▶ BUSY Bar' logo on the left, the text 'Official Firmware Repository' beneath it, and a BUSY Bar device on the right."
-        src="/.github/assets/light_theme_banner.png">
-</picture>
+# BarMetal
 
-# BUSY Bar Firmware
+**An independent, community firmware fork for the BUSY Bar®**, maintained by
+[@nastea1](https://github.com/nastea1) alongside the
+[BarPilot](https://github.com/nastea1/barpilot) control app.
+
+---
+
+> ### Not affiliated
+>
+> BarMetal is an independent community project. It is **not affiliated with, endorsed by,
+> sponsored by, or supported by Flipper Devices Inc.**
+>
+> "BUSY Bar", "BUSY", and "Flipper" are trademarks of their respective owners. They are
+> used here **only to identify the hardware this firmware is compatible with** — a
+> descriptive (nominative) use, not a claim of origin, affiliation, or endorsement.
+> BarMetal does not use Flipper Devices' logos or branding as its own identity.
+>
+> This repository is a **fork of the official
+> [BUSY Bar firmware](https://github.com/busy-app/busybar-firmware)**. Upstream code
+> remains under its original licenses and copyright — most first-party code under
+> **GPLv2-or-later**, `furi` under MIT, assets under CC-BY 4.0 and OFL 1.1; see
+> [`LICENSE.md`](LICENSE.md) and [`REUSE.toml`](REUSE.toml). Modifications by this fork
+> are released under the **same license as the file they modify**, as the GPL requires.
+> Upstream commit history and authorship are preserved in full.
+>
+> Flashing third-party firmware may void your warranty and is done **at your own risk**.
+> There is no warranty of any kind; see the license text.
+>
+> Requests from rights holders: open an issue and we will respond promptly.
+
+---
+
+## What this fork is for
+
+BarPilot drives the bar over its local HTTP API. Building it exposed device-level
+behaviour that no client could work around:
+
+- **The Wi-Fi subsystem could wedge permanently** — stuck reporting `connecting`, every
+  radio command returning `Command timed out`, unrecoverable by forgetting the network or
+  power-cycling, and eventually crashing the device outright.
+- **`POST /api/display/brightness` looked inert** — the low end of the range did nothing
+  visible, and `0` could not turn the display off.
+- **There was no software reboot**, so a wedged device needed physical recovery — in one
+  case, escaping the STM32 bootloader with `dfu-util`.
+
+[`WIFI-WEDGE-ANALYSIS.md`](WIFI-WEDGE-ANALYSIS.md) documents the root causes with
+citations into this source tree. BarMetal fixes them.
+
+## What is fixed
+
+| Area | Upstream behaviour | BarMetal |
+|---|---|---|
+| **Wi-Fi hang** | `wifi_api_blocking_request()` waits on `FuriWaitForever`; one unanswered request from the Wi-Fi co-processor blocks the caller forever *and* leaks the API semaphore, so every later call returns `Command timed out` until reboot | Every backend request is bounded by a 30 s watchdog. On expiry the caller is released, the semaphore is freed and the state machine returns to `disconnected` — a recoverable error instead of a brick |
+| **Unresponsive radio** | No recovery path; the service waits indefinitely | After 3 consecutive timeouts the link is torn down and re-initialised through the service's existing deinit/init paths |
+| **Cannot forget the network** | `Forget` is gated on `WifiStateDisconnected`, so a device stuck in `connecting` cannot be un-stuck by the one action the UI offers | `Forget` is allowed from any state |
+| **Brightness low end** | Front curve starts `{25, 25, 28, …}` — `0` sets 25 %, and every value from 0 to ~14 renders identically | Step 0 means **off** (front and back), and the low end is spread across the curve |
+| **Auto-brightness** | Light-sensor level 0 maps to step 0 | Clamped to ≥ 1 step, so a dark room can never blank the display (off stays a deliberate manual choice) |
+
+## What is new
+
+- **`POST /api/system/reboot?target=all|mcu|wifi`** — the software reboot the stock
+  firmware never had. `target=wifi` restarts only the radio co-processor, recovering a
+  wedged Wi-Fi stack remotely without disturbing anything running on the main MCU.
+
+## Compatibility
+
+BarMetal tracks upstream and keeps the HTTP API compatible: everything the official
+firmware serves still works, and existing clients (including BarPilot) run unmodified.
+The only API addition is `/api/system/reboot`.
+
+## Status
+
+Early, and honest about it: changes are written against upstream sources and reviewed
+line by line. Anything not yet flashed to hardware should be treated as untested on a
+device — the commit history says which is which.
+
+---
 
 ## Cloning
 

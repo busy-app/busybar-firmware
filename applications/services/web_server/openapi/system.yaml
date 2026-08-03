@@ -18,6 +18,45 @@ paths:
               schema:
                 $ref: "#/components/schemas/VersionInfo"
 
+  # BarMetal addition: the stock firmware has no software reboot, so a device whose
+  # Wi-Fi co-processor stops responding can only be recovered physically.
+  /api/system/reboot:
+    post:
+      tags:
+        - System
+      summary: Reboot the device
+      description: >-
+        Reboots the device. `target=wifi` restarts only the Wi-Fi co-processor,
+        which recovers a wedged radio without disturbing the main MCU.
+        The response is sent before the reboot is performed.
+      operationId: postSystemReboot
+      parameters:
+        - name: target
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - all
+              - mcu
+              - wifi
+            default: all
+          description: What to reboot
+          example: wifi
+      responses:
+        "200":
+          description: Reboot accepted; the device restarts shortly afterwards
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Unknown reboot target
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /api/transport:
     get:
       tags:
