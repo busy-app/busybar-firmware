@@ -31,27 +31,6 @@ struct JsApp {
     FuriString* entry_script_path;
 };
 
-static bool js_app_is_file_present(Storage* storage, const FuriString* file_path) {
-    bool is_present = false;
-
-    do {
-        const char* file_path_str = furi_string_get_cstr(file_path);
-
-        FileInfo file_info;
-        if(storage_common_stat(storage, file_path_str, &file_info) != FSE_OK) {
-            break;
-        }
-
-        if((file_info.flags & FSF_DIRECTORY) || (file_info.size == 0)) {
-            break;
-        }
-
-        is_present = true;
-    } while(false);
-
-    return is_present;
-}
-
 static bool js_app_process_manifest(JsApp* instance, const char* dir_path) {
     FuriString* tmp_path = furi_string_alloc();
     path_concat(dir_path, APP_MANIFEST_PATH, tmp_path);
@@ -91,7 +70,7 @@ static bool js_app_process_scripts_directory(JsApp* instance, const char* dir_pa
 
     path_concat(dir_path, APP_ENTRY_PATH, instance->entry_script_path);
 
-    if(js_app_is_file_present(storage, instance->entry_script_path)) {
+    if(storage_file_exists(storage, furi_string_get_cstr(instance->entry_script_path))) {
         success = true;
     }
 
@@ -104,13 +83,13 @@ static void js_app_process_icons(JsApp* instance, const char* dir_path) {
 
     path_concat(dir_path, APP_FRONT_ICON_PATH, instance->front_icon_path);
 
-    if(!js_app_is_file_present(storage, instance->front_icon_path)) {
+    if(!storage_file_exists(storage, furi_string_get_cstr(instance->front_icon_path))) {
         furi_string_set(instance->front_icon_path, FRONT_DEFAULT_ICON_PATH);
     }
 
     path_concat(dir_path, APP_BACK_ICON_PATH, instance->back_icon_path);
 
-    if(!js_app_is_file_present(storage, instance->back_icon_path)) {
+    if(!storage_file_exists(storage, furi_string_get_cstr(instance->back_icon_path))) {
         furi_string_set(instance->back_icon_path, BACK_DEFAULT_ICON_PATH);
     }
 

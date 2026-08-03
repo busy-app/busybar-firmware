@@ -16,7 +16,7 @@ static bool js_app_registry_is_dir_callback(const char* path, FileInfo* file_inf
     UNUSED(context);
 
     furi_assert(file_info);
-    return file_info->flags & FSF_DIRECTORY;
+    return file_info_is_dir(file_info);
 }
 
 static void js_app_registry_list_apps_directory(

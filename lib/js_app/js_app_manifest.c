@@ -182,7 +182,7 @@ bool js_app_manifest_load_from_file(JsAppManifest* instance, const char* file_pa
             break;
         }
 
-        if(file_info.flags & FSF_DIRECTORY) {
+        if(file_info_is_dir(&file_info)) {
             FURI_LOG_E(TAG, "File path is a directory");
             break;
         }
