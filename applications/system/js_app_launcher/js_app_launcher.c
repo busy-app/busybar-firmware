@@ -60,13 +60,14 @@ static void js_app_launcher_event_queue_callback(FuriEventLoopObject* object, vo
 
 static void js_app_launcher_set_navbar_text(const JsAppLauncher* instance) {
     JsAppInfo info;
-    js_app_get_info(instance->js_app, &info);
 
-    FuriString* tmp = furi_string_alloc_set(info.manifest.name);
-    furi_string_to_upper_in_place(tmp);
+    if(js_app_get_info(instance->js_app, &info)) {
+        FuriString* tmp = furi_string_alloc_set(info.manifest.name);
+        furi_string_to_upper_in_place(tmp);
 
-    nav_bar_push_location(instance->nav_bar, furi_string_get_cstr(tmp));
-    furi_string_free(tmp);
+        nav_bar_push_location(instance->nav_bar, furi_string_get_cstr(tmp));
+        furi_string_free(tmp);
+    }
 }
 
 static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
