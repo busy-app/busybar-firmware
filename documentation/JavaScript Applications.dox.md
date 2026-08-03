@@ -48,7 +48,7 @@ To improve the name uniqueness, a reverse domain name scheme is recommended, but
 
 ### appmeta directory
 
-Requred. Contains the application metadata. See the table below for contents summary.
+Required. Contains the application metadata. See the table below for contents summary.
 
 | File                  | Purpose                              | Required? |
 | --------------------- | ------------------------------------ | :-------: |
