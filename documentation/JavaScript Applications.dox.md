@@ -4,18 +4,18 @@ This is a stub page about the JavaScript applications. Expand it with new aspect
 
 # Introduction
 
-JavaScript applications are a locally-run form of [HTTP API](https://docs.busy.app/bar/dev/http-api) applications. 
-To achieve this, the @ref firmware includes a JavaScript [interpreter](https://jerryscript.net/) to run user scripts 
+JavaScript applications are a locally-run form of [HTTP API](https://docs.busy.app/bar/dev/http-api) applications.
+To achieve this, the @ref firmware includes a JavaScript [interpreter](https://jerryscript.net/) to run user scripts
 and a set of standard and custom interfaces to be used by these scripts.
 
-Additionally, the firmware is able to enumerate and list currently installed applications and display them 
+Additionally, the firmware is able to enumerate and list currently installed applications and display them
 in the [APPS menu](https://docs.busy.app/bar/apps-and-integrations) for easy access.
 
 # Application structure
 
 ## Applications directory
 
-The firmware is looking for JavaScript applications in the `/ext/user_apps` directory on the EMMC storage.
+The firmware is looking for JavaScript applications in the `/ext/user_assets` directory on the EMMC storage.
 
 Every subfolder in this directory will be searched for a valid application file structure.
 
@@ -24,7 +24,7 @@ Every subfolder in this directory will be searched for a valid application file 
 Every JavaScript application must implement the following basic file structure:
 
 ```
-/ext/user_apps
+/ext/user_assets
 └── org.author.example_app
     ├── appmeta
     │   ├── manifest.json
@@ -40,7 +40,7 @@ The firmware will look for these hardcoded file names when looking for applicati
 
 ### Root directory
 
-Required. The name must be at most 32 characters long and contain only ASCII alphanumeric characters. 
+Required. The name must be at most 32 characters long and contain only ASCII alphanumeric characters.
 
 The only allowed special characters are: `_` (underscore), `-` (minus) and `.` (period).
 

@@ -128,7 +128,7 @@ static bool
             info->author = "";
         }
 
-        if(js_app_manifest_parse_heap_size(json, info)) {
+        if(!js_app_manifest_parse_heap_size(json, info)) {
             break;
         }
 

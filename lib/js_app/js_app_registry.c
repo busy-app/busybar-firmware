@@ -9,7 +9,7 @@
 #define TAG "JsAppRegistry"
 
 // TODO: Share with assets HTTP API
-#define JS_APPS_PATH EXT_PATH("user_apps")
+#define JS_APPS_PATH EXT_PATH("user_assets")
 
 static bool js_app_registry_is_dir_callback(const char* path, FileInfo* file_info, void* context) {
     UNUSED(path);

@@ -1,6 +1,6 @@
 {
     "format_version": 1,
-    "id": "js_app_example",
+    "id": "app.busy.js_example",
     "name": "JS App Example",
     "version": "0.1.0",
     "description": "A simple JS application example",
