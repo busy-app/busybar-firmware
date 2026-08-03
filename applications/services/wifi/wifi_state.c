@@ -122,9 +122,9 @@ WifiStatus wifi_state_check_request_type(Wifi* instance, WifiRequestType request
                 status = WifiStatusError;
             }
         } else if(request_type == WifiRequestTypeForget) {
-            if(current_state != WifiStateDisconnected) {
-                status = WifiStatusError;
-            }
+            /* BarMetal: forgetting the saved network must ALWAYS be possible. Gating it
+               on WifiStateDisconnected meant a device stuck in "connecting" could not be
+               un-stuck by the one action the UI offers for exactly that situation. */
         } else if(request_type == WifiRequestTypeDeinit) {
             if(current_state == WifiStateUnknown) {
                 status = WifiStatusError;

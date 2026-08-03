@@ -414,6 +414,13 @@ static const HttpHandler handlers_api_root[] = {
         .on_request = http_api_input_callback,
     },
     {
+        /* BarMetal: software reboot (whole device, MCU only, or just the Wi-Fi chip). */
+        .uri = "system",
+        .method = HttpMethodAny,
+        .type = HttpHandlerCustom,
+        .on_request = http_api_system_callback,
+    },
+    {
         .uri = "status",
         .method = HttpMethodAny,
         .type = HttpHandlerCustom,

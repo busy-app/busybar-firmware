@@ -57,6 +57,10 @@ struct Wifi {
     struct netif netif;
     WifiMessage api_message;
     WifiRequest request;
+    /* BarMetal: bounds every backend request so an unresponsive Wi-Fi
+       co-processor can no longer wedge the whole service forever. */
+    FuriEventLoopTimer* request_timer;
+    uint8_t consecutive_timeouts;
 };
 
 // API management

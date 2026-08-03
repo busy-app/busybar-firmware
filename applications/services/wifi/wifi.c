@@ -9,6 +9,11 @@
 #define RESPONSE_QUEUE_TIMEOUT_MS (200)
 
 #define WIFI_REQUEST_TIMEOUT_MS (5000)
+/* BarMetal: upper bound on how long we wait for the Wi-Fi co-processor to answer a
+   dispatched request. Association can legitimately take a while, so keep it generous. */
+#define WIFI_BACKEND_TIMEOUT_MS (30000)
+/* Consecutive backend timeouts before the link is torn down and re-initialized. */
+#define WIFI_MAX_CONSECUTIVE_TIMEOUTS (3)
 
 static void wifi_intercom_state_callback(const void* item, void* context) {
     furi_assert(item);
@@ -84,6 +89,49 @@ static WifiStatus wifi_send_request(Wifi* instance, WifiRequestType request_type
     return (tx_size == sizeof(WifiRequest)) ? WifiStatusOk : WifiStatusTimeout;
 }
 
+/* BarMetal: if the co-processor never answers, force-complete the request so the
+   caller is released, the API semaphore is freed and the state machine returns to a
+   usable state. Without this, a single unanswered request disables Wi-Fi until reboot. */
+static void wifi_request_timeout_callback(void* context) {
+    furi_assert(context);
+    Wifi* instance = context;
+
+    FURI_LOG_E(TAG, "Backend request timed out, recovering");
+
+    WifiInfo wifi_info;
+    furi_state_get(instance->state, &wifi_info);
+
+    /* Leave the transient states the backend was supposed to move us out of. */
+    if(wifi_info.state == WifiStateConnecting || wifi_info.state == WifiStateDisconnecting ||
+       wifi_info.state == WifiStateReconnecting) {
+        wifi_net_down(instance);
+        wifi_state_transition(instance, WifiStateDisconnected);
+    }
+
+    if(wifi_api_is_locked(instance)) {
+        wifi_api_unlock(instance, WifiStatusTimeout);
+    }
+
+    /* Escalate: if the co-processor keeps missing deadlines, tear the link down and
+       bring it back up rather than living with a half-dead backend. Both paths already
+       exist in this service ("Deinitializing due to error"). */
+    if(++instance->consecutive_timeouts >= WIFI_MAX_CONSECUTIVE_TIMEOUTS) {
+        FURI_LOG_E(TAG, "Backend unresponsive, reinitializing Wifi");
+        instance->consecutive_timeouts = 0;
+        wifi_schedule_deinit_request(instance);
+        wifi_schedule_init_request(instance);
+    }
+}
+
+static void wifi_request_timer_start(Wifi* instance) {
+    furi_event_loop_timer_start(
+        instance->request_timer, furi_ms_to_ticks(WIFI_BACKEND_TIMEOUT_MS));
+}
+
+static void wifi_request_timer_stop(Wifi* instance) {
+    furi_event_loop_timer_stop(instance->request_timer);
+}
+
 static void wifi_process_request(Wifi* instance) {
     const WifiMessage* message = &instance->api_message;
 
@@ -140,6 +188,8 @@ static void wifi_process_request(Wifi* instance) {
             break;
         }
 
+        /* BarMetal: arm the watchdog — the backend now owes us a response. */
+        wifi_request_timer_start(instance);
         unlock_api = false;
 
     } while(false);
@@ -309,6 +359,9 @@ static void wifi_response_queue_callback(FuriEventLoopObject* object, void* cont
     WifiResponse response;
     while(furi_message_queue_get(instance->response_queue, &response, 0) == FuriStatusOk) {
         if(response.type != WifiRequestTypeBackendInfo) {
+            /* BarMetal: the backend answered — disarm the watchdog. */
+            wifi_request_timer_stop(instance);
+            instance->consecutive_timeouts = 0;
             wifi_process_response(instance, &response);
         } else {
             wifi_process_async_response(instance, &response);
@@ -358,6 +411,10 @@ static Wifi* wifi_alloc(void) {
     wifi_generate_dhcp_hostname(instance);
 
     furi_record_open(RECORD_NETWORK);
+
+    instance->consecutive_timeouts = 0;
+    instance->request_timer = furi_event_loop_timer_alloc(
+        instance->event_loop, wifi_request_timeout_callback, FuriEventLoopTimerTypeOnce, instance);
 
     furi_event_loop_set_custom_event_callback(
         instance->event_loop, wifi_custom_event_callback, instance);

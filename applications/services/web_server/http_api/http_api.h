@@ -193,6 +193,14 @@ bool http_api_busy_callback(
     struct mg_http_message* msg,
     void* ctx);
 
+// System (BarMetal)
+bool http_api_system_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx);
+
 // Matter
 void* http_api_smart_home_alloc(void);
 void http_api_smart_home_free(void* ctx);
