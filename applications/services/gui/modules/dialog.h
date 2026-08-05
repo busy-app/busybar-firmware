@@ -58,6 +58,14 @@ Widget* dialog_get_base(Dialog* instance);
 void dialog_set_callback(Dialog* instance, DialogCallback callback, void* context);
 
 /**
+ * @brief Set the icon displayed by the Dialog.
+ *
+ * @param[in,out] instance pointer to the Dialog instance to be modified
+ * @param[in] icon_source zero-terminated string containing the icon file path (@c NULL to hide)
+ */
+void dialog_set_icon(Dialog* instance, const char* icon_source);
+
+/**
  * @brief Set a main text label value.
  *
  * @param[in,out] instance pointer to the Dialog instance to be modified
