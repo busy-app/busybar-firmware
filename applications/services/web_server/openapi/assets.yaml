@@ -295,13 +295,6 @@ schemas:
           font: small
           color: "#AAFF00FF"
           display: "front"
-        - id: "2"
-          timeout: 6
-          type: "image"
-          path: "data.png"
-          x: 0
-          y: 0
-          display: "back"
 
   DisplayElement:
     type: object

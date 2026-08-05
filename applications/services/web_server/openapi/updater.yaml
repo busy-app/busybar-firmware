@@ -9,6 +9,7 @@ paths:
         - Updater
       summary: Update firmware
       description: Uploads a firmware update package (TAR file) and initiates the update process.
+      x-local-only: true
       operationId: updateFirmware
       parameters: []
       requestBody:
