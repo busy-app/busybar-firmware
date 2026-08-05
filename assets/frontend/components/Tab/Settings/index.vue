@@ -3,4 +3,5 @@
   <TabSettingsCardTimezone />
   <TabSettingsCardMatter />
   <TabSettingsCardAbout />
+  <TabSettingsCardDebug />
 </template>
