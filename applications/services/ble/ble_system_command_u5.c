@@ -176,6 +176,7 @@ static bool ble_command_disable_response(BleIntercomFrameGeneric* frame, void* c
     ble_save_enabled_state(false);
 
     ble_http_repeater_stop();
+    ble_streaming_update(instance->streaming, instance->status);
     ble_command_unblock_with_result(instance, frame->header.result);
 
     BleState status = {

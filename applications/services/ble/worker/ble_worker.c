@@ -115,10 +115,15 @@ void ble_worker_receive_confirm(uint16_t handle, uint8_t cccd_value) {
 }
 
 bool ble_worker_forget_pairing() {
-    if(ble_device_is_connected(ble_worker_instance->device)) {
-        ble_device_disconnect(ble_worker_instance->device);
-    }
-    return ble_device_forget_paired(ble_worker_instance->device);
+    api_lock_relock(ble_worker_instance->api_lock);
+    BleWorkerCmdEventData cmd = {.api_lock = ble_worker_instance->api_lock, .result = false};
+
+    ble_worker_instance->pending_command = &cmd;
+    ble_incoming_nwp_event_processor_spawn_event(
+        ble_worker_instance->event_proc, BleIncomingNwpEventTypeForgetPaired, 0, NULL);
+
+    api_lock_wait_unlock(ble_worker_instance->api_lock);
+    return cmd.result;
 }
 
 bool ble_worker_pairing_exists() {
