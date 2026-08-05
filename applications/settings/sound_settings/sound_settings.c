@@ -3,9 +3,10 @@
 #include <settings_helpers/app_desc.h>
 #include <settings_helpers/gui_params.h>
 
-#define TAG                    "AudioSettings"
+#define TAG "SoundSettings"
+
 // TODO: FW-1091 Refactor Audio service and settings to be deadlock-proof
-#define EVENT_QUEUE_TIMEOUT_MS (200)
+#define EVENT_QUEUE_TIMEOUT_MS (10)
 
 static bool sound_settings_thread_signal_callback(uint32_t signal, void* arg, void* context) {
     UNUSED(arg);
