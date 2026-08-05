@@ -6,10 +6,11 @@
 static void
     ble_service_generic_access_device_name_update(size_t data_size, void* data, void* context) {
     UNUSED(data_size);
-    UNUSED(context);
+    BleCharacteristicObject* ch = context;
 
     const char* name = data;
-    ble_worker_set_name(name);
+    BleServiceObject* service = ble_characteristic_get_parent_service(ch);
+    ble_worker_set_name(service->worker, name);
 }
 
 bool ble_service_generic_access_init(void* object) {

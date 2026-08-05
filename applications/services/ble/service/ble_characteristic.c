@@ -63,6 +63,11 @@ void ble_characteristic_free(BleCharacteristicObject* instance) {
     free(instance);
 }
 
+BleServiceObject* ble_characteristic_get_parent_service(BleCharacteristicObject* instance) {
+    furi_assert(instance);
+    return instance->service;
+}
+
 void ble_characteristic_reset(BleCharacteristicObject* instance) {
     BLE_LOG_D("%s - ble_characteristic_reset", instance->descriptor->name);
     if(instance->state == BleCharacteristicStateWaitResponse ||

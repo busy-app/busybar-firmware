@@ -15,3 +15,5 @@ bool ble_service_write_char_data_or_cccd_by_handle(
     const uint16_t handle,
     const void* data,
     const size_t data_size);
+
+void ble_service_target_store_extra_data(BleServiceObject* instance, void* extra_data);

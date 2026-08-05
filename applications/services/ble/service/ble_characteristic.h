@@ -19,6 +19,8 @@ void ble_characteristic_set_data(
     const void* data,
     const size_t data_size);
 
+BleServiceObject* ble_characteristic_get_parent_service(BleCharacteristicObject* instance);
+
 bool ble_characteristic_is_modified(BleCharacteristicObject* instance);
 
 void ble_characteristic_tx_done(BleCharacteristicObject* instance);

@@ -5,6 +5,10 @@
 #include "ble_service_command.h"
 #include "ble_service_frame.h"
 
+#if defined(BSB_MCU_SI917)
+#include "../worker/ble_worker.h"
+#endif
+
 #include <furi.h>
 
 #define BLE_ATT_PROPERTY_READ     0x02
@@ -29,6 +33,7 @@ struct BleServiceObject {
     void* context;
     uint32_t sequence_num;
 #if defined(BSB_MCU_SI917)
+    BleWorker* worker;
     void* service_handler;
     uint16_t handle;
 #endif

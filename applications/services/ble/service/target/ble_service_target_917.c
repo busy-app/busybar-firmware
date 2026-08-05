@@ -7,15 +7,17 @@ static void ble_char_tx_done_cb(void* ctx) {
     BleCharacteristicObject* ch = ctx;
     uint16_t handle = ble_characteristic_get_handle(ch);
     const uint8_t cccd_value = ble_characteristic_get_cccd_value(ch);
+    BleServiceObject* service = ble_characteristic_get_parent_service(ch);
     BLE_LOG_D("Upd resp, H: %04X, val: %02X", handle, cccd_value);
-    ble_worker_receive_confirm(handle, cccd_value);
+    ble_worker_receive_confirm(service->worker, handle, cccd_value);
 }
 
 static void ble_characteristic_update_callback(size_t data_size, void* data, void* context) {
     BleCharacteristicObject* ch = context;
     const uint16_t handle = ble_characteristic_get_handle(ch);
     const uint8_t cccd_value = ble_characteristic_get_cccd_value(ch);
-    ble_worker_send(handle, data_size, data, cccd_value);
+    BleServiceObject* service = ble_characteristic_get_parent_service(ch);
+    ble_worker_send(service->worker, handle, data_size, data, cccd_value);
 }
 
 static bool ble_service_command_handler_init(
@@ -48,7 +50,7 @@ static bool ble_service_command_handler_init(
                 ch, ble_characteristic_update_callback, ch);
         }
 
-        if(!ble_worker_register_service(instance)) {
+        if(!ble_worker_register_service(instance->worker, instance)) {
             ble_service_set_error(instance, "Failed to register service");
             break;
         }
@@ -165,4 +167,11 @@ bool ble_service_write_char_data_or_cccd_by_handle(
         ble_service_unlock(instance);
     }
     return cccd_modified;
+}
+
+void ble_service_target_store_extra_data(BleServiceObject* instance, void* extra_data) {
+    furi_assert(instance);
+    furi_assert(extra_data);
+    furi_assert(instance->worker == NULL);
+    instance->worker = extra_data;
 }

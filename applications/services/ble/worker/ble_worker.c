@@ -10,11 +10,6 @@
 
 #define BLE_DEFAULT_LOCAL_NAME "BUSY Bar"
 
-//===========================================================================================
-///TODO:Remove this in future
-static BleWorker* ble_worker_instance = NULL;
-//===========================================================================================
-
 static int32_t ble_worker_thread_callback(void* context) {
     BleWorker* instance = context;
     BLE_LOG_I("Worker Thread Start");
@@ -58,8 +53,6 @@ BleWorker* ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx
     ble_nwp_core_config_callbacks(instance->event_proc, instance->transport);
     //----------------------------------------------------------------------------------------------------------------
 
-    ///TODO:Remove this in future
-    ble_worker_instance = instance;
     return instance;
 }
 
@@ -80,53 +73,65 @@ void ble_worker_invoke_disconnect_callback(BleWorker* instance) {
     instance->on_connection_changed_cb(instance->on_connection_changed_ctx, false, dummy);
 }
 
-bool ble_worker_register_service(BleServiceObject* service) {
-    return ble_device_register_service(ble_worker_instance->device, service);
+bool ble_worker_register_service(BleWorker* instance, BleServiceObject* service) {
+    furi_assert(instance);
+    return ble_device_register_service(instance->device, service);
 }
 
-void ble_worker_start() {
-    FuriThreadState state = furi_thread_get_state(ble_worker_instance->thread);
+void ble_worker_start(BleWorker* instance) {
+    furi_assert(instance);
+    FuriThreadState state = furi_thread_get_state(instance->thread);
     if(state == FuriThreadStateRunning) return;
 
-    api_lock_relock(ble_worker_instance->api_lock);
-    furi_thread_start(ble_worker_instance->thread);
-    api_lock_wait_unlock(ble_worker_instance->api_lock);
+    api_lock_relock(instance->api_lock);
+    furi_thread_start(instance->thread);
+    api_lock_wait_unlock(instance->api_lock);
 }
 
-void ble_worker_stop() {
-    if(ble_worker_instance) {
-        FuriThreadState state = furi_thread_get_state(ble_worker_instance->thread);
-        if(state == FuriThreadStateRunning) {
-            ble_incoming_nwp_event_processor_spawn_event(
-                ble_worker_instance->event_proc, BleIncomingNwpEventTypeExit, 0, NULL);
+void ble_worker_stop(BleWorker* instance) {
+    furi_assert(instance);
 
-            furi_thread_join(ble_worker_instance->thread);
-            BLE_LOG_I("BLE Stopped");
-        }
+    FuriThreadState state = furi_thread_get_state(instance->thread);
+    if(state == FuriThreadStateRunning) {
+        ble_incoming_nwp_event_processor_spawn_event(
+            instance->event_proc, BleIncomingNwpEventTypeExit, 0, NULL);
+
+        furi_thread_join(instance->thread);
+        BLE_LOG_I("BLE Stopped");
     }
 }
 
-void ble_worker_send(uint16_t handle, uint16_t data_size, const uint8_t* data, uint16_t cccd_value) {
-    ble_device_send_data(ble_worker_instance->device, handle, data_size, data, cccd_value);
+void ble_worker_send(
+    BleWorker* instance,
+    uint16_t handle,
+    uint16_t data_size,
+    const uint8_t* data,
+    uint16_t cccd_value) {
+    furi_assert(instance);
+    ble_device_send_data(instance->device, handle, data_size, data, cccd_value);
 }
 
-void ble_worker_receive_confirm(uint16_t handle, uint8_t cccd_value) {
-    ble_device_receive_confirm(ble_worker_instance->device, handle, cccd_value);
+void ble_worker_receive_confirm(BleWorker* instance, uint16_t handle, uint8_t cccd_value) {
+    furi_assert(instance);
+    ble_device_receive_confirm(instance->device, handle, cccd_value);
 }
 
-bool ble_worker_forget_pairing() {
-    if(ble_device_is_connected(ble_worker_instance->device)) {
-        ble_device_disconnect(ble_worker_instance->device);
+bool ble_worker_forget_pairing(BleWorker* instance) {
+    furi_assert(instance);
+    if(ble_device_is_connected(instance->device)) {
+        ble_device_disconnect(instance->device);
     }
-    return ble_device_forget_paired(ble_worker_instance->device);
+    return ble_device_forget_paired(instance->device);
 }
 
-bool ble_worker_pairing_exists() {
-    return ble_device_is_paired(ble_worker_instance->device);
+bool ble_worker_pairing_exists(BleWorker* instance) {
+    furi_assert(instance);
+    return ble_device_is_paired(instance->device);
 }
 
-void ble_worker_set_name(const char* new_name) {
+void ble_worker_set_name(BleWorker* instance, const char* new_name) {
+    furi_assert(instance);
     furi_assert(new_name);
 
-    ble_device_set_name(ble_worker_instance->device, new_name);
+    ble_device_set_name(instance->device, new_name);
 }

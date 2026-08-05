@@ -3,6 +3,7 @@
 #include "worker/ble_worker.h"
 #include "worker/ble_worker_util.h"
 
+#include "service/target/ble_service_target.h"
 //#define BLE_DEBUG_PRINT_SERVICE_DATA_AFTER_INIT
 
 #define TAG "BLE_917"
@@ -29,7 +30,7 @@ static void
     if(connected) {
         instance->status = BleServiceStatusConnected;
     } else {
-        const bool paired = ble_worker_pairing_exists();
+        const bool paired = ble_worker_pairing_exists(instance->worker);
         instance->status = paired ? BleServiceStatusConnectable : BleServiceStatusAdvertising;
     }
 
@@ -77,6 +78,11 @@ static bool ble_command_init_request(BleIntercomFrameGeneric* frame, void* conte
 
     Ble* instance = context;
     instance->worker = ble_worker_init(ble_connection_changed_callback, context);
+
+    for(uint8_t i = 0; i < BleServiceIndexCount; i++) {
+        ble_service_target_store_extra_data(instance->services[i], instance->worker);
+    }
+
     ble_set_service_post_process_callback(instance, ble_service_init_wait_callback);
 
     return ble_command_response_process(frame, context);
@@ -93,9 +99,9 @@ static bool ble_command_enable_request(BleIntercomFrameGeneric* frame, void* con
     BLE_LOG_D("BleCommandEnable request");
     Ble* instance = context;
 
-    ble_worker_start();
+    ble_worker_start(instance->worker);
 
-    const bool paired = ble_worker_pairing_exists();
+    const bool paired = ble_worker_pairing_exists(instance->worker);
     instance->status = paired ? BleServiceStatusConnectable : BleServiceStatusAdvertising;
 
     frame->header.data_size = sizeof(BleServiceStatus);
@@ -108,7 +114,9 @@ static bool ble_command_enable_request(BleIntercomFrameGeneric* frame, void* con
 
 static bool ble_command_deinit_request(BleIntercomFrameGeneric* frame, void* context) {
     BLE_LOG_D("BleCommandDeinit request");
-    ble_worker_stop();
+    Ble* instance = context;
+
+    ble_worker_stop(instance->worker);
     return ble_command_deinit_process(frame, context);
 }
 
@@ -123,7 +131,7 @@ static bool ble_command_disable_request(BleIntercomFrameGeneric* frame, void* co
     BLE_LOG_D("BleCommandDisable request");
     Ble* instance = context;
 
-    ble_worker_stop();
+    ble_worker_stop(instance->worker);
     bool result = false;
     if(instance->status != BleServiceStatusError) {
         instance->status = BleServiceStatusReady;
@@ -169,7 +177,8 @@ static bool ble_command_get_status_response(BleIntercomFrameGeneric* frame, void
 
 static bool ble_command_forget_pairing_request(BleIntercomFrameGeneric* frame, void* context) {
     BLE_LOG_D("BleCommandForgetPairing request");
-    bool result = ble_worker_forget_pairing();
+    Ble* instance = context;
+    bool result = ble_worker_forget_pairing(instance->worker);
     frame->header.result = result;
     return ble_command_response_process(frame, context);
 }

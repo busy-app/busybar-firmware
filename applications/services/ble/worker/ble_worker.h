@@ -38,58 +38,75 @@ BleWorker* ble_worker_init(BleConnectionStateChanged connect_callback, void* ctx
  *
  * During this process each service and characteristics inside are registered in nwp 
  * and get their own handles which are then used as indexes during requesting those fields
- * 
+ *
+ * @param[in] instance instance to worker object
  * @param[in] service instance to service object
  * @returns true if registration success
  */
-bool ble_worker_register_service(BleServiceObject* service);
+bool ble_worker_register_service(BleWorker* instance, BleServiceObject* service);
 
 /**
  * @brief Send payload to characteristic set by handle
- * 
+ *
+ * @param[in] instance instance to worker object 
  * @param[in] handle unique pointer to particular ble characteristic. BleServiceObject and all inner 
  * BleCharacteristicObject get such handle during ble_worker_register_service call
  * @param[in] data_size size of payload to be send
  * @param[in] data payload
  * @param[in] cccd_value special field with properties which each characteristic in ble has
  */
-void ble_worker_send(uint16_t handle, uint16_t data_size, const uint8_t* data, uint16_t cccd_value);
+void ble_worker_send(
+    BleWorker* instance,
+    uint16_t handle,
+    uint16_t data_size,
+    const uint8_t* data,
+    uint16_t cccd_value);
 
 /**
  * @brief Used by services in order to confirm data receiving
  *
  * This function is called only by U5 response that it received data
+ * @param[in] instance instance to worker object
  * @param[in] handle unique pointer to particular ble characteristic
  * @param[in] cccd_value special field with properties which each characteristic in ble has
  */
-void ble_worker_receive_confirm(uint16_t handle, uint8_t cccd_value);
+void ble_worker_receive_confirm(BleWorker* instance, uint16_t handle, uint8_t cccd_value);
 
 /**
  * @brief Starts ble on @ref BleCommandEnable from U5
+ *
+ * @param[in] instance instance to worker object
  */
-void ble_worker_start();
+void ble_worker_start(BleWorker* instance);
 
 /**
  * @brief Stops ble on @ref BleCommandDisable from U5
+ *
+ * @param[in] instance instance to worker object
  */
-void ble_worker_stop();
+void ble_worker_stop(BleWorker* instance);
 
 /**
  * @brief Forgets pairing with remote device on @ref BleCommandForgetPairing
+ *
+ * @param[in] instance instance to worker object
  * @returns true when pairing removed
  */
-bool ble_worker_forget_pairing();
+bool ble_worker_forget_pairing(BleWorker* instance);
 
 /**
  * @brief Checks whether pairing with remote device exists.
  *
  * This function returns value nevertheless of actual connection state.
+ * @param[in] instance instance to worker object
  * @returns true when paired, otherwise false
  */
-bool ble_worker_pairing_exists();
+bool ble_worker_pairing_exists(BleWorker* instance);
 
 /**
  * @brief Sets new device name used for advertising
+ *
+ * @param[in] instance instance to worker object
  * @param[in] new_name name got from U5 side
  */
-void ble_worker_set_name(const char* new_name);
+void ble_worker_set_name(BleWorker* instance, const char* new_name);
