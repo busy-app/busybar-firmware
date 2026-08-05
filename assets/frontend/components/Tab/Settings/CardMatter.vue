@@ -11,7 +11,7 @@
         label="Forget all pairings"
         variant="outline"
         color="neutral"
-        @click="showMatterDeleteModal = true"
+        @click="() => { showMatterDeleteModal = true; }"
       />
       <UButton
         label="Pair device"

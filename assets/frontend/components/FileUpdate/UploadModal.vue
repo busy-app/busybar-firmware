@@ -65,7 +65,7 @@
             square
             size="lg"
             class="p-2.5"
-            @click="firmwareStore.fileUpdate.firmwareFile = null"
+            @click="() => { firmwareStore.fileUpdate.firmwareFile = null; }"
           />
         </div>
       </div>
