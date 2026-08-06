@@ -6,6 +6,11 @@
 #include "event_processor/ble_incoming_nwp_event_processor.h"
 #include <api_lock.h>
 
+typedef struct {
+    FuriApiLock api_lock;
+    bool result;
+} BleWorkerCmdEventData;
+
 struct BleWorker {
     FuriThread* thread;
     FuriEventLoop* event_loop;
@@ -14,6 +19,7 @@ struct BleWorker {
     BleTransmitter* transport;
     BleDevice* device;
 
+    BleWorkerCmdEventData* pending_command;
     BleConnectionStateChanged on_connection_changed_cb;
     void* on_connection_changed_ctx;
 };
