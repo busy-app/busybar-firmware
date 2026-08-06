@@ -5,6 +5,7 @@
 
 typedef enum {
     AppsMenuEntryIdxClock,
+    AppsMenuEntryIdxSlotMachine,
     AppsMenuEntryIdxComingSoon,
     AppsMenuEntryIdxMax,
 } AppsMenuEntryIdx;

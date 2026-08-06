@@ -15,6 +15,16 @@ static const AppsMenuEntry apps_menu_entries[] = {
                     .back = APPS_MENU_IMG_PATH("clock_back_11x11.image"),
                 },
         },
+    [AppsMenuEntryIdxSlotMachine] =
+        {
+            .id = "slot_machine",
+            .name = "Slot Machine",
+            .icon_path =
+                {
+                    .front = APPS_MENU_IMG_PATH("slot_front_8x8.image"),
+                    .back = APPS_MENU_IMG_PATH("slot_back_11x11.image"),
+                },
+        },
     [AppsMenuEntryIdxComingSoon] =
         {
             .id = NULL,

@@ -1,0 +1,10 @@
+App(
+    appid="slot_machine",
+    name="Slot Machine",
+    apptype=FlipperAppType.APP,
+    order=30,
+    entry_point="slot_machine_entry",
+    requires=["gui", "desktop", "audio"],
+    stack_size=6 * 1024,
+    targets=["f20", "f21", "f22"],
+)

@@ -8,6 +8,7 @@ App(
         "soft_off",
         "power_on",
         "clock",
+        "slot_machine",
         "settings_menu",
     ],
     targets=["f20", "f21", "f22"],
