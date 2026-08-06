@@ -37,6 +37,7 @@ path = [
     "lib/storage_utils/*",
     "lib/toolbox/**",
     "lib/sl_glue/**",
+    "lib/xpm/**",
 ]
 SPDX-FileCopyrightText = "2024-2026 Flipper FZCO"
 SPDX-License-Identifier = "GPL-2.0-or-later"

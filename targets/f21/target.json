@@ -142,7 +142,8 @@
         "utz",
         "fetch",
         "storage_utils",
-        "js_app"
+        "js_app",
+        "xpm"
     ],
     "fw_modules": [
         "fw_elf",
