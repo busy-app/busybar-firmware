@@ -304,20 +304,29 @@ static FURI_ALWAYS_INLINE uint16_t
     return (gamma_lut[in_val]);
 }
 
+static float front_display_gamma_adjust_for_brightness(float gamma, uint8_t brightness) {
+    return DISPLAY_GAMMA_MIN + (brightness * ((gamma - DISPLAY_GAMMA_MIN) / BRIGHTNESS_VAL_MAX));
+}
+
 static void
     front_display_gamma_lut_generate(uint16_t* gamma_lut, float gamma_val, uint8_t brightness) {
+    if(brightness == 0) {
+        // Everything is black
+        memset(gamma_lut, 0, sizeof(uint16_t) * UINT8_MAX);
+        return;
+    }
+
     if(brightness > BRIGHTNESS_VAL_MAX) {
         brightness = BRIGHTNESS_VAL_MAX;
     }
 
-    uint32_t out_max = (brightness * 65535) / BRIGHTNESS_VAL_MAX;
+    const float adjusted_gamma = front_display_gamma_adjust_for_brightness(gamma_val, brightness);
+    const float brightness_coeff = ((float)brightness / BRIGHTNESS_VAL_MAX) * UINT16_MAX;
 
-    float inv_gamma = 1.f / (float)gamma_val;
-
-    for(uint16_t i = 0; i < 256; i++) {
-        float val_in = ((float)i) / 255.f;
-        float val_out = powf(val_in, inv_gamma);
-        gamma_lut[i] = (uint16_t)(val_out * out_max);
+    for(uint32_t i = 0; i <= UINT8_MAX; i++) {
+        const float val_in = (float)i / UINT8_MAX;
+        const float val_out = powf(val_in, adjusted_gamma);
+        gamma_lut[i] = roundf(val_out * brightness_coeff);
     }
 }
 
@@ -396,7 +405,7 @@ static void led_driver_encode_empty_buffer(FrontDisplayDriver* driver) {
 }
 
 static void
-    led_driver_write_reg(FrontDisplayDriver* driver, LedDriverCommand cmd, uint16_t data[]) {
+    led_driver_write_reg(FrontDisplayDriver* driver, LedDriverCommand cmd, const uint16_t data[]) {
     size_t tx_len = 4 * (1 + 3 * LED_DRIVER_CHAIN);
     memset(driver->spi_buf, 0, tx_len);
     size_t ptr = 0;
@@ -434,35 +443,37 @@ static void
 }
 
 static void front_display_driver_send_init(FrontDisplayDriver* driver) {
-    LedDriverCfg1 cfg1 = {
+    const LedDriverCfg1 cfg1 = {
         .scan_line = DISPLAY_BLOCKS - 1,
         .data_mapping_en = 3, // Disable data mapping
     };
     led_driver_write_reg(
-        driver, LedDriverCmdWriteCfg1, (uint16_t[]){cfg1.value, cfg1.value, cfg1.value});
+        driver, LedDriverCmdWriteCfg1, (const uint16_t[]){cfg1.value, cfg1.value, cfg1.value});
 
-    LedDriverCfg2 cfg2_r = {
+    const LedDriverCfg2 cfg2_r = {
         .blanking = 31,
         .i_div4n = 1,
         .igain = CUR_GAIN_R,
         .text_ghost_opt_dis = 1,
     };
-    LedDriverCfg2 cfg2_g = {
+    const LedDriverCfg2 cfg2_g = {
         .blanking = 28,
         .i_div4n = 1,
         .igain = CUR_GAIN_G,
         .text_ghost_opt_dis = 1,
     };
-    LedDriverCfg2 cfg2_b = {
+    const LedDriverCfg2 cfg2_b = {
         .blanking = 23,
         .i_div4n = 1,
         .igain = CUR_GAIN_B,
         .text_ghost_opt_dis = 1,
     };
     led_driver_write_reg(
-        driver, LedDriverCmdWriteCfg2, (uint16_t[]){cfg2_r.value, cfg2_g.value, cfg2_b.value});
+        driver,
+        LedDriverCmdWriteCfg2,
+        (const uint16_t[]){cfg2_r.value, cfg2_g.value, cfg2_b.value});
 
-    LedDriverCfg3 cfg3 = {
+    const LedDriverCfg3 cfg3 = {
         .test_12_14 = 4,
         .reg_en = 1,
         .pwm_add = 15,
@@ -470,17 +481,17 @@ static void front_display_driver_send_init(FrontDisplayDriver* driver) {
         .test_cfg = 3,
     };
     led_driver_write_reg(
-        driver, LedDriverCmdWriteCfg3, (uint16_t[]){cfg3.value, cfg3.value, cfg3.value});
+        driver, LedDriverCmdWriteCfg3, (const uint16_t[]){cfg3.value, cfg3.value, cfg3.value});
 
-    LedDriverCfg4 cfg4 = {
+    const LedDriverCfg4 cfg4 = {
         .pwm_add_en = 1,
         .mapping_en = 1,
     };
     led_driver_write_reg(
-        driver, LedDriverCmdWriteCfg4, (uint16_t[]){cfg4.value, cfg4.value, cfg4.value});
+        driver, LedDriverCmdWriteCfg4, (const uint16_t[]){cfg4.value, cfg4.value, cfg4.value});
 
     // Enable all output channels
-    led_driver_write_reg(driver, LedDriverCmdEnOp, (uint16_t[]){0, 0, 0});
+    led_driver_write_reg(driver, LedDriverCmdEnOp, (const uint16_t[]){0, 0, 0});
 }
 
 static void front_display_driver_send_buffer(FrontDisplayDriver* driver) {
