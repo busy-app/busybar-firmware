@@ -553,6 +553,8 @@ schemas:
               Values can be hex (#RGB, #RRGGBB, #RRRGGGBBB, #RRRRGGGGBBBB), 
               or named (none, black, white, red, green, blue, yellow, cyan,
               magenta, gray, grey).
+              Limits: ncolors <= 32, cpp <= 4, and width/height must not exceed
+              the target display dimensions (see the "display" field).
           opacity:
             type: integer
             minimum: 0
