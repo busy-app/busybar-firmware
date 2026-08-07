@@ -9,27 +9,40 @@
 typedef struct {
     uint8_t min;
     uint8_t max;
-} BrightnessRange;
+    float power;
+} BrightnessCurve;
 
-static const BrightnessRange front_range = {
+static const BrightnessCurve front_curve = {
     .min = 20,
     .max = 100,
 };
 
-static const BrightnessRange back_range = {
+static const BrightnessCurve back_curve = {
     .min = 1,
     .max = 71,
+    .power = 4.f,
 };
 
 #if defined(SRV_STATUS_LIGHTS)
-static const BrightnessRange lights_range = {
+static const BrightnessCurve lights_curve = {
     .min = 5,
     .max = 90,
 };
 #endif
 
-static uint8_t brightness_conv_map_range(const BrightnessRange* range, InternalBrightness v) {
-    return range->min + v.val * ((range->max - range->min) / 255.f);
+static uint8_t brightness_conv_map_curve(const BrightnessCurve* curve, InternalBrightness v) {
+    const float val_norm = (float)v.val / INTERNAL_BRIGHTNESS_MAX;
+
+    float val_exp;
+    const float power = curve->power;
+
+    if(fabsf(power) < 1e-2f) {
+        val_exp = val_norm;
+    } else {
+        val_exp = (expf(power * val_norm) - 1.f) / (expf(power) - 1.f);
+    }
+
+    return roundf(curve->min + (curve->max - curve->min) * val_exp);
 }
 
 UserBrightness brightness_conv_int_to_user_clamped(int brightness) {
@@ -51,15 +64,15 @@ InternalBrightness brightness_conv_light_sensor_to_internal(LightSensorLevel v) 
 }
 
 FrontDisplayBrightness brightness_conv_internal_to_front(InternalBrightness v) {
-    return (FrontDisplayBrightness){brightness_conv_map_range(&front_range, v)};
+    return (FrontDisplayBrightness){brightness_conv_map_curve(&front_curve, v)};
 }
 
 BackDisplayContrast brightness_conv_internal_to_back(InternalBrightness v) {
-    return (BackDisplayContrast){brightness_conv_map_range(&back_range, v)};
+    return (BackDisplayContrast){brightness_conv_map_curve(&back_curve, v)};
 }
 
 #if defined(SRV_STATUS_LIGHTS)
 StatusLightsBrightness brightness_conv_internal_to_status(InternalBrightness v) {
-    return (StatusLightsBrightness){brightness_conv_map_range(&lights_range, v)};
+    return (StatusLightsBrightness){brightness_conv_map_curve(&lights_curve, v)};
 }
 #endif
