@@ -53,6 +53,12 @@ MU_TEST(xpm_header_garbage_after_numbers) {
     xpm_free(xpm);
 }
 
+MU_TEST(xpm_header_exceeds_max) {
+    Xpm* xpm = xpm_alloc("! XPM2\n99999 1 1 1\n. c #FF0000\n.\n");
+    mu_check(!xpm_decode_header(xpm));
+    xpm_free(xpm);
+}
+
 MU_TEST(xpm_signature_missing) {
     Xpm* xpm = xpm_alloc("2 1 2 1\n. c #FF0000\n# c #00FF00\n.#\n");
     mu_check(!xpm_decode_header(xpm));
@@ -323,6 +329,7 @@ MU_TEST_SUITE(xpm_test_suite) {
     MU_RUN_TEST(xpm_header_too_few_numbers);
     MU_RUN_TEST(xpm_header_invalid_value);
     MU_RUN_TEST(xpm_header_garbage_after_numbers);
+    MU_RUN_TEST(xpm_header_exceeds_max);
     MU_RUN_TEST(xpm_signature_missing);
 
     MU_RUN_TEST(xpm_colors_single_hex);

@@ -117,10 +117,13 @@ static_assert(COUNT_OF(xpm_pixel_writers) == XpmPixelFormatsCount);
 /*  Common Utilities */
 
 static bool xpm_is_header_data_valid(const XpmHeaderData* header_data) {
-    return header_data->width != XPM_HEADER_INVALID_VALUE &&
+    return header_data->width != XPM_HEADER_INVALID_VALUE && header_data->width <= XPM_MAX_WIDTH &&
            header_data->height != XPM_HEADER_INVALID_VALUE &&
+           header_data->height <= XPM_MAX_HEIGHT &&
            header_data->colors_count != XPM_HEADER_INVALID_VALUE &&
-           header_data->chars_per_pixel != XPM_HEADER_INVALID_VALUE;
+           header_data->colors_count <= XPM_MAX_COLORS_COUNT &&
+           header_data->chars_per_pixel != XPM_HEADER_INVALID_VALUE &&
+           header_data->chars_per_pixel <= XPM_MAX_CHARS_PER_PIXEL;
 }
 
 static bool xpm_lookup_color(Xpm* instance, const char* key, XpmPixelFormat format, Color* color) {

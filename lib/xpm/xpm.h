@@ -11,6 +11,22 @@
 #include <stddef.h>
 #include <stdbool.h>
 
+#ifndef XPM_MAX_WIDTH
+#define XPM_MAX_WIDTH 1024u
+#endif /* XPM_MAX_WIDTH */
+
+#ifndef XPM_MAX_HEIGHT
+#define XPM_MAX_HEIGHT 1024u
+#endif /* XPM_MAX_HEIGHT */
+
+#ifndef XPM_MAX_COLORS_COUNT
+#define XPM_MAX_COLORS_COUNT 256u
+#endif /* XPM_MAX_COLORS_COUNT */
+
+#ifndef XPM_MAX_CHARS_PER_PIXEL
+#define XPM_MAX_CHARS_PER_PIXEL 10u
+#endif /* XPM_MAX_CHARS_PER_PIXEL */
+
 /**
  * @brief Opaque XPM2 decoder instance.
  */
@@ -32,7 +48,7 @@ typedef struct {
  * Determines the byte layout of the pixel buffer returned by xpm_decode_pixels().
  */
 typedef enum {
-    XpmPixelFormatBGRA8888, ///< 4 bytes per pixel: B, G, R, A.
+    XpmPixelFormatBGRA8888, ///< 4 bytes per pixel: blue, green, red, alpha.
     XpmPixelFormatLA88, ///< 2 bytes per pixel: luma, alpha.
 
     XpmPixelFormatsCount,
