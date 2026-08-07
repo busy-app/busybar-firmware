@@ -3,6 +3,8 @@
 
 #include <m-array.h>
 
+#include <toolbox/m_cstr_dup.h>
+
 #define MY_CLASS (&nav_bar_lvgl_class)
 
 #define COLOR_INACTIVE 777777
@@ -13,7 +15,7 @@
 
 #define BREADCRUMBS_SPACER "\u200A"
 
-ARRAY_DEF(LocationStack, const char*, M_CSTR_OPLIST);
+ARRAY_DEF(LocationStack, const char*, M_CSTR_DUP_OPLIST);
 
 struct NavBar {
     Widget base;
