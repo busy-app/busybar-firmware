@@ -43,7 +43,7 @@ typedef enum {
 
 static const uint8_t display_init_table_ssd1320[] = {
     /* clang-format off */
-    0,  Cmd1320_DisplayOff, 
+    0,  Cmd1320_DisplayOff,
     1,  Cmd1320_DisplayClockDiv, 0x22,
     1,  Cmd1320_MultiplexRatio, 0x4F,
     1,  Cmd1320_DisplayOffset, 0x78,
@@ -52,8 +52,8 @@ static const uint8_t display_init_table_ssd1320[] = {
     0,  Cmd1320_ComOutputScanDirNormal,
     1,  Cmd1320_SegPinsHardwareConfig, 0x32,
     1,  Cmd1320_ContrastControl, 0x27,
-    1,  Cmd1320_PrechargeVoltage, 0x10,
-    1,  Cmd1320_PhaseLength, 0x42,
+    1,  Cmd1320_PrechargeVoltage, 0x0B,
+    1,  Cmd1320_PhaseLength, 0x72,
     1,  Cmd1320_VCOMHDeselectLevel, 0x30,
     1,  Cmd1320_IREFSelect, 0x10,
     3,  Cmd1320_DisplayEnhancement, 0xD5, 0xF0, 0x21,
