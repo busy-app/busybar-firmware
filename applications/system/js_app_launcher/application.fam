@@ -1,0 +1,10 @@
+App(
+    appid="js_app_launcher",
+    name="JsAppLauncher",
+    apptype=FlipperAppType.SYSTEM,
+    entry_point="js_app_launcher_app",
+    requires=["gui", "apps_menu"],
+    resources="resources",
+    stack_size=2 * 1024,
+    targets=["f20", "f21", "f22"],
+)
