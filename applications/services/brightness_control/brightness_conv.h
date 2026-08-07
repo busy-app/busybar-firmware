@@ -12,7 +12,7 @@ typedef struct UserBrightness {
     uint8_t val;
 } UserBrightness;
 
-/// Brightness value used internally (0-10)
+/// Brightness value used internally (0-255)
 typedef struct InternalBrightness {
     uint8_t val;
 } InternalBrightness;

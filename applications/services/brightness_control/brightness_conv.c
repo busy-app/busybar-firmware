@@ -1,30 +1,36 @@
 #include "brightness_conv.h"
-#include <assert.h>
-#include <furi/core/core_defines.h>
 
-#define INTERNAL_BRIGHTNESS_MAX 10
+#include <math.h>
 
-static const uint8_t brightness_conv_front_table[] = {25, 25, 28, 31, 37, 43, 52, 61, 73, 85, 100};
+#include <core/core_defines.h>
 
-// Exponential curve: y = k * b ^ x
-// b = 7.143377489
-// k = 1.324264735
-// static const uint8_t brightness_conv_back_table[] = {7, 9, 12, 16, 21, 29, 38, 51, 67, 89, 118};
+#define INTERNAL_BRIGHTNESS_MAX UINT8_MAX
 
-// k = 0.6 * 1.324264735
-static const uint8_t brightness_conv_back_table[] = {4, 5, 7, 9, 13, 17, 23, 30, 40, 53, 71};
+typedef struct {
+    uint8_t min;
+    uint8_t max;
+} BrightnessRange;
 
-static_assert(COUNT_OF(brightness_conv_front_table) == INTERNAL_BRIGHTNESS_MAX + 1);
-static_assert(COUNT_OF(brightness_conv_back_table) == INTERNAL_BRIGHTNESS_MAX + 1);
+static const BrightnessRange front_range = {
+    .min = 1,
+    .max = 100,
+};
+
+static const BrightnessRange back_range = {
+    .min = 1,
+    .max = 71,
+};
 
 #if defined(SRV_STATUS_LIGHTS)
-static const uint8_t brightness_conv_status_table[] = {5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 90};
-static_assert(COUNT_OF(brightness_conv_status_table) == INTERNAL_BRIGHTNESS_MAX + 1);
+static const BrightnessRange lights_range = {
+    .min = 5,
+    .max = 90,
+};
 #endif
 
-static_assert(BRIGHTNESS_MIN == 0);
-static_assert(LIGHT_SENSOR_LIGHT_LEVEL_MIN == 0);
-static_assert(LIGHT_SENSOR_LIGHT_LEVEL_MAX == INTERNAL_BRIGHTNESS_MAX);
+static uint8_t brightness_conv_map_range(const BrightnessRange* range, InternalBrightness v) {
+    return range->min + v.val * ((range->max - range->min) / 255.f);
+}
 
 UserBrightness brightness_conv_int_to_user_clamped(int brightness) {
     brightness = CLAMP(brightness, BRIGHTNESS_MAX, BRIGHTNESS_MIN);
@@ -32,27 +38,28 @@ UserBrightness brightness_conv_int_to_user_clamped(int brightness) {
 }
 
 InternalBrightness brightness_conv_user_to_internal(UserBrightness v) {
-    return (InternalBrightness){v.val * INTERNAL_BRIGHTNESS_MAX / BRIGHTNESS_MAX};
+    return (InternalBrightness){roundf(((float)INTERNAL_BRIGHTNESS_MAX / BRIGHTNESS_MAX) * v.val)};
 }
 
 UserBrightness brightness_conv_internal_to_user(InternalBrightness v) {
-    return (UserBrightness){v.val * BRIGHTNESS_MAX / INTERNAL_BRIGHTNESS_MAX};
+    return (UserBrightness){roundf(v.val / ((float)INTERNAL_BRIGHTNESS_MAX / BRIGHTNESS_MAX))};
 }
 
 InternalBrightness brightness_conv_light_sensor_to_internal(LightSensorLevel v) {
-    return (InternalBrightness){v.val};
+    return (InternalBrightness){
+        roundf(v.val * ((float)INTERNAL_BRIGHTNESS_MAX / LIGHT_SENSOR_LIGHT_LEVEL_MAX))};
 }
 
 FrontDisplayBrightness brightness_conv_internal_to_front(InternalBrightness v) {
-    return (FrontDisplayBrightness){brightness_conv_front_table[v.val]};
+    return (FrontDisplayBrightness){brightness_conv_map_range(&front_range, v)};
 }
 
 BackDisplayContrast brightness_conv_internal_to_back(InternalBrightness v) {
-    return (BackDisplayContrast){brightness_conv_back_table[v.val]};
+    return (BackDisplayContrast){brightness_conv_map_range(&back_range, v)};
 }
 
 #if defined(SRV_STATUS_LIGHTS)
 StatusLightsBrightness brightness_conv_internal_to_status(InternalBrightness v) {
-    return (StatusLightsBrightness){brightness_conv_status_table[v.val]};
+    return (StatusLightsBrightness){brightness_conv_map_range(&lights_range, v)};
 }
 #endif
