@@ -5,7 +5,7 @@
     title="Debug log"
   >
     <template #subtitle>
-      <p class="text-sm text-muted">Download the dump.log file for sharing with
+      <p class="text-sm text-muted">Download a debug log file for sharing with
         <a
           class="underline"
           href="https://go.busy.app/support"
@@ -50,7 +50,9 @@ async function handleDownload () {
       return;
     }
 
-    downloadFile(blob, 'dump.log');
+    // YYYY-MM-DDTHH:mm:ss -> YYYY-MM-DD_HH-mm-ss
+    const timestamp = new Date().toISOString().slice(0, 19).replace('T', '_').replaceAll(':', '-');
+    downloadFile(blob, `busybar-debug-log-${timestamp}.txt`);
   } finally {
     loading.value = false;
   }

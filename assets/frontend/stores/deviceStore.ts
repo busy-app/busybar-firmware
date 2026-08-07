@@ -270,7 +270,7 @@ export const useDeviceStore = defineStore('device', () => {
   }
 
   // Debug log
-  const DEBUG_LOG_FILENAME = 'dump';
+  const DEBUG_LOG_FILENAME = 'web-debug-log';
   async function requestDebugLogDump () {
     return await busyBar.value.SystemLogDump({ filename: DEBUG_LOG_FILENAME })
       .then(({ path }) => path)
