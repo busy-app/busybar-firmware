@@ -270,17 +270,17 @@ export const useDeviceStore = defineStore('device', () => {
   }
 
   // Debug log
-  const DEBUG_LOG_PATH = '/ext/dump.log';
+  const DEBUG_LOG_FILENAME = 'dump';
   async function requestDebugLogDump () {
-    return await busyBar.value.SystemLogDump({ path: DEBUG_LOG_PATH })
-      .then(() => true)
+    return await busyBar.value.SystemLogDump({ filename: DEBUG_LOG_FILENAME })
+      .then(({ path }) => path)
       .catch(async error => {
         await handleHTTPError(error, 'Failed to generate debug log due to an internal error. Please try again.', true);
-        return false;
+        return undefined;
       });
   }
-  async function fetchDebugLog () {
-    return await busyBar.value.StorageRead({ path: DEBUG_LOG_PATH })
+  async function fetchDebugLog (path: string) {
+    return await busyBar.value.StorageRead({ path })
       .then(file => file instanceof Blob ? file : new Blob([file], { type: 'text/plain' }))
       .catch(async error => {
         await handleHTTPError(error, 'Unable to download debug log. Please try again.', true);

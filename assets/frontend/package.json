@@ -13,7 +13,7 @@
     "lint/tsc": "vue-tsc --noEmit"
   },
   "dependencies": {
-    "@busy-app/busy-lib": "^0.17.0",
+    "@busy-app/busy-lib": "^0.18.0",
     "@nuxt/eslint": "1.4.1",
     "@nuxt/ui": "3.3.4",
     "@nuxtjs/mdc": "0.20.1",

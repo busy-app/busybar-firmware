@@ -40,11 +40,12 @@ async function handleDownload () {
   loading.value = true;
 
   try {
-    if (!await deviceStore.requestDebugLogDump()) {
+    const path = await deviceStore.requestDebugLogDump();
+    if (!path) {
       return;
     }
 
-    const blob = await deviceStore.fetchDebugLog();
+    const blob = await deviceStore.fetchDebugLog(path);
     if (!blob) {
       return;
     }

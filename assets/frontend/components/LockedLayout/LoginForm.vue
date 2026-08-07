@@ -117,7 +117,7 @@ async function attemptUnlock () {
 
   try {
     apiStore.apiKey = pms.passwordModel.current;
-    deviceStore.busyBar.setApiKey(apiStore.apiKey);
+    deviceStore.busyBar.setHTTPAccessPassword(apiStore.apiKey);
     await deviceStore.fetchDeviceName(true);
     await navigateTo('/', { external: true});
   } catch (error: unknown) {
