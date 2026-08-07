@@ -12,6 +12,7 @@
 typedef enum {
     BleIncomingNwpEventTypeUnknown,
     BleIncomingNwpEventTypeExit,
+    BleIncomingNwpEventTypeForgetPaired,
 
     BleIncomingNwpEventTypeConnected,
     BleIncomingNwpEventTypeDisconnected,
