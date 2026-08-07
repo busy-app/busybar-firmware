@@ -175,15 +175,6 @@ static bool xpm_skip_in_line(Xpm* instance, size_t length) {
     return is_successful;
 }
 
-static bool xpm_is_end_of_data(Xpm* instance) {
-    const char* cursor = instance->cursor;
-
-    cursor += strspn(cursor, XPM_TOKEN_DELIMITERS "\n");
-
-    instance->cursor = cursor;
-    return *cursor == '\0';
-}
-
 static bool xpm_next_token(Xpm* instance, XpmToken* token) {
     const char* cursor = instance->cursor;
     cursor += strspn(cursor, XPM_TOKEN_DELIMITERS);
@@ -210,17 +201,21 @@ static bool xpm_next_token(Xpm* instance, XpmToken* token) {
 
 static bool xpm_next_line(Xpm* instance) {
     const char* cursor = instance->cursor;
-    cursor += strspn(cursor, XPM_TOKEN_DELIMITERS);
 
-    bool is_successful;
-    if(*cursor == '\n') {
-        cursor++;
-        is_successful = true;
-    } else {
-        is_successful = false;
+    static const char* new_line_sequences[] = {"\n", "\r\n"};
+
+    bool is_successful = false;
+    for(size_t i = 0; i < COUNT_OF(new_line_sequences); i++) {
+        const char* new_line_sequence = new_line_sequences[i];
+        size_t length = strlen(new_line_sequence);
+
+        if(memcmp(cursor, new_line_sequence, length) == 0) {
+            instance->cursor = cursor + length;
+            is_successful = true;
+            break;
+        }
     }
 
-    instance->cursor = cursor;
     return is_successful;
 }
 
@@ -461,9 +456,14 @@ static bool xpm_parse_pixels(Xpm* instance, XpmPixelFormat format, void* pixel_d
         }
     }
 
-    if(is_successful && !xpm_is_end_of_data(instance)) {
-        FURI_LOG_E(TAG, "Unexpected data after pixel rows");
-        is_successful = false;
+    if(is_successful) {
+        /* tolerate exactly one optional line at the end of file */
+        xpm_next_line(instance);
+
+        if(*instance->cursor != '\0') {
+            FURI_LOG_E(TAG, "Unexpected data after pixel rows");
+            is_successful = false;
+        }
     }
 
     return is_successful;

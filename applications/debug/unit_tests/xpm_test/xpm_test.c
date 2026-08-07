@@ -231,6 +231,17 @@ MU_TEST(xpm_pixels_row_too_short) {
     mu_assert_null(pixels);
 }
 
+MU_TEST(xpm_pixels_overlong_row) {
+    void* pixels = xpm_test_decode_full(
+        "! XPM2\n2 1 2 1\n"
+        ". c #FF0000\n"
+        "# c #00FF00\n"
+        ".#\x20",
+        XpmPixelFormatBGRA8888,
+        NULL);
+    mu_assert_null(pixels);
+}
+
 MU_TEST(xpm_pixels_trailing_garbage) {
     void* pixels = xpm_test_decode_full(
         "! XPM2\n1 1 1 1\n"
@@ -345,6 +356,7 @@ MU_TEST_SUITE(xpm_test_suite) {
     MU_RUN_TEST(xpm_pixels_valid);
     MU_RUN_TEST(xpm_pixels_unknown_key);
     MU_RUN_TEST(xpm_pixels_row_too_short);
+    MU_RUN_TEST(xpm_pixels_overlong_row);
     MU_RUN_TEST(xpm_pixels_trailing_garbage);
     MU_RUN_TEST(xpm_pixels_multi_format);
     MU_RUN_TEST(xpm_pixels_transparency);
