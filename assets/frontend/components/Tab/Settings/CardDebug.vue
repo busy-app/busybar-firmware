@@ -1,34 +1,40 @@
 <template>
-  <SectionCard
+  <div
     data-id="settings-section-debug"
-    icon="i-bi-bug"
-    title="Debug log"
+    class="w-full flex flex-col md:flex-row items-start md:items-center justify-between p-6 ring-1 ring-glass rounded-3xl bg-elevated/50 gap-6 md:gap-3"
   >
-    <template #subtitle>
-      <p class="text-sm text-muted">Download a debug log file for sharing with
-        <a
-          class="underline"
-          href="https://go.busy.app/support"
-          target="_blank"
-        >
-          support
-        </a>
-      </p>
-    </template>
+    <div class="flex items-start gap-2.5">
+      <UIcon
+        name="i-bi-bug"
+        class="size-6"
+      />
+      <div class="flex flex-col gap-1">
+        <p class="font-medium">Debug log</p>
+        <p class="text-sm text-muted">Download a debug log file for sharing with
+          <a
+            class="underline"
+            href="https://go.busy.app/support"
+            target="_blank"
+          >
+            support
+          </a>
+        </p>
+      </div>
+    </div>
 
-    <template #actions>
+    <div class="w-full md:w-fit flex flex-col md:flex-row items-stretch md:items-end gap-2">
       <UButton
         data-id="settings-section-debug-download-button"
+        class="justify-center"
         label="Download debug log"
         icon="i-bi-download"
         variant="soft"
         color="neutral"
-        class="justify-center sm:justify-start"
         :loading="loading"
         @click="handleDownload"
       />
-    </template>
-  </SectionCard>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
