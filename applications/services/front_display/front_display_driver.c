@@ -321,12 +321,12 @@ static void
     }
 
     const float adjusted_gamma = front_display_gamma_adjust_for_brightness(gamma_val, brightness);
-    const float brightness_coeff = ((float)brightness / (BRIGHTNESS_VAL_MAX * UINT8_MAX));
+    const float brightness_coeff = (float)brightness * UINT16_MAX / BRIGHTNESS_VAL_MAX;
 
     for(uint32_t i = 0; i <= UINT8_MAX; i++) {
-        const float val_in = i * brightness_coeff;
+        const float val_in = (float)i / UINT8_MAX;
         const float val_out = powf(val_in, adjusted_gamma);
-        gamma_lut[i] = ceilf(val_out * UINT16_MAX);
+        gamma_lut[i] = ceilf(val_out * brightness_coeff);
     }
 }
 

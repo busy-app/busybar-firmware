@@ -13,8 +13,9 @@ typedef struct {
 } BrightnessCurve;
 
 static const BrightnessCurve front_curve = {
-    .min = 20,
+    .min = 1,
     .max = 100,
+    .power = 2.f,
 };
 
 static const BrightnessCurve back_curve = {
