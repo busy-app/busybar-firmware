@@ -12,7 +12,7 @@ typedef struct {
 } BrightnessRange;
 
 static const BrightnessRange front_range = {
-    .min = 1,
+    .min = 20,
     .max = 100,
 };
 

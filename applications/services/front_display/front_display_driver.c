@@ -326,7 +326,7 @@ static void
     for(uint32_t i = 0; i <= UINT8_MAX; i++) {
         const float val_in = i * brightness_coeff;
         const float val_out = powf(val_in, adjusted_gamma);
-        gamma_lut[i] = roundf(val_out * UINT16_MAX);
+        gamma_lut[i] = ceilf(val_out * UINT16_MAX);
     }
 }
 
