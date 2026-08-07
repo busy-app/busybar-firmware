@@ -545,8 +545,9 @@ schemas:
             type: string
             minLength: 1
             description: >-
-              XPM2 source as plain text: a "width height ncolors cpp" header
-              line, followed by ncolors color lines, then height pixel rows.
+              XPM2 source as plain text: must begin with a "! XPM2" signature
+              line, followed by a "width height ncolors cpp" header line, then
+              ncolors color lines, then height pixel rows.
               Each color line is "<chars> <visual> <value>" where visual is
               c (color), g/g4 (grayscale), m (monochrome), or s (symbolic).
               Values can be hex (#RGB, #RRGGBB, #RRRGGGBBB, #RRRRGGGGBBBB), 

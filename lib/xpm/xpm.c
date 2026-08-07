@@ -3,11 +3,13 @@
 #include <furi.h>
 #include <toolbox/color.h>
 
-#define TAG                      "Xpm"
-#define XPM_TOKEN_DELIMITERS     "\x20\t\v\f\r"
-#define XPM_KEYWORD_SYMBOLIC     "s"
-#define XPM_BITS_PER_HEX_CHAR    4u /* number of bits that digit of hex number represents */
-#define XPM_HEADER_INVALID_VALUE 0u /* any header's field value of 0 is meaningless */
+#define TAG                        "Xpm"
+#define XPM_TOKEN_DELIMITERS       "\x20\t\v\f\r"
+#define XPM_KEYWORD_SYMBOLIC       "s"
+#define XPM_KEYWORD_SIGNATURE_MARK "!"
+#define XPM_KEYWORD_SIGNATURE_NAME "XPM2"
+#define XPM_BITS_PER_HEX_CHAR      4u /* number of bits that digit of hex number represents */
+#define XPM_HEADER_INVALID_VALUE   0u /* any header's field value of 0 is meaningless */
 
 typedef Color XpmColors[XpmPixelFormatsCount];
 
@@ -17,8 +19,11 @@ typedef struct {
 } XpmColorTableItem;
 
 struct Xpm {
-    const char* cursor;
+    const char* data;
+    const char* header_section_stop;
     const char* colors_section_stop;
+
+    const char* cursor;
 
     XpmHeaderData header_data;
 
@@ -221,6 +226,33 @@ static bool xpm_token_equals(XpmToken token, const char* string) {
 }
 
 /* Parsing */
+
+static bool xpm_parse_signature(Xpm* instance) {
+    bool is_successful = false;
+    do {
+        XpmToken mark_token;
+        if(!xpm_next_token(instance, &mark_token)) {
+            break;
+        }
+
+        if(!xpm_token_equals(mark_token, XPM_KEYWORD_SIGNATURE_MARK)) {
+            break;
+        }
+
+        XpmToken name_token;
+        if(!xpm_next_token(instance, &name_token)) {
+            break;
+        }
+
+        if(!xpm_token_equals(name_token, XPM_KEYWORD_SIGNATURE_NAME)) {
+            break;
+        }
+
+        is_successful = xpm_next_line(instance);
+    } while(false);
+
+    return is_successful;
+}
 
 static bool xpm_parse_preset_color_value(XpmToken token, Color* color) {
     bool is_successful = false;
@@ -441,8 +473,10 @@ Xpm* xpm_alloc(const char* xpm_string) {
 
     Xpm* instance = malloc(sizeof(*instance));
 
-    instance->cursor = xpm_string;
+    instance->data = xpm_string;
+    instance->header_section_stop = NULL;
     instance->colors_section_stop = NULL;
+    instance->cursor = xpm_string;
 
     instance->header_data = (XpmHeaderData){
         .width = XPM_HEADER_INVALID_VALUE,
@@ -470,6 +504,13 @@ bool xpm_decode_header(Xpm* instance) {
     do {
         if(xpm_is_header_data_valid(&instance->header_data)) {
             is_successful = true;
+            break;
+        }
+
+        furi_check(instance->data == instance->cursor);
+
+        if(!xpm_parse_signature(instance)) {
+            FURI_LOG_E(TAG, "Missing or malformed XPM2 signature line");
             break;
         }
 
@@ -507,6 +548,7 @@ bool xpm_decode_header(Xpm* instance) {
         }
 
         instance->header_data = header_data;
+        instance->header_section_stop = instance->cursor;
         is_successful = true;
     } while(false);
 
@@ -530,6 +572,8 @@ bool xpm_decode_colors(Xpm* instance) {
             is_successful = true;
             break;
         }
+
+        furi_check(instance->header_section_stop == instance->cursor);
 
         XpmColorTableItem* color_table =
             calloc(instance->header_data.colors_count, sizeof(XpmColorTableItem));
