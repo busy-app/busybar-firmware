@@ -15,11 +15,17 @@ extern "C" {
 #define BACK_DISPLAY_BPP      (8)
 #define BACK_DISPLAY_BUF_SIZE (BACK_DISPLAY_W * BACK_DISPLAY_H * BACK_DISPLAY_BPP / 8)
 
+#define BACK_DISPLAY_GAMMA_TABLE_SIZE (15)
+
 typedef struct BackDisplaySrv BackDisplaySrv;
 
 typedef struct BackDisplayContrast {
     uint8_t val;
 } BackDisplayContrast;
+
+typedef struct {
+    uint8_t data[BACK_DISPLAY_GAMMA_TABLE_SIZE];
+} BackDisplayGammaTable;
 
 /**
  * @brief Draw the back display data.
@@ -55,7 +61,15 @@ void back_display_sleep_mode(BackDisplaySrv* instance, bool sleep);
  */
 void back_display_set_contrast(BackDisplaySrv* instance, BackDisplayContrast contrast);
 
-void back_display_set_gamma_table(BackDisplaySrv* instance, const uint8_t gamma_table[15]);
+/**
+ * @brief Set the back display gamma table
+ *
+ * @param instance back display service instance
+ * @param gamma_table pointer to the gamma table
+ */
+void back_display_set_gamma_table(
+    BackDisplaySrv* instance,
+    const BackDisplayGammaTable* gamma_table);
 
 /**
  * @brief Get the width of the back display.

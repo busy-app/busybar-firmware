@@ -95,7 +95,7 @@ static void cli_action_gamma(PipeSide* pipe, FuriString* args, GuiDisplayId id) 
         return;
     }
 
-    uint8_t gamma_table[15];
+    BackDisplayGammaTable gamma_table;
 
     for(uint32_t i = 0; i < sizeof(gamma_table); ++i) {
         int tmp;
@@ -107,11 +107,11 @@ static void cli_action_gamma(PipeSide* pipe, FuriString* args, GuiDisplayId id) 
             printf("Error: value out of range");
             return;
         }
-        gamma_table[i] = tmp;
+        gamma_table.data[i] = tmp;
     }
 
     BackDisplaySrv* back_display = furi_record_open(RECORD_BACK_DISPLAY);
-    back_display_set_gamma_table(back_display, gamma_table);
+    back_display_set_gamma_table(back_display, &gamma_table);
     furi_record_close(RECORD_BACK_DISPLAY);
 }
 

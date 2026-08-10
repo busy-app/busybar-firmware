@@ -34,17 +34,21 @@ struct BackDisplaySrv {
     bool dirty;
 
     FuriMutex* property_mutex;
-    uint8_t gamma_table[15];
+    BackDisplayGammaTable gamma_table;
     uint8_t sensor_contrast;
     size_t sleep_holders;
 };
+
+static_assert(
+    sizeof(BackDisplayGammaTable) == sizeof(SSD1320GrayscaleTable),
+    "BackDisplayGammaTable and SSD1320GrayscaleTable should be the same size");
 
 static void back_display_update_contrast(BackDisplaySrv* instance) {
     ssd1320_set_contrast(instance->sensor_contrast);
 }
 
 static void back_display_update_gamma(BackDisplaySrv* instance) {
-    ssd1320_set_gamma_table(instance->gamma_table);
+    ssd1320_set_grayscale_table((SSD1320GrayscaleTable*)&instance->gamma_table);
 }
 
 static void back_display_event_callback(uint32_t events, void* context) {
@@ -169,12 +173,14 @@ void back_display_set_contrast(BackDisplaySrv* instance, BackDisplayContrast con
     furi_event_loop_set_custom_event(instance->event_loop, BackDisplayEventUpdateContrast);
 }
 
-void back_display_set_gamma_table(BackDisplaySrv* instance, const uint8_t gamma_table[15]) {
+void back_display_set_gamma_table(
+    BackDisplaySrv* instance,
+    const BackDisplayGammaTable* gamma_table) {
     furi_check(instance);
     furi_check(gamma_table);
 
     furi_check(furi_mutex_acquire(instance->property_mutex, FuriWaitForever) == FuriStatusOk);
-    memcpy(instance->gamma_table, gamma_table, 15);
+    instance->gamma_table = *gamma_table;
     furi_check(furi_mutex_release(instance->property_mutex) == FuriStatusOk);
 
     furi_event_loop_set_custom_event(instance->event_loop, BackDisplayEventUpdateGamma);
