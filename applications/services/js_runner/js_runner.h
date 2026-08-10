@@ -17,6 +17,7 @@ typedef enum JsRunnerError {
     JsRunnerErrorInvalidFileSize,
     JsRunnerErrorCannotReadFile,
     JsRunnerParseException,
+    JsRunnerErrorMax,
 } JsRunnerError;
 
 typedef enum JsRunnerConsoleSeverity {

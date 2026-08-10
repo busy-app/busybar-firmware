@@ -543,12 +543,16 @@ static void storage_cli_extract(PipeSide* pipe, FuriString* old_path, FuriString
         return;
     }
 
-    Storage* api = furi_record_open(RECORD_STORAGE);
+    Storage* storage = furi_record_open(RECORD_STORAGE);
 
-    TarArchive* archive = tar_archive_alloc(api);
+    TarArchive* archive = tar_archive_alloc(storage);
     do {
         if(!tar_archive_open(archive, furi_string_get_cstr(old_path), TarOpenModeReadAuto)) {
             printf("Failed to open archive\r\n");
+            break;
+        }
+        if(!storage_simply_mkpath(storage, furi_string_get_cstr(new_path))) {
+            printf("Failed to create output path\r\n");
             break;
         }
         uint32_t start_tick = furi_get_tick();

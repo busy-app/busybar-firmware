@@ -16,7 +16,7 @@ on:
       target:
         required: false
         type: string
-        default: '21'
+        default: '22'
       marker_filter:
         required: false
         type: string
@@ -49,7 +49,7 @@ on:
         description: 'Hardware target'
         required: false
         type: string
-        default: '21'
+        default: '22'
 
 permissions:
   contents: read
@@ -58,7 +58,7 @@ permissions:
   id-token: write
 
 env:
-  U5_HW_TARGET: ${{ inputs.target || '21' }}
+  U5_HW_TARGET: ${{ inputs.target || '22' }}
   FIRMWARE_BASE_URL: https://update.busy.app/builds/busybar-firmware
   PYTEST_FAILED_TEST_RETRIES: 1
 
@@ -169,6 +169,10 @@ jobs:
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
           python3 scripts/testops.py sanity
+          {
+            echo "U5_ELF=/_work/elf/busybar-f${{ env.U5_HW_TARGET }}-firmware.elf"
+            echo "SI917_ELF=/_work/elf/busybar-f${{ env.U5_HW_TARGET }}-sil_firmware.elf"
+          } >> "$GITHUB_ENV"
 
       - name: Set up Python 3.12
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0

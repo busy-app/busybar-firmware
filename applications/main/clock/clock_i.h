@@ -5,7 +5,6 @@
 
 #include <gui/gui.h>
 #include <time/time.h>
-#include <desktop/desktop.h>
 #include <updater/updater.h>
 #include <storage/storage.h>
 
@@ -45,7 +44,6 @@ typedef struct {
 
     Gui* gui;
     Time* time;
-    Desktop* desktop;
     Updater* updater;
 
     ClockSettings settings;

@@ -141,7 +141,8 @@
         "anim_file",
         "utz",
         "fetch",
-        "storage_utils"
+        "storage_utils",
+        "js_app"
     ],
     "fw_modules": [
         "fw_elf",
