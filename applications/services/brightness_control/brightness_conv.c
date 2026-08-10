@@ -6,6 +6,20 @@
 
 #define BRIGHTNESS_CONV_POWER_MIN (1E-2f)
 
+/**
+ * User brightness (linear, 0-100) is converted to
+ * device-specific brightness using the below parameters:
+ *
+ * - min: Lower limit of the device brightness, inclusive
+ * - max: Upper limin of the device brightness, inclusive
+ * - power: Exponential power that controls the transfer function behaviour:
+ *   - 0: Completely linear (straight line between min and max)
+ *   - > 0 : Ease in (grows slowly near min, grows fast near max)
+ *   - < 0 : Ease out (grows fast near min, grows slowly near max)
+ *
+ * Larger absolute power values result in a more pronounced exponential behaviour.
+ * The output value is guaranteed to always stay between min and max.
+ */
 typedef struct {
     uint8_t min;
     uint8_t max;
