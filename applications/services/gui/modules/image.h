@@ -20,7 +20,7 @@ typedef enum {
     ImageColorFormatBGR888, ///< 3 bytes per pixel: B, G, R.
     ImageColorFormatBGRA8888, ///< 4 bytes per pixel: B, G, R, A.
 
-    ImageColorFormatCount,
+    ImageColorFormatsCount,
 } ImageColorFormat;
 
 /**

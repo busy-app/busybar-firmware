@@ -22,6 +22,8 @@ static const lv_color_format_t image_color_format_map[] = {
     [ImageColorFormatBGRA8888] = LV_COLOR_FORMAT_ARGB8888,
 };
 
+static_assert(COUNT_OF(image_color_format_map) == ImageColorFormatsCount);
+
 static void image_clear_raw_source(Image* instance) {
     if(instance->raw_source_dsc) {
         lv_free(instance->raw_source_dsc);
@@ -109,7 +111,7 @@ void image_set_source_raw(
     const void* data,
     size_t data_size) {
     furi_check(instance);
-    furi_check(format < ImageColorFormatCount);
+    furi_check(format < ImageColorFormatsCount);
     furi_check(data);
 
     lv_color_format_t color_format = image_color_format_map[format];
