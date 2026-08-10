@@ -52,7 +52,7 @@ static const uint8_t display_init_table_ssd1320[] = {
     0,  Cmd1320_ComOutputScanDirNormal,
     1,  Cmd1320_SegPinsHardwareConfig, 0x32,
     1,  Cmd1320_ContrastControl, 0x27,
-    1,  Cmd1320_PrechargeVoltage, 0x0C,
+    1,  Cmd1320_PrechargeVoltage, 0x0B,
     1,  Cmd1320_PhaseLength, 0x62,
     1,  Cmd1320_VCOMHDeselectLevel, 0x30,
     1,  Cmd1320_IREFSelect, 0x10,
