@@ -12,7 +12,7 @@
  *
  * - min: Lower limit of the device brightness, inclusive
  * - max: Upper limin of the device brightness, inclusive
- * - power: Exponential power that controls the transfer function behaviour:
+ * - power: Exponential power that controls the brightness curve behaviour:
  *   - 0: Completely linear (straight line between min and max)
  *   - > 0 : Ease in (grows slowly near min, grows fast near max)
  *   - < 0 : Ease out (grows fast near min, grows slowly near max)
