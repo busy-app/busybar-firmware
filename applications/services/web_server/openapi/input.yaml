@@ -11,7 +11,7 @@ paths:
       description: Send single key press event
       operationId: setInputKey
       parameters:
-        - name: key
+        - name: key1
           in: query
           required: true
           schema:
