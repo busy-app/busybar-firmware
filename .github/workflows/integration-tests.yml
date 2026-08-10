@@ -169,6 +169,10 @@ jobs:
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
           python3 scripts/testops.py sanity
+          {
+            echo "U5_ELF=/_work/elf/busybar-f${{ env.U5_HW_TARGET }}-firmware.elf"
+            echo "SI917_ELF=/_work/elf/busybar-f${{ env.U5_HW_TARGET }}-sil_firmware.elf"
+          } >> "$GITHUB_ENV"
 
       - name: Set up Python 3.12
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
