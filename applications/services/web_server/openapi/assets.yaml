@@ -263,6 +263,7 @@ schemas:
             - $ref: "#/components/schemas/AnimationElement"
             - $ref: "#/components/schemas/CountdownElement"
             - $ref: "#/components/schemas/RectangleElement"
+            - $ref: "#/components/schemas/XpmBitmapElement"
         description: Array of elements to display
     required:
       - application_name
@@ -315,7 +316,7 @@ schemas:
         description: The element will be hidden when system time reaches the specified Unix timestamp (in seconds). Mutually exclusive with timeout.
       type:
         type: string
-        enum: [text, image, animation, countdown, rectangle]
+        enum: [text, image, animation, countdown, rectangle, xpmbitmap]
         description: Type of display element
       x:
         type: integer
@@ -355,6 +356,7 @@ schemas:
         animation: "#/components/schemas/AnimationElement"
         countdown: "#/components/schemas/CountdownElement"
         rectangle: "#/components/schemas/RectangleElement"
+        xpmbitmap: "#/components/schemas/XpmBitmapElement"
   TextElement:
     allOf:
       - $ref: "#/components/schemas/DisplayElement"
@@ -532,6 +534,33 @@ schemas:
             pattern: "^#[a-fA-F0-9]{8}$"
             description: "Color of the rectangle border in #RRGGBBAA format"
             default: "#FFFFFFFF"
+  XpmBitmapElement:
+    allOf:
+      - $ref: "#/components/schemas/DisplayElement"
+      - type: object
+        required:
+          - data
+        properties:
+          data:
+            type: string
+            minLength: 1
+            description: >-
+              XPM2 source as plain text: must begin with a "! XPM2" signature
+              line, followed by a "width height ncolors cpp" header line, then
+              ncolors color lines, then height pixel rows.
+              Each color line is "<chars> <visual> <value>" where visual is
+              c (color), g/g4 (grayscale), m (monochrome), or s (symbolic).
+              Values can be hex (#RGB, #RRGGBB, #RRRGGGBBB, #RRRRGGGGBBBB), 
+              or named (none, black, white, red, green, blue, yellow, cyan,
+              magenta, gray, grey).
+              Limits: ncolors <= 32, cpp <= 4, and width/height must not exceed
+              the target display dimensions (see the "display" field).
+          opacity:
+            type: integer
+            minimum: 0
+            maximum: 100
+            description: Opacity of the image in percentage (0-100)
+            default: 100
 
   PlayAudio:
     type: object

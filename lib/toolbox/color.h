@@ -92,6 +92,15 @@ Color color_hexa_to_rgb(uint32_t hexa);
 bool color_parse_hexa_string(const char* hexa, Color* color_out);
 
 /**
+ * @brief Convert an RGB color to an L8 luminance value
+ *
+ * @param[in] color Color to convert
+ *
+ * @return Luminance value in the range 0–255
+ */
+uint8_t color_rgb_to_l8(Color color);
+
+/**
  * @brief Convert an L8-encoded color data into L4
  *
  * @param dst destination buffer

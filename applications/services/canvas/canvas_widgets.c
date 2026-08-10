@@ -19,6 +19,29 @@ static void canvas_image_delete(CanvasWidget* widget) {
 }
 
 static Widget*
+    canvas_raw_update(CanvasWidget* widget, Widget* root, const CanvasElement* element) {
+    if(!widget->image) {
+        widget->image = image_alloc(root);
+    }
+
+    image_set_source_raw(
+        widget->image,
+        element->raw_image.format,
+        element->raw_image.width,
+        element->raw_image.height,
+        element->raw_image.data,
+        element->raw_image.data_size);
+    image_set_opacity(widget->image, element->raw_image.opacity);
+
+    return image_get_base(widget->image);
+}
+
+static void canvas_raw_delete(CanvasWidget* widget) {
+    furi_assert(widget->image);
+    image_free(widget->image);
+}
+
+static Widget*
     canvas_anim_player_update(CanvasWidget* widget, Widget* root, const CanvasElement* element) {
     if(!widget->anim_player) {
         widget->anim_player = anim_player_alloc(root);
@@ -136,6 +159,7 @@ static const struct {
     [CanvasElementTypeText] = {canvas_text_update, canvas_text_delete},
     [CanvasElementTypeCountdown] = {canvas_countdown_update, canvas_countdown_delete},
     [CanvasElementTypeRectangle] = {canvas_rectangle_update, canvas_rectangle_delete},
+    [CanvasElementTypeRawImage] = {canvas_raw_update, canvas_raw_delete},
 };
 
 static_assert(COUNT_OF(canvas_widgets) == CanvasElementTypeMax);

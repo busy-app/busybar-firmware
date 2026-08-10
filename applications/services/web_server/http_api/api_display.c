@@ -1,5 +1,6 @@
 #include "http_api.h"
 #include <gui/gui.h>
+#include <xpm/xpm.h>
 #include <toolbox/path.h>
 #include <toolbox/value_index.h>
 #include <canvas/canvas.h>
@@ -15,6 +16,9 @@
 
 #define DISPLAY_ASSETS_DIR           EXT_PATH("user_assets")
 #define DISPLAY_API_DEFAULT_PRIORITY (50)
+
+#define XPM_API_MAX_COLORS_COUNT    32u
+#define XPM_API_MAX_CHARS_PER_PIXEL 4u
 
 static bool api_display_draw_parse_text_element(
     CanvasElement* canvas_element,
@@ -265,6 +269,94 @@ static bool api_display_draw_parse_image_element(
     return result;
 }
 
+static bool api_display_draw_parse_xpm_element(
+    CanvasElement* canvas_element,
+    const char* app_name,
+    struct mg_str json_element,
+    FuriString* error) {
+    UNUSED(app_name);
+
+    bool result = false;
+
+    char* data_str = NULL;
+    Xpm* xpm = NULL;
+
+    do {
+        long opacity = mg_json_get_long(json_element, "$.opacity", 100);
+        if(opacity < 0 || opacity > 100) break;
+
+        data_str = mg_json_get_str(json_element, "$.data");
+        if(!data_str) break;
+
+        xpm = xpm_alloc(data_str);
+        if(!xpm_decode_header(xpm)) {
+            furi_string_printf(error, "Failed to parse XPM header.");
+            break;
+        }
+
+        XpmHeaderData header = xpm_get_header_data(xpm);
+        if(header.colors_count > XPM_API_MAX_COLORS_COUNT ||
+           header.chars_per_pixel > XPM_API_MAX_CHARS_PER_PIXEL) {
+            furi_string_printf(error, "XPM header values exceed limits.");
+            break;
+        }
+
+        const GuiDisplayParameters* display_parameters =
+            gui_display_get_parameters(canvas_element->display);
+        if(header.width > display_parameters->width ||
+           header.height > display_parameters->height) {
+            furi_string_printf(
+                error,
+                "XPM image exceeds display dimensions %zux%zu.",
+                display_parameters->width,
+                display_parameters->height);
+            break;
+        }
+
+        if(!xpm_decode_colors(xpm)) {
+            furi_string_printf(error, "Failed to parse XPM color table.");
+            break;
+        }
+
+        XpmPixelFormat xpm_format;
+        ImageColorFormat image_format;
+        if(canvas_element->display == GuiDisplayIdFront) {
+            xpm_format = XpmPixelFormatBGRA8888;
+            image_format = ImageColorFormatBGRA8888;
+        } else {
+            xpm_format = XpmPixelFormatLA88;
+            image_format = ImageColorFormatLA88;
+        }
+
+        size_t pixels_buffer_size = 0;
+        void* pixels = xpm_decode_pixels(xpm, xpm_format, &pixels_buffer_size);
+        if(!pixels) {
+            furi_string_printf(error, "Failed to decode XPM pixel data.");
+            break;
+        }
+
+        canvas_element->type = CanvasElementTypeRawImage;
+        canvas_element->raw_image.data = pixels;
+        canvas_element->raw_image.data_size = pixels_buffer_size;
+        canvas_element->raw_image.width = header.width;
+        canvas_element->raw_image.height = header.height;
+        canvas_element->raw_image.format = image_format;
+        canvas_element->raw_image.opacity = opacity * 255 / 100;
+
+        result = true;
+    } while(0);
+
+    if(data_str) {
+        free(data_str);
+    }
+
+    if(xpm) {
+        xpm_free(xpm);
+    }
+
+    return result;
+}
+
 static bool api_display_draw_parse_anim_player_element(
     CanvasElement* canvas_element,
     const char* app_name,
@@ -508,6 +600,7 @@ static bool api_display_draw_parse_element(
             {"animation", api_display_draw_parse_anim_player_element},
             {"rectangle", api_display_draw_parse_rectangle_element},
             {"countdown", api_display_draw_parse_countdown_element},
+            {"xpmbitmap", api_display_draw_parse_xpm_element},
         };
         for(size_t i = 0; i < COUNT_OF(element_parsers); i++) {
             const ApiDisplayElementTypeAssoc* association = &element_parsers[i];

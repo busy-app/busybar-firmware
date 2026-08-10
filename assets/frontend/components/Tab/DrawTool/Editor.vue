@@ -36,7 +36,7 @@
               :ui="{
                 label: 'relative -right-4 sm:static'
               }"
-              @click="saveStatus()"
+              @click="() => { saveStatus(); }"
             />
             <UDropdownMenu
               :items="[
@@ -771,7 +771,7 @@
             variant="ghost"
             square
             :class="toolbarIconButtonClass"
-            @click="es.showImageUploadModal = true"
+            @click="() => { es.showImageUploadModal = true; }"
           >
             <UIcon
               name="i-bi-image"
@@ -795,7 +795,7 @@
             variant="ghost"
             square
             :class="toolbarIconButtonClass"
-            @click="showGrid = !showGrid"
+            @click="() => { showGrid = !showGrid; }"
           >
             <UIcon
               :name="showGrid ? 'i-bi-grid' : 'i-bi-grid-off'"
@@ -2075,9 +2075,8 @@ async function writeStatusFile (path: string, file: File) {
 
   await deviceStore.busyBar.StorageWrite({
     path,
-    file,
-    timeout: 0
-  });
+    file
+  }, { timeout: 0 });
 }
 
 async function saveStatus (options?: { saveAsNew?: boolean }) {

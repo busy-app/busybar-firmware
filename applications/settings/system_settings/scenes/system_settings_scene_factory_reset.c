@@ -35,7 +35,7 @@ static void system_settings_scene_factory_reset_on_enter(void* context) {
         for(GuiDisplayId disp = 0; disp < GuiDisplayIdMax; disp++) {
             scene->statuses[disp] = status_view_alloc(windows[disp]);
             status_view_set_icon(scene->statuses[disp], anims[disp], true);
-            status_view_set_primary_text(scene->statuses[disp], "Restarting device...");
+            status_view_set_primary_text(scene->statuses[disp], "Restarting device");
         }
     });
 

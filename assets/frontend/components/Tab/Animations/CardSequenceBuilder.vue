@@ -41,7 +41,7 @@
               color="error"
               variant="ghost"
               class="-my-2"
-              @click="filesModel = null"
+              @click="() => { filesModel = null; }"
             />
           </div>
         </template>

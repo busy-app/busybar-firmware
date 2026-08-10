@@ -48,7 +48,7 @@ export const useDrawToolStore = defineStore('drawTool', () => {
 
   async function readStatusFile (path: string) {
     const deviceStore = useDeviceStore();
-    const file = await deviceStore.busyBar.StorageRead({ path, timeout: 0 });
+    const file = await deviceStore.busyBar.StorageRead({ path }, { timeout: 0 });
 
     return file instanceof Blob ? file : new Blob([file], { type: 'image/png' });
   }
@@ -198,7 +198,7 @@ export const useDrawToolStore = defineStore('drawTool', () => {
     for (const fileName of [...new Set(fileNames)]) {
       const fullPath = createStatusFilePath(fileName);
 
-      await deviceStore.busyBar.StorageRemove({ path: fullPath, timeout: 0 })
+      await deviceStore.busyBar.StorageRemove({ path: fullPath }, { timeout: 0 })
         .catch(async error => {
           await handleHTTPError(error, `Couldn't delete ${fullPath}`, false, 0);
         });
