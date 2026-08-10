@@ -20,7 +20,7 @@ on:
       target:
         required: false
         type: string
-        default: '21'
+        default: '22'
 
 permissions:
   contents: read
