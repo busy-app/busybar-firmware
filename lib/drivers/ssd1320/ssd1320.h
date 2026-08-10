@@ -19,3 +19,5 @@ void ssd1320_draw(const uint8_t* buf);
 void ssd1320_sleep_mode(bool sleep);
 
 void ssd1320_set_contrast(uint8_t contrast);
+
+void ssd1320_set_gamma_table(const uint8_t gamma_table[15]);

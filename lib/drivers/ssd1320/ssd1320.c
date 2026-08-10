@@ -122,6 +122,15 @@ void ssd1320_set_contrast(uint8_t contrast) {
         &furi_hal_spi_bus_handle_back_display, contrast_cmd, sizeof(contrast_cmd));
 }
 
+void ssd1320_set_gamma_table(const uint8_t gamma_table[15]) {
+    uint8_t gamma_cmd[16];
+    gamma_cmd[0] = Cmd1320_GrayScaleTable;
+    memcpy(&gamma_cmd[1], gamma_table, 15);
+
+    ssd1320_send_command(
+        &furi_hal_spi_bus_handle_back_display, gamma_cmd, sizeof(gamma_cmd));
+}
+
 void ssd1320_draw(const uint8_t* buf) {
     furi_hal_spi_acquire(&furi_hal_spi_bus_handle_back_display);
 
