@@ -12,20 +12,20 @@ typedef struct {
     float power;
 } BrightnessCurve;
 
-static const BrightnessCurve front_curve = {
+static const BrightnessCurve front_display_curve = {
     .min = 1,
     .max = 100,
     .power = 2.f,
 };
 
-static const BrightnessCurve back_curve = {
+static const BrightnessCurve back_display_curve = {
     .min = 1,
     .max = 71,
     .power = 3.f,
 };
 
 #if defined(SRV_STATUS_LIGHTS)
-static const BrightnessCurve lights_curve = {
+static const BrightnessCurve status_lights_curve = {
     .min = 5,
     .max = 90,
     .power = 0.f,
@@ -63,15 +63,15 @@ InternalBrightness brightness_conv_light_sensor_to_internal(LightSensorLevel v) 
 }
 
 FrontDisplayBrightness brightness_conv_internal_to_front(InternalBrightness v) {
-    return (FrontDisplayBrightness){brightness_conv_map_curve(&front_curve, v)};
+    return (FrontDisplayBrightness){brightness_conv_map_curve(&front_display_curve, v)};
 }
 
 BackDisplayContrast brightness_conv_internal_to_back(InternalBrightness v) {
-    return (BackDisplayContrast){brightness_conv_map_curve(&back_curve, v)};
+    return (BackDisplayContrast){brightness_conv_map_curve(&back_display_curve, v)};
 }
 
 #if defined(SRV_STATUS_LIGHTS)
 StatusLightsBrightness brightness_conv_internal_to_status(InternalBrightness v) {
-    return (StatusLightsBrightness){brightness_conv_map_curve(&lights_curve, v)};
+    return (StatusLightsBrightness){brightness_conv_map_curve(&status_lights_curve, v)};
 }
 #endif
