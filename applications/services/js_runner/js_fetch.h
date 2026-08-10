@@ -122,3 +122,10 @@ void js_fetch_data_sink_ready(JsFetch* instance);
  * @param instance JsFetch instance
  */
 bool js_fetch_cancel(JsFetch* instance);
+
+/**
+ * @brief If fetch thread is running, indicate it to stop.
+ *
+ * @param instance JsFetch instance
+ */
+void js_fetch_abort(JsFetch* instance);

@@ -40,12 +40,26 @@ static const jerry_object_native_info_t global_native_info = {
     .free_cb = NULL,
 };
 
+static bool has_active_fetch(JsRunnerAppFetch* instance) {
+    for(size_t i = 0; i != FetchArray_size(instance->fetches); ++i) {
+        if(*FetchArray_cget(instance->fetches, i)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static bool has_active_interval(JsRunnerAppInterval* instance) {
+    return !IntervalDict_empty_p(instance->intervals);
+}
+
 static bool app_has_background_tasks(JsRunnerApp* app) {
-    return !IntervalDict_empty_p(app->interval.intervals) || app->fetch.num_threads > 0;
+    return has_active_interval(&app->interval) || has_active_fetch(&app->fetch);
 }
 
 void js_runner_check_event_loop(JsRunnerApp* app) {
     if(!app_has_background_tasks(app)) {
+        JS_TRACE("No more tasks");
         furi_event_loop_stop(app->event_loop);
     }
 }
@@ -56,7 +70,9 @@ void js_run_jobs(void) {
         jerry_value_t jobs_result = jerry_run_jobs();
         if(jerry_value_is_exception(jobs_result)) {
             FURI_LOG_E(TAG, "Exception when running jobs");
-            // TODO abort event loop
+            if(jerry_value_is_abort(jobs_result)) {
+                FURI_LOG_E(TAG, "Must terminate");
+            }
             run = false;
         } else {
             run = false;
@@ -92,12 +108,14 @@ static void js_runner_app_interval_deinit(JsRunnerAppInterval* interval) {
 }
 
 static void js_runner_app_fetch_init(JsRunnerAppFetch* fetch) {
-    fetch->num_threads = 0;
+    FetchArray_init(fetch->fetches);
     fetch->event_queue = furi_message_queue_alloc(MAX_FETCH_MESSAGES, sizeof(JsFetchEvent));
 }
 
 static void js_runner_app_fetch_deinit(JsRunnerAppFetch* fetch) {
-    furi_check(fetch->num_threads == 0);
+    furi_check(!has_active_fetch(fetch));
+
+    FetchArray_clear(fetch->fetches);
     furi_message_queue_free(fetch->event_queue);
 }
 
@@ -107,6 +125,7 @@ static void js_runner_app_init(
     size_t heap_size,
     JsRunnerConsoleOutCallback console_out_cb,
     void* console_cb_context) {
+    app->terminate = false;
     app->heap_size = heap_size;
     app->jrs_context = NULL;
     app->event_loop = furi_event_loop_alloc();
@@ -165,12 +184,42 @@ static void
     }
 }
 
-void js_runner_add_fetch_thread(JsRunnerApp* app) {
-    app->fetch.num_threads += 1;
+static jerry_value_t engine_halt_callback(void* user_p) {
+    JsRunnerApp* app = user_p;
+    JS_TRACE("halt callback");
+    if(app->terminate) {
+        JS_TRACE("teminate!");
+
+        return jerry_string_sz("aborted");
+    } else {
+        return jerry_undefined();
+    }
 }
 
-void js_runner_del_fetch_thread(JsRunnerApp* app) {
-    app->fetch.num_threads -= 1;
+void js_runner_add_fetch_thread(JsRunnerApp* app, JsFetch* fetch) {
+    JS_TRACE("Add fetch thread");
+    for(size_t i = 0; i != FetchArray_size(app->fetch.fetches); ++i) {
+        JsFetch** cell = FetchArray_get(app->fetch.fetches, i);
+        if(*cell == NULL) {
+            *cell = fetch;
+            return;
+        }
+    }
+    FetchArray_push_back(app->fetch.fetches, fetch);
+}
+
+void js_runner_del_fetch_thread(JsRunnerApp* app, JsFetch* fetch) {
+    bool found = false;
+    JS_TRACE("Delete fetch thread");
+    for(size_t i = 0; i != FetchArray_size(app->fetch.fetches); ++i) {
+        JsFetch** cell = FetchArray_get(app->fetch.fetches, i);
+        if(*cell == fetch) {
+            *cell = NULL;
+            found = true;
+            break;
+        }
+    }
+    furi_check(found);
     js_runner_check_event_loop(app);
 }
 
@@ -212,6 +261,7 @@ JsRunnerError js_runner_run(
         }
 
         jerry_init(JERRY_INIT_EMPTY);
+        jerry_halt_handler(1, engine_halt_callback, &app);
         jerry_arraybuffer_allocator(NULL, arraybuffer_free_callback, NULL);
         jerry_string_external_on_free(external_string_free_callback);
 
@@ -288,6 +338,46 @@ static JsRunner* js_runner_alloc(void) {
     AppDict_init(instance->apps);
     furi_record_create(RECORD_JS_RUNNER, instance);
     return instance;
+}
+
+static void abort_fetches(JsRunnerAppFetch* instance) {
+    for(size_t i = 0; i != FetchArray_size(instance->fetches); ++i) {
+        JsFetch* fetch = *FetchArray_cget(instance->fetches, i);
+        if(fetch) {
+            js_fetch_abort(fetch);
+        }
+    }
+}
+
+static void app_terminate_background_tasks(JsRunnerApp* app) {
+    abort_fetches(&app->fetch);
+}
+
+static void app_terminate(JsRunnerApp* app) {
+    app->terminate = true;
+    app_terminate_background_tasks(app);
+}
+
+bool js_runner_kill(JsRunner* instance, FuriThread* thread) {
+    bool result = false;
+    furi_mutex_acquire(instance->apps_mutex, FuriWaitForever);
+    JsRunnerApp** app_ptr = AppDict_get(instance->apps, thread);
+    if(app_ptr) {
+        app_terminate(*app_ptr);
+        result = true;
+    }
+    furi_mutex_release(instance->apps_mutex);
+    return result;
+}
+
+void js_runner_kill_all(JsRunner* instance) {
+    furi_mutex_acquire(instance->apps_mutex, FuriWaitForever);
+    AppDict_it_t iter;
+    for(AppDict_it(iter, instance->apps); !AppDict_end_p(iter); AppDict_next(iter)) {
+        JsRunnerApp* app = AppDict_cref(iter)->value;
+        app_terminate(app);
+    }
+    furi_mutex_release(instance->apps_mutex);
 }
 
 int32_t js_runner_srv(void* p) {

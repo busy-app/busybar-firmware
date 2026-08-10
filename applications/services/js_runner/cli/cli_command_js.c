@@ -37,19 +37,34 @@ static void js_console_cb(
     }
 }
 
+static void run_script(const FuriString* arg) {
+    JsRunner* runner = furi_record_open(RECORD_JS_RUNNER);
+    JsRunnerError error =
+        js_runner_run(runner, furi_string_get_cstr(arg), 64 * 1024, js_console_cb, NULL);
+    if(error != JsRunnerErrorNone) {
+        printf("Error running script: %d", error);
+    }
+    furi_record_close(RECORD_JS_RUNNER);
+}
+
+static void abort_all(void) {
+    JsRunner* runner = furi_record_open(RECORD_JS_RUNNER);
+    js_runner_kill_all(runner);
+    furi_record_close(RECORD_JS_RUNNER);
+}
+
 void cli_command_js(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
     UNUSED(context);
 
     if(furi_string_size(args) > 0) {
-        JsRunner* runner = furi_record_open(RECORD_JS_RUNNER);
-        JsRunnerError error =
-            js_runner_run(runner, furi_string_get_cstr(args), 64 * 1024, js_console_cb, NULL);
-        if(error != JsRunnerErrorNone) {
-            printf("Error running script: %d", error);
+        if(furi_string_cmp(args, "-kill") == 0) {
+            abort_all();
+        } else {
+            run_script(args);
         }
-        furi_record_close(RECORD_JS_RUNNER);
     } else {
         printf("Usage: js <filename>\r\n");
+        printf("Usage: js -kill\r\n");
     }
 }

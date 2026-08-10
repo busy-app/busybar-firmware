@@ -19,7 +19,7 @@
 #include <jerryscript.h>
 #pragma GCC diagnostic pop
 
-// #define JS_DEBUG
+#define JS_DEBUG
 
 #if defined(JS_DEBUG)
 #define JS_TRACE(...) FURI_LOG_D(TAG, __VA_ARGS__)
@@ -59,8 +59,10 @@ typedef struct JsRunnerAppInterval {
     uint32_t last_id;
 } JsRunnerAppInterval;
 
+typedef struct JsFetch JsFetch;
+ARRAY_DEF(FetchArray, JsFetch*, M_PTR_OPLIST);
 typedef struct JsRunnerAppFetch {
-    uint32_t num_threads;
+    FetchArray_t fetches;
     FuriMessageQueue* event_queue;
 } JsRunnerAppFetch;
 
@@ -69,6 +71,7 @@ typedef struct JsRunnerApp {
     void* jrs_context;
     FuriEventLoop* event_loop;
     FuriString* root_path;
+    volatile bool terminate;
 
     JsRunnerAppConsole console;
     JsRunnerAppInterval interval;
@@ -133,5 +136,5 @@ void* js_runner_thread_context_get(void);
  * This function is used by jerryscript glue. */
 void js_runner_get_root_path(FuriString* path);
 
-void js_runner_add_fetch_thread(JsRunnerApp* app);
-void js_runner_del_fetch_thread(JsRunnerApp* app);
+void js_runner_add_fetch_thread(JsRunnerApp* app, JsFetch* fetch);
+void js_runner_del_fetch_thread(JsRunnerApp* app, JsFetch* fetch);

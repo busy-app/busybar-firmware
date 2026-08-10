@@ -6,6 +6,7 @@
 #pragma once
 #include <stddef.h>
 #include <furi/core/string.h>
+#include <furi/core/thread.h>
 
 #define RECORD_JS_RUNNER "js_runner"
 
@@ -41,7 +42,7 @@ typedef void (*JsRunnerConsoleOutCallback)(
 
 /** @brief Run a JS application.
  *
- * This function blocks until the script terminates.
+ * This function blocks until the script terminates. To forcefully terminate the script use js_runner_kill().
  *
  * @param instance JsRunner instance. Can be obtained with furi_record_open().
  * @param path entry point script path.
@@ -57,3 +58,18 @@ JsRunnerError js_runner_run(
     size_t heap_size,
     JsRunnerConsoleOutCallback console_write_cb,
     void* console_write_context);
+
+/** @brief Terminate a running JS application.
+ *
+ * @param instance JsRunner instance. Can be obtained with furi_record_open().
+ * @param thread thread the thread in which js_runner_run is running.
+ * @return true on success, false on failure (given thread does not have a running JS app).
+ */
+bool js_runner_kill(JsRunner* instance, FuriThread* thread);
+
+
+/** @brief Terminate all running JS applications.
+ *
+ * @param instance JsRunner instance. Can be obtained with furi_record_open().
+ */
+void js_runner_kill_all(JsRunner* instance);
