@@ -18,7 +18,7 @@ extern "C" {
 /** Light sensor light level min */
 #define LIGHT_SENSOR_LIGHT_LEVEL_MIN (0U)
 /** Light sensor light level max */
-#define LIGHT_SENSOR_LIGHT_LEVEL_MAX (20U)
+#define LIGHT_SENSOR_LIGHT_LEVEL_MAX (10U)
 
 /**
  * @brief Light sensor wavelengths.
