@@ -1,4 +1,4 @@
-# File formats {#file_formats}
+# File Formats {#file_formats}
 
 The BUSY Bar uses a number of custom file formats. This page describes them in
 detail, as well as provides rationale for inventing these formats as opposed to
