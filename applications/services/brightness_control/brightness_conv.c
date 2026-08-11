@@ -11,7 +11,7 @@
  * device-specific brightness using the below parameters:
  *
  * - min: Lower limit of the device brightness, inclusive
- * - max: Upper limin of the device brightness, inclusive
+ * - max: Upper limit of the device brightness, inclusive
  * - power: Exponential power that controls the brightness curve behaviour:
  *   - 0: Completely linear (straight line between min and max)
  *   - > 0 : Ease in (grows slowly near min, grows fast near max)
