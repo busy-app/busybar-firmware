@@ -7,6 +7,8 @@
 #define START_REFRESH_COUNT 10
 #define START_VSYNC_COUNT   START_REFRESH_COUNT
 
+#define GAMMA_LUT_SIZE (UINT8_MAX + 1)
+
 typedef enum {
     LedDriverCmdNone = 0, // Placeholder
     LedDriverCmdDataLatch = 1, // Latch 16bit data and send it to SRAM
@@ -115,7 +117,7 @@ _Static_assert(sizeof(LedDriverCfg4) == sizeof(uint16_t), "LedDriverCfg4 size mi
 
 struct FrontDisplayDriver {
     uint8_t spi_buf[FRONT_DISPLAY_W * FRONT_DISPLAY_H * PIXEL_BUF_LEN];
-    uint16_t gamma_lut[256];
+    uint16_t gamma_lut[GAMMA_LUT_SIZE];
     uint16_t index_lut[FRONT_DISPLAY_W * FRONT_DISPLAY_H];
     uint32_t dma_channel;
     uint32_t refresh_count;
@@ -312,7 +314,7 @@ static void
     front_display_gamma_lut_generate(uint16_t* gamma_lut, float gamma_val, uint8_t brightness) {
     if(brightness == 0) {
         // Everything is black
-        memset(gamma_lut, 0, sizeof(uint16_t) * UINT8_MAX);
+        memset(gamma_lut, 0, sizeof(uint16_t) * GAMMA_LUT_SIZE);
         return;
     }
 
