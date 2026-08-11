@@ -252,11 +252,12 @@ JsRunnerError js_runner_run(
                     jerry_value_t result = jerry_module_evaluate(parsed_script);
                     if(jerry_value_is_exception(result)) {
                         js_log_exception(TAG, "Error running script", result);
-                    } else {
-                        js_run_jobs();
-                        if(app_has_background_tasks(&app)) {
-                            furi_event_loop_run(app.event_loop);
-                        }
+                        // TODO terminate background tasks
+                        furi_check(false);
+                    }
+                    js_run_jobs();
+                    if(app_has_background_tasks(&app)) {
+                        furi_event_loop_run(app.event_loop);
                     }
                     jerry_value_free(result);
                 }
