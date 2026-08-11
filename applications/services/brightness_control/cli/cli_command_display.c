@@ -98,16 +98,16 @@ static void cli_action_gamma(PipeSide* pipe, FuriString* args, GuiDisplayId id) 
     BackDisplayGammaTable gamma_table;
 
     for(uint32_t i = 0; i < sizeof(gamma_table); ++i) {
-        int tmp;
-        if(!args_read_int_and_trim(args, &tmp)) {
+        int value;
+        if(!args_read_int_and_trim(args, &value)) {
             printf("Error: too few arguments");
             return;
         }
-        if(tmp < 0 || tmp > 64) {
+        if((value < 0) || (value >= 64)) {
             printf("Error: value out of range");
             return;
         }
-        gamma_table.data[i] = tmp;
+        gamma_table.data[i] = value;
     }
 
     BackDisplaySrv* back_display = furi_record_open(RECORD_BACK_DISPLAY);
