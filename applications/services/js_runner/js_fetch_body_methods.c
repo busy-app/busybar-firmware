@@ -135,6 +135,7 @@ static void process_done(BodyMethod* instance) {
 static void process_error(BodyMethod* instance, FuriString* msg) {
     js_fetch_set_data_sink(instance->parent, NULL, NULL);
     ByteArray_clear(*instance->body);
+    free(instance->body);
     // jerry_value_t exception = jerry_throw_sz(JERRY_ERROR_TYPE, furi_string_get_cstr(msg));
     jerry_value_t exception = jerry_string_sz(furi_string_get_cstr(msg));
     jerry_value_free(jerry_promise_reject(instance->promise, exception));
@@ -224,7 +225,7 @@ static bool json_body_collected(BodyMethod* instance) {
         jerry_value_free(json);
     }
     js_run_jobs();
-    return true;
+    return false;
 }
 
 static bool form_data_body_collected(BodyMethod* instance) {
@@ -247,5 +248,5 @@ static bool text_body_collected(BodyMethod* instance) {
     jerry_value_free(instance->promise);
     jerry_value_free(string);
     js_run_jobs();
-    return true;
+    return false;
 }
