@@ -58,11 +58,14 @@ static bool fetch_is_rx_complete(const Fetch* instance) {
     bool is_complete = false;
 
     const FetchProgress* progress = &instance->progress;
-    const size_t expected_size = progress->total_download_size;
-    const size_t actual_size = progress->received_download_size;
 
-    if((expected_size != 0) && (actual_size >= expected_size)) {
-        is_complete = true;
+    if(progress->has_total_download_size) {
+        const size_t expected_size = progress->total_download_size;
+        const size_t actual_size = progress->received_download_size;
+
+        if(actual_size >= expected_size) {
+            is_complete = true;
+        }
     }
 
     return is_complete;
@@ -83,7 +86,9 @@ static void fetch_switch_to_raw_protocol(
     instance->started_download_ticks = instance->started_raw_ticks;
 
     if(body_length != -1) {
-        instance->progress.total_download_size = body_length;
+        FetchProgress* progress = &instance->progress;
+        progress->total_download_size = body_length;
+        progress->has_total_download_size = true;
     }
 
     fetch_consume_rx_data(conn, msg->head.len);
@@ -339,11 +344,14 @@ static bool fetch_verify_response_body_size(Fetch* instance) {
 
     if(!(instance->is_stop_requested || instance->is_error_occurred)) {
         const FetchProgress* progress = &instance->progress;
-        const size_t expected_size = progress->total_download_size;
-        const size_t actual_size = progress->received_download_size;
 
-        if((expected_size != 0) && (expected_size != actual_size)) {
-            success = false;
+        if(progress->has_total_download_size) {
+            const size_t expected_size = progress->total_download_size;
+            const size_t actual_size = progress->received_download_size;
+
+            if(expected_size != actual_size) {
+                success = false;
+            }
         }
     }
 
