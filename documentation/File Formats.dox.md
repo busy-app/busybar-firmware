@@ -69,7 +69,7 @@ setting.
 Then, long runs of equal pixels can be compressed using "run-length" encoding.
 In the byte stream of an "Encoded" buffer, it places two main markers: "the
 following is a run of N different pixels that I can't summarize", or "the
-following one pixel should be replicated N times". N can never be more than 128
+following one pixel should be replicated N times". N can never be more than 127
 in either case.
 
 The encoder thus follows a simple procedure to encode any single frame:
@@ -79,7 +79,7 @@ The encoder thus follows a simple procedure to encode any single frame:
     one byte respectively.
   - "Encoded" buffer: Always try to encode the "Packed" buffer using RLE
     encoding. If the resulting size is larger than without it (due to markers
-    that it inserts every 128 pixels), use raw encoding (don't write the RLE
+    that it inserts every 127 pixels), use raw encoding (don't write the RLE
     result).
 
 If you were wondering why the source buffer is called a "Sheet" buffer in the
