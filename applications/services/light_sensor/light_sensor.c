@@ -12,7 +12,7 @@
 #define LIGHT_SENSOR_I2C (&furi_hal_i2c_handle_1)
 
 #define LIGHT_SENSOR_SAMPLE_INTERVAL_MS (1000)
-#define LIGHT_SENSOR_LUX_MIN            (10.0f)
+#define LIGHT_SENSOR_LUX_MIN            (1.0f)
 #define LIGHT_SENSOR_LUX_MAX            (10000.0f)
 #define LIGHT_SENSOR_WINDOW_SIZE        (5)
 
