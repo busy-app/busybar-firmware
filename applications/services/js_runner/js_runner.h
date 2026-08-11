@@ -67,7 +67,6 @@ JsRunnerError js_runner_run(
  */
 bool js_runner_kill(JsRunner* instance, FuriThread* thread);
 
-
 /** @brief Terminate all running JS applications.
  *
  * @param instance JsRunner instance. Can be obtained with furi_record_open().

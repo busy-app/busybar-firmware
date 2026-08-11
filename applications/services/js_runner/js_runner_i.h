@@ -29,6 +29,7 @@
 
 #define MIN_INTERVAL_DELAY_MS 10.0f
 #define MAX_FETCH_MESSAGES    32
+#define MAX_COMMAND_MESSAGES  4
 
 #define PTR_HASH(p) ((size_t)(p))
 
@@ -66,12 +67,20 @@ typedef struct JsRunnerAppFetch {
     FuriMessageQueue* event_queue;
 } JsRunnerAppFetch;
 
+typedef enum JsRunnerAppCommandType {
+    JsRunnerAppCommandTypeInvalid,
+    JsRunnerAppCommandTypeAbort,
+
+    JsRunnerAppCommandTypeMax,
+} JsRunnerAppCommandType;
+
 typedef struct JsRunnerApp {
     size_t heap_size;
     void* jrs_context;
     FuriEventLoop* event_loop;
     FuriString* root_path;
     volatile bool terminate;
+    FuriMessageQueue* command_queue;
 
     JsRunnerAppConsole console;
     JsRunnerAppInterval interval;
