@@ -42,6 +42,7 @@ jerry_value_t headers_iter_next(
 
     HeadersIter* instance =
         jerry_object_get_native_ptr(call_info->this_value, &headers_iter_native_info);
+    JS_CHECK_INSTANCE();
     if(instance->index == http_headers_get_header_count(instance->parent->headers)) {
         return js_iterator_result(true, jerry_undefined());
     } else {
@@ -82,6 +83,7 @@ jerry_value_t headers_iter_iterator(
 
     HeadersIter* instance =
         jerry_object_get_native_ptr(call_info->this_value, &headers_iter_native_info);
+    JS_CHECK_INSTANCE();
 
     return jerry_value_copy(instance->self);
 }
@@ -94,19 +96,20 @@ jerry_value_t headers_iterator_method(
     UNUSED(args);
     UNUSED(args_count);
 
-    Headers* parent = jerry_object_get_native_ptr(call_info->this_value, &headers_native_info);
-    HeadersIter* instance = malloc(sizeof(HeadersIter));
-    instance->parent = parent;
-    instance->index = 0;
-    instance->parent->ref_count += 1;
-    instance->mode = mode;
+    Headers* instance = jerry_object_get_native_ptr(call_info->this_value, &headers_native_info);
+    JS_CHECK_INSTANCE();
+    HeadersIter* headers_iter = malloc(sizeof(HeadersIter));
+    headers_iter->parent = instance;
+    headers_iter->index = 0;
+    headers_iter->parent->ref_count += 1;
+    headers_iter->mode = mode;
     jerry_value_t iter = jerry_object();
-    jerry_object_set_native_ptr(iter, &headers_iter_native_info, instance);
+    jerry_object_set_native_ptr(iter, &headers_iter_native_info, headers_iter);
 
     js_set_method(iter, "next", headers_iter_next);
     js_set_method_sym(iter, JERRY_SYMBOL_ITERATOR, headers_iter_iterator);
 
-    instance->self = iter;
+    headers_iter->self = iter;
 
     return iter;
 }
@@ -137,6 +140,7 @@ jerry_value_t headers_has(
     const jerry_value_t args[],
     const jerry_length_t args_count) {
     Headers* instance = jerry_object_get_native_ptr(call_info->this_value, &headers_native_info);
+    JS_CHECK_INSTANCE();
 
     if(args_count == 0) {
         return jerry_throw_sz(JERRY_ERROR_TYPE, "Too few arguments for has");
@@ -166,6 +170,7 @@ jerry_value_t headers_foreach(
     const jerry_value_t args[],
     const jerry_length_t args_count) {
     Headers* instance = jerry_object_get_native_ptr(call_info->this_value, &headers_native_info);
+    JS_CHECK_INSTANCE();
 
     if(args_count == 0) {
         return jerry_throw_sz(JERRY_ERROR_TYPE, "Too few arguments for forEach");

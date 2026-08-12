@@ -30,9 +30,10 @@ jerry_value_t js_fetch_array_buffer(
     const jerry_length_t args_count) {
     UNUSED(args);
     UNUSED(args_count);
-    JsFetch* parent =
+    JsFetch* instance =
         jerry_object_get_native_ptr(call_info->this_value, &js_fetch_response_native_info);
-    return run_js_method(parent, array_buffer_body_collected);
+    JS_CHECK_INSTANCE();
+    return run_js_method(instance, array_buffer_body_collected);
 }
 
 jerry_value_t js_fetch_blob(
@@ -41,9 +42,10 @@ jerry_value_t js_fetch_blob(
     const jerry_length_t args_count) {
     UNUSED(args);
     UNUSED(args_count);
-    JsFetch* parent =
+    JsFetch* instance =
         jerry_object_get_native_ptr(call_info->this_value, &js_fetch_response_native_info);
-    return run_js_method(parent, blob_body_collected);
+    JS_CHECK_INSTANCE();
+    return run_js_method(instance, blob_body_collected);
 }
 
 jerry_value_t js_fetch_bytes(
@@ -52,9 +54,10 @@ jerry_value_t js_fetch_bytes(
     const jerry_length_t args_count) {
     UNUSED(args);
     UNUSED(args_count);
-    JsFetch* parent =
+    JsFetch* instance =
         jerry_object_get_native_ptr(call_info->this_value, &js_fetch_response_native_info);
-    return run_js_method(parent, bytes_body_collected);
+    JS_CHECK_INSTANCE();
+    return run_js_method(instance, bytes_body_collected);
 }
 
 jerry_value_t js_fetch_form_data(
@@ -63,9 +66,10 @@ jerry_value_t js_fetch_form_data(
     const jerry_length_t args_count) {
     UNUSED(args);
     UNUSED(args_count);
-    JsFetch* parent =
+    JsFetch* instance =
         jerry_object_get_native_ptr(call_info->this_value, &js_fetch_response_native_info);
-    return run_js_method(parent, form_data_body_collected);
+    JS_CHECK_INSTANCE();
+    return run_js_method(instance, form_data_body_collected);
 }
 
 jerry_value_t js_fetch_json(
@@ -74,9 +78,10 @@ jerry_value_t js_fetch_json(
     const jerry_length_t args_count) {
     UNUSED(args);
     UNUSED(args_count);
-    JsFetch* parent =
+    JsFetch* instance =
         jerry_object_get_native_ptr(call_info->this_value, &js_fetch_response_native_info);
-    return run_js_method(parent, json_body_collected);
+    JS_CHECK_INSTANCE();
+    return run_js_method(instance, json_body_collected);
 }
 
 jerry_value_t js_fetch_text(
@@ -85,9 +90,10 @@ jerry_value_t js_fetch_text(
     const jerry_length_t args_count) {
     UNUSED(args);
     UNUSED(args_count);
-    JsFetch* parent =
+    JsFetch* instance =
         jerry_object_get_native_ptr(call_info->this_value, &js_fetch_response_native_info);
-    return run_js_method(parent, text_body_collected);
+    JS_CHECK_INSTANCE();
+    return run_js_method(instance, text_body_collected);
 }
 
 jerry_object_native_info_t promise_native_info = {0};

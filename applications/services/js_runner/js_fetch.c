@@ -341,6 +341,7 @@ static jerry_value_t body_used_getter(
 
     JsFetch* instance =
         jerry_object_get_native_ptr(call_info->this_value, &js_fetch_response_native_info);
+    JS_CHECK_INSTANCE();
 
     bool used = instance->sink.status != ChildStatusNotYet;
     return jerry_boolean(used);

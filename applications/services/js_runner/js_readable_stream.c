@@ -128,6 +128,7 @@ static jerry_value_t iterator_next(
 
     JsReadableStream* instance =
         jerry_object_get_native_ptr(call_info->this_value, &async_iterator_native_info);
+    JS_CHECK_INSTANCE();
 
     jerry_value_t promise = jerry_promise();
 
@@ -154,6 +155,7 @@ static jerry_value_t iterator_return(
 
     JsReadableStream* instance =
         jerry_object_get_native_ptr(call_info->this_value, &async_iterator_native_info);
+    JS_CHECK_INSTANCE();
 
     jerry_value_t promise = jerry_promise();
 
@@ -178,8 +180,9 @@ static jerry_value_t readable_stream_cancel(
 
     JsReadableStream* instance =
         jerry_object_get_native_ptr(call_info->this_value, &readable_stream_native_info);
+    JS_CHECK_INSTANCE();
 
-    if(js_fetch_cancel(instance->parent)) {
+    if(!instance->parent || js_fetch_cancel(instance->parent)) {
         jerry_value_t promise = jerry_promise();
         jerry_value_t result = jerry_undefined();
         js_check_and_free(jerry_promise_resolve(promise, result));
@@ -269,6 +272,7 @@ static jerry_value_t async_iterator(
 
     JsReadableStream* instance =
         jerry_object_get_native_ptr(call_info->this_value, &readable_stream_native_info);
+    JS_CHECK_INSTANCE();
 
     bool set_data_sink_ok = instance->parent &&
                             js_fetch_set_data_sink(instance->parent, data_sink_callback, instance);
@@ -298,6 +302,7 @@ static jerry_value_t get_reader(
 
     JsReadableStream* instance =
         jerry_object_get_native_ptr(call_info->this_value, &readable_stream_native_info);
+    JS_CHECK_INSTANCE();
 
     bool set_data_sink_ok = instance->parent &&
                             js_fetch_set_data_sink(instance->parent, data_sink_callback, instance);

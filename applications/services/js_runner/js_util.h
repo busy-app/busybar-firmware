@@ -9,6 +9,13 @@
 #pragma GCC diagnostic pop
 #include <furi/core/string.h>
 
+#define JS_CHECK_INSTANCE()                                                    \
+    do {                                                                       \
+        if(!instance) {                                                        \
+            return jerry_throw_sz(JERRY_ERROR_TYPE, "Invalid \"this\" value"); \
+        }                                                                      \
+    } while(false)
+
 /** @brief Check if value is not and exception and free it
  * @param value value to check and free
  */
