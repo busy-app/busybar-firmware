@@ -54,6 +54,23 @@ static uint32_t fetch_calc_download_speed(size_t size_delta, uint32_t start_time
     return size_delta / delta_s;
 }
 
+static bool fetch_is_rx_complete(const Fetch* instance) {
+    bool is_complete = false;
+
+    const FetchProgress* progress = &instance->progress;
+
+    if(progress->has_total_download_size) {
+        const size_t expected_size = progress->total_download_size;
+        const size_t actual_size = progress->received_download_size;
+
+        if(actual_size >= expected_size) {
+            is_complete = true;
+        }
+    }
+
+    return is_complete;
+}
+
 static void fetch_consume_rx_data(struct mg_connection* conn, size_t length) {
     mg_iobuf_del(&conn->recv, 0, length);
 }
@@ -69,7 +86,9 @@ static void fetch_switch_to_raw_protocol(
     instance->started_download_ticks = instance->started_raw_ticks;
 
     if(body_length != -1) {
-        instance->progress.total_download_size = body_length;
+        FetchProgress* progress = &instance->progress;
+        progress->total_download_size = body_length;
+        progress->has_total_download_size = true;
     }
 
     fetch_consume_rx_data(conn, msg->head.len);
@@ -241,6 +260,10 @@ static FURI_ALWAYS_INLINE void fetch_read_event(Fetch* instance, struct mg_conne
     }
 
     fetch_consume_rx_data(conn, recv_len);
+
+    if(fetch_is_rx_complete(instance)) {
+        conn->is_draining = 1;
+    }
 }
 
 static FURI_ALWAYS_INLINE void fetch_close_event(Fetch* instance, struct mg_connection* conn) {
@@ -321,11 +344,14 @@ static bool fetch_verify_response_body_size(Fetch* instance) {
 
     if(!(instance->is_stop_requested || instance->is_error_occurred)) {
         const FetchProgress* progress = &instance->progress;
-        const size_t expected_size = progress->total_download_size;
-        const size_t actual_size = progress->received_download_size;
 
-        if((expected_size != 0) && (expected_size != actual_size)) {
-            success = false;
+        if(progress->has_total_download_size) {
+            const size_t expected_size = progress->total_download_size;
+            const size_t actual_size = progress->received_download_size;
+
+            if(expected_size != actual_size) {
+                success = false;
+            }
         }
     }
 

@@ -23,6 +23,7 @@ class TestCLIFetch:
     """Exercise the real device Fetch path through a local host server."""
 
     DEST = "/ext/fetch_test.bin"
+    KEEP_ALIVE_DEST = "/ext/fetch_keep_alive.bin"
     TRUNCATED_DEST = "/ext/fetch_truncated.bin"
     UNKNOWN_DEST = "/ext/fetch_unknown_length.bin"
     TIMEOUT_DEST = "/ext/fetch_timeout.bin"
@@ -94,6 +95,31 @@ class TestCLIFetch:
             self._assert_saved_payload(cli, self.DEST, KNOWN_PAYLOAD)
         finally:
             cli.execute_command(f"storage remove {self.DEST}")
+
+    @allure.title(
+        "CLI. Fetch completes a known-length response before the connection closes."
+    )
+    def test_fetch_known_length_does_not_wait_for_connection_close(
+        self, persistent_cli_connection, http_server
+    ):
+        cli = persistent_cli_connection
+        cli.execute_command(f"storage remove {self.KEEP_ALIVE_DEST}")
+        try:
+            response = cli.execute_command(
+                f"fetch {http_server.url('/known-keep-alive.bin')} "
+                f"-o {self.KEEP_ALIVE_DEST}",
+                timeout=12,
+                slow_command=True,
+            )
+
+            with allure.step("Verify completion without an inactivity failure"):
+                assert "Downloaded: 100%" in response, response
+                assert "Inactivity timeout" not in response, response
+
+            self._assert_saved_payload(cli, self.KEEP_ALIVE_DEST, KNOWN_PAYLOAD)
+        finally:
+            http_server.release_stall.set()
+            cli.execute_command(f"storage remove {self.KEEP_ALIVE_DEST}")
 
     @allure.title("CLI. Command fetch rejects a truncated known-length response.")
     def test_fetch_truncated_content_length_removes_output(

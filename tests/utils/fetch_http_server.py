@@ -76,6 +76,15 @@ class FetchRequestHandler(http.server.BaseHTTPRequestHandler):
 
         if request_path == "/known.bin":
             self._send_payload(200, KNOWN_PAYLOAD)
+        elif request_path == "/known-keep-alive.bin":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/octet-stream")
+            self.send_header("Content-Length", str(len(KNOWN_PAYLOAD)))
+            self.send_header("Connection", "keep-alive")
+            self.end_headers()
+            self.wfile.write(KNOWN_PAYLOAD)
+            self.wfile.flush()
+            self.server.release_stall.wait(timeout=15)
         elif request_path == "/text":
             self._send_payload(200, TEXT_PAYLOAD, "text/plain")
         elif request_path == "/unicode":
