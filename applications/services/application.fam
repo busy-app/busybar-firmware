@@ -96,7 +96,6 @@ App(
         "tls_crypto",
         "sl_info",
         "supervisor",
-        "log_storage",
     ],
     targets=["f64", "f65"],
 )

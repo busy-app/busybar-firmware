@@ -1,120 +1,86 @@
-#include "log_storage_common_i.h"
+#include "log_storage_remote_i.h"
 
-#include <intercom/intercom.h>
+#include <furi_hal_serial_control.h>
 
-#define TAG "LogStorage"
+#define LOG_STORAGE_REMOTE_BAUD_RATE   (230400u)
+#define LOG_STORAGE_REMOTE_BUFFER_SIZE (16u * 1024u)
+#define LOG_STORAGE_REMOTE_STREAM_SIZE (256u)
 
-#define LOG_STORAGE_INTERCOM_TX_TIMEOUT_MS 500u
+static void log_storage_remote_rx_callback(
+    FuriHalSerialHandle* handle,
+    FuriHalSerialRxEvent events,
+    void* context) {
+    furi_assert(handle);
+    furi_assert(context);
 
-typedef struct {
-    LogStorageBase base;
-    IntercomChannel* channel;
-    FuriThreadId* thread_id;
+    LogStorageRemote* instance = context;
 
-    LogStorageBaseIntercomRequest request;
-} LogStorage;
+    furi_assert(instance->serial == handle);
 
-typedef enum {
-    LogStorageThreadFlagRequest = 1 << 0,
-} LogStorageThreadFlag;
+    if(events & FuriHalSerialRxEventData) {
+        while(furi_hal_serial_rx_available(handle)) {
+            uint8_t byte = furi_hal_serial_rx(handle);
 
-static void log_storage_intercom_rx_callback(const void* data, size_t data_size, void* context) {
-    furi_assert(data_size == sizeof(LogStorageBaseIntercomRequest));
-
-    LogStorage* instance = context;
-    memcpy(&instance->request, data, sizeof(instance->request));
-
-    furi_thread_flags_set(instance->thread_id, LogStorageThreadFlagRequest);
-}
-
-static bool log_storage_send_dump_header(IntercomChannel* channel, size_t length) {
-    LogStorageBaseIntercomResponseHeader response_header = {
-        .length = length,
-    };
-
-    return intercom_tx(
-               channel,
-               &response_header,
-               sizeof(response_header),
-               LOG_STORAGE_INTERCOM_TX_TIMEOUT_MS) == sizeof(response_header);
-}
-
-static bool log_storage_send_dump_data(IntercomChannel* channel, const void* data, size_t length) {
-    return intercom_tx(channel, data, length, LOG_STORAGE_INTERCOM_TX_TIMEOUT_MS) == length;
-}
-
-static void log_storage_send_dump(
-    IntercomChannel* channel,
-    const LogStorageSnapshot* snapshot,
-    size_t requested_length) {
-    size_t full_length = 0;
-    for(size_t i = 0; i < LOG_STORAGE_SNAPSHOT_CHUNKS_COUNT; i++) {
-        full_length += snapshot->chunks[i].length;
-    }
-
-    size_t effective_length = MIN(full_length, requested_length);
-    if(!log_storage_send_dump_header(channel, effective_length)) {
-        FURI_LOG_E(TAG, "Failed to send dump length");
-        return;
-    }
-
-    size_t skip_length = full_length - effective_length;
-    for(size_t i = 0; i < LOG_STORAGE_SNAPSHOT_CHUNKS_COUNT; i++) {
-        const LogStorageSnapshotChunk* chunk = &snapshot->chunks[i];
-        if(chunk->length == 0) continue;
-
-        if(skip_length >= chunk->length) {
-            skip_length -= chunk->length;
-            continue;
-        }
-
-        if(!log_storage_send_dump_data(
-               channel, chunk->data + skip_length, chunk->length - skip_length)) {
-            FURI_LOG_E(TAG, "Failed to send log chunk");
-            return;
-        }
-
-        skip_length = 0;
-    }
-}
-
-static void log_storage_handle_request(LogStorage* instance) {
-    LogStorageSnapshot snapshot;
-    if(log_storage_base_snapshot_take(&instance->base, &snapshot)) {
-        FURI_LOG_D(TAG, "Log dump request handling started");
-
-        log_storage_send_dump(instance->channel, &snapshot, instance->request.length);
-        log_storage_base_snapshot_release(&instance->base);
-    } else {
-        FURI_LOG_E(TAG, "Failed to acquire log snapshot");
-
-        log_storage_send_dump_header(instance->channel, 0);
-    }
-}
-
-int32_t log_storage_srv(void* context) {
-    UNUSED(context);
-
-    LogStorage* instance = malloc(sizeof(*instance));
-    log_storage_base_init(&instance->base);
-
-    instance->thread_id = furi_thread_get_current_id();
-
-    Intercom* intercom = furi_record_open(RECORD_INTERCOM);
-    instance->channel = intercom_channel_open(
-        intercom, IntercomChannelIdLogDump, log_storage_intercom_rx_callback, instance);
-    furi_record_close(RECORD_INTERCOM);
-
-    for(;;) {
-        uint32_t flags =
-            furi_thread_flags_wait(LogStorageThreadFlagRequest, FuriFlagWaitAny, FuriWaitForever);
-
-        furi_check((flags & FuriFlagError) == 0);
-
-        if(flags & LogStorageThreadFlagRequest) {
-            log_storage_handle_request(instance);
+            size_t rx_size = furi_stream_buffer_send(instance->rx_stream, &byte, sizeof(byte), 0);
+            if(rx_size != sizeof(byte)) {
+                instance->did_overrun = true;
+            }
         }
     }
+}
 
-    return 0;
+static void log_storage_remote_stream_callback(FuriEventLoopObject* object, void* context) {
+    furi_assert(context);
+
+    LogStorageRemote* instance = context;
+
+    furi_assert(instance->rx_stream == object);
+
+    if(instance->did_overrun) {
+        FURI_LOG_W(TAG, "Remote log overrun occurred");
+        instance->did_overrun = false;
+    }
+
+    uint8_t buffer[LOG_STORAGE_REMOTE_STREAM_SIZE];
+    size_t rx_size = furi_stream_buffer_receive(instance->rx_stream, buffer, sizeof(buffer), 0);
+
+    if(rx_size != 0) {
+        log_storage_base_internal_capture(&instance->base, buffer, rx_size);
+    }
+}
+
+void log_storage_remote_internal_suspend(LogStorageRemote* instance) {
+    furi_check(instance);
+
+    furi_hal_serial_async_rx_stop(instance->serial);
+    furi_hal_serial_set_rx_callback(instance->serial, NULL, NULL);
+    furi_hal_serial_control_release(instance->serial);
+    instance->serial = NULL;
+}
+
+void log_storage_remote_internal_resume(LogStorageRemote* instance) {
+    furi_check(instance);
+
+    instance->serial = furi_hal_serial_control_acquire(FuriHalSerialIdUsart2);
+    furi_hal_serial_init(instance->serial, LOG_STORAGE_REMOTE_BAUD_RATE);
+    furi_hal_serial_set_rx_callback(instance->serial, log_storage_remote_rx_callback, instance);
+    furi_hal_serial_async_rx_start(instance->serial, false);
+}
+
+void log_storage_remote_internal_init(LogStorageRemote* instance, FuriEventLoop* event_loop) {
+    furi_check(instance);
+    furi_check(event_loop);
+
+    log_storage_base_internal_init(&instance->base, LOG_STORAGE_REMOTE_BUFFER_SIZE);
+    instance->rx_stream = furi_stream_buffer_alloc(LOG_STORAGE_REMOTE_STREAM_SIZE, 1);
+    instance->did_overrun = false;
+
+    furi_event_loop_subscribe_stream_buffer(
+        event_loop,
+        instance->rx_stream,
+        FuriEventLoopEventIn,
+        log_storage_remote_stream_callback,
+        instance);
+
+    log_storage_remote_internal_resume(instance);
 }

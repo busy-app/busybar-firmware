@@ -4,23 +4,17 @@ App(
     entry_point="log_storage_srv",
     stack_size=2 * 1024,
     order=3,
-    cdefines=["LOG_STORAGE_LOG_BUFFER_SIZE=(16u * 1024u)"],
+    cdefines=["SRV_LOG_STORAGE"],
     provides=["log_storage_cli"],
     targets=["f20", "f21", "f22"],
     sdk_headers=["log_storage.h"],
-    sources=["log_storage_common.c", "log_storage.c", "log_storage_intercom.c"],
-)
-
-App(
-    appid="log_storage",
-    apptype=FlipperAppType.SERVICE,
-    entry_point="log_storage_srv",
-    stack_size=2 * 1024,
-    order=3,
-    cdefines=["LOG_STORAGE_LOG_BUFFER_SIZE=(8u * 1024u)"],
-    requires=["intercom"],
-    targets=["f64", "f65"],
-    sources=["log_storage_common.c", "log_storage_remote.c"],
+    requires=["storage"],
+    sources=[
+        "log_storage_base.c",
+        "log_storage_local.c",
+        "log_storage_remote.c",
+        "log_storage.c",
+    ],
 )
 
 App(

@@ -47,6 +47,23 @@ typedef struct LogStorage LogStorage;
  */
 bool log_storage_dump(LogStorage* instance, const char* path);
 
+/**
+ * @brief Temporarily release the remote log UART.
+ *
+ * Releases the serial line used to receive remote logs so that another consumer
+ * can acquire it. Reception is paused until log_storage_resume_remote is called.
+ *
+ * @param[in] instance pointer to the LogStorage instance
+ */
+void log_storage_suspend_remote(LogStorage* instance);
+
+/**
+ * @brief Resume remote log reception after log_storage_suspend_remote.
+ *
+ * @param[in] instance pointer to the LogStorage instance
+ */
+void log_storage_resume_remote(LogStorage* instance);
+
 #ifdef __cplusplus
 }
 #endif
