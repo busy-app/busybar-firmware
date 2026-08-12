@@ -1,4 +1,4 @@
-#include <mongoose.h>
+#include "mongoose_tls.h"
 
 #include <mbedtls/ssl.h>
 #include <mbedtls/pk.h>
@@ -10,10 +10,6 @@
 
 #include <tls_crypto/tls_crypto.h>
 
-#include "mqtt_config.h"
-
-#define TAG "MqttTls"
-
 #define TLS_DEBUG_LEVEL 0
 
 // Intermediate cert slot (signing-ca.der)
@@ -21,36 +17,91 @@
 // Device cert and key slot (device.der + device.key)
 #define TLS_KEY_SLOT_DEVICE TlsCryptoKeyIdDevice
 
-#define TLS_CUSTOM_CERT_DEVICE APP_ASSETS_PATH("device.crt")
-#define TLS_CUSTOM_KEY         APP_ASSETS_PATH("device.key")
+#define TAG "MongooseTls"
 
-static const char* mqtt_alpn_list[] = {"mqtt", NULL};
+static const char* mongoose_tls_alpn_list[] = {"mqtt", NULL};
 
-void mqtt_tls_deinit(struct mg_connection* conn);
-
-static int tls_random(void* ctx, unsigned char* buf, size_t len) {
+static int mongoose_tls_random(void* ctx, unsigned char* buf, size_t len) {
     UNUSED(ctx);
     mg_random(buf, len);
     return 0;
 }
 
-static void tls_debug_cb(void* ctx, int lev, const char* file, int line, const char* str) {
+static void
+    mongoose_tls_debug_cb(void* ctx, int lev, const char* file, int line, const char* str) {
     UNUSED(file);
     UNUSED(line);
     size_t len = strlen(str) - 1;
     FURI_LOG_I(TAG, "%lu %d %.*s", ((struct mg_connection*)ctx)->id, lev, len, str);
 }
 
-static size_t tls_pk_get_bitlen(mbedtls_pk_context* pk) {
+static size_t mongoose_tls_pk_get_bitlen(mbedtls_pk_context* pk) {
     UNUSED(pk);
     return 256;
 }
 
-static int tls_pk_can_do(mbedtls_pk_type_t type) {
+static int mongoose_tls_pk_can_do(mbedtls_pk_type_t type) {
     return (type == MBEDTLS_PK_ECKEY || type == MBEDTLS_PK_ECDSA);
 }
 
-static int tls_pk_sign_with_hw_crypto(
+static int mongoose_tls_net_send(void* ctx, const unsigned char* buf, size_t len) {
+    long n = mg_io_send((struct mg_connection*)ctx, buf, len);
+    if(n == MG_IO_WAIT) return MBEDTLS_ERR_SSL_WANT_WRITE;
+    if(n == MG_IO_RESET) return MBEDTLS_ERR_NET_CONN_RESET;
+    if(n == MG_IO_ERR) return MBEDTLS_ERR_NET_SEND_FAILED;
+    return (int)n;
+}
+
+static int mongoose_tls_net_recv(void* ctx, unsigned char* buf, size_t len) {
+    long n = mg_io_recv((struct mg_connection*)ctx, buf, len);
+    if(n == MG_IO_WAIT) return MBEDTLS_ERR_SSL_WANT_READ;
+    if(n == MG_IO_RESET) return MBEDTLS_ERR_NET_CONN_RESET;
+    if(n == MG_IO_ERR) return MBEDTLS_ERR_NET_RECV_FAILED;
+    return (int)n;
+}
+
+static void mongoose_tls_get_ca_chain(mbedtls_x509_crt* p) {
+    const CaStorage* ca_storage = furi_record_open(RECORD_CA_STORAGE);
+    *p = *ca_storage_get_cert_chain(ca_storage);
+    furi_record_close(RECORD_CA_STORAGE);
+}
+
+static bool mongoose_tls_load_cert_from_hw_crypto(uint8_t slot, mbedtls_x509_crt* crt) {
+    bool success = false;
+
+    do {
+        TlsCrypto* tls_crypto = furi_record_open(RECORD_TLS_CRYPTO);
+
+        TlsCryptoCertificate certificate = {0};
+        const TlsCryptoStatus crypto_status =
+            tls_crypto_get_certificate(tls_crypto, slot, &certificate);
+
+        furi_record_close(RECORD_TLS_CRYPTO);
+
+        if(crypto_status != TlsCryptoStatusOk) {
+            if(crypto_status == TlsCryptoStatusErrorTimeout) {
+                FURI_LOG_E(TAG, "Failed to get certificate from hw crypto: timeout");
+            } else {
+                FURI_LOG_E(TAG, "Failed to get certificate from hw crypto: internal error");
+            }
+            break;
+        }
+
+        const int parse_result =
+            mbedtls_x509_crt_parse(crt, certificate.bytes, certificate.length);
+
+        if(parse_result != 0) {
+            FURI_LOG_E(TAG, "Cert parse error -0x%04X", -parse_result);
+            break;
+        }
+
+        success = true;
+    } while(false);
+
+    return success;
+}
+
+static int mongoose_tls_pk_sign_with_hw_crypto(
     mbedtls_md_type_t md_alg,
     const unsigned char* data,
     size_t data_len,
@@ -100,62 +151,39 @@ static int tls_pk_sign_with_hw_crypto(
     return ret;
 }
 
-static const mbedtls_pk_info_t tls_pk_wrap_hw_crypto = {
-    .type = MBEDTLS_PK_ECKEY,
-    .name = "ECDSA_HW",
-    .get_bitlen = tls_pk_get_bitlen,
-    .can_do = tls_pk_can_do,
-    .sign_message_func = tls_pk_sign_with_hw_crypto,
-    .verify_func = NULL,
-    .sign_func = NULL, // Using .sign_message_func instead
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-    .verify_rs_func = NULL,
-    .sign_rs_func = NULL,
-#endif
-    .decrypt_func = NULL,
-    .encrypt_func = NULL,
-    .check_pair_func = NULL,
-    .ctx_alloc_func = NULL,
-    .ctx_free_func = NULL,
-#if defined(MBEDTLS_ECDSA_C) && defined(MBEDTLS_ECP_RESTARTABLE)
-    .rs_alloc_func = NULL,
-    .rs_free_func = NULL,
-#endif
-    .debug_func = NULL,
-};
+static bool mongoose_tls_setup_pk_wrapper(struct mg_tls* tls) {
+    bool success = true;
 
-static void tls_get_ca_chain(mbedtls_x509_crt* p) {
-    const CaStorage* ca_storage = furi_record_open(RECORD_CA_STORAGE);
-    *p = *ca_storage_get_cert_chain(ca_storage);
-    furi_record_close(RECORD_CA_STORAGE);
+    static const mbedtls_pk_info_t tls_pk_wrap_hw_crypto = {
+        .type = MBEDTLS_PK_ECKEY,
+        .name = "ECDSA_HW",
+        .get_bitlen = mongoose_tls_pk_get_bitlen,
+        .can_do = mongoose_tls_pk_can_do,
+        .sign_message_func = mongoose_tls_pk_sign_with_hw_crypto,
+    };
+
+    const int status = mbedtls_pk_setup(&tls->pk, &tls_pk_wrap_hw_crypto);
+
+    if(status != 0) {
+        success = false;
+    }
+
+    return success;
 }
 
-static bool tls_load_cert_from_hw_crypto(uint8_t slot, mbedtls_x509_crt* crt) {
+static bool mongoose_tls_load_device_certificates(struct mg_tls* tls) {
     bool success = false;
 
     do {
-        TlsCrypto* tls_crypto = furi_record_open(RECORD_TLS_CRYPTO);
-
-        TlsCryptoCertificate certificate = {0};
-        const TlsCryptoStatus crypto_status =
-            tls_crypto_get_certificate(tls_crypto, slot, &certificate);
-
-        furi_record_close(RECORD_TLS_CRYPTO);
-
-        if(crypto_status != TlsCryptoStatusOk) {
-            if(crypto_status == TlsCryptoStatusErrorTimeout) {
-                FURI_LOG_E(TAG, "Failed to get certificate from hw crypto: timeout");
-            } else {
-                FURI_LOG_E(TAG, "Failed to get certificate from hw crypto: internal error");
-            }
+        if(!mongoose_tls_load_cert_from_hw_crypto(TLS_KEY_SLOT_DEVICE, &tls->cert)) {
             break;
         }
 
-        const int parse_result =
-            mbedtls_x509_crt_parse(crt, certificate.bytes, certificate.length);
+        if(!mongoose_tls_load_cert_from_hw_crypto(TLS_KEY_SLOT_SIGN, &tls->cert)) {
+            break;
+        }
 
-        if(parse_result != 0) {
-            FURI_LOG_E(TAG, "Cert parse error -0x%04X", -parse_result);
+        if(!mongoose_tls_setup_pk_wrapper(tls)) {
             break;
         }
 
@@ -165,7 +193,7 @@ static bool tls_load_cert_from_hw_crypto(uint8_t slot, mbedtls_x509_crt* crt) {
     return success;
 }
 
-static bool tls_load_cert_from_file(char* path, mbedtls_x509_crt* crt) {
+static bool mongoose_tls_load_cert_from_file(const char* path, mbedtls_x509_crt* crt) {
     Storage* storage = furi_record_open(RECORD_STORAGE);
     File* file = storage_file_alloc(storage);
 
@@ -207,11 +235,12 @@ static bool tls_load_cert_from_file(char* path, mbedtls_x509_crt* crt) {
     return success;
 }
 
-static bool tls_load_key_from_file(char* path, mbedtls_pk_context* pk) {
+static bool mongoose_tls_load_key_from_file(const char* path, mbedtls_pk_context* pk) {
+    bool success = false;
+
     Storage* storage = furi_record_open(RECORD_STORAGE);
     File* file = storage_file_alloc(storage);
 
-    bool success = false;
     size_t cert_len = 0;
     uint8_t* cert_buf = NULL;
 
@@ -228,6 +257,7 @@ static bool tls_load_key_from_file(char* path, mbedtls_pk_context* pk) {
             FURI_LOG_E(TAG, "Key file read error");
             return false;
         }
+
         success = true;
     } while(0);
 
@@ -235,55 +265,56 @@ static bool tls_load_key_from_file(char* path, mbedtls_pk_context* pk) {
     furi_record_close(RECORD_STORAGE);
 
     if(!success) {
-        if(cert_buf) free(cert_buf);
+        if(cert_buf) {
+            free(cert_buf);
+        }
         return false;
     }
 
-    int ret = mbedtls_pk_parse_key(pk, cert_buf, cert_len + 1, NULL, 0, tls_random, 0);
+    const int ret =
+        mbedtls_pk_parse_key(pk, cert_buf, cert_len + 1, NULL, 0, mongoose_tls_random, 0);
+
     free(cert_buf);
+
     if(ret != 0) {
         FURI_LOG_E(TAG, "Key parse error -0x%04X", -ret);
         return false;
     }
+
     return true;
 }
 
-static int tls_net_send(void* ctx, const unsigned char* buf, size_t len) {
-    long n = mg_io_send((struct mg_connection*)ctx, buf, len);
-    if(n == MG_IO_WAIT) return MBEDTLS_ERR_SSL_WANT_WRITE;
-    if(n == MG_IO_RESET) return MBEDTLS_ERR_NET_CONN_RESET;
-    if(n == MG_IO_ERR) return MBEDTLS_ERR_NET_SEND_FAILED;
-    return (int)n;
-}
-
-static int tls_net_recv(void* ctx, unsigned char* buf, size_t len) {
-    long n = mg_io_recv((struct mg_connection*)ctx, buf, len);
-    if(n == MG_IO_WAIT) return MBEDTLS_ERR_SSL_WANT_READ;
-    if(n == MG_IO_RESET) return MBEDTLS_ERR_NET_CONN_RESET;
-    if(n == MG_IO_ERR) return MBEDTLS_ERR_NET_RECV_FAILED;
-    return (int)n;
-}
-
-static bool mqtt_tls_load_certificates(struct mg_tls* tls, MqttClientCertType cert_type) {
+static bool
+    mongoose_tls_load_custom_certificates(struct mg_tls* tls, const MongooseTlsCustomPath* path) {
     bool success = false;
 
     do {
-        if(cert_type == MqttClientCertTypeDefault) {
-            if(!tls_load_cert_from_hw_crypto(TLS_KEY_SLOT_DEVICE, &tls->cert)) {
-                break;
-            }
-            if(!tls_load_cert_from_hw_crypto(TLS_KEY_SLOT_SIGN, &tls->cert)) {
+        if(!mongoose_tls_load_cert_from_file(path->cert, &tls->cert)) {
+            break;
+        }
+        if(!mongoose_tls_load_key_from_file(path->key, &tls->pk)) {
+            break;
+        }
+
+        success = true;
+    } while(false);
+
+    return success;
+}
+
+static bool mongoose_tls_load_certificates(struct mg_tls* tls, const MongooseTlsConfig* config) {
+    bool success = false;
+
+    do {
+        const MongooseTlsClientCertType cert_type = config->client_cert_type;
+
+        if(cert_type == MongooseTlsClientCertTypeDevice) {
+            if(!mongoose_tls_load_device_certificates(tls)) {
                 break;
             }
 
-            // Setup custom PK wrapper for private key operations
-            mbedtls_pk_setup(&tls->pk, &tls_pk_wrap_hw_crypto);
-
-        } else if(cert_type == MqttClientCertTypeCustom) {
-            if(!tls_load_cert_from_file(TLS_CUSTOM_CERT_DEVICE, &tls->cert)) {
-                break;
-            }
-            if(!tls_load_key_from_file(TLS_CUSTOM_KEY, &tls->pk)) {
+        } else if(cert_type == MongooseTlsClientCertTypeCustom) {
+            if(!mongoose_tls_load_custom_certificates(tls, &config->custom_path)) {
                 break;
             }
 
@@ -305,7 +336,7 @@ static bool mqtt_tls_load_certificates(struct mg_tls* tls, MqttClientCertType ce
     return success;
 }
 
-static bool mqtt_tls_init_hostname(struct mg_tls* tls, const char* server_url) {
+static bool mongoose_tls_init_hostname(struct mg_tls* tls, const char* server_url) {
     bool success = false;
 
     do {
@@ -325,7 +356,7 @@ static bool mqtt_tls_init_hostname(struct mg_tls* tls, const char* server_url) {
     return success;
 }
 
-bool mqtt_tls_init(struct mg_connection* conn, const char* server_url, const MqttConfig* config) {
+bool mongoose_tls_init(struct mg_connection* conn, const MongooseTlsConfig* config) {
     bool success = false;
 
     struct mg_tls* tls = calloc(1, sizeof(*tls));
@@ -346,7 +377,7 @@ bool mqtt_tls_init(struct mg_connection* conn, const char* server_url, const Mqt
 
         mbedtls_pk_init(&tls->pk);
 
-        mbedtls_ssl_conf_dbg(&tls->conf, tls_debug_cb, conn);
+        mbedtls_ssl_conf_dbg(&tls->conf, mongoose_tls_debug_cb, conn);
         mbedtls_debug_set_threshold(TLS_DEBUG_LEVEL);
 
         int ret = mbedtls_ssl_config_defaults(
@@ -360,20 +391,17 @@ bool mqtt_tls_init(struct mg_connection* conn, const char* server_url, const Mqt
             break;
         }
 
-        mbedtls_ssl_conf_rng(&tls->conf, tls_random, conn);
+        mbedtls_ssl_conf_rng(&tls->conf, mongoose_tls_random, conn);
 
-        // Force TLS 1.3
-        mbedtls_ssl_conf_min_tls_version(&tls->conf, MBEDTLS_SSL_VERSION_TLS1_3);
+        mbedtls_ssl_conf_min_tls_version(&tls->conf, MBEDTLS_SSL_VERSION_TLS1_2);
         mbedtls_ssl_conf_max_tls_version(&tls->conf, MBEDTLS_SSL_VERSION_TLS1_3);
 
-        // ALPN
-        mbedtls_ssl_conf_alpn_protocols(&tls->conf, mqtt_alpn_list);
+        mbedtls_ssl_conf_alpn_protocols(&tls->conf, mongoose_tls_alpn_list);
 
-        tls_get_ca_chain(&tls->ca);
-
+        mongoose_tls_get_ca_chain(&tls->ca);
         mbedtls_ssl_conf_ca_chain(&tls->conf, &tls->ca, NULL);
 
-        if(!mqtt_tls_init_hostname(tls, server_url)) {
+        if(!mongoose_tls_init_hostname(tls, config->server_url)) {
             mg_error(conn, "Failed to parse hostname");
             break;
         }
@@ -382,7 +410,7 @@ bool mqtt_tls_init(struct mg_connection* conn, const char* server_url, const Mqt
             &tls->conf,
             config->ignore_server_cert ? MBEDTLS_SSL_VERIFY_NONE : MBEDTLS_SSL_VERIFY_REQUIRED);
 
-        if(!mqtt_tls_load_certificates(tls, config->client_cert_type)) {
+        if(!mongoose_tls_load_certificates(tls, config)) {
             mg_error(conn, "Failed to load certificates");
             break;
         }
@@ -405,20 +433,20 @@ bool mqtt_tls_init(struct mg_connection* conn, const char* server_url, const Mqt
         conn->is_tls = 1;
         conn->is_tls_hs = 1;
 
-        mbedtls_ssl_set_bio(&tls->ssl, conn, tls_net_send, tls_net_recv, 0);
+        mbedtls_ssl_set_bio(&tls->ssl, conn, mongoose_tls_net_send, mongoose_tls_net_recv, 0);
 
         success = true;
     } while(false);
 
     if(!success) {
-        mqtt_tls_deinit(conn);
+        mongoose_tls_deinit(conn);
         mg_tls_free(conn);
     }
 
     return success;
 }
 
-void mqtt_tls_deinit(struct mg_connection* conn) {
+void mongoose_tls_deinit(struct mg_connection* conn) {
     if(conn->tls != NULL) {
         struct mg_tls* tls = conn->tls;
         // Prevent Mongoose from freeing the CA certificate chain.

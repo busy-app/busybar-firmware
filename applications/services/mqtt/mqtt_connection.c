@@ -5,17 +5,20 @@
 #include <version/version.h>
 #include <web_server/web_server.h>
 
+#include <mongoose_tls.h>
+
 #include "mqtt_common.h"
 
 #define MQTT_VERSION     (5)
 #define MQTT_PING_PERIOD M_TO_MS(10)
 
-#define CERT_FILE_CA_BUNDLE EXT_PATH("apps_assets/shared/ca/cacert.pem")
-
 #define STATUS_ONLINE  "\"status\":\"online\""
 #define STATUS_OFFLINE "\"status\":\"offline\""
 
 #define MQTT_SERVER_URL_DEFAULT MQTT_URL_TLS_PREFIX "mqtt.busy.app:8883"
+
+#define TLS_CUSTOM_CERT_PATH APP_ASSETS_PATH("device.crt")
+#define TLS_CUSTOM_KEY_PATH  APP_ASSETS_PATH("device.key")
 
 static void mqtt_ping_timer_callback(void* data) {
     furi_assert(data);
@@ -101,6 +104,29 @@ static const char* mqtt_get_server_url(const Mqtt* instance) {
     }
 }
 
+static bool mqtt_init_tls(Mqtt* instance, struct mg_connection* conn) {
+    const MqttConfig* mqtt_config = &instance->settings.config;
+    const MqttClientCertType client_cert_type = mqtt_config->client_cert_type;
+
+    MongooseTlsConfig mongoose_tls_config;
+    mongoose_tls_config.server_url = mqtt_get_server_url(instance);
+    mongoose_tls_config.ignore_server_cert = mqtt_config->ignore_server_cert;
+
+    if(client_cert_type == MqttClientCertTypeDefault) {
+        mongoose_tls_config.client_cert_type = MongooseTlsClientCertTypeDevice;
+
+    } else if(client_cert_type == MqttClientCertTypeCustom) {
+        mongoose_tls_config.client_cert_type = MongooseTlsClientCertTypeCustom;
+        mongoose_tls_config.custom_path.cert = TLS_CUSTOM_CERT_PATH;
+        mongoose_tls_config.custom_path.key = TLS_CUSTOM_KEY_PATH;
+
+    } else {
+        mongoose_tls_config.client_cert_type = MongooseTlsClientCertTypeNone;
+    }
+
+    return mongoose_tls_init(conn, &mongoose_tls_config);
+}
+
 static void mqtt_connect_mg_event_handler(
     Mqtt* instance,
     struct mg_connection* connection,
@@ -110,21 +136,18 @@ static void mqtt_connect_mg_event_handler(
     bool success = false;
 
     do {
-        const char* server_url = mqtt_get_server_url(instance);
-
-        if(!mg_url_is_ssl(server_url)) {
+        if(!mg_url_is_ssl(mqtt_get_server_url(instance))) {
             // No additional configuration is necessary
             success = true;
             break;
         }
 
-        const MqttConfig* config = &instance->settings.config;
-
-        if(!mqtt_tls_init(connection, server_url, config)) {
+        if(!mqtt_init_tls(instance, connection)) {
             break;
         }
 
         success = true;
+
     } while(false);
 
     if(!success) {
@@ -202,10 +225,9 @@ static void mqtt_close_mg_event_handler(
     Mqtt* instance,
     struct mg_connection* connection,
     const void* event_data) {
-    UNUSED(connection);
     UNUSED(event_data);
 
-    mqtt_tls_deinit(connection);
+    mongoose_tls_deinit(connection);
 
     FURI_LOG_W(TAG, "MQTT Connection closed");
     mqtt_set_status(instance, MqttStatusNotConnected);
