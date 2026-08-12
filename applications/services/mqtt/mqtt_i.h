@@ -230,3 +230,5 @@ void mqtt_make_topic_path(
     FuriString* out);
 
 bool mqtt_tls_init(struct mg_connection* conn, const char* server_url, const MqttConfig* config);
+
+void mqtt_tls_deinit(struct mg_connection* conn);

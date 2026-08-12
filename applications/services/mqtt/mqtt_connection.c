@@ -205,6 +205,8 @@ static void mqtt_close_mg_event_handler(
     UNUSED(connection);
     UNUSED(event_data);
 
+    mqtt_tls_deinit(connection);
+
     FURI_LOG_W(TAG, "MQTT Connection closed");
     mqtt_set_status(instance, MqttStatusNotConnected);
 

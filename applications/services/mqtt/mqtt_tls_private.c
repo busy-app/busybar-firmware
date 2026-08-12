@@ -26,6 +26,8 @@
 
 static const char* mqtt_alpn_list[] = {"mqtt", NULL};
 
+void mqtt_tls_deinit(struct mg_connection* conn);
+
 static int tls_random(void* ctx, unsigned char* buf, size_t len) {
     UNUSED(ctx);
     mg_random(buf, len);
@@ -409,9 +411,18 @@ bool mqtt_tls_init(struct mg_connection* conn, const char* server_url, const Mqt
     } while(false);
 
     if(!success) {
-        mbedtls_x509_crt_init(&tls->ca);
+        mqtt_tls_deinit(conn);
         mg_tls_free(conn);
     }
 
     return success;
+}
+
+void mqtt_tls_deinit(struct mg_connection* conn) {
+    if(conn->tls != NULL) {
+        struct mg_tls* tls = conn->tls;
+        // Prevent Mongoose from freeing the CA certificate chain.
+        // It is owned by the CaStorage service.
+        mbedtls_x509_crt_init(&tls->ca);
+    }
 }
