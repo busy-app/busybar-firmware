@@ -45,19 +45,39 @@ static int mongoose_tls_pk_can_do(mbedtls_pk_type_t type) {
 }
 
 static int mongoose_tls_net_send(void* ctx, const unsigned char* buf, size_t len) {
-    long n = mg_io_send((struct mg_connection*)ctx, buf, len);
-    if(n == MG_IO_WAIT) return MBEDTLS_ERR_SSL_WANT_WRITE;
-    if(n == MG_IO_RESET) return MBEDTLS_ERR_NET_CONN_RESET;
-    if(n == MG_IO_ERR) return MBEDTLS_ERR_NET_SEND_FAILED;
-    return (int)n;
+    int result;
+
+    const long bytes_sent = mg_io_send((struct mg_connection*)ctx, buf, len);
+
+    if(bytes_sent == MG_IO_WAIT) {
+        result = MBEDTLS_ERR_SSL_WANT_WRITE;
+    } else if(bytes_sent == MG_IO_RESET) {
+        result = MBEDTLS_ERR_NET_CONN_RESET;
+    } else if(bytes_sent == MG_IO_ERR) {
+        result = MBEDTLS_ERR_NET_SEND_FAILED;
+    } else {
+        result = bytes_sent;
+    }
+
+    return result;
 }
 
 static int mongoose_tls_net_recv(void* ctx, unsigned char* buf, size_t len) {
-    long n = mg_io_recv((struct mg_connection*)ctx, buf, len);
-    if(n == MG_IO_WAIT) return MBEDTLS_ERR_SSL_WANT_READ;
-    if(n == MG_IO_RESET) return MBEDTLS_ERR_NET_CONN_RESET;
-    if(n == MG_IO_ERR) return MBEDTLS_ERR_NET_RECV_FAILED;
-    return (int)n;
+    int result;
+
+    const long bytes_received = mg_io_recv((struct mg_connection*)ctx, buf, len);
+
+    if(bytes_received == MG_IO_WAIT) {
+        result = MBEDTLS_ERR_SSL_WANT_READ;
+    } else if(bytes_received == MG_IO_RESET) {
+        result = MBEDTLS_ERR_NET_CONN_RESET;
+    } else if(bytes_received == MG_IO_ERR) {
+        result = MBEDTLS_ERR_NET_RECV_FAILED;
+    } else {
+        result = bytes_received;
+    }
+
+    return result;
 }
 
 static void mongoose_tls_get_ca_chain(mbedtls_x509_crt* p) {
