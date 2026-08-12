@@ -99,6 +99,8 @@ static const CommandQueueHandler command_handlers[] = {
 };
 static_assert(COUNT_OF(command_handlers) == JsRunnerAppCommandTypeMax);
 
+static void app_terminate_from_app_thread(JsRunnerApp* app);
+
 static void command_queue_callback(FuriEventLoopObject* object, void* context) {
     UNUSED(object);
     JsRunnerApp* app = context;
@@ -328,8 +330,7 @@ JsRunnerError js_runner_run(
                     jerry_value_t result = jerry_module_evaluate(parsed_script);
                     if(jerry_value_is_exception(result)) {
                         js_log_exception(TAG, "Error running script", result);
-                        // TODO terminate background tasks
-                        furi_check(false);
+                        app_terminate_from_app_thread(&app);
                     }
                     js_run_jobs();
                     if(app_has_background_tasks(&app)) {
@@ -389,6 +390,12 @@ static void abort_cmd_handler(JsRunnerApp* app, JsRunnerAppCommandType cmd) {
     furi_check(cmd == JsRunnerAppCommandTypeAbort);
     abort_intervals(app);
     js_runner_check_event_loop(app);
+}
+
+static void app_terminate_from_app_thread(JsRunnerApp* app) {
+    app->terminate = true;
+    abort_fetches(&app->fetch);
+    abort_intervals(app);
 }
 
 static void app_terminate_from_another_thread(JsRunnerApp* app) {
