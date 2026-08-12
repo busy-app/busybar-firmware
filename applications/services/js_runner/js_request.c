@@ -2,7 +2,8 @@
 
 #define TAG "JsRequest"
 
-jerry_value_t js_request_init(jerry_value_t this_value, jerry_value_t url, jerry_value_t init) {
+static jerry_value_t
+    js_request_init(jerry_value_t this_value, jerry_value_t url, jerry_value_t init) {
     if(!jerry_value_is_undefined(init) && !jerry_value_is_object(init) &&
        !jerry_value_is_null(init)) {
         return jerry_throw_sz(JERRY_ERROR_TYPE, "Invalid parameter");
@@ -53,13 +54,26 @@ static jerry_value_t request_constructor(
     return js_request_init(call_info->this_value, url, init);
 }
 
+jerry_value_t js_request_construct(jerry_value_t url, jerry_value_t init) {
+    jerry_value_t global_obj = jerry_current_realm();
+    jerry_value_t constructor = jerry_object_get_sz(global_obj, "Request");
+    furi_check(jerry_value_is_function(constructor));
+    jerry_value_t args[2] = {url, init};
+    jerry_value_t result = jerry_construct(constructor, args, 2);
+    jerry_value_free(constructor);
+    jerry_value_free(global_obj);
+    return result;
+}
+
 void js_setup_request(void) {
     jerry_value_t global_obj = jerry_current_realm();
 
     jerry_value_t constructor = jerry_function_external(request_constructor);
     jerry_value_free(jerry_object_set_sz(global_obj, "Request", constructor));
 
-    js_set_property(constructor, "prototype", jerry_object());
+    jerry_value_t prototype = jerry_object();
+    js_check_and_free(jerry_object_set_proto(constructor, prototype));
+    jerry_value_free(prototype);
     jerry_value_free(constructor);
     jerry_value_free(global_obj);
 }

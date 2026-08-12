@@ -90,6 +90,7 @@ char* js_string_to_c_string(jerry_value_t value) {
     size_t length = jerry_string_size(value, JERRY_ENCODING_UTF8);
     char* buffer = malloc(length + 1);
     jerry_string_to_buffer(value, JERRY_ENCODING_UTF8, (jerry_char_t*)buffer, length);
+    buffer[length] = 0;
     return buffer;
 }
 

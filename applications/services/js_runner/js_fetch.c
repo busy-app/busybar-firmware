@@ -289,13 +289,10 @@ static jerry_value_t fetch(
     jerry_value_t url = JS_ARG(0);
     jerry_value_t init = JS_ARG(1);
 
-    jerry_value_t request = jerry_object();
-    jerry_value_t request_init_result = js_request_init(request, url, init);
-    if(jerry_value_is_exception(request_init_result)) {
-        jerry_value_free(request);
-        return js_rejected_promise_from_exception(request_init_result);
+    jerry_value_t request = js_request_construct(url, init);
+    if(jerry_value_is_exception(request)) {
+        return js_rejected_promise_from_exception(request);
     }
-    jerry_value_free(request_init_result);
 
     RequestParseResult request_res = parse_request(request);
     jerry_value_free(request);
