@@ -215,18 +215,40 @@ jobs:
       marker_filter: ''
     secrets: inherit
 
+  ble-tests:
+    needs: build
+    if: |
+      needs.build.result == 'success'
+      && needs.build.outputs.update_url != ''
+      && (
+        needs.build.outputs.run_regression == 'true'
+        || (github.ref_type == 'tag' && contains(github.ref_name, '-rc'))
+      )
+    uses: './.github/workflows/ble-tests.yml'
+    with:
+      branch_name: ${{ github.head_ref || github.ref_name }}
+      commit_sha: ${{ github.event.pull_request.head.sha || github.sha }}
+      update_url: ${{ needs.build.outputs.update_url }}
+      target: ${{ needs.build.outputs.bundle_target_spec }}
+    secrets: inherit
+
   tests-passed:
-    needs: [integration-tests, regression-tests]
+    needs: [integration-tests, regression-tests, ble-tests]
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - name: Check that at least one test suite passed
+      - name: Check active test suites passed
         run: |
           smoke="${{ needs.integration-tests.result }}"
           regression="${{ needs.regression-tests.result }}"
-          if [[ "$smoke" == "success" || "$regression" == "success" ]]; then
-            echo "Tests passed (smoke: $smoke, regression: $regression)"
+          ble="${{ needs.ble-tests.result }}"
+          echo "Test suite statuses: smoke=$smoke, regression=$regression, ble=$ble"
+
+          if [[ "$smoke" == "success" && "$regression" == "skipped" && "$ble" == "skipped" ]]; then
+            echo "Active smoke suite passed"
+          elif [[ "$smoke" == "skipped" && "$regression" == "success" && "$ble" == "success" ]]; then
+            echo "Active regression and BLE suites passed"
           else
-            echo "No test suite succeeded. smoke=$smoke, regression=$regression" >&2
+            echo "One or more active test suites failed or did not run successfully" >&2
             exit 1
           fi

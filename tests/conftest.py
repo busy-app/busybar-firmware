@@ -323,11 +323,12 @@ def pytest_runtest_setup(item):
 
 
 @pytest.fixture(scope="session")
-def device_flasher():
+def device_flasher(web_base_url: str):
     """Session-scoped device flasher for on-demand resets."""
     from config.config import config
     flasher = DeviceFlasher(
         device_ip=config.BUSYBAR_IP,
+        base_url=web_base_url,
         firmware_dir=config.BSB_FIRMWARE_PATH,
         serial=config.DAPLINK_U5_ID,
     )
@@ -335,7 +336,7 @@ def device_flasher():
 
 
 @pytest.fixture(scope="session", autouse=True)
-def skip_hello_screen(web_base_url):
+def skip_hello_screen(web_base_url, device_flasher):
     """Send 'start' key to dismiss the Hello/Start screen after boot.
 
     The device shows a welcome screen after flashing that blocks all
@@ -344,6 +345,11 @@ def skip_hello_screen(web_base_url):
     """
     url = f"{web_base_url}/api/input"
     try:
+        if not device_flasher.wait_for_api_ready(wait_timeout=15.0):
+            logger.warning(
+                "skip_hello_screen: HTTP API did not become ready within 15s"
+            )
+            return
         with requests.Session() as session:
             session.headers.update({"User-Agent": _USER_AGENT})
             with session.post(url, params={"key": "start"}, data=b"", timeout=5):

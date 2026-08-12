@@ -153,7 +153,7 @@ def _first_full_log_url(traces_by_id: dict) -> str:
 def _report_links(allure_url: str, full_log_url: str = "") -> str:
     links = []
     if allure_url:
-        links.append(f"[Allure Report]({allure_url})")
+        links.append(f"[TestOps Test Run]({allure_url})")
     if full_log_url:
         links.append(f"[{FULL_LOG_LINK_KEY}]({full_log_url})")
     return " | ".join(links)
@@ -215,6 +215,7 @@ def build_pr_comment(
     allure_url: str,
     log_dir: str = "",
     rerun_failures: list[str] | None = None,
+    suite_name: str = "Integration Tests",
 ) -> str:
     lines = []
     rerun_failures = rerun_failures or []
@@ -224,7 +225,7 @@ def build_pr_comment(
     report_links = _report_links(allure_url, _first_full_log_url(traces_by_id))
 
     if results is None:
-        lines.append("### Integration Tests: results file not found")
+        lines.append(f"### {suite_name}: results file not found")
         if report_links:
             lines.append(report_links)
         return "\n".join(lines)
@@ -232,14 +233,14 @@ def build_pr_comment(
     r = results
     if recovered:
         lines.append(
-            f"### Integration Tests: passed after retry "
+            f"### {suite_name}: passed after retry "
             f"({len(rerun_failures)} failed initially / {r['passed']} passed / {r['total']} total)"
         )
     elif r["failed_count"] == 0:
-        lines.append(f"### Integration Tests: all {r['passed']} passed")
+        lines.append(f"### {suite_name}: all {r['passed']} passed")
     else:
         lines.append(
-            f"### Integration Tests: {r['failed_count']} failed / "
+            f"### {suite_name}: {r['failed_count']} failed / "
             f"{r['passed']} passed / {r['total']} total"
         )
 
@@ -264,11 +265,17 @@ def build_pr_comment(
     return "\n".join(lines).rstrip() + "\n"
 
 
-def build_job_summary(results: dict | None, allure_url: str, firmware_url: str, branch: str) -> str:
+def build_job_summary(
+    results: dict | None,
+    allure_url: str,
+    firmware_url: str,
+    branch: str,
+    suite_name: str = "Integration Tests",
+) -> str:
     lines = []
     commit = os.environ.get("GITHUB_SHA", "")[:7]
 
-    lines.append("# Integration Tests")
+    lines.append(f"# {suite_name}")
     lines.append(f"**Branch:** {branch} | **Commit:** `{commit}`")
     if firmware_url:
         lines.append(f"**Firmware:** {firmware_url}")
@@ -287,7 +294,7 @@ def build_job_summary(results: dict | None, allure_url: str, firmware_url: str, 
     lines.append("")
     lines.append("## Links")
     if allure_url:
-        lines.append(f"- [Allure Report]({allure_url})")
+        lines.append(f"- [TestOps Test Run]({allure_url})")
 
     return "\n".join(lines)
 
@@ -494,6 +501,7 @@ def main():
     pr_number = os.environ.get("PR_NUMBER", "")
     crash_flag = os.environ.get("CRASH_FLAG", "")
     log_dir = os.environ.get("LOG_DIR", "")
+    suite_name = os.environ.get("TEST_SUITE_NAME") or "Integration Tests"
 
     # Test results step (skipped on the crash-only invocation, where JUNIT_XML
     # is provided solely to extract the failed test name for the crash comment)
@@ -501,14 +509,18 @@ def main():
         results = parse_junit(junit_xml)
         rerun_failures = load_pytest_reruns(os.environ.get("PYTEST_OUTPUT", ""))
 
-        summary = build_job_summary(results, allure_url, firmware_url, branch)
+        summary = build_job_summary(
+            results, allure_url, firmware_url, branch, suite_name
+        )
         if summary_file:
             with open(summary_file, "a") as f:
                 f.write(summary + "\n")
 
         if pr_number:
-            comment = build_pr_comment(results, allure_url, log_dir, rerun_failures)
-            post_or_update_pr_comment(comment, "### Integration Tests:")
+            comment = build_pr_comment(
+                results, allure_url, log_dir, rerun_failures, suite_name
+            )
+            post_or_update_pr_comment(comment, f"### {suite_name}:")
 
     if pr_number and crash_flag:
         crash_comment = build_crash_comment(crash_flag, junit_xml or None)

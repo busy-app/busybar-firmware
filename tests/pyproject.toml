@@ -27,6 +27,8 @@ grpcio-tools = "^1.80.0"
 paho-mqtt = ">=2.0"
 PyYAML = "^6.0"
 websocket-client = "^1.9.0"
+bleak = {version = ">=0.21,<1.0", python = ">=3.9,<3.14"}
+dbus-fast = {version = ">=2.24,<3.0", platform = "linux"}
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.0.0"
@@ -65,6 +67,7 @@ markers = [
     "story_commands_check: marks tests for commands check story",
     "story_ui_validation: marks tests for UI validation story",
     "schemathesis: marks tests as OpenAPI schema conformance tests (schemathesis)",
+    "ble: marks tests as BLE host-side tests (bleak)",
 ]
 
 [tool.allure.pytest_plugin]

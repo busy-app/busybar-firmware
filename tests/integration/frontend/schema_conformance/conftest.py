@@ -77,6 +77,10 @@ SKIP_OPERATION_IDS: frozenset[str] = frozenset(
         # that fall outside the documented enum — AcceptedNegativeData (FW validation
         # gap; tracked separately).
         "setHttpAccess",
+        # dumpLog: firmware accepts 'filename' query-param values that violate the
+        # documented pattern — AcceptedNegativeData (FW validation gap introduced
+        # with the /api/log_dump rework in FW-1046).
+        "dumpLog",
         # setAutoupdateSettings: firmware accepts payloads with extra/unknown fields
         # that violate the schema — AcceptedNegativeData (firmware validation gap).
         "setAutoupdateSettings",

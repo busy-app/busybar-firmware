@@ -138,6 +138,20 @@ class Main(App):
         )
         self.provision_parser.set_defaults(func=self.provision)
 
+        # Import command
+        self.import_parser = self.subparsers.add_parser(
+            "import",
+            help="Import existing device cert chain (device.crt: device + CA PEM)"
+            " and private key (device.key) instead of generating new ones",
+        )
+        self.import_parser.add_argument(
+            "--certs-dir",
+            type=Path,
+            default=CERTS_DIR_DEFAULT,
+            help="Directory containing device.crt (device + CA chain) and device.key",
+        )
+        self.import_parser.set_defaults(func=self.import_creds)
+
         # Cleanup command
         self.cleanup_parser = self.subparsers.add_parser(
             "cleanup", help="Wipe key storage partition"
@@ -323,6 +337,43 @@ class Main(App):
                 else:
                     self.provision_secure(crypto_storage, certs_dir, device_uid)
         print("MQTT TLS provisioning OK")
+
+    @CatchExceptions
+    def import_creds(self):
+        certs_dir = self.args.certs_dir.expanduser()
+
+        with open(certs_dir / "device.crt", "rb") as f:
+            chain = x509.load_pem_x509_certificates(f.read())
+        if len(chain) != 2:
+            raise RuntimeError(
+                f"device.crt must contain device + CA chain, got {len(chain)} cert(s)"
+            )
+        device_cert, ca_cert = chain
+        if device_cert.issuer != ca_cert.subject:
+            raise RuntimeError("device.crt chain mismatch: CA is not the issuer")
+
+        with open(certs_dir / DEVICE_KEY, "rb") as f:
+            device_key = serialization.load_pem_private_key(f.read(), password=None)
+        if not isinstance(device_key, ec.EllipticCurvePrivateKey):
+            raise TypeError("device.key must be an elliptic-curve private key")
+
+        print(f"MQTT TLS import: {device_cert.subject.rfc4514_string()}")
+        with CryptoStorage(self.get_portname()) as crypto_storage:
+            with ReadWriteScope(crypto_storage):
+                print("  Checking TLS slots are empty...")
+                self.ensure_tls_slots_empty(crypto_storage)
+                print("  Writing CA + device certs...")
+                self.write_certs(
+                    crypto_storage,
+                    ca_cert.public_bytes(serialization.Encoding.DER),
+                    device_cert.public_bytes(serialization.Encoding.DER),
+                )
+                print("  Writing private key (unwrapped)...")
+                key_data = device_key.private_numbers().private_value.to_bytes(
+                    32, "big"
+                )
+                self.write_private_key(crypto_storage, key_data, wrap=False)
+        print("MQTT TLS import OK")
 
     @CatchExceptions
     def cleanup(self):

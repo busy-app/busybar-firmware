@@ -1,4 +1,4 @@
-name: 'Integration Tests'
+name: 'BLE Tests'
 
 on:
   workflow_call:
@@ -16,20 +16,10 @@ on:
       target:
         required: false
         type: string
-        default: '22'
-      marker_filter:
-        required: false
-        type: string
-        default: 'not regression'
-        description: 'Pytest -m marker expression. Empty string or "all" runs everything.'
+        default: '21'
 
   workflow_dispatch:
     inputs:
-      marker_filter:
-        description: 'Pytest -m expression. Default runs smoke only; "all" runs the full suite including regression.'
-        required: false
-        type: string
-        default: 'not regression'
       commit_sha:
         description: 'Commit/ref to checkout. Empty uses the selected workflow ref.'
         required: false
@@ -49,7 +39,7 @@ on:
         description: 'Hardware target'
         required: false
         type: string
-        default: '22'
+        default: '21'
 
 permissions:
   contents: read
@@ -58,20 +48,16 @@ permissions:
   id-token: write
 
 env:
-  U5_HW_TARGET: ${{ inputs.target || '22' }}
+  U5_HW_TARGET: ${{ inputs.target || '21' }}
   FIRMWARE_BASE_URL: https://update.busy.app/builds/busybar-firmware
-  PYTEST_FAILED_TEST_RETRIES: 1
 
 jobs:
-  integration-tests:
-    runs-on: BusyBarTest
-    timeout-minutes: 90
+  ble-tests:
+    runs-on: BusyBluetooth
+    timeout-minutes: 60
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      # - name: 'Wipe workspace'
-      #   run: find ./ -mount -maxdepth 1 -exec rm -rf {} \;
-
       - name: 'Checkout code'
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -169,10 +155,6 @@ jobs:
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
           python3 scripts/testops.py sanity
-          {
-            echo "U5_ELF=/_work/elf/busybar-f${{ env.U5_HW_TARGET }}-firmware.elf"
-            echo "SI917_ELF=/_work/elf/busybar-f${{ env.U5_HW_TARGET }}-sil_firmware.elf"
-          } >> "$GITHUB_ENV"
 
       - name: Set up Python 3.12
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
@@ -186,44 +168,10 @@ jobs:
           python3 -m pip install --upgrade pip
           python3 -m pip install -r tests/requirements.txt
 
-      - name: Resolve pytest marker filter
-        id: pytest_filter
+      - name: Run BLE tests
+        id: ble_tests
+        timeout-minutes: 30
         env:
-          MARKER_FILTER: ${{ inputs.marker_filter }}
-        run: |
-          # Normalize the requested marker filter before it reaches pytest.
-          #
-          # GitHub substitutes the input *default* when a workflow_dispatch field
-          # is left blank, so clearing the field cannot express "run everything".
-          # Use the explicit `all` sentinel for the full suite instead.
-          #
-          # We also tolerate stray surrounding quotes/whitespace (e.g. a literal
-          # `""` typed into the form) which would otherwise reach pytest as an
-          # invalid `-m` expression and abort the run with exit code 4.
-          filter="$MARKER_FILTER"
-          # strip leading/trailing whitespace
-          filter="$(printf '%s' "$filter" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
-          # strip a single pair of surrounding double quotes
-          case "$filter" in
-            \"*\") filter="${filter#\"}"; filter="${filter%\"}" ;;
-          esac
-          # treat empty / all (case-insensitive) as "no filter" (full suite)
-          shopt -s nocasematch
-          if [ -z "$filter" ] || [[ "$filter" == "all" ]]; then
-            filter=""
-          fi
-          shopt -u nocasematch
-          echo "marker_filter=$filter" >> "$GITHUB_OUTPUT"
-          if [ -n "$filter" ]; then
-            echo "Resolved pytest marker filter: $filter"
-          else
-            echo "Resolved pytest marker filter: <empty> (full suite)"
-          fi
-
-      - name: Run integration tests
-        id: smoke_tests
-        env:
-          MARKER_FILTER: ${{ steps.pytest_filter.outputs.marker_filter }}
           BSB_FIRMWARE_PATH: ${{ github.workspace }}
           CLI_HOST: ${{ secrets.CLI_HOST || '10.0.4.20' }}
           CLI_PORT: ${{ secrets.CLI_PORT || '23' }}
@@ -235,22 +183,10 @@ jobs:
           cd tests
           PYTEST_OUTPUT=pytest-output.log
 
-          # MARKER_FILTER is a `-m` expression; an empty string means
-          # "no filter" (collect everything, including `regression`-tagged
-          # tests such as schemathesis).
-          pytest_args=(. -v --durations=25 --alluredir=allure-results --clean-alluredir --junitxml=test-results.xml)
-          if [ -n "$MARKER_FILTER" ]; then
-            pytest_args+=(-m "$MARKER_FILTER")
-            echo "Running pytest with marker filter: $MARKER_FILTER"
-          else
-            echo "Running pytest without marker filter (full suite)"
-          fi
-          # BLE tests run in the dedicated ble-tests job on a BusyBluetooth runner
-          pytest_args+=(--ignore=integration/ble)
-          if [ "$PYTEST_FAILED_TEST_RETRIES" -gt 0 ]; then
-            pytest_args+=(--reruns "$PYTEST_FAILED_TEST_RETRIES" --reruns-delay 1 -rR)
-          fi
-          python3 -m pytest "${pytest_args[@]}" 2>&1 | tee "$PYTEST_OUTPUT"
+          python3 -m pytest integration/ble -v --durations=25 \
+            --alluredir=allure-results \
+            --clean-alluredir \
+            --junitxml=test-results.xml 2>&1 | tee "$PYTEST_OUTPUT"
           PYTEST_EXIT=${PIPESTATUS[0]}
           echo "pytest_exit=$PYTEST_EXIT" >> "$GITHUB_OUTPUT"
 
@@ -278,7 +214,7 @@ jobs:
             --endpoint "${{ secrets.ALLURE_TESTOPS_URL }}" \
             --token "${{ secrets.ALLURE_TESTOPS_TOKEN }}" \
             --project-id "${{ secrets.ALLURE_PROJECT_ID }}" \
-            --launch-name "BSB Firmware - Integration Tests - ${LAUNCH_BRANCH} - ${GITHUB_SHA::7}" 2>&1) || true
+            --launch-name "BSB Firmware - BLE Tests - ${LAUNCH_BRANCH} - ${GITHUB_SHA::7}" 2>&1) || true
           echo "$OUTPUT"
           REPORT_URL=$(printf '%s\n' "$OUTPUT" | sed -nE 's/.*Report link:[[:space:]]*(https?:\/\/[^[:space:]]+).*/\1/p' | head -1)
           if [ -n "$REPORT_URL" ]; then
@@ -296,7 +232,7 @@ jobs:
         run: |
           RUN_ID="${{ github.run_number }}-${{ github.sha }}"
           LOG_FILE="$RUNNER_LOG_DIR/latest/runlog.log"
-          S3_PATH="s3://flipper-aws-qa-tests/bsb/runner-logs/integration-tests/$RUN_ID/runlog.log"
+          S3_PATH="s3://flipper-aws-qa-tests/bsb/runner-logs/ble-tests/$RUN_ID/runlog.log"
 
           if [ -f "$LOG_FILE" ]; then
             aws s3 cp "$LOG_FILE" "$S3_PATH"
@@ -309,7 +245,7 @@ jobs:
           JUNIT_XML: tests/test-results.xml
           PYTEST_OUTPUT: tests/pytest-output.log
           ALLURE_URL: ${{ steps.allure_upload.outputs.allure_report_url }}
-          TEST_SUITE_NAME: Integration Tests
+          TEST_SUITE_NAME: BLE Tests
           FIRMWARE_URL: ${{ steps.resolve_firmware.outputs.update_url }}
           BRANCH_NAME: ${{ inputs.branch_name || github.head_ref || github.ref_name }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -322,9 +258,9 @@ jobs:
           exit "$status"
 
       - name: 'Fail job on test failures'
-        if: always() && steps.smoke_tests.outputs.pytest_exit != '0' && steps.smoke_tests.outputs.pytest_exit != ''
+        if: always() && steps.ble_tests.outputs.pytest_exit != '0' && steps.ble_tests.outputs.pytest_exit != ''
         env:
-          PYTEST_EXIT: ${{ steps.smoke_tests.outputs.pytest_exit }}
+          PYTEST_EXIT: ${{ steps.ble_tests.outputs.pytest_exit }}
         run: |
-          echo "::error::Integration tests reported failures (pytest exit code $PYTEST_EXIT)."
+          echo "::error::BLE tests reported failures (pytest exit code $PYTEST_EXIT)."
           exit "$PYTEST_EXIT"
