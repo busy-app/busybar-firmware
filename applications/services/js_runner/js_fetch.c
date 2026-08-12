@@ -553,6 +553,9 @@ bool js_fetch_cancel(JsFetch* instance) {
         return false;
     }
     instance->sink.status = ChildStatusDone;
+    if(instance->fetch.status == ChildStatusRunning) {
+        fetch_stop(instance->fetch.fetch);
+    }
     free_if_not_running(instance);
     return true;
 }
