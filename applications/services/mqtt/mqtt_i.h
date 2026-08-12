@@ -90,8 +90,6 @@ struct Mqtt {
     FuriPubSub* event_pubsub;
     FuriString* device_serial;
 
-    char* ca_bundle;
-
     MqttSubscriptionList_t subscriptions;
 
     unsigned long api_connection_id;
@@ -231,10 +229,4 @@ void mqtt_make_topic_path(
     const char* topic,
     FuriString* out);
 
-bool mqtt_tls_init(
-    struct mg_connection* conn,
-    const char* server_url,
-    const char* ca_bundle,
-    const MqttConfig* config);
-
-void mqtt_tls_free_ca(struct mg_connection* conn);
+bool mqtt_tls_init(struct mg_connection* conn, const char* server_url, const MqttConfig* config);

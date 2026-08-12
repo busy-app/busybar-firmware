@@ -62,6 +62,7 @@ App(
         "discovery",
         "low_power",
         "js_runner",
+        "ca_storage",
     ],
     targets=["f20", "f21", "f22"],
 )

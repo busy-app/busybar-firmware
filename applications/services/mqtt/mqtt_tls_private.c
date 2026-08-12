@@ -6,6 +6,8 @@
 #include <pk_wrap.h>
 
 #include <storage/storage.h>
+#include <ca_storage/ca_storage.h>
+
 #include <tls_crypto/tls_crypto.h>
 
 #include "mqtt_config.h"
@@ -120,15 +122,10 @@ static const mbedtls_pk_info_t tls_pk_wrap_hw_crypto = {
     .debug_func = NULL,
 };
 
-static bool tls_load_ca(struct mg_str str, mbedtls_x509_crt* p) {
-    if(str.buf == NULL || str.buf[0] == '\0' || str.buf[0] == '*') return true;
-    if(str.buf[0] == '-') str.len++; // PEM, include trailing NUL
-    int ret = mbedtls_x509_crt_parse(p, (uint8_t*)str.buf, str.len);
-    if(ret != 0) {
-        FURI_LOG_E(TAG, "Cert parse error -0x%04X", -ret);
-        return false;
-    }
-    return true;
+static void tls_get_ca_chain(mbedtls_x509_crt* p) {
+    const CaStorage* ca_storage = furi_record_open(RECORD_CA_STORAGE);
+    *p = *ca_storage_get_cert_chain(ca_storage);
+    furi_record_close(RECORD_CA_STORAGE);
 }
 
 static bool tls_load_cert_from_hw_crypto(uint8_t slot, mbedtls_x509_crt* crt) {
@@ -326,11 +323,7 @@ static bool mqtt_tls_init_hostname(struct mg_tls* tls, const char* server_url) {
     return success;
 }
 
-bool mqtt_tls_init(
-    struct mg_connection* conn,
-    const char* server_url,
-    const char* ca_bundle,
-    const MqttConfig* config) {
+bool mqtt_tls_init(struct mg_connection* conn, const char* server_url, const MqttConfig* config) {
     bool success = false;
 
     struct mg_tls* tls = calloc(1, sizeof(*tls));
@@ -346,7 +339,7 @@ bool mqtt_tls_init(
         mbedtls_ssl_init(&tls->ssl);
         mbedtls_ssl_config_init(&tls->conf);
 
-        mbedtls_x509_crt_init(&tls->ca);
+        // mbedtls_x509_crt_init(&tls->ca);
         mbedtls_x509_crt_init(&tls->cert);
 
         mbedtls_pk_init(&tls->pk);
@@ -374,10 +367,7 @@ bool mqtt_tls_init(
         // ALPN
         mbedtls_ssl_conf_alpn_protocols(&tls->conf, mqtt_alpn_list);
 
-        if(!tls_load_ca(mg_str(ca_bundle), &tls->ca)) {
-            mg_error(conn, "Failed to load CA bundle");
-            break;
-        }
+        tls_get_ca_chain(&tls->ca);
 
         mbedtls_ssl_conf_ca_chain(&tls->conf, &tls->ca, NULL);
 
@@ -419,14 +409,9 @@ bool mqtt_tls_init(
     } while(false);
 
     if(!success) {
+        mbedtls_x509_crt_init(&tls->ca);
         mg_tls_free(conn);
     }
 
     return success;
-}
-
-void mqtt_tls_free_ca(struct mg_connection* c) {
-    struct mg_tls* tls = (struct mg_tls*)c->tls;
-    furi_assert(tls);
-    mbedtls_x509_crt_free(&tls->ca);
 }
