@@ -41,12 +41,7 @@ static void log_storage_remote_stream_callback(FuriEventLoopObject* object, void
         instance->did_overrun = false;
     }
 
-    uint8_t buffer[LOG_STORAGE_REMOTE_STREAM_SIZE];
-    size_t rx_size = furi_stream_buffer_receive(instance->rx_stream, buffer, sizeof(buffer), 0);
-
-    if(rx_size != 0) {
-        log_storage_base_internal_capture(&instance->base, buffer, rx_size);
-    }
+    log_storage_remote_internal_flush(instance);
 }
 
 void log_storage_remote_internal_suspend(LogStorageRemote* instance) {
@@ -65,6 +60,22 @@ void log_storage_remote_internal_resume(LogStorageRemote* instance) {
     furi_hal_serial_init(instance->serial, LOG_STORAGE_REMOTE_BAUD_RATE);
     furi_hal_serial_set_rx_callback(instance->serial, log_storage_remote_rx_callback, instance);
     furi_hal_serial_async_rx_start(instance->serial, false);
+}
+
+void log_storage_remote_internal_flush(LogStorageRemote* instance) {
+    furi_check(instance);
+
+    uint8_t buffer[LOG_STORAGE_REMOTE_STREAM_SIZE];
+    for(;;) {
+        size_t rx_size =
+            furi_stream_buffer_receive(instance->rx_stream, buffer, sizeof(buffer), 0);
+
+        if(rx_size == 0) {
+            break;
+        }
+
+        log_storage_base_internal_capture(&instance->base, buffer, rx_size);
+    }
 }
 
 void log_storage_remote_internal_init(LogStorageRemote* instance, FuriEventLoop* event_loop) {

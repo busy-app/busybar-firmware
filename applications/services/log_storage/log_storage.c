@@ -86,6 +86,9 @@ static void log_storage_do_dump(LogStorage* instance, const LogStorageMessage* m
     bool is_successful = false;
     if(storage_file_open(file, path, FSAM_WRITE, FSOM_CREATE_ALWAYS)) {
         do {
+            log_storage_local_internal_flush(&instance->local);
+            log_storage_remote_internal_flush(&instance->remote);
+
             size_t length = strlen(LOG_STORAGE_DUMP_U5_SECTION_HEADER);
             if(storage_file_write(file, LOG_STORAGE_DUMP_U5_SECTION_HEADER, length) != length) {
                 FURI_LOG_E(TAG, "Failed to write log data to file");

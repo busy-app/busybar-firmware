@@ -22,6 +22,7 @@ void log_storage_remote_internal_suspend(LogStorageRemote* instance);
 void log_storage_remote_internal_resume(LogStorageRemote* instance);
 
 void log_storage_remote_internal_init(LogStorageRemote* instance, FuriEventLoop* event_loop);
+void log_storage_remote_internal_flush(LogStorageRemote* instance);
 
 #ifdef __cplusplus
 }

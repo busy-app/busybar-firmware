@@ -17,6 +17,7 @@ typedef struct {
 } LogStorageLocal;
 
 void log_storage_local_internal_init(LogStorageLocal* instance, FuriEventLoop* event_loop);
+void log_storage_local_internal_flush(LogStorageLocal* instance);
 
 #ifdef __cplusplus
 }

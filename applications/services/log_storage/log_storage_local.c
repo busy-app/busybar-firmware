@@ -26,10 +26,22 @@ static void log_storage_local_stream_callback(FuriEventLoopObject* object, void*
         instance->did_overrun = false;
     }
 
-    uint8_t buffer[LOG_STORAGE_LOCAL_STREAM_SIZE];
-    size_t rx_size = furi_stream_buffer_receive(instance->rx_stream, buffer, sizeof(buffer), 0);
+    log_storage_local_internal_flush(instance);
+}
 
-    if(rx_size != 0) {
+void log_storage_local_internal_flush(LogStorageLocal* instance) {
+    furi_check(instance);
+
+    uint8_t buffer[LOG_STORAGE_LOCAL_STREAM_SIZE];
+
+    for(;;) {
+        size_t rx_size =
+            furi_stream_buffer_receive(instance->rx_stream, buffer, sizeof(buffer), 0);
+
+        if(rx_size == 0) {
+            break;
+        }
+
         log_storage_base_internal_capture(&instance->base, buffer, rx_size);
     }
 }
