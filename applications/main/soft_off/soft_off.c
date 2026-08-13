@@ -17,7 +17,7 @@ static bool soft_off_signal_callback(uint32_t signal, void* arg, void* context) 
 
     furi_check(context);
 
-    FuriThreadId* thread_id = context;
+    FuriThreadId thread_id = context;
 
     if(signal == FuriSignalExit) {
         furi_thread_flags_set(thread_id, SoftOffThreadFlagExit);
@@ -37,7 +37,7 @@ static void soft_off_animation_finished_callback(
     if(frame->flags & AnimFileFrameFlagError) return;
     if(!(frame->flags & AnimFileFrameFlagFinished)) return;
 
-    FuriThreadId* thread_id = context;
+    FuriThreadId thread_id = context;
     furi_thread_flags_set(thread_id, SoftOffThreadFlagAnimationCompleted);
 }
 
@@ -50,7 +50,7 @@ int32_t soft_off_app(void* arg) {
     LowPower* low_power = furi_record_open(RECORD_LOW_POWER);
 
     FuriThread* thread = furi_thread_get_current();
-    FuriThreadId* thread_id = furi_thread_get_id(thread);
+    FuriThreadId thread_id = furi_thread_get_id(thread);
 
     furi_thread_set_signal_callback(thread, soft_off_signal_callback, thread_id);
 
