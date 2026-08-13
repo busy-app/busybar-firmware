@@ -35,7 +35,7 @@ TlsConfigValidationStatus tls_config_validate(const TlsConfig* tls_config) {
 
     if((client_cert_type == TlsClientCertTypeNone) ||
        (client_cert_type == TlsClientCertTypeDevice)) {
-        /* Nothing */
+        /* Assumed valid */
     } else if(client_cert_type == TlsClientCertTypeCustom) {
         status = tls_config_validate_client_cert_paths(&client_cert_info->paths);
     } else {
