@@ -21,6 +21,8 @@ typedef enum {
     CanvasResultLowPriority,
     CanvasResultEmptyScreen,
     CanvasResultTooManyElements,
+    CanvasResultNonexistentElementId,
+    CanvasResultWrongAppId,
 
     CanvasResultMax,
 } CanvasResult;
@@ -45,6 +47,7 @@ typedef struct {
     GuiDisplayId display;
     Align align;
     CanvasElementType type;
+    int32_t z_index;
 
     union {
         struct {
@@ -175,9 +178,16 @@ void canvas_show_elements_async(
  * @brief Delete elements by filter and possibly terminate Canvas
  * 
  * Deletes ALL elements (`app_id` is NULL) or elements related to a non-NULL
- * `app_id`. If no elements are left after this possibly selective delete, the
- * Canvas closes itself.
+ * `app_id`.
+ * 
+ * Elements are further filtered by the `element_ids` list. If the list is
+ * provided, element IDs that are not in the list are kept. The list is
+ * terminated with a NULL string pointer.
+ * 
+ * If no elements are left after this possibly selective delete, the Canvas
+ * closes itself.
  */
-CanvasResult canvas_delete_elements(CanvasSrv* canvas, const char* app_id);
+CanvasResult
+    canvas_delete_elements(CanvasSrv* canvas, const char* app_id, const char* const* element_ids);
 
 CanvasResult canvas_get_app_id(CanvasSrv* canvas, FuriString* string);
