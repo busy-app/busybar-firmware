@@ -47,7 +47,7 @@ class TestCLIFetch:
         response = persistent_cli_connection.execute_command("fetch")
 
         with allure.step("Verify missing-URL error and usage"):
-            assert "Error: no url specified" in response, response
+            assert "Error: No URL specified" in response, response
             assert "fetch [options] <url>" in response, response
 
     @allure.title("CLI. Command fetch rejects invalid arguments.")
@@ -61,7 +61,7 @@ class TestCLIFetch:
 
         with allure.step("Verify argument error and usage"):
             assert (
-                "Error: invalid arguments" in response
+                "Error: Invalid arguments" in response
             ), f"expected invalid-arguments error for {command!r}, got {response!r}"
             assert (
                 "fetch [options] <url>" in response
