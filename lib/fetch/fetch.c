@@ -110,12 +110,7 @@ static bool fetch_init_connection(const FetchRequest* request, struct mg_connect
     const char* url = request->url;
 
     if(mg_url_is_ssl(url)) {
-        const TlsConfig tls_config = {
-            .client_cert_info.type = TlsClientCertTypeNone,
-            // TODO: Ability to specify client certs in request
-        };
-
-        success = mongoose_tls_init(conn, url, &tls_config);
+        success = mongoose_tls_init(conn, url, &request->tls_config);
     }
 
     return success;

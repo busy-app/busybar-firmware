@@ -266,6 +266,10 @@ static void fetch_cli_print_usage(void) {
            "\t-d HTTP POST/PUT data\r\n"
            "\t-H Custom header(s)\r\n"
            "\t-X Request method\r\n"
+           "\t-k (TLS) Ignore server certificate\r\n"
+           "\t-a (TLS) Client auth type (\"none\" (default), \"device\" or \"cert\")\r\n"
+           "\t-C (TLS) Custom client certificate file path\r\n"
+           "\t-K (TLS) Custom client private key file path\r\n"
            "\t-v Enable full output\r\n");
 }
 
@@ -278,6 +282,22 @@ static void fetch_adjust_url(FuriString* url, const char* src_url) {
     } else {
         furi_string_set(url, src_url);
     }
+}
+
+static TlsClientCertType fetch_cli_get_client_cert_type(const char* str_type) {
+    TlsClientCertType client_cert_type;
+
+    if(strcmp(str_type, "none") == 0) {
+        client_cert_type = TlsClientCertTypeNone;
+    } else if(strcmp(str_type, "device") == 0) {
+        client_cert_type = TlsClientCertTypeDevice;
+    } else if(strcmp(str_type, "cert") == 0) {
+        client_cert_type = TlsClientCertTypeCustom;
+    } else {
+        client_cert_type = TlsClientCertTypeInvalid;
+    }
+
+    return client_cert_type;
 }
 
 static void fetch_cli_option_callback(char opt, const char* optarg, void* context) {
@@ -298,6 +318,14 @@ static void fetch_cli_option_callback(char opt, const char* optarg, void* contex
     } else if(opt == 'd') {
         request->body.data = optarg;
         request->body.length = strlen(optarg);
+    } else if(opt == 'k') {
+        request->tls_config.is_server_cert_ignored = true;
+    } else if(opt == 'a') {
+        request->tls_config.client_cert_info.type = fetch_cli_get_client_cert_type(optarg);
+    } else if(opt == 'C') {
+        request->tls_config.client_cert_info.paths.certificate = optarg;
+    } else if(opt == 'K') {
+        request->tls_config.client_cert_info.paths.private_key = optarg;
     } else if(opt == 'o') {
         params->output_path = optarg;
     } else if(opt == 'v') {
@@ -325,6 +353,22 @@ static bool fetch_cli_params_validate(const FetchCliParams* params) {
             break;
         }
 
+        const TlsConfigValidationStatus tls_status =
+            tls_config_validate(&params->request.tls_config);
+
+        if(tls_status != TlsConfigValidationStatusOk) {
+            if(tls_status == TlsConfigValidationStatusInvalidType) {
+                printf("Error: invalid client auth type\r\n");
+            } else if(tls_status == TlsConfigValidationStatusMissingPaths) {
+                printf(
+                    "Error: client certificate auth requested, but not all required paths specified\r\n");
+            } else {
+                printf("Error: unknown TLS error");
+            }
+
+            break;
+        }
+
         is_valid = true;
 
     } while(false);
@@ -341,7 +385,7 @@ void fetch_cli_command(PipeSide* pipe, FuriString* args, void* context) {
     FetchCliParams* params = fetch_cli_params_alloc();
 
     do {
-        if(!parse_args(args, "o:d:H:X:v", fetch_cli_option_callback, params)) {
+        if(!parse_args(args, "o:d:H:X:a:C:K:kv", fetch_cli_option_callback, params)) {
             printf("Error: invalid arguments\r\n");
             break;
         }
