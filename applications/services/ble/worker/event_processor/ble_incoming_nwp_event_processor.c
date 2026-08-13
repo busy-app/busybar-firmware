@@ -3,7 +3,7 @@
 
 #include "ble_event_handlers.h"
 
-#include "../../ble_common.h"
+#include "../../ble_log.h"
 
 #define TAG "BleEvent"
 

@@ -1,5 +1,5 @@
 #include "ble_advertise.h"
-#include "../../ble_common.h"
+#include "../../ble_log.h"
 #include "rsi_ble_apis.h"
 #include "rsi_bt_common_apis.h"
 

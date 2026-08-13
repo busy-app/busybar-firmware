@@ -1,7 +1,6 @@
 #pragma once
 
 #include <furi.h>
-#include "ble_intercom_types.h"
 
 // #define BLE_DEBUG
 // #define BLE_DEBUG_ADVERTISE_FORCE_PUBLIC
