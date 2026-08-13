@@ -309,14 +309,14 @@ static bool mongoose_tls_load_key_from_file(const char* path, mbedtls_pk_context
 }
 
 static bool
-    mongoose_tls_load_custom_certificates(struct mg_tls* tls, const MongooseTlsCustomPath* path) {
+    mongoose_tls_load_custom_certificates(struct mg_tls* tls, const TlsClientCertPaths* paths) {
     bool success = false;
 
     do {
-        if(!mongoose_tls_load_cert_from_file(path->cert, &tls->cert)) {
+        if(!mongoose_tls_load_cert_from_file(paths->certificate, &tls->cert)) {
             break;
         }
-        if(!mongoose_tls_load_key_from_file(path->key, &tls->pk)) {
+        if(!mongoose_tls_load_key_from_file(paths->private_key, &tls->pk)) {
             break;
         }
 
@@ -326,19 +326,20 @@ static bool
     return success;
 }
 
-static bool mongoose_tls_load_certificates(struct mg_tls* tls, const MongooseTlsConfig* config) {
+static bool
+    mongoose_tls_load_client_certificates(struct mg_tls* tls, const TlsClientCertInfo* cert_info) {
     bool success = false;
 
     do {
-        const MongooseTlsClientCertType cert_type = config->client_cert_type;
+        const TlsClientCertType cert_type = cert_info->type;
 
-        if(cert_type == MongooseTlsClientCertTypeDevice) {
+        if(cert_type == TlsClientCertTypeDevice) {
             if(!mongoose_tls_load_device_certificates(tls)) {
                 break;
             }
 
-        } else if(cert_type == MongooseTlsClientCertTypeCustom) {
-            if(!mongoose_tls_load_custom_certificates(tls, &config->custom_path)) {
+        } else if(cert_type == TlsClientCertTypeCustom) {
+            if(!mongoose_tls_load_custom_certificates(tls, &cert_info->paths)) {
                 break;
             }
 
@@ -347,10 +348,10 @@ static bool mongoose_tls_load_certificates(struct mg_tls* tls, const MongooseTls
             break;
         }
 
-        const int ret = mbedtls_ssl_conf_own_cert(&tls->conf, &tls->cert, &tls->pk);
+        const int mbedtls_status = mbedtls_ssl_conf_own_cert(&tls->conf, &tls->cert, &tls->pk);
 
-        if(tls->cert.version && ret != 0) {
-            FURI_LOG_E(TAG, "mbedtls_ssl_conf_own_cert() failed: -%04X", -ret);
+        if((tls->cert.version != 0) && (mbedtls_status != 0)) {
+            FURI_LOG_E(TAG, "mbedtls_ssl_conf_own_cert() failed: -%04X", -mbedtls_status);
             break;
         }
 
@@ -366,7 +367,7 @@ static bool mongoose_tls_init_hostname(struct mg_tls* tls, const char* server_ur
     do {
         const struct mg_str hostname = mg_url_host(server_url);
 
-        if(hostname.buf == NULL || *hostname.buf == 0) {
+        if((hostname.buf == NULL) || (hostname.len == 0)) {
             break;
         }
 
@@ -380,7 +381,7 @@ static bool mongoose_tls_init_hostname(struct mg_tls* tls, const char* server_ur
     return success;
 }
 
-bool mongoose_tls_init(struct mg_connection* conn, const MongooseTlsConfig* config) {
+bool mongoose_tls_init(struct mg_connection* conn, const char* url, const TlsConfig* config) {
     bool success = false;
 
     struct mg_tls* tls = calloc(1, sizeof(*tls));
@@ -425,17 +426,17 @@ bool mongoose_tls_init(struct mg_connection* conn, const MongooseTlsConfig* conf
 
         mongoose_tls_conf_ca_chain(&tls->conf);
 
-        if(!mongoose_tls_init_hostname(tls, config->server_url)) {
+        if(!mongoose_tls_init_hostname(tls, url)) {
             FURI_LOG_E(TAG, "Failed to determine hostname");
             break;
         }
 
-        const int auth_mode = config->ignore_server_cert ? MBEDTLS_SSL_VERIFY_NONE :
-                                                           MBEDTLS_SSL_VERIFY_REQUIRED;
+        const int auth_mode = config->is_server_cert_ignored ? MBEDTLS_SSL_VERIFY_NONE :
+                                                               MBEDTLS_SSL_VERIFY_REQUIRED;
         mbedtls_ssl_conf_authmode(&tls->conf, auth_mode);
 
-        if(!mongoose_tls_load_certificates(tls, config)) {
-            FURI_LOG_E(TAG, "Failed to load certificates");
+        if(!mongoose_tls_load_client_certificates(tls, &config->client_cert_info)) {
+            FURI_LOG_E(TAG, "Failed to load client certificates");
             break;
         }
 

@@ -108,23 +108,26 @@ static bool mqtt_init_tls(Mqtt* instance, struct mg_connection* conn) {
     const MqttConfig* mqtt_config = &instance->settings.config;
     const MqttClientCertType client_cert_type = mqtt_config->client_cert_type;
 
-    MongooseTlsConfig mongoose_tls_config;
-    mongoose_tls_config.server_url = mqtt_get_server_url(instance);
-    mongoose_tls_config.ignore_server_cert = mqtt_config->ignore_server_cert;
+    TlsConfig tls_config;
+    tls_config.is_server_cert_ignored = mqtt_config->ignore_server_cert;
+
+    TlsClientCertInfo* client_cert_info = &tls_config.client_cert_info;
 
     if(client_cert_type == MqttClientCertTypeDefault) {
-        mongoose_tls_config.client_cert_type = MongooseTlsClientCertTypeDevice;
+        client_cert_info->type = TlsClientCertTypeDevice;
 
     } else if(client_cert_type == MqttClientCertTypeCustom) {
-        mongoose_tls_config.client_cert_type = MongooseTlsClientCertTypeCustom;
-        mongoose_tls_config.custom_path.cert = TLS_CUSTOM_CERT_PATH;
-        mongoose_tls_config.custom_path.key = TLS_CUSTOM_KEY_PATH;
+        client_cert_info->type = TlsClientCertTypeCustom;
+
+        TlsClientCertPaths* paths = &client_cert_info->paths;
+        paths->certificate = TLS_CUSTOM_CERT_PATH;
+        paths->private_key = TLS_CUSTOM_KEY_PATH;
 
     } else {
-        mongoose_tls_config.client_cert_type = MongooseTlsClientCertTypeNone;
+        client_cert_info->type = TlsClientCertTypeNone;
     }
 
-    return mongoose_tls_init(conn, &mongoose_tls_config);
+    return mongoose_tls_init(conn, mqtt_get_server_url(instance), &tls_config);
 }
 
 static void mqtt_connect_mg_event_handler(

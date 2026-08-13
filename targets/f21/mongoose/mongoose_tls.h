@@ -2,22 +2,6 @@
 
 #include <mongoose.h>
 
-typedef enum {
-    MongooseTlsClientCertTypeNone,
-    MongooseTlsClientCertTypeDevice,
-    MongooseTlsClientCertTypeCustom,
-} MongooseTlsClientCertType;
+#include <toolbox/tls_config.h>
 
-typedef struct {
-    const char* cert;
-    const char* key;
-} MongooseTlsCustomPath;
-
-typedef struct {
-    const char* server_url;
-    MongooseTlsCustomPath custom_path;
-    MongooseTlsClientCertType client_cert_type;
-    bool ignore_server_cert;
-} MongooseTlsConfig;
-
-bool mongoose_tls_init(struct mg_connection* conn, const MongooseTlsConfig* config);
+bool mongoose_tls_init(struct mg_connection* conn, const char* url, const TlsConfig* tls_config);
