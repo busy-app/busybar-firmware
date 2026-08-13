@@ -318,6 +318,8 @@ async function showStatusOnBusyBar (statusName: string) {
     showStatusIconResetTimeout.value = setTimeout(() => {
       shownStatusName.value = null;
     }, 3000);
+  } catch {
+    // Request errors are already reported by the store
   } finally {
     showingStatusName.value = null;
   }
