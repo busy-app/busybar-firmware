@@ -387,6 +387,8 @@ bool mongoose_tls_init(struct mg_connection* conn, const MongooseTlsConfig* conf
     conn->tls = tls;
 
     do {
+        int mbedtls_status;
+
         if(conn->is_listening) {
             break;
         }
@@ -404,14 +406,13 @@ bool mongoose_tls_init(struct mg_connection* conn, const MongooseTlsConfig* conf
         mbedtls_ssl_conf_dbg(&tls->conf, mongoose_tls_debug_cb, conn);
         mbedtls_debug_set_threshold(TLS_DEBUG_LEVEL);
 
-        int ret = mbedtls_ssl_config_defaults(
-            &tls->conf,
-            conn->is_client ? MBEDTLS_SSL_IS_CLIENT : MBEDTLS_SSL_IS_SERVER,
-            MBEDTLS_SSL_TRANSPORT_STREAM,
-            MBEDTLS_SSL_PRESET_DEFAULT);
+        const int endpoint = conn->is_client ? MBEDTLS_SSL_IS_CLIENT : MBEDTLS_SSL_IS_SERVER;
 
-        if(ret != 0) {
-            mg_error(conn, "Config defaults -%04X", -ret);
+        mbedtls_status = mbedtls_ssl_config_defaults(
+            &tls->conf, endpoint, MBEDTLS_SSL_TRANSPORT_STREAM, MBEDTLS_SSL_PRESET_DEFAULT);
+
+        if(mbedtls_status != 0) {
+            FURI_LOG_E(TAG, "mbedtls_ssl_config_defaults() failed: -%04X", -mbedtls_status);
             break;
         }
 
@@ -425,31 +426,23 @@ bool mongoose_tls_init(struct mg_connection* conn, const MongooseTlsConfig* conf
         mongoose_tls_conf_ca_chain(&tls->conf);
 
         if(!mongoose_tls_init_hostname(tls, config->server_url)) {
-            mg_error(conn, "Failed to parse hostname");
+            FURI_LOG_E(TAG, "Failed to determine hostname");
             break;
         }
 
-        mbedtls_ssl_conf_authmode(
-            &tls->conf,
-            config->ignore_server_cert ? MBEDTLS_SSL_VERIFY_NONE : MBEDTLS_SSL_VERIFY_REQUIRED);
+        const int auth_mode = config->ignore_server_cert ? MBEDTLS_SSL_VERIFY_NONE :
+                                                           MBEDTLS_SSL_VERIFY_REQUIRED;
+        mbedtls_ssl_conf_authmode(&tls->conf, auth_mode);
 
         if(!mongoose_tls_load_certificates(tls, config)) {
-            mg_error(conn, "Failed to load certificates");
+            FURI_LOG_E(TAG, "Failed to load certificates");
             break;
         }
 
-#ifdef MBEDTLS_SSL_SESSION_TICKETS
-        mbedtls_ssl_conf_session_tickets_cb(
-            &tls->conf,
-            mbedtls_ssl_ticket_write,
-            mbedtls_ssl_ticket_parse,
-            &((struct mg_tls_ctx*)c->mgr->tls_ctx)->tickets);
-#endif
+        mbedtls_status = mbedtls_ssl_setup(&tls->ssl, &tls->conf);
 
-        ret = mbedtls_ssl_setup(&tls->ssl, &tls->conf);
-
-        if(ret != 0) {
-            mg_error(conn, "Setup error -%04X", -ret);
+        if(mbedtls_status != 0) {
+            FURI_LOG_E(TAG, "mbedtls_ssl_setup() failed: -%04X", -mbedtls_status);
             break;
         }
 
