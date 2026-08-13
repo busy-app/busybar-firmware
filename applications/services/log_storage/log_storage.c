@@ -57,6 +57,18 @@ static const LogStorageMessageHandler log_storage_handlers[] = {
 
 static_assert(COUNT_OF(log_storage_handlers) == LogStorageMessageTypesCount);
 
+static bool log_storage_file_write_all(File* file, const void* data, size_t size) {
+    bool is_successful;
+    if(storage_file_write(file, data, size) == size) {
+        is_successful = true;
+    } else {
+        FURI_LOG_E(TAG, "Failed to write log data to file");
+        is_successful = false;
+    }
+
+    return is_successful;
+}
+
 static bool log_storage_dump_base(LogStorageBase* base, File* file) {
     bool is_successful = false;
     do {
@@ -67,9 +79,11 @@ static bool log_storage_dump_base(LogStorageBase* base, File* file) {
         for(size_t i = 0; i < COUNT_OF(snapshot.chunks); i++) {
             const LogStorageBaseSnapshotChunk* chunk = &snapshot.chunks[i];
 
-            if(chunk->length == 0) continue;
-            if(storage_file_write(file, chunk->data, chunk->length) != chunk->length) {
-                FURI_LOG_E(TAG, "Failed to write log data to file");
+            if(chunk->length == 0) {
+                continue;
+            }
+
+            if(!log_storage_file_write_all(file, chunk->data, chunk->length)) {
                 is_successful = false;
                 break;
             }
@@ -86,24 +100,27 @@ static void log_storage_do_dump(LogStorage* instance, const LogStorageMessage* m
     bool is_successful = false;
     if(storage_file_open(file, path, FSAM_WRITE, FSOM_CREATE_ALWAYS)) {
         do {
-            log_storage_local_internal_flush(&instance->local);
-            log_storage_remote_internal_flush(&instance->remote);
+            size_t length;
 
-            size_t length = strlen(LOG_STORAGE_DUMP_U5_SECTION_HEADER);
-            if(storage_file_write(file, LOG_STORAGE_DUMP_U5_SECTION_HEADER, length) != length) {
-                FURI_LOG_E(TAG, "Failed to write log data to file");
+            length = strlen(LOG_STORAGE_DUMP_U5_SECTION_HEADER);
+            if(!log_storage_file_write_all(file, LOG_STORAGE_DUMP_U5_SECTION_HEADER, length)) {
                 break;
             }
 
-            if(!log_storage_dump_base(&instance->local.base, file)) break;
+            log_storage_local_internal_flush(&instance->local);
+            if(!log_storage_dump_base(&instance->local.base, file)) {
+                break;
+            }
 
             length = strlen(LOG_STORAGE_DUMP_917_SECTION_HEADER);
-            if(storage_file_write(file, LOG_STORAGE_DUMP_917_SECTION_HEADER, length) != length) {
-                FURI_LOG_E(TAG, "Failed to write log data to file");
+            if(!log_storage_file_write_all(file, LOG_STORAGE_DUMP_917_SECTION_HEADER, length)) {
                 break;
             }
 
-            if(!log_storage_dump_base(&instance->remote.base, file)) break;
+            log_storage_remote_internal_flush(&instance->remote);
+            if(!log_storage_dump_base(&instance->remote.base, file)) {
+                break;
+            }
 
             FURI_LOG_I(TAG, "Log dump saved to %s", path);
 
