@@ -176,6 +176,7 @@ static FURI_ALWAYS_INLINE void fetch_connect_event(Fetch* instance, struct mg_co
         fetch_send_request_body(request, conn);
 
     } else {
+        fetch_raise_error(instance, "Failed to establish TLS connection");
         conn->is_draining = 1;
     }
 }

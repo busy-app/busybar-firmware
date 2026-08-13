@@ -350,17 +350,13 @@ static void fetch_cli_params_free(FetchCliParams* params) {
     free(params);
 }
 
-static bool fetch_cli_params_validate(const FetchCliParams* params) {
-    bool is_valid = false;
+static bool fetch_cli_tls_config_validate(const TlsConfig* tls_config) {
+    bool success = false;
+
+    Storage* storage = furi_record_open(RECORD_STORAGE);
 
     do {
-        if(params->request.url == NULL) {
-            fetch_cli_print_error("No URL specified");
-            break;
-        }
-
-        const TlsConfigValidationStatus tls_status =
-            tls_config_validate(&params->request.tls_config);
+        const TlsConfigValidationStatus tls_status = tls_config_validate(tls_config);
 
         if(tls_status != TlsConfigValidationStatusOk) {
             if(tls_status == TlsConfigValidationStatusInvalidType) {
@@ -373,6 +369,40 @@ static bool fetch_cli_params_validate(const FetchCliParams* params) {
                 fetch_cli_print_error("Unknown TLS error");
             }
 
+            break;
+        }
+
+        const TlsClientCertPaths* paths = &tls_config->client_cert_info.paths;
+
+        if(storage_common_stat(storage, paths->certificate, NULL) != FSE_OK) {
+            fetch_cli_print_error("Certificate file does not exist");
+            break;
+        }
+
+        if(storage_common_stat(storage, paths->private_key, NULL) != FSE_OK) {
+            fetch_cli_print_error("Private key file does not exist");
+            break;
+        }
+
+        success = true;
+
+    } while(false);
+
+    furi_record_close(RECORD_STORAGE);
+
+    return success;
+}
+
+static bool fetch_cli_params_validate(const FetchCliParams* params) {
+    bool is_valid = false;
+
+    do {
+        if(params->request.url == NULL) {
+            fetch_cli_print_error("No URL specified");
+            break;
+        }
+
+        if(!fetch_cli_tls_config_validate(&params->request.tls_config)) {
             break;
         }
 
