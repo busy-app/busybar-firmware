@@ -333,7 +333,11 @@ static bool
     do {
         const TlsClientCertType cert_type = cert_info->type;
 
-        if(cert_type == TlsClientCertTypeDevice) {
+        if(cert_type == TlsClientCertTypeNone) {
+            success = true;
+            break;
+
+        } else if(cert_type == TlsClientCertTypeDevice) {
             if(!mongoose_tls_load_device_certificates(tls)) {
                 break;
             }
@@ -344,7 +348,6 @@ static bool
             }
 
         } else {
-            success = true;
             break;
         }
 
