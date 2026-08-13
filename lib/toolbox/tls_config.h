@@ -38,7 +38,7 @@ typedef struct {
  */
 typedef struct {
     TlsClientCertType type; /**< Type of the client certificate */
-    TlsClientCertPaths paths; /**< File paths (only when `type == TlsClientCertTypeCustom`) */
+    TlsClientCertPaths paths; /**< File paths (only if `type == TlsClientCertTypeCustom`) */
 } TlsClientCertInfo;
 
 /**
@@ -46,7 +46,7 @@ typedef struct {
  */
 typedef struct {
     TlsClientCertInfo client_cert_info; /**< Information about the used client certificate */
-    bool is_server_cert_ignored; /**< The server certificate check shall be skipped when @c true */
+    bool is_server_cert_ignored; /**< The server certificate check shall be skipped if @c true */
 } TlsConfig;
 
 /**
@@ -54,7 +54,7 @@ typedef struct {
  */
 typedef enum {
     TlsConfigValidationStatusOk, /**< TLS config is valid, no error detected */
-    TlsConfigValidationStatusInvalidType, /*< Client certificate type is invalid */
+    TlsConfigValidationStatusInvalidType, /**< Client certificate type is invalid */
     TlsConfigValidationStatusClientCertNotSpecified, /**< Client certificate is required, but not specified */
     TlsConfigValidationStatusPrivateKeyNotSpecified, /**< Private key is required, but not specified */
 } TlsConfigValidationStatus;
