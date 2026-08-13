@@ -131,8 +131,14 @@ paths:
       tags:
         - Assets
       summary: Clear display
-      description: Deletes display elements drawn by the Canvas application. If application_name is specified, only elements for that app are removed.
+      description: Deletes display elements drawn via this API. This operation can be selective - see the request body type.
       operationId: clearDisplay
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeletionParameters"
       parameters:
         - name: application_name
           in: query
@@ -142,11 +148,17 @@ paths:
           description: Application identifier
       responses:
         "200":
-          description: Display cleared successfully
+          description: Display or some elements cleared successfully
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid deletion data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /api/audio/play:
     post:
@@ -348,6 +360,11 @@ schemas:
           - bottom_left
           - bottom_mid
           - bottom_right
+      z_index:
+        type: integer
+        minimum: 0
+        maximum: 2147483647
+        description: Order of the element. Elements with higher Z-indexes are drawn on top of those with lower ones.
     discriminator:
       propertyName: type
       mapping:
@@ -587,3 +604,18 @@ schemas:
                 - "sounds/alert.snd"
           required:
               - stock_path
+
+  DeletionParameters:
+    type: object
+    properties:
+      application_name:
+        $ref: "#/components/schemas/ApplicationName"
+        description: Fill in this field for a sanity check that you actually own these elements. Omit it to delete them anyway.
+        example: my_app
+      element_ids:
+        description: Unique identifiers of elements that should be deleted. Omit this field to delete all elements.
+        type: array
+        items:
+          type: string
+          pattern: "^[a-zA-Z0-9._-]+$"
+          example: my_element

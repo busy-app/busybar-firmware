@@ -62,6 +62,7 @@ from .storage import (
 from .assets import (
     AssetResultResponse,
     AssetsAPI,
+    DisplayDeleteRequest,
     DisplayDrawRequest,
     DisplayElement,
 )
@@ -167,6 +168,7 @@ __all__ = [
     "AssetResultResponse",
     "DisplayElement",
     "DisplayDrawRequest",
+    "DisplayDeleteRequest",
     "AccountAPI",
     "AccountBackend",
     "AccountInfoResponse",

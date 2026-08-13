@@ -1,6 +1,6 @@
 import type { StorageListElement, DisplayDrawParams } from '@busy-app/busy-lib';
 import { defineStore } from 'pinia';
-import { DRAW_TOOL_DISPLAY_APPLICATION_NAME, DRAW_TOOL_SAVE_DIR, DRAW_TOOL_TEMP_FILE_NAME } from '@/util/drawTool';
+import { DRAW_TOOL_DISPLAY_APPLICATION_NAME, DRAW_TOOL_DISPLAY_PRIORITY, DRAW_TOOL_SAVE_DIR, DRAW_TOOL_TEMP_FILE_NAME } from '@/util/drawTool';
 
 type DrawToolStatusDirectoryFile = {
   name: string;
@@ -170,10 +170,15 @@ export const useDrawToolStore = defineStore('drawTool', () => {
           path: fileName
         }
       ],
-      priority: 50
+      priority: DRAW_TOOL_DISPLAY_PRIORITY
     } as DisplayDrawParams)
       .catch(async error => {
-        await handleHTTPError(error, 'Display draw command failed', true);
+        if (isDisplayPriorityConflict(error)) {
+          notifyDisplayPriorityConflict();
+        } else {
+          await handleHTTPError(error, 'Display draw command failed', true);
+        }
+
         throw error;
       });
   }

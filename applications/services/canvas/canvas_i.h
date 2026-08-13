@@ -17,6 +17,7 @@ typedef struct {
     CanvasWidgetTimeoutContext* timeout_context;
     CanvasElementType type;
     GuiDisplayId display;
+    size_t z_index;
     union {
         Image* image;
         AnimPlayer* anim_player;
@@ -29,3 +30,5 @@ typedef struct {
 void canvas_widget_update(CanvasWidget* widget, Widget* root, const CanvasElement* element);
 
 void canvas_widget_delete(CanvasWidget* widget);
+
+void canvas_widget_to_front(CanvasWidget* widget);

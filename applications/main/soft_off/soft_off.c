@@ -17,7 +17,7 @@ static bool soft_off_signal_callback(uint32_t signal, void* arg, void* context) 
 
     furi_check(context);
 
-    FuriThreadId* thread_id = context;
+    FuriThreadId thread_id = context;
 
     if(signal == FuriSignalExit) {
         furi_thread_flags_set(thread_id, SoftOffThreadFlagExit);
@@ -37,8 +37,8 @@ static void soft_off_animation_finished_callback(
     if(frame->flags & AnimFileFrameFlagError) return;
     if(!(frame->flags & AnimFileFrameFlagFinished)) return;
 
-    FuriThread* thread = context;
-    furi_thread_flags_set(thread, SoftOffThreadFlagAnimationCompleted);
+    FuriThreadId thread_id = context;
+    furi_thread_flags_set(thread_id, SoftOffThreadFlagAnimationCompleted);
 }
 
 int32_t soft_off_app(void* arg) {
@@ -50,7 +50,9 @@ int32_t soft_off_app(void* arg) {
     LowPower* low_power = furi_record_open(RECORD_LOW_POWER);
 
     FuriThread* thread = furi_thread_get_current();
-    furi_thread_set_signal_callback(thread, soft_off_signal_callback, thread);
+    FuriThreadId thread_id = furi_thread_get_id(thread);
+
+    furi_thread_set_signal_callback(thread, soft_off_signal_callback, thread_id);
 
     AnimPlayer* anim_player;
     with_gui(gui, {
@@ -59,7 +61,8 @@ int32_t soft_off_app(void* arg) {
 
         anim_player = anim_player_alloc(root);
         anim_player_set_source(anim_player, SOFT_OFF_ANIM_PATH("turn_off_72x16.anim"));
-        anim_player_set_frame_callback(anim_player, soft_off_animation_finished_callback, thread);
+        anim_player_set_frame_callback(
+            anim_player, soft_off_animation_finished_callback, thread_id);
 
         anim_player_set_section(anim_player, AnimFilePlayFlagNone, ANIM_FILE_DEFAULT_SECTION);
     });

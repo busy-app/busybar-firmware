@@ -793,21 +793,27 @@ class TestDrawMultipleElements:
 class TestDeleteDisplay:
     """
     DELETE /api/display/draw clears canvas elements.
-    ``app_id`` query parameter is optional; when present, only that app's
-    elements are removed.
+    ``application_name`` is an optional ownership check passed in the query.
+    ``element_ids`` in the optional JSON body selects individual elements.
     """
 
-    @allure.title("DELETE without app_id → 200")
+    @allure.title("DELETE without application_name → 200")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_delete_all(self, assets_api: AssetsAPI):
         resp = assets_api.clear_display()
         assert resp.result  # Pydantic validates non-empty "result"
 
-    @allure.title("DELETE with app_id → 200")
+    @allure.title("DELETE with matching application_name → 200")
     @pytest.mark.api
     @pytest.mark.frontend
-    def test_delete_by_app_id(self, assets_api: AssetsAPI):
+    def test_delete_by_app_id(self, assets_api: AssetsAPI, busy_timer_stopped):
+        draw_response = assets_api.draw_response(
+            "some_app",
+            [_text(id="owned_element")],
+            priority=_PRI,
+        )
+        assets_api.assert_status(draw_response, 200)
         resp = assets_api.clear_display_by_app("some_app")
         assets_api.assert_status(resp, 200)
 
@@ -820,7 +826,7 @@ class TestDeleteDisplay:
         resp = _draw(assets_api, [_text(text="after clear")])
         assets_api.assert_status(resp, 200)
 
-    @allure.title("DELETE for specific app_id doesn't affect other app's draw")
+    @allure.title("DELETE for a specific application allows another app to draw")
     @pytest.mark.api
     @pytest.mark.frontend
     def test_delete_app_isolation(self, assets_api: AssetsAPI, busy_timer_stopped):
