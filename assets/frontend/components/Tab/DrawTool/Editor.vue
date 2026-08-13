@@ -941,7 +941,7 @@ import {
   Transformer as VTransformer
 } from 'vue-konva';
 import drawToolIconsData from '@/generated/drawTool/icons.json';
-import { DRAW_TOOL_EXPORT_PIXEL_SIZE, pixelateImageData } from '@/util/drawTool';
+import { DRAW_TOOL_DISPLAY_PRIORITY, DRAW_TOOL_EXPORT_PIXEL_SIZE, pixelateImageData } from '@/util/drawTool';
 import type { TransformerBox } from '@/util/drawTool';
 import type { DisplayDrawParams } from '@busy-app/busy-lib';
 
@@ -2031,10 +2031,15 @@ async function drawStatusOnBusyBar (fileName: string) {
         path: fileName
       }
     ],
-    priority: 50
+    priority: DRAW_TOOL_DISPLAY_PRIORITY
   } as DisplayDrawParams)
     .catch(async error => {
-      await handleHTTPError(error, 'Display draw command failed', true);
+      if (isDisplayPriorityConflict(error)) {
+        notifyDisplayPriorityConflict();
+      } else {
+        await handleHTTPError(error, 'Display draw command failed', true);
+      }
+
       throw error;
     });
 }

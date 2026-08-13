@@ -11,6 +11,7 @@
 #include <brightness_control/brightness_control.h>
 #include <status_lights/status_lights.h>
 #include <lvgl.h>
+#include <cjson/cJSON.h>
 
 #define TAG "HttpDisplay"
 
@@ -533,7 +534,8 @@ static bool api_display_draw_parse_element(
     CanvasElementsArray_t elements_array,
     char* app_name,
     struct mg_str element,
-    FuriString* error) {
+    FuriString* error,
+    int32_t* default_z_index) {
     bool success = false;
     char* element_type = NULL;
     CanvasElement* canvas_element = CanvasElementsArray_push_new(elements_array);
@@ -544,6 +546,16 @@ static bool api_display_draw_parse_element(
 
         int32_t temp_val = mg_json_get_long(element, "$.timeout", -1);
         canvas_element->timeout = (temp_val > 0) ? temp_val : 0;
+
+        struct mg_str z_index_token = mg_json_get_tok(element, "$.z_index");
+        if(z_index_token.buf) {
+            int32_t z_index = mg_json_get_long(element, "$.z_index", -1);
+            if(z_index < 0) break;
+            canvas_element->z_index = z_index;
+        } else {
+            canvas_element->z_index = *default_z_index;
+            *default_z_index += 10;
+        }
 
         char* disp_until = mg_json_get_str(element, "$.display_until");
         if(disp_until) {
@@ -730,8 +742,10 @@ static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_m
         struct mg_str element;
         bool ok = true;
         size_t elements_count = 0;
+        int32_t default_z_index = 0;
         while((offset = mg_json_next(elements_obj, offset, NULL, &element)) > 0) {
-            ok = api_display_draw_parse_element(elements_array, app_name, element, error);
+            ok = api_display_draw_parse_element(
+                elements_array, app_name, element, error, &default_z_index);
             if(!ok) break;
             elements_count++;
             if(elements_count > CANVAS_MAX_ELEMENTS) {
@@ -774,20 +788,66 @@ static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_m
 }
 
 static void api_display_canvas_clear(struct mg_connection* conn, struct mg_http_message* msg) {
-    char app_name_buf[64];
-    int app_name_len =
-        mg_http_get_var(&msg->query, "application_name", app_name_buf, sizeof(app_name_buf));
-    const char* app_name = (app_name_len >= 1) ? app_name_buf : NULL;
+    bool request_valid = false;
+    cJSON* body = NULL;
+    char** element_ids = NULL;
 
-    CanvasSrv* canvas = furi_record_open(RECORD_CANVAS);
-    CanvasResult res = canvas_delete_elements(canvas, app_name);
-    furi_record_close(RECORD_CANVAS);
+    do {
+        cJSON* json_app_name = NULL;
+        if(msg->body.buf && msg->body.len) {
+            body = cJSON_ParseWithLength(msg->body.buf, msg->body.len);
+            if(!body) break;
+            if(!cJSON_IsObject(body)) break;
 
-    if(res == CanvasResultOk) {
+            cJSON* json_element_ids = cJSON_GetObjectItem(body, "element_ids");
+
+            if(json_element_ids) {
+                if(!cJSON_IsArray(json_element_ids)) break;
+
+                bool all_element_ids_valid = true;
+                element_ids = malloc(sizeof(char*) * (cJSON_GetArraySize(json_element_ids) + 1));
+                size_t i = 0;
+                cJSON* json_element_id = NULL;
+
+                cJSON_ArrayForEach(json_element_id, json_element_ids) {
+                    if(!cJSON_IsString(json_element_id)) {
+                        all_element_ids_valid = false;
+                        break;
+                    }
+                    element_ids[i] = cJSON_GetStringValue(json_element_id);
+                    i++;
+                }
+
+                if(!all_element_ids_valid) break;
+            }
+
+            cJSON* json_app_name = cJSON_GetObjectItem(body, "application_name");
+            if(json_app_name && !cJSON_IsString(json_app_name)) break;
+        }
+        char* body_app_name = cJSON_GetStringValue(json_app_name);
+
+        char query_app_name_buf[64];
+        int query_app_name_len = mg_http_get_var(
+            &msg->query, "application_name", query_app_name_buf, sizeof(query_app_name_buf));
+
+        if((query_app_name_len >= 1) && body_app_name) break;
+
+        const char* app_name = (query_app_name_len >= 1) ? query_app_name_buf : body_app_name;
+        CanvasSrv* canvas = furi_record_open(RECORD_CANVAS);
+        CanvasResult res =
+            canvas_delete_elements(canvas, app_name, (const char* const*)element_ids);
+        furi_record_close(RECORD_CANVAS);
+
+        if(res != CanvasResultOk) break;
+
         MG_REPLY_OK(conn);
-    } else {
-        MG_REPLY_BAD_REQUEST(conn);
-    }
+        request_valid = true;
+    } while(0);
+
+    if(element_ids) free(element_ids);
+    if(body) cJSON_Delete(body);
+
+    if(!request_valid) MG_REPLY_BAD_REQUEST(conn);
 }
 
 static bool api_display_draw_callback(
