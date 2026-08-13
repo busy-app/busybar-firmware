@@ -173,7 +173,12 @@ export const useDrawToolStore = defineStore('drawTool', () => {
       priority: DRAW_TOOL_DISPLAY_PRIORITY
     } as DisplayDrawParams)
       .catch(async error => {
-        await handleHTTPError(error, 'Display draw command failed', true);
+        if (isDisplayPriorityConflict(error)) {
+          notifyDisplayPriorityConflict();
+        } else {
+          await handleHTTPError(error, 'Display draw command failed', true);
+        }
+
         throw error;
       });
   }
