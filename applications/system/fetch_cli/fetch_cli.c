@@ -372,16 +372,20 @@ static bool fetch_cli_tls_config_validate(const TlsConfig* tls_config) {
             break;
         }
 
-        const TlsClientCertPaths* paths = &tls_config->client_cert_info.paths;
+        const TlsClientCertInfo* client_cert_info = &tls_config->client_cert_info;
 
-        if(storage_common_stat(storage, paths->certificate, NULL) != FSE_OK) {
-            fetch_cli_print_error("Certificate file does not exist");
-            break;
-        }
+        if(client_cert_info->type == TlsClientCertTypeCustom) {
+            const TlsClientCertPaths* paths = &client_cert_info->paths;
 
-        if(storage_common_stat(storage, paths->private_key, NULL) != FSE_OK) {
-            fetch_cli_print_error("Private key file does not exist");
-            break;
+            if(storage_common_stat(storage, paths->certificate, NULL) != FSE_OK) {
+                fetch_cli_print_error("Certificate file does not exist");
+                break;
+            }
+
+            if(storage_common_stat(storage, paths->private_key, NULL) != FSE_OK) {
+                fetch_cli_print_error("Private key file does not exist");
+                break;
+            }
         }
 
         success = true;
