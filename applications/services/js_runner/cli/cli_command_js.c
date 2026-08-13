@@ -4,6 +4,8 @@
 #include <cli/args.h>
 #include <js_runner/js_runner.h>
 
+#define CLI_APP_ID "app.busy.cli"
+
 static void js_console_cb(
     JsRunnerConsoleSeverity severity,
     const char* buf,
@@ -43,8 +45,8 @@ void cli_command_js(PipeSide* pipe, FuriString* args, void* context) {
 
     if(furi_string_size(args) > 0) {
         JsRunner* runner = furi_record_open(RECORD_JS_RUNNER);
-        JsRunnerError error =
-            js_runner_run(runner, furi_string_get_cstr(args), 64 * 1024, js_console_cb, NULL);
+        JsRunnerError error = js_runner_run(
+            runner, CLI_APP_ID, furi_string_get_cstr(args), 64 * 1024, js_console_cb, NULL);
         if(error != JsRunnerErrorNone) {
             printf("Error running script: %d", error);
         }

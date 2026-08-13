@@ -2,6 +2,7 @@
 #include "js_fetch.h"
 #include "js_interval.h"
 #include "js_console.h"
+#include "js_local_storage.h"
 
 #define TAG "JsRunner"
 
@@ -103,10 +104,13 @@ static void js_runner_app_fetch_deinit(JsRunnerAppFetch* fetch) {
 
 static void js_runner_app_init(
     JsRunnerApp* app,
+    const char* app_id,
     const char* script_path,
     size_t heap_size,
     JsRunnerConsoleOutCallback console_out_cb,
     void* console_cb_context) {
+    app->app_id = furi_string_alloc_set(app_id);
+
     app->heap_size = heap_size;
     app->jrs_context = NULL;
     app->event_loop = furi_event_loop_alloc();
@@ -126,6 +130,7 @@ static void js_runner_app_init(
 
 static void js_runner_app_deinit(JsRunnerApp* app) {
     JS_TRACE("app deinit");
+    furi_string_free(app->app_id);
     furi_event_loop_unsubscribe(app->event_loop, app->fetch.event_queue);
     furi_event_loop_free(app->event_loop);
     furi_string_free(app->root_path);
@@ -174,8 +179,13 @@ void js_runner_del_fetch_thread(JsRunnerApp* app) {
     js_runner_check_event_loop(app);
 }
 
+const char* js_runner_app_get_id(const JsRunnerApp* app) {
+    return furi_string_get_cstr(app->app_id);
+}
+
 JsRunnerError js_runner_run(
     JsRunner* instance,
+    const char* app_id,
     const char* path,
     size_t heap_size,
     JsRunnerConsoleOutCallback console_out_cb,
@@ -203,7 +213,7 @@ JsRunnerError js_runner_run(
         }
 
         JsRunnerApp app;
-        js_runner_app_init(&app, path, heap_size, console_out_cb, console_write_context);
+        js_runner_app_init(&app, app_id, path, heap_size, console_out_cb, console_write_context);
 
         {
             furi_mutex_acquire(instance->apps_mutex, FuriWaitForever);
@@ -223,6 +233,7 @@ JsRunnerError js_runner_run(
         js_setup_console(&app.console);
         js_setup_interval_methods();
         js_setup_fetch();
+        js_setup_local_storage();
 
         FuriString* path_furi = furi_string_alloc_set_str(path);
         FuriString* filename_furi = furi_string_alloc();

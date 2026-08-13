@@ -53,6 +53,7 @@ typedef void (*JsRunnerConsoleOutCallback)(
  */
 JsRunnerError js_runner_run(
     JsRunner* instance,
+    const char* app_id,
     const char* path,
     size_t heap_size,
     JsRunnerConsoleOutCallback console_write_cb,
