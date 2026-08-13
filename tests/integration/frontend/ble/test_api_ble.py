@@ -108,7 +108,6 @@ class TestBleStatusAPI:
     @allure.title("DELETE /api/ble/pairing")
     @pytest.mark.api
     @pytest.mark.frontend
-    @pytest.mark.skip(reason="Consistently failing; disabling until an upcoming fix")
     def test_api_ble_pairing_delete(self, ble_api: BleAPI):
         """Test DELETE /api/ble/pairing endpoint"""
         response = ble_api.remove_pairing()
