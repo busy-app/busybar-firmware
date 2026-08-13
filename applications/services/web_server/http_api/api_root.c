@@ -5,7 +5,7 @@
 #include <time/time.h>
 #include <datetime.h>
 #include <sysctl/sysctl.h>
-#include <tokens/tokens.h>
+#include <api_tokens/api_tokens.h>
 #include <cjson/cJSON.h>
 
 #define TAG "HttpApi"
@@ -23,7 +23,7 @@ typedef enum {
 
 typedef struct {
     HttpApiAccessStatus status;
-    char token[TOKENS_LENGTH + 1];
+    char token[API_TOKENS_LENGTH + 1];
 } HttpApiAccessStatusEx;
 
 // Read the 3-digit HTTP status code from the queued response in conn->send.
@@ -145,7 +145,7 @@ typedef struct {
         ApiAccessKeyRequired,
     } access_mode;
     FuriString* access_key;
-    Tokens* tokens;
+    ApiTokens* tokens;
 } ApiRootCtx;
 
 static bool http_api_version_callback(
@@ -346,14 +346,14 @@ static HttpApiAccessStatusEx http_api_access_status(
         bool token_provided = strlen(status_ex.token);
 
         if(token_provided) {
-            if(token_length <= TOKENS_LENGTH) {
+            if(token_length <= API_TOKENS_LENGTH) {
                 if(context->access_key &&
                    (furi_string_cmp_str(context->access_key, status_ex.token) == 0)) {
                     status_ex.status = HttpApiAccessStatusGrantedViaUserPassword;
                     break;
                 }
 
-                if(tokens_validate_and_record_usage(context->tokens, status_ex.token)) {
+                if(api_tokens_validate_and_record_usage(context->tokens, status_ex.token)) {
                     status_ex.status = HttpApiAccessStatusGrantedViaToken;
                     break;
                 }
@@ -415,7 +415,7 @@ static bool http_api_is_version_allowed(
     return true;
 }
 
-static cJSON* api_access_tokens_entry_to_json(const TokensEntry* entry) {
+static cJSON* api_access_tokens_entry_to_json(const ApiTokensEntry* entry) {
     furi_assert(entry);
 
     cJSON* json_token = cJSON_CreateObject();
@@ -431,14 +431,14 @@ static cJSON* api_access_tokens_entry_to_json(const TokensEntry* entry) {
     snprintf(buffer, sizeof(buffer), "%lld", entry->last_used_at);
     cJSON_AddStringToObject(json_token, "last_used_at", buffer);
 
-    if(entry->type == TokensEntryTypeFull) {
+    if(entry->type == ApiApiTokensEntryTypeFull) {
         cJSON_AddStringToObject(json_token, "token", entry->full_token);
     }
 
     return json_token;
 }
 
-bool api_access_tokens_list_callback(
+bool api_access_api_tokens_list_callback(
     FuriString* path,
     HttpMethod method,
     struct mg_connection* conn,
@@ -455,12 +455,12 @@ bool api_access_tokens_list_callback(
     cJSON* json = cJSON_CreateObject();
     cJSON* json_tokens = cJSON_AddArrayToObject(json, "tokens");
 
-    void add_token_entry_to_json(const TokensEntry* entry, void* context) {
+    void add_token_entry_to_json(const ApiTokensEntry* entry, void* context) {
         UNUSED(context);
         cJSON_AddItemToArray(json_tokens, api_access_tokens_entry_to_json(entry));
     }
 
-    tokens_list(context->tokens, add_token_entry_to_json, NULL);
+    api_tokens_list(context->tokens, add_token_entry_to_json, NULL);
 
     char* response = cJSON_Print(json);
     MG_REPLY_OK_BODY(conn, "%s", response);
@@ -470,7 +470,7 @@ bool api_access_tokens_list_callback(
     return true;
 }
 
-bool api_access_tokens_mint_callback(
+bool api_access_api_tokens_mint_callback(
     FuriString* path,
     HttpMethod method,
     struct mg_connection* conn,
@@ -496,7 +496,7 @@ bool api_access_tokens_mint_callback(
         return true;
     }
 
-    void token_generated(const TokensEntry* entry, void* context) {
+    void token_generated(const ApiTokensEntry* entry, void* context) {
         UNUSED(context);
         cJSON* json_token = api_access_tokens_entry_to_json(entry);
         char* token_serialized = cJSON_Print(json_token);
@@ -505,13 +505,13 @@ bool api_access_tokens_mint_callback(
         cJSON_Delete(json_token);
     }
 
-    tokens_mint(context->tokens, name, token_generated, NULL);
+    api_tokens_mint(context->tokens, name, token_generated, NULL);
 
     free(name);
     return true;
 }
 
-bool api_access_tokens_revoke_callback(
+bool api_access_api_tokens_revoke_callback(
     FuriString* path,
     HttpMethod method,
     struct mg_connection* conn,
@@ -532,12 +532,12 @@ bool api_access_tokens_revoke_callback(
         if(token_access) {
             MG_REPLY_FORBIDDEN(conn);
         } else {
-            tokens_reset_all(context->tokens);
+            api_tokens_reset_all(context->tokens);
             MG_REPLY_OK(conn);
         }
 
     } else {
-        char accessing_id[TOKENS_SHORT_ID_LENGTH + 1];
+        char accessing_id[API_TOKENS_SHORT_ID_LENGTH + 1];
         memcpy(accessing_id, status_ex.token, sizeof(accessing_id) - 1);
         accessing_id[sizeof(accessing_id) - 1] = '\0';
 
@@ -545,7 +545,7 @@ bool api_access_tokens_revoke_callback(
             MG_REPLY_FORBIDDEN(conn);
         } else {
             bool token_found =
-                tokens_revoke(context->tokens, furi_string_get_cstr(id_for_deletion));
+                api_tokens_revoke(context->tokens, furi_string_get_cstr(id_for_deletion));
             if(token_found) {
                 MG_REPLY_OK(conn);
             } else {
@@ -564,11 +564,11 @@ bool api_access_tokens_callback(
     struct mg_http_message* msg,
     void* ctx) {
     if(method == HttpMethodGet) {
-        return api_access_tokens_list_callback(path, method, conn, msg, ctx);
+        return api_access_api_tokens_list_callback(path, method, conn, msg, ctx);
     } else if(method == HttpMethodPost) {
-        return api_access_tokens_mint_callback(path, method, conn, msg, ctx);
+        return api_access_api_tokens_mint_callback(path, method, conn, msg, ctx);
     } else if(method == HttpMethodDelete) {
-        return api_access_tokens_revoke_callback(path, method, conn, msg, ctx);
+        return api_access_api_tokens_revoke_callback(path, method, conn, msg, ctx);
     } else {
         MG_REPLY_METHOD_NOT_ALLOWED(conn, "Allow: GET, POST, DELETE\r\n");
         return true;
@@ -749,7 +749,7 @@ void* http_api_root_alloc(void) {
     }
     json_config_free(cfg);
 
-    context->tokens = furi_record_open(RECORD_TOKENS);
+    context->tokens = furi_record_open(RECORD_API_TOKENS);
 
     return context;
 }
@@ -759,7 +759,7 @@ void http_api_root_free(void* ctx) {
     ApiRootCtx* context = ctx;
     HttpHandlersList_clear(context->handlers);
     furi_string_free(context->access_key);
-    furi_record_close(RECORD_TOKENS);
+    furi_record_close(RECORD_API_TOKENS);
     free(context);
 }
 

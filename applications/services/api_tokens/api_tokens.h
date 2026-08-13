@@ -1,5 +1,5 @@
 /**
- * @file tokens.h
+ * @file api_tokens.h
  * 
  * Manages HTTP access tokens
  */
@@ -9,23 +9,23 @@
 #include <furi.h>
 #include <time.h>
 
-#define RECORD_TOKENS          "tokens"
-#define TOKENS_LENGTH          (32)
-#define TOKENS_SHORT_ID_LENGTH (8)
+#define RECORD_API_TOKENS          "api_tokens"
+#define API_TOKENS_LENGTH          (32)
+#define API_TOKENS_SHORT_ID_LENGTH (8)
 
-typedef struct Tokens Tokens;
+typedef struct ApiTokens ApiTokens;
 
 typedef enum {
-    TokensEntryTypeHashed,
-    TokensEntryTypeFull,
-    TokensEntryTypeMax,
-} TokensEntryType;
+    ApiApiTokensEntryTypeHashed,
+    ApiApiTokensEntryTypeFull,
+    ApiApiTokensEntryTypeMax,
+} ApiApiTokensEntryType;
 
 /**
  * @brief Information about an HTTP API access token
  */
 typedef struct {
-    TokensEntryType type;
+    ApiApiTokensEntryType type;
     char* short_id;
     char* display_id;
     char* owner;
@@ -35,53 +35,57 @@ typedef struct {
     };
     time_t created_at;
     time_t last_used_at;
-} TokensEntry;
+} ApiTokensEntry;
 
-typedef void (*TokenInfoCallback)(const TokensEntry* entry, void* context);
+typedef void (*ApiTokenInfoCallback)(const ApiTokensEntry* entry, void* context);
 
 /**
  * @brief Generates a new HTTP API access token.
  * 
- * @param[inout] tokens Tokens service
+ * @param[inout] tokens ApiTokens service
  * @param[in] owner Human-readable name for the token
  * @param[in] callback Callback with info about the generated token
  * @param[in] context Custom context to pass to callback verbatim
  */
-void tokens_mint(Tokens* tokens, const char* owner, TokenInfoCallback callback, void* context);
+void api_tokens_mint(
+    ApiTokens* tokens,
+    const char* owner,
+    ApiTokenInfoCallback callback,
+    void* context);
 
 /**
  * @brief List all HTTP API access tokens
  * 
- * @param[in] tokens Tokens service
+ * @param[in] tokens ApiTokens service
  * @param[in] callback Callback, called for each listed token
  * @param[in] context Custom context to pass to callback verbatim
  */
-void tokens_list(Tokens* tokens, TokenInfoCallback callback, void* context);
+void api_tokens_list(ApiTokens* tokens, ApiTokenInfoCallback callback, void* context);
 
 /**
  * @brief Revoke one HTTP API access token
  * 
- * @param[inout] tokens Tokens service
+ * @param[inout] tokens ApiTokens service
  * @param[in] short_id Token short ID
  * 
  * @returns `false` if requested token was not found
  */
-bool tokens_revoke(Tokens* tokens, const char* short_id);
+bool api_tokens_revoke(ApiTokens* tokens, const char* short_id);
 
 /**
  * @brief Revoke all HTTP API access tokens
  * 
- * @param[inout] tokens Tokens service
+ * @param[inout] tokens ApiTokens service
  */
-void tokens_reset_all(Tokens* tokens);
+void api_tokens_reset_all(ApiTokens* tokens);
 
 /**
  * @brief Check that the provided access token is valid, and update its
  * `last_used_at` property
  * 
- * @param[inout] tokens Tokens service
+ * @param[inout] tokens ApiTokens service
  * @param[in] full_token Full access token
  * 
  * @returns `true` if access should be granted
  */
-bool tokens_validate_and_record_usage(Tokens* tokens, const char* full_token);
+bool api_tokens_validate_and_record_usage(ApiTokens* tokens, const char* full_token);

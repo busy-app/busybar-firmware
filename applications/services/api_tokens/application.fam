@@ -1,8 +1,8 @@
 App(
-    appid="tokens",
-    name="Tokens",
+    appid="api_tokens",
+    name="ApiTokens",
     apptype=FlipperAppType.STARTUP,
-    entry_point="tokens_start",
+    entry_point="api_tokens_start",
     stack_size=2 * 1024,
     order=180,
     requires=["storage", "time"],

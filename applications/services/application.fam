@@ -61,7 +61,7 @@ App(
         "state_publisher",
         "discovery",
         "low_power",
-        "tokens",
+        "api_tokens",
         "js_runner",
     ],
     targets=["f20", "f21", "f22"],
