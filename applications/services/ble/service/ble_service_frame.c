@@ -1,6 +1,6 @@
 #include "ble_service_frame.h"
 #include "../ble_intercom_types.h"
-#include "../ble_common.h"
+#include "../ble_log.h"
 
 #define TAG "BleSrvFrame"
 

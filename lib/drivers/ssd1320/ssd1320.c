@@ -43,7 +43,7 @@ typedef enum {
 
 static const uint8_t display_init_table_ssd1320[] = {
     /* clang-format off */
-    0,  Cmd1320_DisplayOff, 
+    0,  Cmd1320_DisplayOff,
     1,  Cmd1320_DisplayClockDiv, 0x22,
     1,  Cmd1320_MultiplexRatio, 0x4F,
     1,  Cmd1320_DisplayOffset, 0x78,
@@ -120,6 +120,16 @@ void ssd1320_set_contrast(uint8_t contrast) {
     uint8_t contrast_cmd[2] = {Cmd1320_ContrastControl, contrast};
     ssd1320_send_command(
         &furi_hal_spi_bus_handle_back_display, contrast_cmd, sizeof(contrast_cmd));
+}
+
+void ssd1320_set_grayscale_table(const SSD1320GrayscaleTable* grayscale_table) {
+    uint8_t grayscale_table_cmd[sizeof(grayscale_table->data) + 1];
+
+    grayscale_table_cmd[0] = Cmd1320_GrayScaleTable;
+    memcpy(&grayscale_table_cmd[1], grayscale_table->data, sizeof(grayscale_table->data));
+
+    ssd1320_send_command(
+        &furi_hal_spi_bus_handle_back_display, grayscale_table_cmd, sizeof(grayscale_table_cmd));
 }
 
 void ssd1320_draw(const uint8_t* buf) {

@@ -91,6 +91,10 @@ static void fetch_callback_error(const char* error, void* context) {
 static int32_t fetch_cli_print_download_progress(const FetchProgress* progress) {
     int32_t print_len = 0;
 
+    if(progress->total_download_size == 0) {
+        return print_len;
+    }
+
     const char* units_str;
     size_t multiplier;
 
@@ -164,7 +168,7 @@ static void fetch_progress_callback(const FetchProgress* progress, void* context
 
     int32_t print_len;
 
-    if(progress->total_download_size != 0) {
+    if(progress->has_total_download_size) {
         print_len = fetch_cli_print_download_progress(progress);
     } else {
         print_len = fetch_cli_print_download_progress_simple(progress);

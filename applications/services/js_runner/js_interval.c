@@ -1,43 +1,43 @@
-#include "js_runner_i.h"
+#include "js_console.h"
 
-#define TAG "JsRunnerInterval"
+#define TAG "JsInterval"
 
 static void interval_callback(void* context) {
     uint32_t timer_id = (uint32_t)context;
-    JsRunner* instance = js_runner_get_instance();
 
     WITH_JS_RUNNER_APP(app, {
-        const IntervalContext* interval_context = IntervalDict_cget(app->intervals, timer_id);
+        const IntervalContext* interval_context =
+            IntervalDict_cget(app->interval.intervals, timer_id);
         if(interval_context) {
             jerry_value_t result =
                 jerry_call(interval_context->callback, jerry_undefined(), NULL, 0);
             if(jerry_value_is_exception(result)) {
-                FuriString* exception_string = js_runner_get_exception_string(result);
+                FuriString* exception_string = js_get_exception_string(result);
 
                 if(exception_string) {
-                    if(app->console_callback) {
-                        app->console_callback(
+                    if(app->console.callback) {
+                        app->console.callback(
                             JsRunnerConsoleSeverityError,
                             "Uncaught:",
                             9,
                             JsRunnerConsoleSeparatorSpace,
-                            app->console_callback_context);
-                        app->console_callback(
+                            app->console.callback_context);
+                        app->console.callback(
                             JsRunnerConsoleSeverityError,
                             furi_string_get_cstr(exception_string),
                             furi_string_size(exception_string),
                             JsRunnerConsoleSeparatorNewline,
-                            app->console_callback_context);
+                            app->console.callback_context);
                     }
                     furi_string_free(exception_string);
                 } else {
-                    if(app->console_callback) {
-                        app->console_callback(
+                    if(app->console.callback) {
+                        app->console.callback(
                             JsRunnerConsoleSeverityError,
                             "Uncaught exception",
                             18,
                             JsRunnerConsoleSeparatorNewline,
-                            app->console_callback_context);
+                            app->console.callback_context);
                     }
                 }
             }
@@ -46,11 +46,13 @@ static void interval_callback(void* context) {
             FURI_LOG_E(TAG, "Dead interval timer with id = %lu", timer_id);
         }
 
-        interval_context = IntervalDict_cget(app->intervals, timer_id);
+        js_run_jobs();
+
+        interval_context = IntervalDict_cget(app->interval.intervals, timer_id);
         if(interval_context && interval_context->once) {
             jerry_value_free(interval_context->callback);
             furi_event_loop_timer_free(interval_context->timer);
-            IntervalDict_erase(app->intervals, timer_id);
+            IntervalDict_erase(app->interval.intervals, timer_id);
             js_runner_check_event_loop(app);
         }
     });
@@ -60,8 +62,6 @@ static jerry_value_t set_interval_or_timeout(
     const jerry_value_t args[],
     const jerry_length_t args_count,
     bool once) {
-    JsRunner* instance = js_runner_get_instance();
-
     if(args_count != 2) {
         return jerry_throw_sz(JERRY_ERROR_COMMON, "Wrong argument count");
     }
@@ -74,8 +74,8 @@ static jerry_value_t set_interval_or_timeout(
 
     uint32_t timer_id = 0;
     WITH_JS_RUNNER_APP(app, {
-        timer_id = app->last_interval_id;
-        app->last_interval_id += 1;
+        timer_id = app->interval.last_id;
+        app->interval.last_id += 1;
     });
 
     IntervalContext interval_context = {
@@ -88,7 +88,7 @@ static jerry_value_t set_interval_or_timeout(
             interval_callback,
             once ? FuriEventLoopTimerTypeOnce : FuriEventLoopTimerTypePeriodic,
             (void*)timer_id);
-        IntervalDict_set_at(app->intervals, timer_id, interval_context);
+        IntervalDict_set_at(app->interval.intervals, timer_id, interval_context);
         furi_event_loop_timer_start(
             interval_context.timer, furi_ms_to_ticks((uint32_t)timeout_ms));
     });
@@ -119,19 +119,18 @@ static jerry_value_t clear_interval(
     const jerry_length_t args_count) {
     UNUSED(call_info);
 
-    JsRunner* instance = js_runner_get_instance();
-
     if(args_count != 1) {
         return jerry_throw_sz(JERRY_ERROR_COMMON, "Wrong argument count");
     }
     uint32_t timer_id = (uint32_t)jerry_value_as_number(args[0]);
 
     WITH_JS_RUNNER_APP(app, {
-        const IntervalContext* interval_context = IntervalDict_cget(app->intervals, timer_id);
+        const IntervalContext* interval_context =
+            IntervalDict_cget(app->interval.intervals, timer_id);
         if(interval_context) {
             jerry_value_free(interval_context->callback);
             furi_event_loop_timer_free(interval_context->timer);
-            IntervalDict_erase(app->intervals, timer_id);
+            IntervalDict_erase(app->interval.intervals, timer_id);
         } else {
             FURI_LOG_E(TAG, "Interval with ID %lu is not found", timer_id);
         }
@@ -140,20 +139,13 @@ static jerry_value_t clear_interval(
     return jerry_undefined();
 }
 
-void js_runner_setup_interval_methods(void) {
+void js_setup_interval_methods(void) {
     jerry_value_t global_obj = jerry_current_realm();
 
-    jerry_value_t set_interval_fn = jerry_function_external(set_interval);
-    jerry_value_t set_timeout_fn = jerry_function_external(set_timeout);
-    jerry_value_t clear_interval_fn = jerry_function_external(clear_interval);
+    js_set_method(global_obj, "setInterval", set_interval);
+    js_set_method(global_obj, "setTimeout", set_timeout);
+    js_set_method(global_obj, "clearInterval", clear_interval);
+    js_set_method(global_obj, "clearTimeout", clear_interval);
 
-    js_runner_check_and_free(jerry_object_set_sz(global_obj, "setInterval", set_interval_fn));
-    js_runner_check_and_free(jerry_object_set_sz(global_obj, "setTimeout", set_timeout_fn));
-    js_runner_check_and_free(jerry_object_set_sz(global_obj, "clearInterval", clear_interval_fn));
-    js_runner_check_and_free(jerry_object_set_sz(global_obj, "clearTimeout", clear_interval_fn));
-
-    jerry_value_free(set_interval_fn);
-    jerry_value_free(set_timeout_fn);
-    jerry_value_free(clear_interval_fn);
     jerry_value_free(global_obj);
 }

@@ -44,7 +44,7 @@ void cli_command_js(PipeSide* pipe, FuriString* args, void* context) {
     if(furi_string_size(args) > 0) {
         JsRunner* runner = furi_record_open(RECORD_JS_RUNNER);
         JsRunnerError error =
-            js_runner_run(runner, furi_string_get_cstr(args), 8192, js_console_cb, NULL);
+            js_runner_run(runner, furi_string_get_cstr(args), 64 * 1024, js_console_cb, NULL);
         if(error != JsRunnerErrorNone) {
             printf("Error running script: %d", error);
         }
