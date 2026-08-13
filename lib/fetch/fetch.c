@@ -244,8 +244,6 @@ static FURI_ALWAYS_INLINE void fetch_read_event(Fetch* instance, struct mg_conne
 static FURI_ALWAYS_INLINE void fetch_close_event(Fetch* instance, struct mg_connection* conn) {
     FETCH_LOG_I(TAG, "MG_EV_CLOSE");
 
-    mongoose_tls_deinit(conn);
-
     instance->progress.speed_bytes_per_sec = fetch_calc_download_speed(
         instance->progress.received_download_size, instance->started_download_ticks);
 

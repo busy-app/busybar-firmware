@@ -225,9 +225,8 @@ static void mqtt_close_mg_event_handler(
     Mqtt* instance,
     struct mg_connection* connection,
     const void* event_data) {
+    UNUSED(connection);
     UNUSED(event_data);
-
-    mongoose_tls_deinit(connection);
 
     FURI_LOG_W(TAG, "MQTT Connection closed");
     mqtt_set_status(instance, MqttStatusNotConnected);

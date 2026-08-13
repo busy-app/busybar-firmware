@@ -21,5 +21,3 @@ typedef struct {
 } MongooseTlsConfig;
 
 bool mongoose_tls_init(struct mg_connection* conn, const MongooseTlsConfig* config);
-
-void mongoose_tls_deinit(struct mg_connection* conn);

@@ -10,7 +10,7 @@
 #define TAG "CaStorage"
 
 struct CaStorage {
-    mbedtls_x509_crt crt_chain;
+    mbedtls_x509_crt cert_chain_head;
 };
 
 static uint8_t* ca_storage_load_pem_bundle(size_t* data_size) {
@@ -72,13 +72,15 @@ static CaStorage* ca_storage_alloc(void) {
 
     psa_crypto_init();
 
-    mbedtls_x509_crt_init(&instance->crt_chain);
+    mbedtls_x509_crt_init(&instance->cert_chain_head);
 
     size_t data_size;
     uint8_t* data = ca_storage_load_pem_bundle(&data_size);
 
     if(data != NULL) {
-        const int parse_status = mbedtls_x509_crt_parse(&instance->crt_chain, data, data_size);
+        const int parse_status =
+            mbedtls_x509_crt_parse(&instance->cert_chain_head, data, data_size);
+
         if(parse_status == 0) {
             FURI_LOG_I(TAG, "Load CA bundle OK");
         } else if(parse_status > 0) {
@@ -95,7 +97,7 @@ static CaStorage* ca_storage_alloc(void) {
 
 const mbedtls_x509_crt* ca_storage_get_cert_chain(const CaStorage* instance) {
     furi_check(instance);
-    return &instance->crt_chain;
+    return &instance->cert_chain_head;
 }
 
 void ca_storage_on_system_start(void) {

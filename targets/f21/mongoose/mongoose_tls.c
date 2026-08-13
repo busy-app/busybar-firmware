@@ -80,9 +80,13 @@ static int mongoose_tls_net_recv(void* ctx, unsigned char* buf, size_t len) {
     return result;
 }
 
-static void mongoose_tls_get_ca_chain(mbedtls_x509_crt* p) {
-    const CaStorage* ca_storage = furi_record_open(RECORD_CA_STORAGE);
-    *p = *ca_storage_get_cert_chain(ca_storage);
+static void mongoose_tls_conf_ca_chain(mbedtls_ssl_config* conf) {
+    CaStorage* ca_storage = furi_record_open(RECORD_CA_STORAGE);
+    // NOTE: Assuming that the certificate chain will
+    // only be read during the TLS context lifetime
+    mbedtls_x509_crt* ca_chain = (mbedtls_x509_crt*)ca_storage_get_cert_chain(ca_storage);
+    mbedtls_ssl_conf_ca_chain(conf, ca_chain, NULL);
+
     furi_record_close(RECORD_CA_STORAGE);
 }
 
@@ -392,7 +396,7 @@ bool mongoose_tls_init(struct mg_connection* conn, const MongooseTlsConfig* conf
         mbedtls_ssl_init(&tls->ssl);
         mbedtls_ssl_config_init(&tls->conf);
 
-        // mbedtls_x509_crt_init(&tls->ca);
+        mbedtls_x509_crt_init(&tls->ca);
         mbedtls_x509_crt_init(&tls->cert);
 
         mbedtls_pk_init(&tls->pk);
@@ -418,8 +422,7 @@ bool mongoose_tls_init(struct mg_connection* conn, const MongooseTlsConfig* conf
 
         mbedtls_ssl_conf_alpn_protocols(&tls->conf, mongoose_tls_alpn_list);
 
-        mongoose_tls_get_ca_chain(&tls->ca);
-        mbedtls_ssl_conf_ca_chain(&tls->conf, &tls->ca, NULL);
+        mongoose_tls_conf_ca_chain(&tls->conf);
 
         if(!mongoose_tls_init_hostname(tls, config->server_url)) {
             mg_error(conn, "Failed to parse hostname");
@@ -459,18 +462,8 @@ bool mongoose_tls_init(struct mg_connection* conn, const MongooseTlsConfig* conf
     } while(false);
 
     if(!success) {
-        mongoose_tls_deinit(conn);
         mg_tls_free(conn);
     }
 
     return success;
-}
-
-void mongoose_tls_deinit(struct mg_connection* conn) {
-    if(conn->tls != NULL) {
-        struct mg_tls* tls = conn->tls;
-        // Prevent Mongoose from freeing the CA certificate chain.
-        // It is owned by the CaStorage service.
-        mbedtls_x509_crt_init(&tls->ca);
-    }
 }
