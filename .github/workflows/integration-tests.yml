@@ -159,9 +159,16 @@ jobs:
         run: |
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
+          python3 scripts/testops.py power reboot || echo "CLI reboot failed"
+          if ! python3 scripts/testops.py wait -t 20; then
+            echo "Device did not come online after the CLI reboot; resetting over SWD"
+            bsb-device reboot
+            python3 scripts/testops.py wait -t 20
+          fi
+          python3 scripts/testops.py debug 1
           python3 scripts/testops.py format --no-confirm
           python3 scripts/testops.py update-fw busybar-f${{ env.U5_HW_TARGET }}-update.tgz -r 3 --connect-timeout 10
-          python3 scripts/testops.py wait -t 260
+          python3 scripts/testops.py wait -t 320
 
       - name: 'Sanity check after flashing'
         if: steps.flashing.outcome == 'success'
