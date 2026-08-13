@@ -35,6 +35,10 @@ typedef struct {
     bool is_error;
 } FetchCli;
 
+static void fetch_cli_print_error(const char* error_message) {
+    printf("Error: %s\r\n", error_message);
+}
+
 static void fetch_cli_console_out(const char* data, size_t data_size) {
     for(size_t i = 0; i < data_size; i++) {
         const char c = data[i];
@@ -79,12 +83,11 @@ static void fetch_headers_callback(const void* data, size_t data_size, void* con
     fetch_cli_console_out(data, data_size);
 }
 
-static void fetch_callback_error(const char* error, void* context) {
+static void fetch_error_callback(const char* error, void* context) {
     furi_assert(context);
     FetchCli* instance = context;
 
-    printf("Error: %s\r\n", error);
-
+    fetch_cli_print_error(error);
     instance->is_error = true;
 }
 
@@ -187,7 +190,7 @@ static FetchCli* fetch_cli_alloc() {
     instance->is_error = false;
 
     fetch_set_callback_context(instance->fetch, instance);
-    fetch_set_error_callback(instance->fetch, fetch_callback_error);
+    fetch_set_error_callback(instance->fetch, fetch_error_callback);
 
     return instance;
 }
@@ -209,7 +212,7 @@ static bool fetch_cli_prepare_file_output(FetchCli* instance, const char* file_p
         fetch_set_progress_callback(instance->fetch, fetch_progress_callback);
 
     } else {
-        printf("Error: Failed to open file for writing: %s\r\n", file_path);
+        fetch_cli_print_error("Failed to open output file for writing");
     }
 
     return success;
@@ -352,7 +355,7 @@ static bool fetch_cli_params_validate(const FetchCliParams* params) {
 
     do {
         if(params->request.url == NULL) {
-            printf("Error: no url specified\r\n");
+            fetch_cli_print_error("No URL specified");
             break;
         }
 
@@ -361,12 +364,13 @@ static bool fetch_cli_params_validate(const FetchCliParams* params) {
 
         if(tls_status != TlsConfigValidationStatusOk) {
             if(tls_status == TlsConfigValidationStatusInvalidType) {
-                printf("Error: invalid client auth type\r\n");
-            } else if(tls_status == TlsConfigValidationStatusMissingPaths) {
-                printf(
-                    "Error: client certificate auth requested, but not all required paths specified\r\n");
+                fetch_cli_print_error("Invalid client auth type");
+            } else if(tls_status == TlsConfigValidationStatusClientCertNotSpecified) {
+                fetch_cli_print_error("No certificate file specified");
+            } else if(tls_status == TlsConfigValidationStatusPrivateKeyNotSpecified) {
+                fetch_cli_print_error("No private key file specified");
             } else {
-                printf("Error: unknown TLS error");
+                fetch_cli_print_error("Unknown TLS error");
             }
 
             break;
@@ -389,7 +393,7 @@ void fetch_cli_command(PipeSide* pipe, FuriString* args, void* context) {
 
     do {
         if(!parse_args(args, "o:d:H:X:a:C:K:kv", fetch_cli_option_callback, params)) {
-            printf("Error: invalid arguments\r\n");
+            fetch_cli_print_error("Invalid arguments");
             break;
         }
         if(!fetch_cli_params_validate(params)) {

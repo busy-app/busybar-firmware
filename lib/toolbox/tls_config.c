@@ -2,6 +2,29 @@
 
 #include <core/check.h>
 
+static TlsConfigValidationStatus
+    tls_config_validate_client_cert_paths(const TlsClientCertPaths* client_cert_paths) {
+    TlsConfigValidationStatus status;
+
+    do {
+        if((client_cert_paths->certificate == NULL) ||
+           (strlen(client_cert_paths->certificate) == 0)) {
+            status = TlsConfigValidationStatusClientCertNotSpecified;
+            break;
+        }
+
+        if((client_cert_paths->private_key == NULL) ||
+           (strlen(client_cert_paths->private_key) == 0)) {
+            status = TlsConfigValidationStatusPrivateKeyNotSpecified;
+            break;
+        }
+
+        status = TlsConfigValidationStatusOk;
+    } while(false);
+
+    return status;
+}
+
 TlsConfigValidationStatus tls_config_validate(const TlsConfig* tls_config) {
     furi_check(tls_config);
 
@@ -14,14 +37,7 @@ TlsConfigValidationStatus tls_config_validate(const TlsConfig* tls_config) {
        (client_cert_type == TlsClientCertTypeDevice)) {
         /* Nothing */
     } else if(client_cert_type == TlsClientCertTypeCustom) {
-        const TlsClientCertPaths* client_cert_paths = &client_cert_info->paths;
-
-        if((client_cert_paths->certificate == NULL) || (client_cert_paths->private_key == NULL) ||
-           (strlen(client_cert_paths->certificate) == 0) ||
-           (strlen(client_cert_paths->private_key) == 0)) {
-            status = TlsConfigValidationStatusMissingPaths;
-        }
-
+        status = tls_config_validate_client_cert_paths(&client_cert_info->paths);
     } else {
         status = TlsConfigValidationStatusInvalidType;
     }

@@ -34,7 +34,8 @@ typedef struct {
 typedef enum {
     TlsConfigValidationStatusOk,
     TlsConfigValidationStatusInvalidType,
-    TlsConfigValidationStatusMissingPaths,
+    TlsConfigValidationStatusClientCertNotSpecified,
+    TlsConfigValidationStatusPrivateKeyNotSpecified,
 } TlsConfigValidationStatus;
 
 TlsConfigValidationStatus tls_config_validate(const TlsConfig* tls_config);
