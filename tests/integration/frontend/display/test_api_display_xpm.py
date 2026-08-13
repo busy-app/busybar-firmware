@@ -378,12 +378,13 @@ class TestXpmBitmapElement:
             assert full == (255, 0, 0), (
                 f"Unexpected full-opacity pixel: {full!r}"
             )
-assert abs(half[0] - full[0] * 0.5) <= 2, (
-    f"Unexpected half-opacity red value: {half!r}"
-)
-assert half[1:] == (0, 0), (
-    f"Unexpected half-opacity channels: {half!r}"
-)
+            expected_half_red = full[0] * 50 // 100
+            assert abs(half[0] - expected_half_red) <= 2, (
+                f"Unexpected half-opacity red value: {half!r}"
+            )
+            assert half[1:] == (0, 0), (
+                f"Unexpected half-opacity channels: {half!r}"
+            )
 
     @allure.title("Transparent XPM pixels preserve underlying content")
     @pytest.mark.api
