@@ -1,5 +1,4 @@
-#include "ble_command_engine.h"
-#include "ble_system_command.h"
+#include "ble_i.h"
 #include "worker/ble_worker.h"
 #include "worker/ble_worker_util.h"
 
@@ -7,49 +6,22 @@
 
 #define TAG "BLE_917"
 
-BleIntercomFrameGeneric*
-    ble_command_extract_frame(Ble* instance, BleCommandEngineExtractFrameSource source) {
-    furi_check(source == BleCommandEngineExtractFrameSourceIntercomBuffer);
-    return (BleIntercomFrameGeneric*)&instance->mailbox;
-}
-
-void ble_command_unblock_with_result(Ble* instance, bool result) {
-    UNUSED(instance);
-    UNUSED(result);
-}
-
 static void
     ble_connection_changed_callback(void* ctx, bool connected, const uint8_t* remote_dev_address) {
     BLE_LOG_D("ble_connection_changed_callback");
     Ble* instance = ctx;
 
-    furi_mutex_acquire(instance->ble_lock, FuriWaitForever);
-    furi_semaphore_acquire(instance->mailbox_lock, FuriWaitForever);
-
+    BleState state = {0};
     if(connected) {
-        instance->status = BleServiceStatusConnected;
+        state.status = BleServiceStatusConnected;
+        memcpy(state.remote_device_address, remote_dev_address, BLE_REMOTE_ADDRESS_STRING_SIZE);
     } else {
         const bool paired = ble_worker_pairing_exists();
-        instance->status = paired ? BleServiceStatusConnectable : BleServiceStatusAdvertising;
+        state.status = paired ? BleServiceStatusConnectable : BleServiceStatusAdvertising;
     }
 
-    BleIntercomFrameGeneric* frame = &instance->mailbox;
-    frame->header.frame_type = BleIntercomFrameTypeRequest;
-    frame->header.command = BleCommandSetStatus;
-    frame->header.source = BleIntercomFrameSourceSystem;
-    frame->header.data_size = sizeof(BleState);
-    frame->header.result = true;
-
-    BleState* state = (BleState*)frame->data;
-    state->status = instance->status;
-
-    memcpy(
-        state->remote_device_address, remote_dev_address, BLE_REMOTE_DEVICE_ADDRESS_STRING_SIZE);
-    memcpy(instance->remote_device_address, remote_dev_address, BLE_REMOTE_ADDRESS_STRING_SIZE);
-
-    ble_command_request_process(frame, instance);
-    furi_semaphore_release(instance->mailbox_lock);
-    furi_mutex_release(instance->ble_lock);
+    ble_command_engine_put_command_no_wait(
+        instance->engine, BleCommandSetStatus, &state, sizeof(BleState));
 }
 
 static void ble_service_init_wait_callback(BleServiceObject* service, bool result, void* ctx) {
@@ -167,6 +139,23 @@ static bool ble_command_get_status_response(BleIntercomFrameGeneric* frame, void
     return true;
 }
 
+static bool ble_command_set_status_request(BleIntercomFrameGeneric* frame, void* context) {
+    BLE_LOG_D("ble_command_set_status_request");
+    Ble* instance = context;
+    frame->header.result = true;
+
+    BleState* state = (BleState*)frame->data;
+    instance->status = state->status;
+    memcpy(
+        instance->remote_device_address,
+        state->remote_device_address,
+        BLE_REMOTE_ADDRESS_STRING_SIZE);
+
+    bool result = ble_command_request_process(frame, context);
+    ble_command_engine_unblock_with_result(instance->engine, NULL, 0, result);
+    return result;
+}
+
 static bool ble_command_forget_pairing_request(BleIntercomFrameGeneric* frame, void* context) {
     BLE_LOG_D("BleCommandForgetPairing request");
     bool result = ble_worker_forget_pairing();
@@ -212,25 +201,13 @@ const BleCommandItem ble_commands[BleCommandCount] = {
             .request = ble_command_get_status_request,
             .response = ble_command_get_status_response,
         },
-    [BleCommandForgetPairing] = {
-        .request = ble_command_forget_pairing_request,
-        .response = ble_command_forget_pairing_response,
-    }};
-
-void ble_invoke_retry_command_on_internal_event(
-    Ble* instance,
-    BleSystemCommand command,
-    BleEventType retry_event,
-    uint32_t retry_timeout) {
-    if(furi_semaphore_acquire(instance->mailbox_lock, retry_timeout) == FuriStatusOk) {
-        BleIntercomFrameHeader* header = &instance->mailbox.header;
-        header->frame_type = BleIntercomFrameTypeRequest;
-        header->command = command;
-        header->source = BleIntercomFrameSourceSystem;
-        header->data_size = 0;
-        furi_event_loop_set_custom_event(instance->event_loop, BleEventTypeFrameReceived);
-    } else {
-        BLE_LOG_W("Invoke retry");
-        furi_event_loop_set_custom_event(instance->event_loop, retry_event);
-    }
-}
+    [BleCommandSetStatus] =
+        {
+            .request = ble_command_set_status_request,
+        },
+    [BleCommandForgetPairing] =
+        {
+            .request = ble_command_forget_pairing_request,
+            .response = ble_command_forget_pairing_response,
+        },
+};

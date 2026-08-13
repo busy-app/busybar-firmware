@@ -1,6 +1,7 @@
 #pragma once
 
-#include "../ble_common.h"
+#include "../ble_log.h"
+#include "../ble_intercom_types.h"
 #include "ble_service_config_types.h"
 
 #include <furi.h>

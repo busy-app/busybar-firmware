@@ -14,23 +14,17 @@
 #define TAG "JSGlue"
 
 size_t jerry_port_context_alloc(size_t context_size) {
-    JsRunner* js_runner = furi_record_open(RECORD_JS_RUNNER);
-    size_t result = js_runner_context_alloc(js_runner, context_size);
-    furi_record_close(RECORD_JS_RUNNER);
+    size_t result = js_runner_thread_context_alloc(context_size);
     return result;
 }
 
 struct jerry_context_t* jerry_port_context_get(void) {
-    JsRunner* js_runner = furi_record_open(RECORD_JS_RUNNER);
-    void* result = js_runner_context_get(js_runner);
-    furi_record_close(RECORD_JS_RUNNER);
+    void* result = js_runner_thread_context_get();
     return result;
 }
 
 void jerry_port_context_free(void) {
-    JsRunner* js_runner = furi_record_open(RECORD_JS_RUNNER);
-    js_runner_context_free(js_runner);
-    furi_record_close(RECORD_JS_RUNNER);
+    js_runner_thread_context_free();
 }
 
 void jerry_port_init(void) {
@@ -87,11 +81,7 @@ jerry_char_t* jerry_port_source_read(const char* file_name_p, jerry_size_t* out_
     FuriString* abs_path_norm = furi_string_alloc();
     {
         FuriString* abs_path = furi_string_alloc();
-        {
-            JsRunner* js_runner = furi_record_open(RECORD_JS_RUNNER);
-            js_runner_get_root_path(js_runner, abs_path);
-            furi_record_close(RECORD_JS_RUNNER);
-        }
+        js_runner_get_root_path(abs_path);
         path_append(abs_path, file_name_p);
         path_normalize(furi_string_get_cstr(abs_path), abs_path_norm, false);
         furi_string_free(abs_path);

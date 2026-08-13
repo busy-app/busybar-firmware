@@ -376,7 +376,7 @@ FetchStatus fetch_run(Fetch* instance, const FetchRequest* request) {
 
     furi_check(request);
     furi_check(request->url);
-    furi_check(request->headers.count < FETCH_HEADERS_COUNT_MAX);
+    furi_check(request->headers.count <= FETCH_HEADERS_COUNT_MAX);
 
     fetch_reset(instance);
 

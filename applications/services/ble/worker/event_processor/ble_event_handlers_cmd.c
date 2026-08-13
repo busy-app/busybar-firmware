@@ -27,6 +27,8 @@ bool ble_event_handler_cmd_forget_paired(size_t data_size, void* data, void* con
         instance->pending_command->result = result;
         api_lock_unlock(instance->pending_command->api_lock);
         instance->pending_command = NULL;
+
+        ble_worker_invoke_disconnect_callback(instance);
     }
 
     return true;

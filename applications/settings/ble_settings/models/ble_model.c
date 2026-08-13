@@ -133,19 +133,25 @@ void ble_model_set_state_callback(BleModel* model, BleModelStateCallback callbac
 void ble_model_start(BleModel* model) {
     furi_assert(model);
     bool result = ble_start(model->ble);
-    furi_assert(result);
+    if(!result) {
+        FURI_LOG_W(TAG, "Start failed");
+    }
     furi_timer_start(model->pairing_timer, M_TO_MS(BLE_PAIRING_TIMEOUT_MIN));
 }
 
 void ble_model_stop(BleModel* model) {
     furi_assert(model);
     bool result = ble_stop(model->ble);
-    furi_assert(result);
+    if(!result) {
+        FURI_LOG_W(TAG, "Stop failed");
+    }
     furi_timer_stop(model->pairing_timer);
 }
 
 void ble_model_forget(BleModel* model) {
     furi_assert(model);
     bool result = ble_forget(model->ble);
-    furi_assert(result);
+    if(!result) {
+        FURI_LOG_W(TAG, "Forget failed");
+    }
 }
