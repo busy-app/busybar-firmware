@@ -306,6 +306,9 @@ static void fetch_cli_option_callback(char opt, const char* optarg, void* contex
 
     FetchRequest* request = &params->request;
 
+    TlsConfig* tls_config = &request->tls_config;
+    TlsClientCertInfo* client_cert_info = &tls_config->client_cert_info;
+
     if(opt == '\0') {
         fetch_adjust_url(params->url_store, optarg);
         request->url = furi_string_get_cstr(params->url_store);
@@ -319,13 +322,13 @@ static void fetch_cli_option_callback(char opt, const char* optarg, void* contex
         request->body.data = optarg;
         request->body.length = strlen(optarg);
     } else if(opt == 'k') {
-        request->tls_config.is_server_cert_ignored = true;
+        tls_config->is_server_cert_ignored = true;
     } else if(opt == 'a') {
-        request->tls_config.client_cert_info.type = fetch_cli_get_client_cert_type(optarg);
+        client_cert_info->type = fetch_cli_get_client_cert_type(optarg);
     } else if(opt == 'C') {
-        request->tls_config.client_cert_info.paths.certificate = optarg;
+        client_cert_info->paths.certificate = optarg;
     } else if(opt == 'K') {
-        request->tls_config.client_cert_info.paths.private_key = optarg;
+        client_cert_info->paths.private_key = optarg;
     } else if(opt == 'o') {
         params->output_path = optarg;
     } else if(opt == 'v') {
