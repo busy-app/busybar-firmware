@@ -5,6 +5,10 @@
 #include <intercom/intercom.h>
 #include <matter/matter.h>
 
+#ifdef SRV_LOG_STORAGE
+#include <log_storage/log_storage.h>
+#endif
+
 #include <furi_hal_nvm.h>
 
 #include <assets_images.h>
@@ -13,6 +17,7 @@
 
 #define SUPERVISOR_BATTERY_TIME_TO_DIE_S  30
 #define SUPERVISOR_REBOOT_GRACE_PERIOD_MS 30000
+#define SUPERVISOR_FAILURE_LOG_DUMP_PATH  "/ext/intercom_failure_log.txt"
 
 typedef struct Supervisor Supervisor;
 
@@ -507,6 +512,12 @@ static void supervisor_handle_intercom_status(Supervisor* instance, IntercomStat
     }
 
     FURI_LOG_E(TAG, "Intercom error received: 0x%X", status);
+
+#ifdef SRV_LOG_STORAGE
+    LogStorage* log_storage = furi_record_open(RECORD_LOG_STORAGE);
+    log_storage_dump(log_storage, SUPERVISOR_FAILURE_LOG_DUMP_PATH);
+    furi_record_close(RECORD_LOG_STORAGE);
+#endif
 
     if(status != IntercomStatusErrorSync && !furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {
         if(furi_get_tick() > furi_ms_to_ticks(SUPERVISOR_REBOOT_GRACE_PERIOD_MS)) {
