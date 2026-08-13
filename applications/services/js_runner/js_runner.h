@@ -44,6 +44,7 @@ typedef void (*JsRunnerConsoleOutCallback)(
  * This function blocks until the script terminates.
  *
  * @param instance JsRunner instance. Can be obtained with furi_record_open().
+ * @param app_id JS application ID (see js_app_launcher).
  * @param path entry point script path.
  * @param heap_size JS heap size for the app in bytes.
  * @param console_write_cb callback function for JS console methods (console.log, console.error, console.info). Supply NULL to disable console.
