@@ -3,11 +3,14 @@
 #include "log_storage_remote_i.h"
 
 #include <storage/storage.h>
+#include <device_info/device_info.h>
+
 #include <toolbox/api_lock.h>
 
 #define LOG_STORAGE_MESSAGE_QUEUE_SIZE (4u)
 
-#define LOG_STORAGE_DUMP_U5_SECTION_HEADER  "[------ STM32U5 ------]\r\n"
+#define LOG_STORAGE_DUMP_DEVICE_INFO_HEADER "[------ Device Info ------]\r\n"
+#define LOG_STORAGE_DUMP_U5_SECTION_HEADER  "\r\n[------ STM32U5 ------]\r\n"
 #define LOG_STORAGE_DUMP_917_SECTION_HEADER "\r\n[------ SiWG917 ------]\r\n"
 
 struct LogStorage {
@@ -69,6 +72,30 @@ static bool log_storage_file_write_all(File* file, const void* data, size_t size
     return is_successful;
 }
 
+static void
+    log_storage_device_info_callback(const char* key, const char* value, bool last, void* context) {
+    furi_assert(key);
+    furi_assert(value);
+    furi_assert(context);
+
+    UNUSED(last);
+
+    furi_string_cat_printf(context, "%s: %s\r\n", key, value);
+}
+
+static bool log_storage_dump_device_info(File* file) {
+    DeviceInfo* device_info = furi_record_open(RECORD_DEVICE_INFO);
+
+    FuriString* string = furi_string_alloc();
+    device_info_query(device_info, log_storage_device_info_callback, '_', string);
+    bool is_successful =
+        log_storage_file_write_all(file, furi_string_get_cstr(string), furi_string_size(string));
+    furi_string_free(string);
+
+    furi_record_close(RECORD_DEVICE_INFO);
+    return is_successful;
+}
+
 static bool log_storage_dump_base(LogStorageBase* base, File* file) {
     bool is_successful = false;
     do {
@@ -101,6 +128,15 @@ static void log_storage_do_dump(LogStorage* instance, const LogStorageMessage* m
     if(storage_file_open(file, path, FSAM_WRITE, FSOM_CREATE_ALWAYS)) {
         do {
             size_t length;
+
+            length = strlen(LOG_STORAGE_DUMP_DEVICE_INFO_HEADER);
+            if(!log_storage_file_write_all(file, LOG_STORAGE_DUMP_DEVICE_INFO_HEADER, length)) {
+                break;
+            }
+
+            if(!log_storage_dump_device_info(file)) {
+                break;
+            }
 
             length = strlen(LOG_STORAGE_DUMP_U5_SECTION_HEADER);
             if(!log_storage_file_write_all(file, LOG_STORAGE_DUMP_U5_SECTION_HEADER, length)) {
