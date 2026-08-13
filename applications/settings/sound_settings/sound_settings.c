@@ -3,6 +3,11 @@
 #include <settings_helpers/app_desc.h>
 #include <settings_helpers/gui_params.h>
 
+#define TAG "SoundSettings"
+
+// TODO: FW-1091 Refactor Audio service and settings to be deadlock-proof
+#define EVENT_QUEUE_TIMEOUT_MS (10)
+
 static bool sound_settings_thread_signal_callback(uint32_t signal, void* arg, void* context) {
     UNUSED(arg);
 
@@ -187,6 +192,11 @@ int32_t sound_settings_entry(void* arg) {
 void sound_settings_send_custom_event(SoundSettings* instance, uint32_t event) {
     furi_assert(instance);
 
-    furi_check(
-        furi_message_queue_put(instance->event_queue, &event, FuriWaitForever) == FuriStatusOk);
+    const FuriStatus status = furi_message_queue_put(
+        instance->event_queue, &event, furi_ms_to_ticks(EVENT_QUEUE_TIMEOUT_MS));
+
+    if(status != FuriStatusOk) {
+        furi_check(status == FuriStatusErrorTimeout);
+        FURI_LOG_W(TAG, "Deadlock avoided, see FW-1091");
+    }
 }

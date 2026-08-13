@@ -47,7 +47,7 @@
               :ui="{
                 leadingIcon: 'size-6 text-muted'
               }"
-              @click="pms.passwordModel.showCurrent = !pms.passwordModel.showCurrent"
+              @click="() => { pms.passwordModel.showCurrent = !pms.passwordModel.showCurrent; }"
             />
           </template>
         </UInput>
@@ -78,7 +78,7 @@
               :ui="{
                 leadingIcon: 'size-6 text-muted'
               }"
-              @click="pms.passwordModel.showNew = !pms.passwordModel.showNew"
+              @click="() => { pms.passwordModel.showNew = !pms.passwordModel.showNew; }"
             />
           </template>
         </UInput>

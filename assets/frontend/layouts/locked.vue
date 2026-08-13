@@ -27,7 +27,7 @@ const initialLoading = ref(true);
 
 async function init () {
   if (apiStore.apiKey) {
-    deviceStore.busyBar.setApiKey(apiStore.apiKey);
+    deviceStore.busyBar.setHTTPAccessPassword(apiStore.apiKey);
   }
 
   try {

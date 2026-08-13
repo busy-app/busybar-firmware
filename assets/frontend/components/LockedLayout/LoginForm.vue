@@ -32,7 +32,7 @@
           :ui="{
             leadingIcon: 'size-6 text-muted'
           }"
-          @click="pms.passwordModel.showCurrent = !pms.passwordModel.showCurrent"
+          @click="() => { pms.passwordModel.showCurrent = !pms.passwordModel.showCurrent; }"
         />
       </template>
     </UInput>
@@ -56,7 +56,7 @@
       variant="ghost"
       size="lg"
       block
-      @click="forgotPasswordModal = true"
+      @click="() => { forgotPasswordModal = true; }"
     />
   </div>
 
@@ -117,7 +117,7 @@ async function attemptUnlock () {
 
   try {
     apiStore.apiKey = pms.passwordModel.current;
-    deviceStore.busyBar.setApiKey(apiStore.apiKey);
+    deviceStore.busyBar.setHTTPAccessPassword(apiStore.apiKey);
     await deviceStore.fetchDeviceName(true);
     await navigateTo('/', { external: true});
   } catch (error: unknown) {

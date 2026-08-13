@@ -266,7 +266,7 @@ static InternalBrightness apply_override(
 static void apply_brightness(const BrightnessControl* instance) {
     InternalBrightness br = get_effective_brightness(instance);
 
-    FURI_LOG_D(TAG, "Set brightness %hhu", br.val);
+    FURI_LOG_D(TAG, "Set brightness %.2f", br.val);
     front_display_set_brightness(
         instance->front_display,
         brightness_conv_internal_to_front(

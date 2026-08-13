@@ -1,6 +1,7 @@
 #include "color.h"
 
 #include <core/check.h>
+#include <limits.h>
 #include "strint.h"
 
 // https://stackoverflow.com/questions/24152553/hsv-to-rgb-and-back-without-floating-point-math-in-python
@@ -98,6 +99,14 @@ bool color_parse_hexa_string(const char* hexa, Color* color_out) {
 
     *color_out = color_hexa_to_rgb(hexa_int);
     return true;
+}
+
+uint8_t color_rgb_to_l8(Color color) {
+    /* 
+     * BT.601 luma coefficients (0.299 * R + 0.587 * G + 0.114 * B) via
+     * fixed-point arithmetic: L = (77 * R + 150 * G + 29 * B) >> 8. 
+     */
+    return (color.r * 77 + color.g * 150 + color.b * 29) >> CHAR_BIT;
 }
 
 void color_buf_l8_to_l4(void* dst, const void* src, size_t size) {

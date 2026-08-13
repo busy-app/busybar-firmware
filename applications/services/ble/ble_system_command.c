@@ -1,4 +1,5 @@
 #include "ble_system_command.h"
+#include "ble_i.h"
 
 static bool ble_command_common_process(
     BleIntercomFrameGeneric* frame,
@@ -35,7 +36,7 @@ bool ble_command_deinit_process(BleIntercomFrameGeneric* frame, void* context) {
         instance->status = BleServiceStatusError;
 
         ble_deinit_services(instance);
-        ble_command_unblock_with_result(instance, false);
+        ble_command_engine_unblock_with_result(instance->engine, NULL, 0, false);
     }
     return false;
 }

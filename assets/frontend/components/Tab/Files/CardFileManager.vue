@@ -143,7 +143,7 @@
             color="neutral"
             square
             :loading="loading.list"
-            @click="list(currentPath, { syncUrl: false })"
+            @click="() => { list(currentPath, { syncUrl: false }); }"
           />
         </UTooltip>
       </div>
@@ -284,7 +284,7 @@
                   variant="ghost"
                   class="-my-2"
                   :disabled="loading.write"
-                  @click="filesModel = null"
+                  @click="() => { filesModel = null; }"
                 />
               </div>
             </template>
@@ -342,7 +342,7 @@
                       variant="ghost"
                       color="neutral"
                       square
-                      @click="filesModel = [...filesModel!.slice(0, index), ...filesModel!.slice(index + 1)]"
+                      @click="() => { filesModel = [...filesModel!.slice(0, index), ...filesModel!.slice(index + 1)]; }"
                     />
                   </div>
                 </div>
@@ -362,7 +362,7 @@
           color: 'error',
           loading: loading.remove,
           disabled: isAnythingLoading || (!itemToDelete && selectedItems.size === 0),
-          onClick: remove
+          onClick: () => { remove(); }
         }"
         :secondary-action-props="{
           label: 'Cancel',
@@ -378,6 +378,7 @@
 <script setup lang="ts">
 import type { StorageListElement, StorageFileElement } from '@busy-app/busy-lib';
 import type { ContextMenuItem } from '@nuxt/ui';
+import type { LocationQueryValue } from 'vue-router';
 
 const deviceStore = useDeviceStore();
 const route = useRoute();
@@ -411,7 +412,7 @@ interface InputMenuItem {
 const inputMenuItems = ref<InputMenuItem[]>([]);
 const highlightedItemIndex = ref(0);
 
-function getQueryPath (queryPath: string | string[] | null | undefined): string | null {
+function getQueryPath (queryPath: LocationQueryValue | LocationQueryValue[] | undefined): string | null {
   if (Array.isArray(queryPath)) {
     return queryPath[0] || null;
   }
@@ -563,7 +564,7 @@ async function read (fileName: string) {
   loading.value.read = true;
 
   const path = `${currentPath.value}/${fileName}`;
-  const file = await deviceStore.busyBar.StorageRead({ path, timeout: 0 })
+  const file = await deviceStore.busyBar.StorageRead({ path }, { timeout: 0 })
     .catch(async error => {
       await handleHTTPError(error, `Couldn't read file ${path}`, false, 0);
       return null;
@@ -823,7 +824,7 @@ async function remove () {
     const items = new Set(selectedItems.value);
     for (const name of items) {
       const fullPath = `${currentPath.value}/${name}`;
-      await deviceStore.busyBar.StorageRemove({ path: fullPath, timeout: 0 })
+      await deviceStore.busyBar.StorageRemove({ path: fullPath }, { timeout: 0 })
         .catch(async error => {
           await handleHTTPError(error, `Couldn't delete ${fullPath}`, false, 0);
         });
@@ -851,7 +852,7 @@ async function remove () {
 
   loading.value.remove = true;
 
-  await deviceStore.busyBar.StorageRemove({ path: fullPath, timeout: 0 })
+  await deviceStore.busyBar.StorageRemove({ path: fullPath }, { timeout: 0 })
     .then(() => {
       itemToDelete.value = null;
       showDeleteModal.value = false;
@@ -912,9 +913,8 @@ async function uploadFiles () {
       file.status = 'uploading';
       await deviceStore.busyBar.StorageWrite({
         path: `${_currentPath}/${file.blob.name}`,
-        file: file.blob,
-        timeout: 0
-      });
+        file: file.blob
+      }, { timeout: 0 });
       file.status = 'success';
     } catch (error) {
       file.status = 'error';

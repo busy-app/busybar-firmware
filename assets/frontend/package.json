@@ -10,10 +10,10 @@
     "postinstall": "pnpm draw-tool-icons:generate && nuxt prepare",
     "draw-tool-icons:generate": "node ./scripts/generate-draw-tool-icons-json.mjs",
     "lint": "eslint --ext .js,.ts,.vue --ignore-pattern .gitignore .",
-    "lint/tsc": "tsc --noEmit"
+    "lint/tsc": "vue-tsc --noEmit"
   },
   "dependencies": {
-    "@busy-app/busy-lib": "^0.15.2",
+    "@busy-app/busy-lib": "^0.18.0",
     "@nuxt/eslint": "1.4.1",
     "@nuxt/ui": "3.3.4",
     "@nuxtjs/mdc": "0.20.1",
@@ -36,6 +36,7 @@
   "devDependencies": {
     "@iconify-json/ri": "^1.2.5",
     "@stylistic/eslint-plugin": "^5.7.1",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vue-tsc": "^3.3.9"
   }
 }

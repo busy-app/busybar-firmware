@@ -18,12 +18,12 @@ static BleWorker* ble_worker_instance = NULL;
 static int32_t ble_worker_thread_callback(void* context) {
     BleWorker* instance = context;
     BLE_LOG_I("Worker Thread Start");
-    ble_device_start(instance->device);
 
     instance->event_loop = furi_event_loop_alloc();
 
     ble_transmitter_subscribe(instance->transport, instance->event_loop, context);
     ble_incoming_nwp_event_processor_subscribe(instance->event_proc, instance->event_loop);
+    ble_device_start(instance->device);
 
     api_lock_unlock(instance->api_lock);
     furi_event_loop_run(instance->event_loop);

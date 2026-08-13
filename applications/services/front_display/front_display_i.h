@@ -13,7 +13,8 @@
 #define CUR_GAIN_G (255)
 #define CUR_GAIN_B (255)
 
-#define DISPLAY_GAMMA (0.35f) // Default gamma value
+#define DISPLAY_GAMMA     (2.8f) // Default gamma value
+#define DISPLAY_GAMMA_MIN (2.5f) // Minimum brightness-adjusted gamma value
 
 #define BRIGHTNESS_VAL_MIN (0)
 #define BRIGHTNESS_VAL_MAX (100)

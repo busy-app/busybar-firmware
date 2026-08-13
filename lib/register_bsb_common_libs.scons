@@ -38,6 +38,7 @@ for libname in [
     "fetch",
     "storage_utils",
     "js_app",
+    "xpm",
     ## SI917
     "sl_glue",
     "simplicity_sdk",

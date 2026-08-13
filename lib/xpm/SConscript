@@ -1,0 +1,22 @@
+Import("env")
+
+env.Append(
+    CPPPATH=[
+        "#/lib/xpm",
+    ],
+    LINT_SOURCES=[
+        Dir("."),
+    ],
+    SDK_HEADERS=[
+        File("xpm.h"),
+    ],
+)
+
+libenv = env.Clone(FW_LIB_NAME="xpm")
+libenv.ApplyLibFlags()
+
+sources = libenv.GlobRecursive("*.c")
+
+lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
+libenv.Install("${LIB_DIST_DIR}", lib)
+Return("lib")
