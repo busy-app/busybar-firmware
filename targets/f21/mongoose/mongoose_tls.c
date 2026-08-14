@@ -19,8 +19,6 @@
 
 #define TAG "MongooseTls"
 
-static const char* mongoose_tls_alpn_list[] = {"mqtt", NULL};
-
 typedef bool (*MongooseTlsParseCallback)(void* out, const uint8_t* data, size_t data_len);
 
 static int mongoose_tls_random(void* ctx, unsigned char* buf, size_t len) {
@@ -409,8 +407,6 @@ bool mongoose_tls_init(struct mg_connection* conn, const char* url, const TlsCon
 
         mbedtls_ssl_conf_min_tls_version(&tls->conf, MBEDTLS_SSL_VERSION_TLS1_2);
         mbedtls_ssl_conf_max_tls_version(&tls->conf, MBEDTLS_SSL_VERSION_TLS1_3);
-
-        mbedtls_ssl_conf_alpn_protocols(&tls->conf, mongoose_tls_alpn_list);
 
         mongoose_tls_conf_ca_chain(&tls->conf);
 
