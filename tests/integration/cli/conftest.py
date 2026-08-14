@@ -17,6 +17,11 @@ from utils.js_test_runner import run_js_case
 from utils.wait import wait_for
 
 
+JS_CLI_LOCAL_STORAGE_PATH = (
+    "/ext/apps_data/jsrunner/app.busy.cli.localstorage.json"
+)
+
+
 @pytest.fixture(scope="module", autouse=True)
 def cli_debug(persistent_cli_connection):
     """Debug mode on for the whole CLI module, and left on afterwards.
@@ -151,3 +156,13 @@ def js_case_runner(persistent_cli_connection, storage_api, storage_dir):
         )
 
     return runner
+
+
+@pytest.fixture
+def js_local_storage_clean(storage_api):
+    """Remove the CLI app's persistent localStorage before and after a test."""
+    storage_api.remove_raw(JS_CLI_LOCAL_STORAGE_PATH)
+    try:
+        yield JS_CLI_LOCAL_STORAGE_PATH
+    finally:
+        storage_api.remove_raw(JS_CLI_LOCAL_STORAGE_PATH)
