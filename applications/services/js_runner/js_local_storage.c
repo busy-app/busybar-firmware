@@ -136,10 +136,7 @@ static void load(LocalStorage* instance) {
                         JS_TRACE("%s: %s", key, value);
                         FuriString* key_string = furi_string_alloc_set(key);
                         FuriString* value_string = furi_string_alloc_set(value);
-                        LocalStorageDict_set_at(
-                            instance->dict,
-                            key_string,
-                            value_string);
+                        LocalStorageDict_set_at(instance->dict, key_string, value_string);
                         furi_string_free(key_string);
                         furi_string_free(value_string);
                     }
@@ -200,7 +197,7 @@ static jerry_value_t method_key(
         LocalStorageDict_next(iter)) {
         if(idx == 0) {
             const LocalStorageDict_itref_t* ref = LocalStorageDict_cref(iter);
-            return jerry_string_sz(furi_string_get_cstr(ref->key));
+            return js_utf8_string(ref->key);
         }
         idx -= 1;
     }
@@ -231,7 +228,7 @@ static jerry_value_t method_get_item(
     if(!value) {
         result = jerry_null();
     } else {
-        result = jerry_string_sz(furi_string_get_cstr(*value));
+        result = js_utf8_string(*value);
     }
 
     furi_string_free(key);

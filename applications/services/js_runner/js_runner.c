@@ -238,7 +238,7 @@ JsRunnerError js_runner_run(
         FuriString* path_furi = furi_string_alloc_set_str(path);
         FuriString* filename_furi = furi_string_alloc();
         path_extract_filename(path_furi, filename_furi, false);
-        jerry_value_t source_name = jerry_string_sz(furi_string_get_cstr(filename_furi));
+        jerry_value_t source_name = js_utf8_string(filename_furi);
         furi_string_free(filename_furi);
         furi_string_free(path_furi);
 

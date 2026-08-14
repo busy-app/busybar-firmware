@@ -96,6 +96,13 @@ char* js_string_to_c_string(jerry_value_t value);
  */
 FuriString* js_string_to_furi_string(jerry_value_t value);
 
+/** @brief Create a JS string by decoding a UTF-8 FuriString.
+ *
+ * @param s source string
+ * @return JS string
+ */
+jerry_value_t js_utf8_string(const FuriString* s);
+
 /** @brief Copy a property (if it exists) from one object to another. */
 void js_copy_property(jerry_value_t dst, jerry_value_t src, const char* key);
 

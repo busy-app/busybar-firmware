@@ -181,3 +181,8 @@ jerry_value_t js_rejected_promise_from_exception(jerry_value_t exception) {
     jerry_value_free(exception);
     return ret;
 }
+
+jerry_value_t js_utf8_string(const FuriString* s) {
+    return jerry_string(
+        (const jerry_char_t*)furi_string_get_cstr(s), furi_string_size(s), JERRY_ENCODING_UTF8);
+}
