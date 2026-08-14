@@ -55,6 +55,7 @@ static uint8_t* ca_storage_load_pem_bundle(size_t* data_size) {
             break;
         }
 
+        data[file_size] = '\0';
         *data_size = file_size + 1;
 
         FURI_LOG_D(TAG, "Load CA bundle file OK");
