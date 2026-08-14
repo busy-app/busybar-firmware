@@ -281,9 +281,9 @@ JsRunnerError js_runner_run(
         js_runner_app_init(&app, path, heap_size, console_out_cb, console_write_context);
 
         {
-            furi_mutex_acquire(instance->apps_mutex, FuriWaitForever);
+            furi_check(furi_mutex_acquire(instance->apps_mutex, FuriWaitForever) == FuriStatusOk);
             AppDict_set_at(instance->apps, furi_thread_get_current(), &app);
-            furi_mutex_release(instance->apps_mutex);
+            furi_check(furi_mutex_release(instance->apps_mutex) == FuriStatusOk);
         }
 
         jerry_init(JERRY_INIT_EMPTY);
@@ -344,9 +344,9 @@ JsRunnerError js_runner_run(
         jerry_cleanup();
 
         {
-            furi_mutex_acquire(instance->apps_mutex, FuriWaitForever);
+            furi_check(furi_mutex_acquire(instance->apps_mutex, FuriWaitForever) == FuriStatusOk);
             AppDict_erase(instance->apps, furi_thread_get_current());
-            furi_mutex_release(instance->apps_mutex);
+            furi_check(furi_mutex_release(instance->apps_mutex) == FuriStatusOk);
         }
 
         js_runner_app_deinit(&app);
@@ -406,24 +406,24 @@ static void app_terminate_from_another_thread(JsRunnerApp* app) {
 
 bool js_runner_abort(JsRunner* instance, FuriThread* thread) {
     bool result = false;
-    furi_mutex_acquire(instance->apps_mutex, FuriWaitForever);
+    furi_check(furi_mutex_acquire(instance->apps_mutex, FuriWaitForever) == FuriStatusOk);
     JsRunnerApp** app_ptr = AppDict_get(instance->apps, thread);
     if(app_ptr) {
         app_terminate_from_another_thread(*app_ptr);
         result = true;
     }
-    furi_mutex_release(instance->apps_mutex);
+    furi_check(furi_mutex_release(instance->apps_mutex) == FuriStatusOk);
     return result;
 }
 
 void js_runner_abort_all(JsRunner* instance) {
-    furi_mutex_acquire(instance->apps_mutex, FuriWaitForever);
+    furi_check(furi_mutex_acquire(instance->apps_mutex, FuriWaitForever) == FuriStatusOk);
     AppDict_it_t iter;
     for(AppDict_it(iter, instance->apps); !AppDict_end_p(iter); AppDict_next(iter)) {
         JsRunnerApp* app = AppDict_cref(iter)->value;
         app_terminate_from_another_thread(app);
     }
-    furi_mutex_release(instance->apps_mutex);
+    furi_check(furi_mutex_release(instance->apps_mutex) == FuriStatusOk);
 }
 
 int32_t js_runner_srv(void* p) {

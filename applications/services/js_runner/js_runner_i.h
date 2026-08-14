@@ -102,20 +102,20 @@ typedef struct JsRunner {
     AppDict_t apps;
 } JsRunner;
 
-#define WITH_JS_RUNNER_APP(APP, BLOCK)                                     \
-    do {                                                                   \
-        JsRunner* __instance = furi_record_open(RECORD_JS_RUNNER);         \
-        furi_mutex_acquire(__instance->apps_mutex, FuriWaitForever);       \
-        FuriThread* current_thread = furi_thread_get_current();            \
-        JsRunnerApp* APP = *AppDict_get(__instance->apps, current_thread); \
-        if(APP) {                                                          \
-            BLOCK                                                          \
-        } else {                                                           \
-            FURI_LOG_E(TAG, "No JS app handle for current thread");        \
-            furi_crash();                                                  \
-        }                                                                  \
-        furi_mutex_release(__instance->apps_mutex);                        \
-        furi_record_close(RECORD_JS_RUNNER);                               \
+#define WITH_JS_RUNNER_APP(APP, BLOCK)                                                           \
+    do {                                                                                         \
+        JsRunner* __instance = furi_record_open(RECORD_JS_RUNNER);                               \
+        furi_check(furi_mutex_acquire(__instance->apps_mutex, FuriWaitForever) == FuriStatusOk); \
+        FuriThread* current_thread = furi_thread_get_current();                                  \
+        JsRunnerApp* APP = *AppDict_get(__instance->apps, current_thread);                       \
+        if(APP) {                                                                                \
+            BLOCK                                                                                \
+        } else {                                                                                 \
+            FURI_LOG_E(TAG, "No JS app handle for current thread");                              \
+            furi_crash();                                                                        \
+        }                                                                                        \
+        furi_check(furi_mutex_release(__instance->apps_mutex) == FuriStatusOk);                  \
+        furi_record_close(RECORD_JS_RUNNER);                                                     \
     } while(false)
 
 #define JS_ARG(n) (args_count > (n) ? args[(n)] : jerry_undefined())
