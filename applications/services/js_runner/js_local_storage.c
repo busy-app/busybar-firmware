@@ -134,10 +134,14 @@ static void load(LocalStorage* instance) {
                     const char* value = cJSON_GetStringValue(child);
                     if(key && value) {
                         JS_TRACE("%s: %s", key, value);
+                        FuriString* key_string = furi_string_alloc_set(key);
+                        FuriString* value_string = furi_string_alloc_set(value);
                         LocalStorageDict_set_at(
                             instance->dict,
-                            furi_string_alloc_set(key),
-                            furi_string_alloc_set(value));
+                            key_string,
+                            value_string);
+                        furi_string_free(key_string);
+                        furi_string_free(value_string);
                     }
                     child = child->next;
                 }
@@ -257,6 +261,9 @@ static jerry_value_t method_set_item(
 
     LocalStorageDict_set_at(instance->dict, key, value);
 
+    furi_string_free(key);
+    furi_string_free(value);
+
     save(instance);
 
     return jerry_undefined();
@@ -277,6 +284,8 @@ static jerry_value_t method_remove_item(
     }
 
     LocalStorageDict_erase(instance->dict, key);
+
+    furi_string_free(key);
 
     save(instance);
 
