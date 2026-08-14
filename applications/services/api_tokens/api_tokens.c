@@ -43,7 +43,7 @@ struct ApiTokens {
 // Stateless internal functions
 // ============================
 
-static void* tokens_realloc(void* previous, size_t size) {
+static void* api_tokens_realloc(void* previous, size_t size) {
     if(size) {
         return realloc(previous, size);
     } else {
@@ -52,7 +52,7 @@ static void* tokens_realloc(void* previous, size_t size) {
     }
 }
 
-static void tokens_generate(char* out, size_t out_size) {
+static void api_tokens_generate(char* out, size_t out_size) {
     furi_assert(out);
 
     uint8_t randomness[(int)ceilf(NEW_TOKEN_LENGTH * BASE64_ENCODING_EFFICIENCY)];
@@ -76,7 +76,7 @@ static void tokens_generate(char* out, size_t out_size) {
     strncpy(out, (const char*)token, out_size - 1);
 }
 
-static void tokens_infer_ids(const char* token, char* short_id, char* display_id) {
+static void api_tokens_infer_ids(const char* token, char* short_id, char* display_id) {
     furi_assert(token);
     furi_assert(short_id);
     furi_assert(display_id);
@@ -98,12 +98,12 @@ static void tokens_infer_ids(const char* token, char* short_id, char* display_id
 // Stateful internal functions
 // ===========================
 
-static void tokens_lock(ApiTokens* tokens) {
+static void api_tokens_lock(ApiTokens* tokens) {
     furi_assert(tokens);
     furi_check(furi_mutex_acquire(tokens->mutex, FuriWaitForever) == FuriStatusOk);
 }
 
-static void tokens_unlock(ApiTokens* tokens) {
+static void api_tokens_unlock(ApiTokens* tokens) {
     furi_assert(tokens);
     furi_check(furi_mutex_release(tokens->mutex) == FuriStatusOk);
 }
@@ -111,7 +111,7 @@ static void tokens_unlock(ApiTokens* tokens) {
 /**
  * Context: locked
  */
-static bool tokens_load(ApiTokens* tokens, const char* path) {
+static bool api_tokens_load(ApiTokens* tokens, const char* path) {
     furi_assert(tokens);
 
     FuriString* json_serialized =
@@ -135,7 +135,7 @@ static bool tokens_load(ApiTokens* tokens, const char* path) {
         }
 
         new_entry_count = cJSON_GetArraySize(json_tokens);
-        new_entries = tokens_realloc(NULL, sizeof(ApiTokensEntry) * new_entry_count);
+        new_entries = api_tokens_realloc(NULL, sizeof(ApiTokensEntry) * new_entry_count);
         ApiTokensEntry* c_entry = &new_entries[0];
 
         cJSON* json_entry;
@@ -221,7 +221,7 @@ static bool tokens_load(ApiTokens* tokens, const char* path) {
 /**
  * Context: locked
  */
-static bool tokens_dump(ApiTokens* tokens, const char* path) {
+static bool api_tokens_dump(ApiTokens* tokens, const char* path) {
     furi_assert(tokens);
 
     cJSON* json = cJSON_CreateObject();
@@ -261,19 +261,19 @@ static bool tokens_dump(ApiTokens* tokens, const char* path) {
 /**
  * Context: unlocked
  */
-static void tokens_flush_timer_callback(void* context) {
+static void api_tokens_flush_timer_callback(void* context) {
     furi_assert(context);
     ApiTokens* tokens = context;
 
-    tokens_lock(tokens);
+    api_tokens_lock(tokens);
 
     if(tokens->is_dirty) {
-        if(tokens_dump(tokens, TOKEN_LIST_PATH)) {
+        if(api_tokens_dump(tokens, TOKEN_LIST_PATH)) {
             tokens->is_dirty = false;
         }
     }
 
-    tokens_unlock(tokens);
+    api_tokens_unlock(tokens);
 }
 
 static void api_tokens_entry_free(ApiTokensEntry* entry) {
@@ -285,7 +285,7 @@ static void api_tokens_entry_free(ApiTokensEntry* entry) {
     free(entry->token_hash);
 }
 
-static ApiTokens* tokens_alloc(void) {
+static ApiTokens* api_tokens_alloc(void) {
     ApiTokens* tokens = malloc(sizeof(ApiTokens));
 
     tokens->mutex = furi_mutex_alloc(FuriMutexTypeNormal);
@@ -293,17 +293,17 @@ static ApiTokens* tokens_alloc(void) {
     tokens->storage = furi_record_open(RECORD_STORAGE);
     storage_simply_mkdir(tokens->storage, TOKEN_LIST_DIR);
 
-    tokens_load(tokens, TOKEN_LIST_PATH);
+    api_tokens_load(tokens, TOKEN_LIST_PATH);
 
     tokens->flush_timer =
-        furi_timer_alloc(tokens_flush_timer_callback, FuriTimerTypePeriodic, tokens);
+        furi_timer_alloc(api_tokens_flush_timer_callback, FuriTimerTypePeriodic, tokens);
     furi_check(furi_timer_start(tokens->flush_timer, TOKEN_FLUSH_PERIOD) == FuriStatusOk);
 
     return tokens;
 }
 
 void api_tokens_start(void) {
-    ApiTokens* tokens = tokens_alloc();
+    ApiTokens* tokens = api_tokens_alloc();
     furi_record_create(RECORD_API_TOKENS, tokens);
 }
 
@@ -321,19 +321,19 @@ void api_tokens_mint(
     furi_assert(callback);
 
     char token[NEW_TOKEN_LENGTH + 1];
-    tokens_generate(token, sizeof(token));
+    api_tokens_generate(token, sizeof(token));
 
-    tokens_lock(tokens);
+    api_tokens_lock(tokens);
 
     tokens->entry_count++;
     tokens->entries =
-        tokens_realloc(tokens->entries, sizeof(ApiTokensEntry) * tokens->entry_count);
+        api_tokens_realloc(tokens->entries, sizeof(ApiTokensEntry) * tokens->entry_count);
     ApiTokensEntry* entry = &tokens->entries[tokens->entry_count - 1];
 
     entry->type = ApiApiTokensEntryTypeFull;
     entry->short_id = malloc(API_TOKENS_SHORT_ID_LENGTH + 1);
     entry->display_id = malloc(TOKEN_DISPLAY_ID_LENGTH + 1);
-    tokens_infer_ids(token, entry->short_id, entry->display_id);
+    api_tokens_infer_ids(token, entry->short_id, entry->display_id);
     entry->created_at = furi_hal_rtc_get_timestamp_ms();
     entry->last_used_at = 0;
     entry->owner = strdup(owner);
@@ -348,30 +348,30 @@ void api_tokens_mint(
     furi_string_free(token_hash);
     entry->type = ApiApiTokensEntryTypeHashed;
 
-    tokens->is_dirty = !tokens_dump(tokens, TOKEN_LIST_PATH);
+    tokens->is_dirty = !api_tokens_dump(tokens, TOKEN_LIST_PATH);
 
-    tokens_unlock(tokens);
+    api_tokens_unlock(tokens);
 }
 
 void api_tokens_list(ApiTokens* tokens, ApiTokenInfoCallback callback, void* context) {
     furi_assert(tokens);
     furi_assert(callback);
 
-    tokens_lock(tokens);
+    api_tokens_lock(tokens);
 
     for(size_t i = 0; i < tokens->entry_count; i++) {
         const ApiTokensEntry* entry = &tokens->entries[i];
         callback(entry, context);
     }
 
-    tokens_unlock(tokens);
+    api_tokens_unlock(tokens);
 }
 
 bool api_tokens_revoke(ApiTokens* tokens, const char* short_id) {
     furi_assert(tokens);
     furi_assert(short_id);
 
-    tokens_lock(tokens);
+    api_tokens_lock(tokens);
     bool success = false;
 
     for(size_t i = 0; i < tokens->entry_count; i++) {
@@ -389,20 +389,20 @@ bool api_tokens_revoke(ApiTokens* tokens, const char* short_id) {
         tokens->is_dirty = true;
         tokens->entry_count--;
         tokens->entries =
-            tokens_realloc(tokens->entries, tokens->entry_count * sizeof(ApiTokensEntry));
+            api_tokens_realloc(tokens->entries, tokens->entry_count * sizeof(ApiTokensEntry));
 
         success = true;
         break;
     }
 
-    tokens_unlock(tokens);
+    api_tokens_unlock(tokens);
     return success;
 }
 
 void api_tokens_reset_all(ApiTokens* tokens) {
     furi_assert(tokens);
 
-    tokens_lock(tokens);
+    api_tokens_lock(tokens);
 
     if(tokens->entries) {
         for(size_t i = 0; i < tokens->entry_count; i++) {
@@ -414,7 +414,7 @@ void api_tokens_reset_all(ApiTokens* tokens) {
         tokens->is_dirty = true;
     }
 
-    tokens_unlock(tokens);
+    api_tokens_unlock(tokens);
 }
 
 bool api_tokens_validate_and_record_usage(ApiTokens* tokens, const char* full_token) {
@@ -425,7 +425,7 @@ bool api_tokens_validate_and_record_usage(ApiTokens* tokens, const char* full_to
     const char* token_hash_cstr = furi_string_get_cstr(token_hash);
 
     bool success = false;
-    tokens_lock(tokens);
+    api_tokens_lock(tokens);
 
     for(size_t i = 0; i < tokens->entry_count; i++) {
         ApiTokensEntry* entry = &tokens->entries[i];
@@ -437,7 +437,7 @@ bool api_tokens_validate_and_record_usage(ApiTokens* tokens, const char* full_to
         break;
     }
 
-    tokens_unlock(tokens);
+    api_tokens_unlock(tokens);
 
     furi_string_free(token_hash);
     return success;
