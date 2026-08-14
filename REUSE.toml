@@ -30,7 +30,7 @@ path = [
     "lib/lvgl_addons/**",
     "lib/mbedtls_patch/**",
     "lib/netstat/**",
-    "lib/network/*",
+    "lib/network/**",
     "lib/setting_provider/**",
     "lib/settings_helpers/**",
     "lib/stb/*",

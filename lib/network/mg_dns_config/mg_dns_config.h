@@ -1,5 +1,5 @@
 /**
- * @file mgdnsconfig.h
+ * @file mg_dns_config.h
  * Mongoose DNS Configuration manager
  * 
  * Takes DNS server configuration from lwIP and forwards it to mongoose
@@ -29,6 +29,7 @@ void mg_dns_config_apply_auto(struct mg_mgr* mgr);
  * function returns.
  * 
  * @param[inout] mgr Mongoose manager instance
+ * @param[in] info Wi-Fi configuration info
  */
 void mg_dns_config_apply_from_info(struct mg_mgr* mgr, const WifiInfo* info);
 
