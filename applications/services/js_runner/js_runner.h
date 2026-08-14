@@ -17,7 +17,7 @@ typedef enum JsRunnerError {
     JsRunnerErrorCannotOpenFile,
     JsRunnerErrorInvalidFileSize,
     JsRunnerErrorCannotReadFile,
-    JsRunnerParseException,
+    JsRunnerErrorParseException,
     JsRunnerErrorMax,
 } JsRunnerError;
 
@@ -72,3 +72,10 @@ bool js_runner_abort(JsRunner* instance, FuriThread* thread);
  * @param instance JsRunner instance. Can be obtained with furi_record_open().
  */
 void js_runner_abort_all(JsRunner* instance);
+
+/** @brief Get human-readable error message corresponding to an error code.
+ *
+ * @param error error code
+ * @return error message
+ */
+const char* js_runner_get_error_message(JsRunnerError error);

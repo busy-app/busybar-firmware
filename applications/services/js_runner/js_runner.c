@@ -318,7 +318,7 @@ JsRunnerError js_runner_run(
         do {
             if(jerry_value_is_exception(parsed_script)) {
                 js_log_exception(TAG, "Error parsing script", parsed_script);
-                ret = JsRunnerParseException;
+                ret = JsRunnerErrorParseException;
                 break;
             } else {
                 jerry_value_t link_result = jerry_module_link(parsed_script, NULL, NULL);
@@ -435,4 +435,21 @@ int32_t js_runner_srv(void* p) {
     furi_event_loop_run(instance->event_loop);
 
     return 0;
+}
+
+static const char* const error_messages[] = {
+    [JsRunnerErrorNone] = "OK",
+    [JsRunnerErrorCannotOpenFile] = "Cannot open file",
+    [JsRunnerErrorInvalidFileSize] = "Invalid file size",
+    [JsRunnerErrorCannotReadFile] = "Cannot read file",
+    [JsRunnerErrorParseException] = "Parse exception",
+};
+
+static_assert(COUNT_OF(error_messages) == JsRunnerErrorMax);
+
+const char* js_runner_get_error_message(JsRunnerError error) {
+    if(error >= JsRunnerErrorMax) {
+        return "Unknown";
+    }
+    return error_messages[error];
 }
