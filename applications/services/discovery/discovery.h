@@ -5,8 +5,7 @@
 
 #pragma once
 
-#include <lwip/api.h>
-#include <lwip/netif.h>
+#include <furi.h>
 
 #ifdef __cplusplus
 extern "C" {

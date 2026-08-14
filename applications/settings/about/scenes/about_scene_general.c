@@ -8,7 +8,6 @@
 #include <furi_hal_version.h>
 #include <sl_info/sl_info.h>
 
-#define MAC_ADDRESS_LEN            (6)
 #define SERIAL_NUMBER_NEW_LINE_POS (8)
 #define GREY_TEXT(text)            "#888888 " text "#"
 
@@ -49,7 +48,7 @@ static void about_scene_general_fill_hardware_version(FuriString* info) {
 static void about_scene_general_fill_mac_address(FuriString* info) {
     const uint8_t* usb_mac = furi_hal_version_get_usb_mac();
     furi_string_printf(info, "%02x", usb_mac[0]);
-    for(size_t i = 1; i < MAC_ADDRESS_LEN; i++) {
+    for(size_t i = 1; i < FURI_HAL_VERSION_MAC_LENGTH; i++) {
         furi_string_cat_printf(info, ":%02x", usb_mac[i]);
     }
 }
@@ -63,7 +62,7 @@ static void about_scene_general_on_enter(void* context) {
     FuriString* general_info_string = furi_string_alloc();
     FuriString* temp_str = furi_string_alloc();
 
-    // Devce name
+    // Device name
     about_scene_general_fill_name(temp_str);
     furi_string_printf(
         general_info_string, GREY_TEXT("Name:") " %s\n", furi_string_get_cstr(temp_str));
