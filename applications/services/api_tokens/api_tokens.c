@@ -43,6 +43,15 @@ struct ApiTokens {
 // Stateless internal functions
 // ============================
 
+static void* tokens_realloc(void* previous, size_t size) {
+    if(size) {
+        return realloc(previous, size);
+    } else {
+        free(previous);
+        return NULL;
+    }
+}
+
 static void tokens_generate(char* out) {
     furi_assert(out);
 
@@ -125,7 +134,7 @@ static bool tokens_load(ApiTokens* tokens, const char* path) {
         }
 
         tokens->entry_count = cJSON_GetArraySize(json_tokens);
-        new_entries = malloc(sizeof(ApiTokensEntry) * tokens->entry_count);
+        new_entries = tokens_realloc(NULL, sizeof(ApiTokensEntry) * tokens->entry_count);
         ApiTokensEntry* c_entry = &new_entries[0];
 
         cJSON* json_entry;
@@ -307,7 +316,8 @@ void api_tokens_mint(
 
     tokens->is_dirty = true;
     tokens->entry_count++;
-    tokens->entries = realloc(tokens->entries, sizeof(ApiTokensEntry) * tokens->entry_count);
+    tokens->entries =
+        tokens_realloc(tokens->entries, sizeof(ApiTokensEntry) * tokens->entry_count);
     ApiTokensEntry* entry = &tokens->entries[tokens->entry_count - 1];
 
     entry->type = ApiApiTokensEntryTypeFull;
@@ -370,7 +380,8 @@ bool api_tokens_revoke(ApiTokens* tokens, const char* short_id) {
 
         tokens->is_dirty = true;
         tokens->entry_count--;
-        tokens->entries = realloc(tokens->entries, tokens->entry_count * sizeof(ApiTokensEntry));
+        tokens->entries =
+            tokens_realloc(tokens->entries, tokens->entry_count * sizeof(ApiTokensEntry));
 
         success = true;
         break;
