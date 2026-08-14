@@ -325,7 +325,6 @@ void api_tokens_mint(
 
     tokens_lock(tokens);
 
-    tokens->is_dirty = true;
     tokens->entry_count++;
     tokens->entries =
         tokens_realloc(tokens->entries, sizeof(ApiTokensEntry) * tokens->entry_count);
@@ -348,6 +347,8 @@ void api_tokens_mint(
     entry->token_hash = strdup(token_hash_cstr);
     furi_string_free(token_hash);
     entry->type = ApiApiTokensEntryTypeHashed;
+
+    tokens->is_dirty = !tokens_dump(tokens, TOKEN_LIST_PATH);
 
     tokens_unlock(tokens);
 }
