@@ -129,9 +129,8 @@ static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
 }
 
 static void js_app_launcher_free(JsAppLauncher* instance) {
-    if(instance->js_app) {
-        js_app_free(instance->js_app);
-    }
+    // TODO [FW-602]: this call MUST be first to avoid use-after-free.
+    scene_manager_free(instance->scene_manager);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->input_queue);
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
@@ -140,7 +139,10 @@ static void js_app_launcher_free(JsAppLauncher* instance) {
     furi_message_queue_free(instance->event_queue);
 
     furi_event_loop_free(instance->event_loop);
-    scene_manager_free(instance->scene_manager);
+
+    if(instance->js_app) {
+        js_app_free(instance->js_app);
+    }
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
