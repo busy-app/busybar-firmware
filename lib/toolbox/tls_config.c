@@ -25,6 +25,13 @@ static TlsConfigValidationStatus
     return status;
 }
 
+void tls_config_init(TlsConfig* tls_config) {
+    furi_check(tls_config);
+
+    memset(tls_config, 0, sizeof(TlsConfig));
+    tls_config->client_cert_info.type = TlsClientCertTypeNone;
+}
+
 TlsConfigValidationStatus tls_config_validate(const TlsConfig* tls_config) {
     furi_check(tls_config);
 

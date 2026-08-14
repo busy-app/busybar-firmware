@@ -60,6 +60,13 @@ typedef enum {
 } TlsConfigValidationStatus;
 
 /**
+ * @brief Initialise TLS config structure with default values.
+ *
+ * @param[in,out] tls_config pointer to the config to be initialised
+ */
+void tls_config_init(TlsConfig* tls_config);
+
+/**
  * @brief Check whether a TLS config structure is valid.
  *
  * @param[in] tls_config pointer to the config to be validated

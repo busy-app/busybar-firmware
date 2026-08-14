@@ -341,7 +341,10 @@ static void fetch_cli_option_callback(char opt, const char* optarg, void* contex
 
 static FetchCliParams* fetch_cli_params_alloc(void) {
     FetchCliParams* params = malloc(sizeof(FetchCliParams));
+
     params->url_store = furi_string_alloc();
+    tls_config_init(&params->request.tls_config);
+
     return params;
 }
 
