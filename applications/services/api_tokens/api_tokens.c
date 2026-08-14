@@ -52,7 +52,7 @@ static void* tokens_realloc(void* previous, size_t size) {
     }
 }
 
-static void tokens_generate(char* out) {
+static void tokens_generate(char* out, size_t out_size) {
     furi_assert(out);
 
     uint8_t randomness[(int)ceilf(NEW_TOKEN_LENGTH * BASE64_ENCODING_EFFICIENCY)];
@@ -73,7 +73,7 @@ static void tokens_generate(char* out) {
         }
     }
 
-    strcpy(out, (const char*)token);
+    strncpy(out, (const char*)token, out_size - 1);
 }
 
 static void tokens_infer_ids(const char* token, char* short_id, char* display_id) {
@@ -123,6 +123,7 @@ static bool tokens_load(ApiTokens* tokens, const char* path) {
     }
 
     ApiTokensEntry* new_entries = NULL;
+    size_t new_entry_count = 0;
     cJSON* json = cJSON_Parse(furi_string_get_cstr(json_serialized));
     bool success = true;
 
@@ -133,8 +134,8 @@ static bool tokens_load(ApiTokens* tokens, const char* path) {
             break;
         }
 
-        tokens->entry_count = cJSON_GetArraySize(json_tokens);
-        new_entries = tokens_realloc(NULL, sizeof(ApiTokensEntry) * tokens->entry_count);
+        new_entry_count = cJSON_GetArraySize(json_tokens);
+        new_entries = tokens_realloc(NULL, sizeof(ApiTokensEntry) * new_entry_count);
         ApiTokensEntry* c_entry = &new_entries[0];
 
         cJSON* json_entry;
@@ -211,6 +212,7 @@ static bool tokens_load(ApiTokens* tokens, const char* path) {
     if(success) {
         free(tokens->entries);
         tokens->entries = new_entries;
+        tokens->entry_count = new_entry_count;
     }
 
     return success;
@@ -274,6 +276,15 @@ static void tokens_flush_timer_callback(void* context) {
     tokens_unlock(tokens);
 }
 
+static void api_tokens_entry_free(ApiTokensEntry* entry) {
+    furi_assert(entry);
+    free(entry->short_id);
+    free(entry->display_id);
+    free(entry->owner);
+    furi_assert(entry->type == ApiApiTokensEntryTypeHashed);
+    free(entry->token_hash);
+}
+
 static ApiTokens* tokens_alloc(void) {
     ApiTokens* tokens = malloc(sizeof(ApiTokens));
 
@@ -309,8 +320,8 @@ void api_tokens_mint(
     furi_assert(owner);
     furi_assert(callback);
 
-    char token[NEW_TOKEN_LENGTH];
-    tokens_generate(token);
+    char token[NEW_TOKEN_LENGTH + 1];
+    tokens_generate(token, sizeof(token));
 
     tokens_lock(tokens);
 
@@ -366,11 +377,7 @@ bool api_tokens_revoke(ApiTokens* tokens, const char* short_id) {
         ApiTokensEntry* entry = &tokens->entries[i];
         if(strcmp(entry->short_id, short_id) != 0) continue;
 
-        free(entry->short_id);
-        free(entry->display_id);
-        free(entry->owner);
-        furi_assert(entry->type == ApiApiTokensEntryTypeHashed);
-        free(entry->token_hash);
+        api_tokens_entry_free(entry);
 
         size_t entries_before_matching = i;
         size_t entries_after_matching = tokens->entry_count - entries_before_matching - 1;
@@ -397,6 +404,9 @@ void api_tokens_reset_all(ApiTokens* tokens) {
     tokens_lock(tokens);
 
     if(tokens->entries) {
+        for(size_t i = 0; i < tokens->entry_count; i++) {
+            api_tokens_entry_free(&tokens->entries[i]);
+        }
         free(tokens->entries);
         tokens->entries = NULL;
         tokens->entry_count = 0;
