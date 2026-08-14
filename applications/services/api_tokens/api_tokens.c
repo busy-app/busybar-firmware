@@ -73,6 +73,7 @@ static void api_tokens_generate(char* out, size_t out_size) {
         }
     }
 
+    memset(out, 0, out_size);
     strncpy(out, (const char*)token, out_size - 1);
 }
 
