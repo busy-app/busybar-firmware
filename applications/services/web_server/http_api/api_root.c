@@ -438,6 +438,11 @@ static cJSON* api_access_tokens_entry_to_json(const ApiTokensEntry* entry) {
     return json_token;
 }
 
+static void add_token_entry_to_json(const ApiTokensEntry* entry, void* context) {
+    cJSON* json_tokens = context;
+    cJSON_AddItemToArray(json_tokens, api_access_tokens_entry_to_json(entry));
+}
+
 bool api_access_api_tokens_list_callback(
     FuriString* path,
     HttpMethod method,
@@ -454,13 +459,7 @@ bool api_access_api_tokens_list_callback(
 
     cJSON* json = cJSON_CreateObject();
     cJSON* json_tokens = cJSON_AddArrayToObject(json, "tokens");
-
-    void add_token_entry_to_json(const ApiTokensEntry* entry, void* context) {
-        UNUSED(context);
-        cJSON_AddItemToArray(json_tokens, api_access_tokens_entry_to_json(entry));
-    }
-
-    api_tokens_list(context->tokens, add_token_entry_to_json, NULL);
+    api_tokens_list(context->tokens, add_token_entry_to_json, json_tokens);
 
     char* response = cJSON_Print(json);
     MG_REPLY_OK_BODY(conn, "%s", response);
@@ -468,6 +467,15 @@ bool api_access_api_tokens_list_callback(
 
     cJSON_Delete(json);
     return true;
+}
+
+void token_generated(const ApiTokensEntry* entry, void* context) {
+    struct mg_connection* conn = context;
+    cJSON* json_token = api_access_tokens_entry_to_json(entry);
+    char* token_serialized = cJSON_Print(json_token);
+    MG_REPLY_OK_BODY(conn, "%s", token_serialized);
+    free(token_serialized);
+    cJSON_Delete(json_token);
 }
 
 bool api_access_api_tokens_mint_callback(
@@ -496,16 +504,7 @@ bool api_access_api_tokens_mint_callback(
         return true;
     }
 
-    void token_generated(const ApiTokensEntry* entry, void* context) {
-        UNUSED(context);
-        cJSON* json_token = api_access_tokens_entry_to_json(entry);
-        char* token_serialized = cJSON_Print(json_token);
-        MG_REPLY_OK_BODY(conn, "%s", token_serialized);
-        free(token_serialized);
-        cJSON_Delete(json_token);
-    }
-
-    api_tokens_mint(context->tokens, name, token_generated, NULL);
+    api_tokens_mint(context->tokens, name, token_generated, conn);
 
     free(name);
     return true;
