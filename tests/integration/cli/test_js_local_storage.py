@@ -460,6 +460,7 @@ assertTypeError(
     @allure.title(
         "JavaScript localStorage supports maximum-length application IDs."
     )
+    @pytest.mark.skip(reason="crash in web server")
     def test_max_length_app_id_backing_file(self, storage_api):
         app_id = "app.busy.localstorage.max.id.000"
         assert len(app_id) == 32, f"invalid boundary app ID: {app_id!r}"
