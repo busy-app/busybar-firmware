@@ -21,6 +21,8 @@
 
 static const char* mongoose_tls_alpn_list[] = {"mqtt", NULL};
 
+typedef bool (*MongooseTlsParseCallback)(void* out, const uint8_t* data, size_t data_len);
+
 static int mongoose_tls_random(void* ctx, unsigned char* buf, size_t len) {
     UNUSED(ctx);
     mg_random(buf, len);
@@ -217,40 +219,70 @@ static bool mongoose_tls_load_device_certificates(struct mg_tls* tls) {
     return success;
 }
 
-static bool mongoose_tls_load_cert_from_file(const char* path, mbedtls_x509_crt* crt) {
+static bool mongoose_tls_parse_cert_callback(void* out, const uint8_t* data, size_t data_len) {
+    bool success = true;
+
+    const int status = mbedtls_x509_crt_parse((mbedtls_x509_crt*)out, data, data_len);
+
+    if(status != 0) {
+        FURI_LOG_E(TAG, "Cert parse error -0x%04X", -status);
+        success = false;
+    }
+
+    return success;
+}
+
+static bool mongoose_tls_parse_pk_callback(void* pk, const uint8_t* data, size_t data_len) {
+    bool success = true;
+
+    const int status = mbedtls_pk_parse_key(
+        (mbedtls_pk_context*)pk, data, data_len, NULL, 0, mongoose_tls_random, 0);
+
+    if(status != 0) {
+        FURI_LOG_E(TAG, "Key parse error -0x%04X", -status);
+        success = false;
+    }
+
+    return success;
+}
+
+static bool mongoose_tls_load_cert_from_file(
+    const char* path,
+    void* out,
+    MongooseTlsParseCallback parse_callback) {
+    bool success = false;
+    uint8_t* data_buf = NULL;
+
     Storage* storage = furi_record_open(RECORD_STORAGE);
     File* file = storage_file_alloc(storage);
 
-    bool success = false;
-    size_t cert_len = 0;
-    uint8_t* cert_buf = NULL;
-
     do {
         if(!storage_file_open(file, path, FSAM_READ, FSOM_OPEN_EXISTING)) {
-            FURI_LOG_E(TAG, "Cert file error: %s", storage_file_get_error_desc(file));
+            FURI_LOG_E(
+                TAG, "Failed to open file for reading: %s", storage_file_get_error_desc(file));
             break;
         }
 
-        cert_len = storage_file_size(file);
-        cert_buf = malloc(cert_len + 1);
+        const size_t data_len = storage_file_size(file);
 
-        if(storage_file_read(file, cert_buf, cert_len) != cert_len) {
-            FURI_LOG_E(TAG, "Cert file read error");
+        data_buf = malloc(data_len + 1);
+
+        if(storage_file_read(file, data_buf, data_len) != data_len) {
+            FURI_LOG_E(TAG, "Failed to read file: %s", storage_file_get_error_desc(file));
             break;
         }
 
-        const int parse_result = mbedtls_x509_crt_parse(crt, cert_buf, cert_len + 1);
+        data_buf[data_len] = '\0';
 
-        if(parse_result != 0) {
-            FURI_LOG_E(TAG, "Cert parse error -0x%04X", -parse_result);
+        if(!parse_callback(out, data_buf, data_len + 1)) {
             break;
         }
 
         success = true;
     } while(0);
 
-    if(cert_buf) {
-        free(cert_buf);
+    if(data_buf) {
+        free(data_buf);
     }
 
     storage_file_free(file);
@@ -259,64 +291,17 @@ static bool mongoose_tls_load_cert_from_file(const char* path, mbedtls_x509_crt*
     return success;
 }
 
-static bool mongoose_tls_load_key_from_file(const char* path, mbedtls_pk_context* pk) {
-    bool success = false;
-
-    Storage* storage = furi_record_open(RECORD_STORAGE);
-    File* file = storage_file_alloc(storage);
-
-    size_t cert_len = 0;
-    uint8_t* cert_buf = NULL;
-
-    do {
-        if(!storage_file_open(file, path, FSAM_READ, FSOM_OPEN_EXISTING)) {
-            FURI_LOG_E(TAG, "Key file error: %s", storage_file_get_error_desc(file));
-            return false;
-        }
-
-        cert_len = storage_file_size(file);
-        cert_buf = malloc(cert_len + 1);
-
-        if(storage_file_read(file, cert_buf, cert_len) != cert_len) {
-            FURI_LOG_E(TAG, "Key file read error");
-            return false;
-        }
-
-        success = true;
-    } while(0);
-
-    storage_file_close(file);
-    furi_record_close(RECORD_STORAGE);
-
-    if(!success) {
-        if(cert_buf) {
-            free(cert_buf);
-        }
-        return false;
-    }
-
-    const int ret =
-        mbedtls_pk_parse_key(pk, cert_buf, cert_len + 1, NULL, 0, mongoose_tls_random, 0);
-
-    free(cert_buf);
-
-    if(ret != 0) {
-        FURI_LOG_E(TAG, "Key parse error -0x%04X", -ret);
-        return false;
-    }
-
-    return true;
-}
-
 static bool
     mongoose_tls_load_custom_certificates(struct mg_tls* tls, const TlsClientCertPaths* paths) {
     bool success = false;
 
     do {
-        if(!mongoose_tls_load_cert_from_file(paths->certificate, &tls->cert)) {
+        if(!mongoose_tls_load_cert_from_file(
+               paths->certificate, &tls->cert, mongoose_tls_parse_cert_callback)) {
             break;
         }
-        if(!mongoose_tls_load_key_from_file(paths->private_key, &tls->pk)) {
+        if(!mongoose_tls_load_cert_from_file(
+               paths->private_key, &tls->pk, mongoose_tls_parse_pk_callback)) {
             break;
         }
 
