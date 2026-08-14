@@ -79,7 +79,7 @@ typedef struct JsRunnerApp {
     void* jrs_context;
     FuriEventLoop* event_loop;
     FuriString* root_path;
-    volatile bool terminate;
+    _Atomic bool terminate;
     FuriMessageQueue* command_queue;
 
     JsRunnerAppConsole console;

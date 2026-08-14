@@ -216,7 +216,7 @@ static jerry_value_t engine_halt_callback(void* user_p) {
     JsRunnerApp* app = user_p;
     JS_TRACE("halt callback");
     if(app->terminate) {
-        JS_TRACE("teminate!");
+        JS_TRACE("terminate!");
 
         return jerry_string_sz("aborted");
     } else {
@@ -388,7 +388,7 @@ static void abort_intervals(JsRunnerApp* app) {
 
 static void abort_cmd_handler(JsRunnerApp* app, JsRunnerAppCommandType cmd) {
     furi_check(cmd == JsRunnerAppCommandTypeAbort);
-    abort_intervals(app);
+    app_terminate_from_app_thread(app);
     js_runner_check_event_loop(app);
 }
 
@@ -399,10 +399,11 @@ static void app_terminate_from_app_thread(JsRunnerApp* app) {
 }
 
 static void app_terminate_from_another_thread(JsRunnerApp* app) {
-    app->terminate = true;
-    abort_fetches(&app->fetch);
-    JsRunnerAppCommandType cmd = JsRunnerAppCommandTypeAbort;
-    furi_message_queue_put(app->command_queue, &cmd, FuriWaitForever);
+    if(!app->terminate) {
+        app->terminate = true;
+        JsRunnerAppCommandType cmd = JsRunnerAppCommandTypeAbort;
+        furi_message_queue_put(app->command_queue, &cmd, FuriWaitForever);
+    }
 }
 
 bool js_runner_kill(JsRunner* instance, FuriThread* thread) {
