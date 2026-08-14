@@ -3,6 +3,7 @@ Import("env")
 env.Append(
     CPPPATH=[
         Dir("dhserver").srcnode(),
+        Dir("mg_dns_config").srcnode(),
     ],
     LINT_SOURCES=[
         Dir(".").srcnode(),
@@ -15,6 +16,7 @@ libenv.ApplyLibFlags()
 
 sources = [
     "dhserver/dhserver.c",
+    "mg_dns_config/mg_dns_config.c",
 ]
 
 libenv.Append(CPPPATH=[libenv.Dir(".")])

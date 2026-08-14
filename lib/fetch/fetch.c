@@ -1,6 +1,7 @@
 #include "fetch.h"
 
 #include <network/network.h>
+#include <mg_dns_config.h>
 #include <storage/storage.h>
 
 #include <toolbox/timers.h>
@@ -26,6 +27,10 @@
 #define FETCH_LOG_E(...)
 #endif
 
+// =====
+// Types
+// =====
+
 struct Fetch {
     struct mg_mgr mgr;
     const FetchRequest* request;
@@ -48,11 +53,19 @@ struct Fetch {
     _Atomic bool is_stop_requested;
 };
 
+// ============================
+// Stateless internal functions
+// ============================
+
 static uint32_t fetch_calc_download_speed(size_t size_delta, uint32_t start_timestamp_ticks) {
     const uint32_t delta_ticks = furi_get_tick() - start_timestamp_ticks + 1;
     const float delta_s = (float)delta_ticks / furi_kernel_get_tick_frequency();
     return size_delta / delta_s;
 }
+
+// ===========================
+// Stateful internal functions
+// ===========================
 
 static bool fetch_is_rx_complete(const Fetch* instance) {
     bool is_complete = false;
@@ -358,6 +371,10 @@ static bool fetch_verify_response_body_size(Fetch* instance) {
     return success;
 }
 
+// ==========
+// Public API
+// ==========
+
 Fetch* fetch_alloc(void) {
     Fetch* instance = malloc(sizeof(Fetch));
     return instance;
@@ -388,6 +405,7 @@ FetchStatus fetch_run(Fetch* instance, const FetchRequest* request) {
 #endif
 
     mg_mgr_init(&instance->mgr);
+    mg_dns_config_apply_auto(&instance->mgr);
 
     struct mg_connection* conn =
         mg_http_connect(&instance->mgr, request->url, fetch_mg_handler, instance);
@@ -422,6 +440,7 @@ FetchStatus fetch_run(Fetch* instance, const FetchRequest* request) {
         fetch_raise_error(instance, "Failed to connect to server");
     }
 
+    mg_dns_config_cleanup(&instance->mgr);
     mg_mgr_free(&instance->mgr);
 
     network_deinit_current_thread(network);

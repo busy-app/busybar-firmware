@@ -4,6 +4,7 @@
 #include <usb_network/usb_network.h>
 #include <wifi/wifi.h>
 #include <network/network.h>
+#include <mg_dns_config.h>
 
 #define TAG "TimeTest"
 
@@ -36,12 +37,14 @@ static TimeTestApp* time_test_alloc(void) {
     network_init_current_thread(instance->network);
 
     mg_mgr_init(&instance->mgr);
+    mg_dns_config_apply_auto(&instance->mgr);
     mg_time_connect(&instance->mgr, NULL, time_test_client_callback, instance);
 
     return instance;
 }
 
 static void time_test_free(TimeTestApp* instance) {
+    mg_dns_config_cleanup(&instance->mgr);
     mg_mgr_free(&instance->mgr);
 
     network_deinit_current_thread(instance->network);

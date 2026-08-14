@@ -102,54 +102,52 @@
 #define LWIP_MIB2_CALLBACKS                    0
 #define LWIP_MULTICAST_TX_OPTIONS              ((LWIP_IGMP || LWIP_IPV6_MLD) && (LWIP_UDP || LWIP_RAW))
 #define LWIP_IGMP                              1
-#define LWIP_DNS                               0
+#define LWIP_DNS                               1
 #define DNS_TABLE_SIZE                         16
 #define DNS_MAX_NAME_LENGTH                    256
 #define DNS_MAX_SERVERS                        4
 #define DNS_MAX_RETRIES                        4
 #define DNS_DOES_NAME_CHECK                    1
-#define LWIP_DNS_SECURE                                                   \
-    (LWIP_DNS_SECURE_RAND_XID | LWIP_DNS_SECURE_NO_MULTIPLE_OUTSTANDING | \
-     LWIP_DNS_SECURE_RAND_SRC_PORT)
-#define DNS_LOCAL_HOSTLIST            0
-#define DNS_LOCAL_HOSTLIST_IS_DYNAMIC 0
-#define LWIP_DNS_SUPPORT_MDNS_QUERIES 0
-#define LWIP_UDP                      1
-#define LWIP_UDPLITE                  0
-#define UDP_TTL                       (IP_DEFAULT_TTL)
-#define LWIP_NETBUF_RECVINFO          0
-#define LWIP_TCP                      1
-#define TCP_TTL                       (IP_DEFAULT_TTL)
-#define TCP_WND                       (32 * TCP_MSS)
-#define TCP_MAXRTX                    12
-#define TCP_SYNMAXRTX                 6
-#define TCP_QUEUE_OOSEQ               (LWIP_TCP)
-#define LWIP_TCP_SACK_OUT             1
-#define LWIP_TCP_MAX_SACK_NUM         4
-#define TCP_MSS                       (1500 /*mtu*/ - 20 /*iphdr*/ - 20 /*tcphhr*/)
-#define TCP_CALCULATE_EFF_SEND_MSS    1
-#define TCP_SND_BUF                   (16 * TCP_MSS)
-#define TCP_SND_QUEUELEN              ((4 * (TCP_SND_BUF) + (TCP_MSS - 1)) / (TCP_MSS))
-#define TCP_SNDLOWAT                  LWIP_MIN(LWIP_MAX(((TCP_SND_BUF) / 2), (2 * TCP_MSS) + 1), (TCP_SND_BUF) - 1)
-#define TCP_SNDQUEUELOWAT             LWIP_MAX(((TCP_SND_QUEUELEN) / 2), 5)
-#define TCP_OOSEQ_MAX_BYTES           (8 * TCP_MSS)
-#define TCP_OOSEQ_BYTES_LIMIT(pcb)    TCP_OOSEQ_MAX_BYTES
-#define TCP_OOSEQ_MAX_PBUFS           16
-#define TCP_OOSEQ_PBUFS_LIMIT(pcb)    TCP_OOSEQ_MAX_PBUFS
-#define TCP_LISTEN_BACKLOG            1
-#define TCP_DEFAULT_LISTEN_BACKLOG    32
-#define TCP_OVERSIZE                  TCP_MSS
-#define LWIP_TCP_TIMESTAMPS           1
-#define TCP_WND_UPDATE_THRESHOLD      LWIP_MIN((TCP_WND / 4), (TCP_MSS * 4))
-#define LWIP_EVENT_API                0
-#define LWIP_CALLBACK_API             1
-#define LWIP_WND_SCALE                1
-#define TCP_RCV_SCALE                 4
-#define LWIP_TCP_PCB_NUM_EXT_ARGS     0
-#define LWIP_ALTCP                    0
-#define LWIP_ALTCP_TLS                0
-#define PBUF_LINK_HLEN                (14 + ETH_PAD_SIZE)
-#define PBUF_LINK_ENCAPSULATION_HLEN  0
+#define LWIP_DNS_SECURE                        (LWIP_DNS_SECURE_NO_MULTIPLE_OUTSTANDING | LWIP_DNS_SECURE_RAND_SRC_PORT)
+#define DNS_LOCAL_HOSTLIST                     0
+#define DNS_LOCAL_HOSTLIST_IS_DYNAMIC          0
+#define LWIP_DNS_SUPPORT_MDNS_QUERIES          0
+#define LWIP_UDP                               1
+#define LWIP_UDPLITE                           0
+#define UDP_TTL                                (IP_DEFAULT_TTL)
+#define LWIP_NETBUF_RECVINFO                   0
+#define LWIP_TCP                               1
+#define TCP_TTL                                (IP_DEFAULT_TTL)
+#define TCP_WND                                (32 * TCP_MSS)
+#define TCP_MAXRTX                             12
+#define TCP_SYNMAXRTX                          6
+#define TCP_QUEUE_OOSEQ                        (LWIP_TCP)
+#define LWIP_TCP_SACK_OUT                      1
+#define LWIP_TCP_MAX_SACK_NUM                  4
+#define TCP_MSS                                (1500 /*mtu*/ - 20 /*iphdr*/ - 20 /*tcphhr*/)
+#define TCP_CALCULATE_EFF_SEND_MSS             1
+#define TCP_SND_BUF                            (16 * TCP_MSS)
+#define TCP_SND_QUEUELEN                       ((4 * (TCP_SND_BUF) + (TCP_MSS - 1)) / (TCP_MSS))
+#define TCP_SNDLOWAT                           LWIP_MIN(LWIP_MAX(((TCP_SND_BUF) / 2), (2 * TCP_MSS) + 1), (TCP_SND_BUF) - 1)
+#define TCP_SNDQUEUELOWAT                      LWIP_MAX(((TCP_SND_QUEUELEN) / 2), 5)
+#define TCP_OOSEQ_MAX_BYTES                    (8 * TCP_MSS)
+#define TCP_OOSEQ_BYTES_LIMIT(pcb)             TCP_OOSEQ_MAX_BYTES
+#define TCP_OOSEQ_MAX_PBUFS                    16
+#define TCP_OOSEQ_PBUFS_LIMIT(pcb)             TCP_OOSEQ_MAX_PBUFS
+#define TCP_LISTEN_BACKLOG                     1
+#define TCP_DEFAULT_LISTEN_BACKLOG             32
+#define TCP_OVERSIZE                           TCP_MSS
+#define LWIP_TCP_TIMESTAMPS                    1
+#define TCP_WND_UPDATE_THRESHOLD               LWIP_MIN((TCP_WND / 4), (TCP_MSS * 4))
+#define LWIP_EVENT_API                         0
+#define LWIP_CALLBACK_API                      1
+#define LWIP_WND_SCALE                         1
+#define TCP_RCV_SCALE                          4
+#define LWIP_TCP_PCB_NUM_EXT_ARGS              0
+#define LWIP_ALTCP                             0
+#define LWIP_ALTCP_TLS                         0
+#define PBUF_LINK_HLEN                         (14 + ETH_PAD_SIZE)
+#define PBUF_LINK_ENCAPSULATION_HLEN           0
 #define PBUF_POOL_BUFSIZE \
     LWIP_MEM_ALIGN_SIZE(TCP_MSS + 40 + PBUF_LINK_ENCAPSULATION_HLEN + PBUF_LINK_HLEN)
 #define LWIP_PBUF_REF_T                    u8_t

@@ -6,6 +6,7 @@
 #include <netstat/netstat.h>
 #include <toolbox/path.h>
 #include <discovery/discovery.h>
+#include <mg_dns_config.h>
 
 #define TAG "HttpSrv"
 
@@ -566,6 +567,7 @@ int32_t web_srv_start(void* p) {
     network_init_current_thread(network);
 
     mg_mgr_init(&srv.mgr); // Initialise event manager
+    mg_dns_config_apply_auto(&srv.mgr);
     mg_wakeup_init(&srv.mgr);
 
     HttpHandlersList_init(srv.handlers);
@@ -587,6 +589,7 @@ int32_t web_srv_start(void* p) {
     http_handler_remove_all(srv.handlers);
 
     // Cleanup
+    mg_dns_config_cleanup(&srv.mgr);
     mg_mgr_free(&srv.mgr);
 
     network_deinit_current_thread(network);

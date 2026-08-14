@@ -1,6 +1,7 @@
 #include "ble_http_repeater.h"
 #include <mongoose.h>
 #include <network/network.h>
+#include <mg_dns_config.h>
 
 #define TAG "BleHttp"
 
@@ -135,6 +136,7 @@ static int32_t ble_http_repeater_thread_handler(void* p) {
     network_init_current_thread(network);
 
     mg_mgr_init(&ble_http_repeater->mgr);
+    mg_dns_config_apply_auto(&ble_http_repeater->mgr);
     mg_wakeup_init(&ble_http_repeater->mgr);
 
     ble_http_repeater->conn =
@@ -147,6 +149,7 @@ static int32_t ble_http_repeater_thread_handler(void* p) {
 
     // Cleanup
     FURI_LOG_D(TAG, "Ble repeater stopped");
+    mg_dns_config_cleanup(&ble_http_repeater->mgr);
     mg_mgr_free(&ble_http_repeater->mgr);
     network_deinit_current_thread(network);
     furi_record_close(RECORD_NETWORK);

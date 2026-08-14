@@ -1,6 +1,7 @@
 #include "mqtt_http_proxy_i.h"
 
 #include <network/network.h>
+#include <mg_dns_config.h>
 
 #define TAG "MqttHttpProxy"
 
@@ -342,6 +343,7 @@ static MqttHttpProxySrv* mqtt_http_proxy_alloc(void) {
 
     mg_mgr_init(&instance->mgr);
     mg_wakeup_init(&instance->mgr);
+    mg_dns_config_apply_auto(&instance->mgr);
 
     const struct mg_connection* api_connection =
         mg_wrapfd(&instance->mgr, MG_INVALID_SOCKET, mqtt_http_proxy_event_callback, instance);
