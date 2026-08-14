@@ -59,16 +59,16 @@ JsRunnerError js_runner_run(
     JsRunnerConsoleOutCallback console_write_cb,
     void* console_write_context);
 
-/** @brief Terminate a running JS application.
+/** @brief Forcefully terminate a running JS application.
  *
  * @param instance JsRunner instance. Can be obtained with furi_record_open().
  * @param thread thread the thread in which js_runner_run is running.
  * @return true on success, false on failure (given thread does not have a running JS app).
  */
-bool js_runner_kill(JsRunner* instance, FuriThread* thread);
+bool js_runner_abort(JsRunner* instance, FuriThread* thread);
 
-/** @brief Terminate all running JS applications.
+/** @brief Forcefully terminate all running JS applications.
  *
  * @param instance JsRunner instance. Can be obtained with furi_record_open().
  */
-void js_runner_kill_all(JsRunner* instance);
+void js_runner_abort_all(JsRunner* instance);

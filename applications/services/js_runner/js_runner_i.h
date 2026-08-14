@@ -79,7 +79,7 @@ typedef struct JsRunnerApp {
     void* jrs_context;
     FuriEventLoop* event_loop;
     FuriString* root_path;
-    _Atomic bool terminate;
+    _Atomic bool should_terminate;
     FuriMessageQueue* command_queue;
 
     JsRunnerAppConsole console;
@@ -120,7 +120,7 @@ typedef struct JsRunner {
 
 #define JS_ARG(n) (args_count > (n) ? args[(n)] : jerry_undefined())
 
-void js_runner_check_event_loop(JsRunnerApp* app);
+void js_runner_app_stop_if_done(JsRunnerApp* app);
 void js_run_jobs(void);
 
 /** @brief Allocate Jerryscript context for current thread. This function is used by jerryscript glue.

@@ -49,7 +49,7 @@ static void run_script(const FuriString* arg) {
 
 static void abort_all(void) {
     JsRunner* runner = furi_record_open(RECORD_JS_RUNNER);
-    js_runner_kill_all(runner);
+    js_runner_abort_all(runner);
     furi_record_close(RECORD_JS_RUNNER);
 }
 

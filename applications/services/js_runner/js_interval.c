@@ -53,7 +53,7 @@ static void interval_callback(void* context) {
             jerry_value_free(interval_context->callback);
             furi_event_loop_timer_free(interval_context->timer);
             IntervalDict_erase(app->interval.intervals, timer_id);
-            js_runner_check_event_loop(app);
+            js_runner_app_stop_if_done(app);
         }
     });
 }
@@ -126,7 +126,7 @@ static jerry_value_t clear_interval(
 
     WITH_JS_RUNNER_APP(app, {
         js_interval_abort(app, timer_id);
-        js_runner_check_event_loop(app);
+        js_runner_app_stop_if_done(app);
     });
     return jerry_undefined();
 }

@@ -57,7 +57,7 @@ static bool app_has_background_tasks(JsRunnerApp* app) {
     return has_active_interval(&app->interval) || has_active_fetch(&app->fetch);
 }
 
-void js_runner_check_event_loop(JsRunnerApp* app) {
+void js_runner_app_stop_if_done(JsRunnerApp* app) {
     if(!app_has_background_tasks(app)) {
         JS_TRACE("No more tasks");
         furi_event_loop_stop(app->event_loop);
@@ -146,7 +146,7 @@ static void js_runner_app_init(
     size_t heap_size,
     JsRunnerConsoleOutCallback console_out_cb,
     void* console_cb_context) {
-    app->terminate = false;
+    app->should_terminate = false;
     app->heap_size = heap_size;
     app->jrs_context = NULL;
     app->event_loop = furi_event_loop_alloc();
@@ -214,10 +214,8 @@ static void
 
 static jerry_value_t engine_halt_callback(void* user_p) {
     JsRunnerApp* app = user_p;
-    JS_TRACE("halt callback");
-    if(app->terminate) {
+    if(app->should_terminate) {
         JS_TRACE("terminate!");
-
         return jerry_string_sz("aborted");
     } else {
         return jerry_undefined();
@@ -248,7 +246,7 @@ void js_runner_del_fetch_thread(JsRunnerApp* app, JsFetch* fetch) {
         }
     }
     furi_check(found);
-    js_runner_check_event_loop(app);
+    js_runner_app_stop_if_done(app);
 }
 
 JsRunnerError js_runner_run(
@@ -389,24 +387,24 @@ static void abort_intervals(JsRunnerApp* app) {
 static void abort_cmd_handler(JsRunnerApp* app, JsRunnerAppCommandType cmd) {
     furi_check(cmd == JsRunnerAppCommandTypeAbort);
     app_terminate_from_app_thread(app);
-    js_runner_check_event_loop(app);
+    js_runner_app_stop_if_done(app);
 }
 
 static void app_terminate_from_app_thread(JsRunnerApp* app) {
-    app->terminate = true;
+    app->should_terminate = true;
     abort_fetches(&app->fetch);
     abort_intervals(app);
 }
 
 static void app_terminate_from_another_thread(JsRunnerApp* app) {
-    if(!app->terminate) {
-        app->terminate = true;
+    if(!app->should_terminate) {
+        app->should_terminate = true;
         JsRunnerAppCommandType cmd = JsRunnerAppCommandTypeAbort;
         furi_message_queue_put(app->command_queue, &cmd, FuriWaitForever);
     }
 }
 
-bool js_runner_kill(JsRunner* instance, FuriThread* thread) {
+bool js_runner_abort(JsRunner* instance, FuriThread* thread) {
     bool result = false;
     furi_mutex_acquire(instance->apps_mutex, FuriWaitForever);
     JsRunnerApp** app_ptr = AppDict_get(instance->apps, thread);
@@ -418,7 +416,7 @@ bool js_runner_kill(JsRunner* instance, FuriThread* thread) {
     return result;
 }
 
-void js_runner_kill_all(JsRunner* instance) {
+void js_runner_abort_all(JsRunner* instance) {
     furi_mutex_acquire(instance->apps_mutex, FuriWaitForever);
     AppDict_it_t iter;
     for(AppDict_it(iter, instance->apps); !AppDict_end_p(iter); AppDict_next(iter)) {
