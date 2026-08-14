@@ -230,11 +230,11 @@ static bool mongoose_tls_parse_cert_callback(void* out, const uint8_t* data, siz
     return success;
 }
 
-static bool mongoose_tls_parse_pk_callback(void* pk, const uint8_t* data, size_t data_len) {
+static bool mongoose_tls_parse_pk_callback(void* out, const uint8_t* data, size_t data_len) {
     bool success = true;
 
     const int status = mbedtls_pk_parse_key(
-        (mbedtls_pk_context*)pk, data, data_len, NULL, 0, mongoose_tls_random, 0);
+        (mbedtls_pk_context*)out, data, data_len, NULL, 0, mongoose_tls_random, 0);
 
     if(status != 0) {
         FURI_LOG_E(TAG, "Key parse error -0x%04X", -status);
