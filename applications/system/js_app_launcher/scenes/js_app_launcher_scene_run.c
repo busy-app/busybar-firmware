@@ -102,7 +102,12 @@ static void js_app_launcher_scene_run_on_exit(void* context) {
     FuriThread* js_thread = data->js_thread;
 
     if(js_thread != NULL) {
+        // Not checking the return value of js_runner_abort
+        // because it is completely ambiguous here.
         js_runner_abort(data->js_runner, js_thread);
+        // Assuming this will not block forever during normal operation.
+        // The script should have stopped at this point either due to
+        // its internal logic or due to the above abort request.
         furi_thread_join(js_thread);
         furi_thread_free(js_thread);
         data->js_thread = NULL;
