@@ -20,7 +20,6 @@ struct LightSensor {
     FuriPubSub* pubsub;
 
     LightSensorData* data;
-    uint8_t light_level_previous;
     uint8_t light_level;
 
     bool sensor_alive;
@@ -34,8 +33,7 @@ static void light_sensor_timer_callback(void* context) {
     }
 
     float lux = 0.0f;
-    bool read_success = furi_hal_light_sensor_read_lux(LIGHT_SENSOR_I2C, &lux);
-    if(!read_success) {
+    if(!furi_hal_light_sensor_read_lux(LIGHT_SENSOR_I2C, &lux)) {
         FURI_LOG_E(TAG, "Failed to read light sensor");
         return;
     }
@@ -43,20 +41,18 @@ static void light_sensor_timer_callback(void* context) {
     FURI_LOG_T(TAG, "Light sensor: %.2f lux", lux);
     light_sensor_data_add_measurement(instance->data, lux);
 
-    instance->light_level = light_sensor_data_get_light_level(instance->data);
-    if(instance->light_level != instance->light_level_previous) {
-        FURI_LOG_D(
-            TAG,
-            "Light level changed: %u -> %u",
-            instance->light_level_previous,
-            instance->light_level);
+    const uint8_t light_level_new = light_sensor_data_get_light_level(instance->data);
+    if(instance->light_level != light_level_new) {
+        FURI_LOG_D(TAG, "Light level changed: %u -> %u", instance->light_level, light_level_new);
+
+        instance->light_level = light_level_new;
+
         LightSensorEvent event = {
             .type = LightSensorEventTypeLightLevelChanged,
-            .light_level = {instance->light_level},
+            .light_level = {light_level_new},
         };
 
         furi_pubsub_publish(instance->pubsub, &event);
-        instance->light_level_previous = instance->light_level;
     }
 }
 
@@ -64,8 +60,7 @@ LightSensor* light_sensor_alloc() {
     LightSensor* instance = malloc(sizeof(LightSensor));
 
     instance->data = light_sensor_data_alloc();
-    instance->light_level_previous = LIGHT_SENSOR_LIGHT_LEVEL_MAX;
-    instance->light_level = LIGHT_SENSOR_LIGHT_LEVEL_MIN; // This will immediately trigger an event
+    instance->light_level = LIGHT_SENSOR_LIGHT_LEVEL_MIN;
 
     instance->event_loop = furi_event_loop_alloc();
     instance->timer = furi_event_loop_timer_alloc(
