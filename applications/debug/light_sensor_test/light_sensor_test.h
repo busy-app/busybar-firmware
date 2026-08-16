@@ -6,6 +6,7 @@
 #include <gui/modules/label.h>
 
 #include <light_sensor/light_sensor.h>
+#include <light_sensor/light_sensor_common.h>
 
 typedef enum {
     LightSensorTestAppEventExit,
@@ -15,7 +16,7 @@ typedef enum {
 typedef struct {
     LightSensorTestAppEventType type;
     union {
-        LightSensorLevel light_level;
+        LightSensorState lighth_sensor_state;
     };
 } LightSensorTestAppEvent;
 
@@ -26,8 +27,8 @@ typedef struct {
     Gui* gui;
 
     LightSensor* light_sensor;
-    FuriPubSub* light_sensor_events;
-    FuriPubSubSubscription* light_sensor_subscription;
+    FuriStateSub* light_sensor_events;
+    LightSensorState light_sensor_state;
 
     FlexLayout* flex;
     Label* label_light_raw_600nm;
@@ -38,7 +39,4 @@ typedef struct {
 
     uint16_t raw_600nm;
     uint16_t raw_840nm;
-    float lux_instant;
-    float lux_mean;
-    LightSensorLevel light_level;
 } LightSensorTestApp;

@@ -17,11 +17,7 @@ struct LightSensor {
     FuriEventLoop* event_loop;
     FuriEventLoopTimer* timer;
     FuriState* state;
-    FuriPubSub* pubsub;
-
     LightSensorData* data;
-    uint8_t light_level;
-
     bool sensor_alive;
 };
 
@@ -50,19 +46,15 @@ LightSensor* light_sensor_alloc() {
     LightSensor* instance = malloc(sizeof(LightSensor));
 
     instance->data = light_sensor_data_alloc();
-    instance->light_level = LIGHT_SENSOR_LIGHT_LEVEL_MIN;
-
     instance->event_loop = furi_event_loop_alloc();
     instance->timer = furi_event_loop_timer_alloc(
         instance->event_loop,
         light_sensor_timer_callback,
         FuriEventLoopTimerTypePeriodic,
         instance);
-    instance->pubsub = furi_pubsub_alloc();
     instance->state = furi_state_alloc(sizeof(LightSensorState));
 
     furi_record_create(RECORD_LIGHT_SENSOR, instance);
-    furi_record_create(RECORD_LIGHT_SENSOR_EVENTS, instance->pubsub);
 
     furi_event_loop_timer_start(instance->timer, LIGHT_SENSOR_SAMPLE_INTERVAL_MS);
 
@@ -89,21 +81,6 @@ int32_t light_sensor_srv(void* p) {
 FuriState* light_sensor_get_state(LightSensor* instance) {
     furi_check(instance);
     return instance->state;
-}
-
-float light_sensor_get_lux(LightSensor* instance) {
-    furi_check(instance);
-    return light_sensor_data_get_lux(instance->data);
-}
-
-float light_sensor_get_lux_instant(LightSensor* instance) {
-    furi_check(instance);
-    return light_sensor_data_get_lux_instant(instance->data);
-}
-
-LightSensorLevel light_sensor_get_light_level(LightSensor* instance) {
-    furi_check(instance);
-    return (LightSensorLevel){light_sensor_data_get_light_level(instance->data)};
 }
 
 bool light_sensor_get_raw_data(

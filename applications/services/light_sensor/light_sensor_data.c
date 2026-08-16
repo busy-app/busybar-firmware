@@ -85,27 +85,8 @@ void light_sensor_data_add_measurement(LightSensorData* instance, float lux) {
     light_sensor_data_update_light_level(instance);
 }
 
-float light_sensor_data_get_lux(LightSensorData* instance) {
-    furi_check(instance);
-
-    return instance->state.lux.mean;
-}
-
-float light_sensor_data_get_lux_instant(LightSensorData* instance) {
-    furi_check(instance);
-
-    return instance->state.lux.instant;
-}
-
-uint8_t light_sensor_data_get_light_level(LightSensorData* instance) {
-    furi_check(instance);
-
-    return instance->state.level.val;
-}
-
 void light_sensor_data_get_state(const LightSensorData* instance, LightSensorState* state) {
     furi_check(instance);
     furi_check(state);
-
     *state = instance->state;
 }

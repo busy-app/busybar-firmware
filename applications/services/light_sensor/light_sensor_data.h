@@ -33,30 +33,6 @@ void light_sensor_data_free(LightSensorData* instance);
  */
 void light_sensor_data_add_measurement(LightSensorData* instance, float lux);
 
-/**
- * @brief Get the mean light level in lux.
- * 
- * @param instance Pointer to the LightSensorData instance.
- * @return Mean light level in lux.
- */
-float light_sensor_data_get_lux(LightSensorData* instance);
-
-/**
- * @brief Get the instant light level in lux.
- * 
- * @param instance Pointer to the LightSensorData instance.
- * @return Instant light level in lux.
- */
-float light_sensor_data_get_lux_instant(LightSensorData* instance);
-
-/**
- * @brief Get the current light level.
- * 
- * @param instance Pointer to the LightSensorData instance.
- * @return Current light level.
- */
-uint8_t light_sensor_data_get_light_level(LightSensorData* instance);
-
 void light_sensor_data_get_state(const LightSensorData* instance, LightSensorState* state);
 
 #ifdef __cplusplus
