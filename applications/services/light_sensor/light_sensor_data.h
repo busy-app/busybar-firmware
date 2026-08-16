@@ -14,27 +14,11 @@ extern "C" {
 typedef struct LightSensorData LightSensorData;
 
 /**
- * @brief Configuration structure for LightSensorData.
- */
-typedef struct {
-    size_t window_size; /**< Size of the measurement window. The less value, the faster response */
-
-    // Light level range
-    uint8_t light_level_max; /**< Maximum light level index */
-
-    // Light mapping parameters
-    float lux_min; /**< Minimum lux value to map (default: 5.0) */
-    float lux_max; /**< Maximum lux value to map (default: 15000.0) */
-    bool use_logarithmic_mapping; /**< Whether to use logarithmic mapping (true) or linear (false) */
-} LightSensorDataConfig;
-
-/**
  * @brief Allocate a new LightSensorData instance.
  * 
- * @param config Configuration for the LightSensorData instance.
  * @return Pointer to the allocated LightSensorData instance.
  */
-LightSensorData* light_sensor_data_alloc(const LightSensorDataConfig* config);
+LightSensorData* light_sensor_data_alloc(void);
 
 /**
  * @brief Free a LightSensorData instance.

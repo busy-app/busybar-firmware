@@ -12,13 +12,11 @@
 #define LIGHT_SENSOR_I2C (&furi_hal_i2c_handle_1)
 
 #define LIGHT_SENSOR_SAMPLE_INTERVAL_MS (1000)
-#define LIGHT_SENSOR_LUX_MIN            (1.0f)
-#define LIGHT_SENSOR_LUX_MAX            (10000.0f)
-#define LIGHT_SENSOR_WINDOW_SIZE        (5)
 
 struct LightSensor {
     FuriEventLoop* event_loop;
     FuriEventLoopTimer* timer;
+    FuriState* state;
     FuriPubSub* pubsub;
 
     LightSensorData* data;
@@ -65,16 +63,7 @@ static void light_sensor_timer_callback(void* context) {
 LightSensor* light_sensor_alloc() {
     LightSensor* instance = malloc(sizeof(LightSensor));
 
-    // Configure light sensor data
-    LightSensorDataConfig data_config = {
-        .window_size = LIGHT_SENSOR_WINDOW_SIZE,
-        .light_level_max = LIGHT_SENSOR_LIGHT_LEVEL_MAX,
-        .lux_min = LIGHT_SENSOR_LUX_MIN,
-        .lux_max = LIGHT_SENSOR_LUX_MAX,
-        .use_logarithmic_mapping = true, // Use logarithmic mapping by default
-    };
-    instance->data = light_sensor_data_alloc(&data_config);
-
+    instance->data = light_sensor_data_alloc();
     instance->light_level_previous = LIGHT_SENSOR_LIGHT_LEVEL_MAX;
     instance->light_level = LIGHT_SENSOR_LIGHT_LEVEL_MIN; // This will immediately trigger an event
 
@@ -85,6 +74,7 @@ LightSensor* light_sensor_alloc() {
         FuriEventLoopTimerTypePeriodic,
         instance);
     instance->pubsub = furi_pubsub_alloc();
+    instance->state = furi_state_alloc(sizeof(LightSensorState));
 
     furi_record_create(RECORD_LIGHT_SENSOR, instance);
     furi_record_create(RECORD_LIGHT_SENSOR_EVENTS, instance->pubsub);
@@ -109,6 +99,11 @@ int32_t light_sensor_srv(void* p) {
     furi_event_loop_run(instance->event_loop);
 
     return 0;
+}
+
+FuriState* light_sensor_get_state(LightSensor* instance) {
+    furi_check(instance);
+    return instance->state;
 }
 
 float light_sensor_get_lux(LightSensor* instance) {

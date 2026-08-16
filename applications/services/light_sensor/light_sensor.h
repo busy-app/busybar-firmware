@@ -5,8 +5,9 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <stdbool.h>
+#include <core/state.h>
+
+#include "light_sensor_common.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,11 +17,6 @@ extern "C" {
 #define RECORD_LIGHT_SENSOR        "light_sensor"
 /** Record name for light sensor events */
 #define RECORD_LIGHT_SENSOR_EVENTS "light_sensor_events"
-
-/** Light sensor light level min */
-#define LIGHT_SENSOR_LIGHT_LEVEL_MIN (0U)
-/** Light sensor light level max */
-#define LIGHT_SENSOR_LIGHT_LEVEL_MAX (15U)
 
 /**
  * @brief LightSensor opaque pointer type.
@@ -42,10 +38,6 @@ typedef enum {
     LightSensorEventTypeLightLevelChanged, /**< Light level changed event */
 } LightSensorEventType;
 
-typedef struct LightSensorLevel {
-    uint8_t val;
-} LightSensorLevel;
-
 /**
  * @brief Light sensor event structure.
 */
@@ -53,6 +45,16 @@ typedef struct {
     LightSensorEventType type; /**< Type of the event */
     LightSensorLevel light_level; /**< Current light level */
 } LightSensorEvent;
+
+/**
+ * @brief Get the state object containing the current light levels.
+ *
+ * The underlying type of the return value is @ref LightSensorState.
+ *
+ * @param[in] instance pointer to the LightSensor instance.
+ * @return pointer to the state object
+ */
+FuriState* light_sensor_get_state(LightSensor* instance);
 
 /**
  * @brief Get the mean across measurement window lux value.
