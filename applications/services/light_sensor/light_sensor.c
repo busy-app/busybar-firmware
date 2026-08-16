@@ -33,27 +33,17 @@ static void light_sensor_timer_callback(void* context) {
     }
 
     float lux = 0.0f;
+
     if(!furi_hal_light_sensor_read_lux(LIGHT_SENSOR_I2C, &lux)) {
         FURI_LOG_E(TAG, "Failed to read light sensor");
         return;
     }
 
-    FURI_LOG_T(TAG, "Light sensor: %.2f lux", lux);
     light_sensor_data_add_measurement(instance->data, lux);
 
-    const uint8_t light_level_new = light_sensor_data_get_light_level(instance->data);
-    if(instance->light_level != light_level_new) {
-        FURI_LOG_D(TAG, "Light level changed: %u -> %u", instance->light_level, light_level_new);
-
-        instance->light_level = light_level_new;
-
-        LightSensorEvent event = {
-            .type = LightSensorEventTypeLightLevelChanged,
-            .light_level = {light_level_new},
-        };
-
-        furi_pubsub_publish(instance->pubsub, &event);
-    }
+    with_furi_state(instance->state, LightSensorState * state, {
+        light_sensor_data_get_state(instance->data, state);
+    });
 }
 
 LightSensor* light_sensor_alloc() {

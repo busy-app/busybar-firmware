@@ -1,8 +1,6 @@
 #pragma once
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
+#include "light_sensor_common.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -58,6 +56,8 @@ float light_sensor_data_get_lux_instant(LightSensorData* instance);
  * @return Current light level.
  */
 uint8_t light_sensor_data_get_light_level(LightSensorData* instance);
+
+void light_sensor_data_get_state(const LightSensorData* instance, LightSensorState* state);
 
 #ifdef __cplusplus
 }

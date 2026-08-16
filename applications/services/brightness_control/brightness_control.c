@@ -163,13 +163,10 @@ static BrightnessControl* brightness_control_alloc(void) {
 
 #if defined(SRV_LIGHT_SENSOR)
     LightSensor* light_sensor = furi_record_open(RECORD_LIGHT_SENSOR);
-    FuriPubSub* light_sensor_events = furi_record_open(RECORD_LIGHT_SENSOR_EVENTS);
-    furi_pubsub_subscribe(light_sensor_events, light_sensor_event, instance);
-    instance->last_light_sensor_level = light_sensor_get_light_level(light_sensor);
+    furi_state_subscribe(light_sensor_get_state(light_sensor), light_sensor_event, instance);
 #else
     UNUSED(light_sensor_event);
     instance->last_light_sensor_level = (LightSensorLevel){0};
-    instance->light_sensor_events = NULL;
 #endif
 
     instance->setting_provider = setting_provider_alloc(
@@ -197,20 +194,16 @@ int brightness_control_srv(void* arg) {
     return 0;
 }
 
-static void light_sensor_event(const void* message, void* context) {
-    UNUSED(message);
+static void light_sensor_event(const void* item, void* context) {
+    furi_assert(item);
     furi_assert(context);
 
     BrightnessControl* instance = context;
-
-    const LightSensorEvent* event = message;
-    if(event->type != LightSensorEventTypeLightLevelChanged) {
-        return;
-    }
+    const LightSensorState* state = item;
 
     Message msg = {
         .type = MessageTypeLightSensor,
-        .light_sensor_level = event->light_level,
+        .light_sensor_level = state->level,
     };
 
     furi_message_queue_put(instance->message_queue, &msg, LIGHT_SENSOR_UPDATE_TIMEOUT);
