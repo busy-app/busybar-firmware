@@ -18,6 +18,7 @@ typedef enum {
 
 struct LowPower {
     FuriMessageQueue* api_queue;
+    LightSensor* light_sensor;
     BackDisplaySrv* back_display;
     FrontDisplaySrv* front_display;
 
@@ -38,13 +39,13 @@ static void low_power_send_api_message(LowPower* instance, LowPowerApiMessage me
 static void low_power_enter(LowPower* instance) {
     front_display_sleep_mode(instance->front_display, true);
     back_display_sleep_mode(instance->back_display, true);
-    light_sensor_sleep(true);
+    light_sensor_sleep(instance->light_sensor, true);
 }
 
 static void low_power_exit(LowPower* instance) {
     front_display_sleep_mode(instance->front_display, false);
     back_display_sleep_mode(instance->back_display, false);
-    light_sensor_sleep(false);
+    light_sensor_sleep(instance->light_sensor, false);
 }
 
 static LowPower* low_power_alloc(void) {
@@ -55,6 +56,7 @@ static LowPower* low_power_alloc(void) {
 
     instance->back_display = furi_record_open(RECORD_BACK_DISPLAY);
     instance->front_display = furi_record_open(RECORD_FRONT_DISPLAY);
+    instance->light_sensor = furi_record_open(RECORD_LIGHT_SENSOR);
 
     return instance;
 }

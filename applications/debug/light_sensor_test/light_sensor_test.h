@@ -25,6 +25,7 @@ typedef struct {
     FuriEventLoopTimer* timer;
     Gui* gui;
 
+    LightSensor* light_sensor;
     FuriPubSub* light_sensor_events;
     FuriPubSubSubscription* light_sensor_subscription;
 

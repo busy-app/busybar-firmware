@@ -29,8 +29,6 @@ struct BrightnessControl {
     StatusLights* status_lights;
 #endif
 
-    FuriPubSub* light_sensor_events;
-
     FuriState* state;
 
     SettingProvider* setting_provider;
@@ -164,9 +162,10 @@ static BrightnessControl* brightness_control_alloc(void) {
 #endif
 
 #if defined(SRV_LIGHT_SENSOR)
-    instance->light_sensor_events = furi_record_open(RECORD_LIGHT_SENSOR_EVENTS);
-    furi_pubsub_subscribe(instance->light_sensor_events, light_sensor_event, instance);
-    instance->last_light_sensor_level = light_sensor_get_light_level();
+    LightSensor* light_sensor = furi_record_open(RECORD_LIGHT_SENSOR);
+    FuriPubSub* light_sensor_events = furi_record_open(RECORD_LIGHT_SENSOR_EVENTS);
+    furi_pubsub_subscribe(light_sensor_events, light_sensor_event, instance);
+    instance->last_light_sensor_level = light_sensor_get_light_level(light_sensor);
 #else
     UNUSED(light_sensor_event);
     instance->last_light_sensor_level = (LightSensorLevel){0};

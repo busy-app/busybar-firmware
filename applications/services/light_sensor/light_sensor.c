@@ -16,7 +16,7 @@
 #define LIGHT_SENSOR_LUX_MAX            (10000.0f)
 #define LIGHT_SENSOR_WINDOW_SIZE        (5)
 
-typedef struct {
+struct LightSensor {
     FuriEventLoop* event_loop;
     FuriEventLoopTimer* timer;
     FuriPubSub* pubsub;
@@ -26,9 +26,7 @@ typedef struct {
     uint8_t light_level;
 
     bool sensor_alive;
-} LightSensor;
-
-LightSensor* light_sensor = NULL;
+};
 
 static void light_sensor_timer_callback(void* context) {
     LightSensor* instance = context;
@@ -88,6 +86,7 @@ LightSensor* light_sensor_alloc() {
         instance);
     instance->pubsub = furi_pubsub_alloc();
 
+    furi_record_create(RECORD_LIGHT_SENSOR, instance);
     furi_record_create(RECORD_LIGHT_SENSOR_EVENTS, instance->pubsub);
 
     furi_event_loop_timer_start(instance->timer, LIGHT_SENSOR_SAMPLE_INTERVAL_MS);
@@ -107,32 +106,31 @@ int32_t light_sensor_srv(void* p) {
         FURI_LOG_E(TAG, "Failed to initialize light sensor");
     }
 
-    light_sensor = instance;
     furi_event_loop_run(instance->event_loop);
 
     return 0;
 }
 
-float light_sensor_get_lux(void) {
-    furi_check(light_sensor);
-
-    return light_sensor_data_get_lux(light_sensor->data);
+float light_sensor_get_lux(LightSensor* instance) {
+    furi_check(instance);
+    return light_sensor_data_get_lux(instance->data);
 }
 
-float light_sensor_get_lux_instant(void) {
-    furi_check(light_sensor);
-
-    return light_sensor_data_get_lux_instant(light_sensor->data);
+float light_sensor_get_lux_instant(LightSensor* instance) {
+    furi_check(instance);
+    return light_sensor_data_get_lux_instant(instance->data);
 }
 
-LightSensorLevel light_sensor_get_light_level(void) {
-    furi_check(light_sensor);
-
-    return (LightSensorLevel){light_sensor_data_get_light_level(light_sensor->data)};
+LightSensorLevel light_sensor_get_light_level(LightSensor* instance) {
+    furi_check(instance);
+    return (LightSensorLevel){light_sensor_data_get_light_level(instance->data)};
 }
 
-bool light_sensor_get_raw_data(LightSensorLightWavelength wavelength, uint16_t* raw) {
-    furi_check(light_sensor);
+bool light_sensor_get_raw_data(
+    LightSensor* instance,
+    LightSensorLightWavelength wavelength,
+    uint16_t* raw) {
+    furi_check(instance);
 
     bool result = false;
     if(wavelength == LightSensorLightWavelength600nm) {
@@ -146,6 +144,7 @@ bool light_sensor_get_raw_data(LightSensorLightWavelength wavelength, uint16_t* 
     return result;
 }
 
-bool light_sensor_sleep(bool sleep) {
+bool light_sensor_sleep(LightSensor* instance, bool sleep) {
+    furi_check(instance);
     return furi_hal_light_sensor_sleep(LIGHT_SENSOR_I2C, sleep);
 }

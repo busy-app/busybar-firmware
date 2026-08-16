@@ -55,10 +55,11 @@ static void
 }
 
 static void light_sensor_test_app_get_measurements(LightSensorTestApp* instance) {
-    instance->lux_instant = light_sensor_get_lux_instant();
-    instance->lux_mean = light_sensor_get_lux();
-    light_sensor_get_raw_data(LightSensorLightWavelength600nm, &instance->raw_600nm);
-    light_sensor_get_raw_data(LightSensorLightWavelength840nm, &instance->raw_840nm);
+    LightSensor* light_sensor = instance->light_sensor;
+    instance->lux_instant = light_sensor_get_lux_instant(light_sensor);
+    instance->lux_mean = light_sensor_get_lux(light_sensor);
+    light_sensor_get_raw_data(light_sensor, LightSensorLightWavelength600nm, &instance->raw_600nm);
+    light_sensor_get_raw_data(light_sensor, LightSensorLightWavelength840nm, &instance->raw_840nm);
 }
 
 static void light_sensor_test_app_timer_callback(void* context) {
@@ -101,10 +102,11 @@ static LightSensorTestApp* light_sensor_test_app_alloc(void) {
         FuriEventLoopTimerTypePeriodic,
         instance);
 
+    instance->light_sensor = furi_record_open(RECORD_LIGHT_SENSOR);
     // Not optimal for this app, just for testing pubsub events from service
     instance->light_sensor_events = furi_record_open(RECORD_LIGHT_SENSOR_EVENTS);
     // To check light level changes in pubsub, receive further light level value from events
-    instance->light_level = light_sensor_get_light_level();
+    instance->light_level = light_sensor_get_light_level(instance->light_sensor);
     instance->light_sensor_subscription = furi_pubsub_subscribe(
         instance->light_sensor_events, light_sensor_test_app_light_sensor_callback, instance);
 
@@ -151,6 +153,7 @@ static void light_sensor_test_app_free(LightSensorTestApp* instance) {
 
     furi_pubsub_unsubscribe(instance->light_sensor_events, instance->light_sensor_subscription);
     furi_record_close(RECORD_LIGHT_SENSOR_EVENTS);
+    furi_record_close(RECORD_LIGHT_SENSOR);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
     furi_message_queue_free(instance->event_queue);
