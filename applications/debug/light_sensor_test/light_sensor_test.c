@@ -18,7 +18,7 @@ static void light_sensor_test_app_update(LightSensorTestApp* instance) {
         label_set_text_fmt(
             instance->label_lux_mean, "Lux mean: %.2f", light_sensor_state->lux.mean);
         label_set_text_fmt(
-            instance->label_light_level, "Light level: %d", light_sensor_state->level.val);
+            instance->label_light_level, "Light level: %.2f", light_sensor_state->level.val);
     });
 }
 

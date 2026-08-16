@@ -73,7 +73,7 @@ UserBrightness brightness_conv_internal_to_user(InternalBrightness v) {
 }
 
 InternalBrightness brightness_conv_light_sensor_to_internal(LightSensorLevel v) {
-    return (InternalBrightness){(float)v.val / LIGHT_SENSOR_LIGHT_LEVEL_MAX};
+    return (InternalBrightness){v.val};
 }
 
 FrontDisplayBrightness brightness_conv_internal_to_front(InternalBrightness v) {

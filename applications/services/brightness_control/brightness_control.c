@@ -312,7 +312,7 @@ static void do_process_light_sensor(BrightnessControl* instance, Message* messag
     furi_assert(message->type == MessageTypeLightSensor);
 
 #if defined(SRV_LIGHT_SENSOR)
-    FURI_LOG_I(TAG, "Light sensor brightness: %hhu", message->light_sensor_level.val);
+    FURI_LOG_I(TAG, "Light sensor brightness: %.02f", message->light_sensor_level.val);
     instance->last_light_sensor_level = message->light_sensor_level;
     if(instance->is_auto) {
         apply_brightness(instance);

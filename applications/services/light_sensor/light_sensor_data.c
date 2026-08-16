@@ -35,8 +35,8 @@ static void light_sensor_data_update_light_level(LightSensorData* instance) {
 
     const float light_level = a * logf(lux) + b;
 
-    state->level.val = CLAMP(
-        (uint8_t)roundf(light_level), LIGHT_SENSOR_LIGHT_LEVEL_MAX, LIGHT_SENSOR_LIGHT_LEVEL_MIN);
+    state->level.val =
+        CLAMP(light_level, LIGHT_SENSOR_LIGHT_LEVEL_MAX, LIGHT_SENSOR_LIGHT_LEVEL_MIN);
 }
 
 LightSensorData* light_sensor_data_alloc(void) {
