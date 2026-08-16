@@ -20,8 +20,6 @@ struct LightSensorData {
 
 static void light_sensor_data_update_light_level(LightSensorData* instance) {
     LightSensorState* state = &instance->state;
-
-    const float lux = CLAMP(state->lux.mean, LIGHT_SENSOR_DATA_LUX_MAX, LIGHT_SENSOR_DATA_LUX_MIN);
     /*
      * Using logarithmic mapping: level = a * log(lux) + b
      * Where a and b are constants chosen to map:
@@ -33,10 +31,7 @@ static void light_sensor_data_update_light_level(LightSensorData* instance) {
     const float a = LIGHT_SENSOR_LIGHT_LEVEL_MAX / (log_max - log_min);
     const float b = -a * log_min;
 
-    const float light_level = a * logf(lux) + b;
-
-    state->level.val =
-        CLAMP(light_level, LIGHT_SENSOR_LIGHT_LEVEL_MAX, LIGHT_SENSOR_LIGHT_LEVEL_MIN);
+    state->level.val = a * logf(state->lux.mean) + b;
 }
 
 LightSensorData* light_sensor_data_alloc(void) {
@@ -70,9 +65,9 @@ void light_sensor_data_add_measurement(LightSensorData* instance, float lux) {
     furi_check(instance);
 
     LightSensorLuxLevel* lux_level = &instance->state.lux;
-    lux_level->instant = lux;
+    lux_level->instant = CLAMP(lux, LIGHT_SENSOR_DATA_LUX_MAX, LIGHT_SENSOR_DATA_LUX_MIN);
 
-    instance->measurements[instance->measurement_index] = lux;
+    instance->measurements[instance->measurement_index] = lux_level->instant;
     instance->measurement_index =
         (instance->measurement_index + 1) % LIGHT_SENSOR_DATA_WINDOW_SIZE;
 
