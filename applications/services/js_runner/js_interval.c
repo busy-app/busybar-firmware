@@ -1,4 +1,4 @@
-#include "js_console.h"
+#include "js_interval.h"
 
 #define TAG "JsInterval"
 
@@ -53,7 +53,7 @@ static void interval_callback(void* context) {
             jerry_value_free(interval_context->callback);
             furi_event_loop_timer_free(interval_context->timer);
             IntervalDict_erase(app->interval.intervals, timer_id);
-            js_runner_check_event_loop(app);
+            js_runner_app_stop_if_done(app);
         }
     });
 }
@@ -125,16 +125,8 @@ static jerry_value_t clear_interval(
     uint32_t timer_id = (uint32_t)jerry_value_as_number(args[0]);
 
     WITH_JS_RUNNER_APP(app, {
-        const IntervalContext* interval_context =
-            IntervalDict_cget(app->interval.intervals, timer_id);
-        if(interval_context) {
-            jerry_value_free(interval_context->callback);
-            furi_event_loop_timer_free(interval_context->timer);
-            IntervalDict_erase(app->interval.intervals, timer_id);
-        } else {
-            FURI_LOG_E(TAG, "Interval with ID %lu is not found", timer_id);
-        }
-        js_runner_check_event_loop(app);
+        js_interval_abort(app, timer_id);
+        js_runner_app_stop_if_done(app);
     });
     return jerry_undefined();
 }
@@ -148,4 +140,15 @@ void js_setup_interval_methods(void) {
     js_set_method(global_obj, "clearTimeout", clear_interval);
 
     jerry_value_free(global_obj);
+}
+
+void js_interval_abort(JsRunnerApp* app, uint32_t id) {
+    const IntervalContext* interval_context = IntervalDict_cget(app->interval.intervals, id);
+    if(interval_context) {
+        jerry_value_free(interval_context->callback);
+        furi_event_loop_timer_free(interval_context->timer);
+        IntervalDict_erase(app->interval.intervals, id);
+    } else {
+        FURI_LOG_E(TAG, "Interval with ID %lu is not found", id);
+    }
 }

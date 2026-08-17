@@ -23,9 +23,18 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
     oasdiff:
         runs-on: ubuntu-latest
+
+        # Job outputs only accept scalar expressions; the description/value
+        # object form is only valid for on.workflow_call.outputs.
+        outputs:
+            oasdiff_report: ${{ steps.export-report.outputs.oasdiff_report }}
 
         env:
             OAPI_DIR: applications/services/web_server/openapi
@@ -211,11 +220,23 @@ jobs:
                   } > oasdiff_comment.md
 
             - name: Comment on PR
-              if: ${{ github.event_name == 'pull_request' }}
+              if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork }}
               uses: thollander/actions-comment-pull-request@v3
               with:
                   file-path: oasdiff_comment.md
                   comment-tag: oasdiff-report
+
+            - name: Export report to job output (fork PRs)
+              if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork }}
+              id: export-report
+              run: |
+                  # Fork PRs cannot receive PR comments (GITHUB_TOKEN is read-only), so
+                  # publish the report as a job output instead.
+                  {
+                    echo "oasdiff_report<<OASDIFF_REPORT_EOF"
+                    cat oasdiff_comment.md
+                    echo "OASDIFF_REPORT_EOF"
+                  } >> "$GITHUB_OUTPUT"
 
             - name: Post to Slack
               if: ${{ github.event_name == 'push' && steps.version_check.outputs.version_ok == 'true' && steps.version_check.outputs.base_version != steps.version_check.outputs.current_version }}

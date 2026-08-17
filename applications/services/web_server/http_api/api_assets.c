@@ -152,7 +152,7 @@ static bool api_assets_upload_headers_callback(
     FuriString* file_path = furi_string_alloc();
 
     if(api_assets_get_target_file_path(&msg->query, file_path)) {
-        http_upload_start(conn, msg, furi_string_get_cstr(file_path));
+        http_upload_start(conn, msg, furi_string_get_cstr(file_path), false);
     } else {
         MG_REPLY_ERROR_CLOSE(conn, 400, "Bad Request");
     }

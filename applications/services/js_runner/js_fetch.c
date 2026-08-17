@@ -203,8 +203,7 @@ static void fetch_rx_data_callback(const void* data, size_t data_size, void* ctx
 
 static int32_t fetch_thread_callback(void* ctx) {
     JsFetch* context = ctx;
-    Fetch* fetch = fetch_alloc();
-    context->fetch.fetch = fetch;
+    Fetch* fetch = context->fetch.fetch;
     fetch_set_callback_context(fetch, context);
     fetch_set_header_callback(fetch, fetch_headers_callback);
     fetch_set_error_callback(fetch, fetch_error_callback);
@@ -215,7 +214,7 @@ static int32_t fetch_thread_callback(void* ctx) {
     } else {
         // aborted
     }
-    fetch_free(fetch);
+    // fetch is freed when this event is processed
     enqueue_fetch_event(context, JsFetchEventTypeThreadExit);
 
     return 0;
@@ -311,6 +310,7 @@ static jerry_value_t fetch(
     instance->response.status = ChildStatusNotYet;
     instance->fetch.status = ChildStatusRunning;
     instance->sink.status = ChildStatusNotYet;
+    instance->fetch.fetch = fetch_alloc();
     jerry_object_set_native_ptr(instance->promise.promise, &promise_native_info, instance);
     FuriThread* thread =
         furi_thread_alloc_ex("Fetch", FETCH_THREAD_STACK_SIZE, fetch_thread_callback, instance);
@@ -319,7 +319,7 @@ static jerry_value_t fetch(
     DataEventQueue_init(instance->chunk_queue);
 
     WITH_JS_RUNNER_APP(app, {
-        js_runner_add_fetch_thread(app);
+        js_runner_add_fetch_thread(app, instance);
 
         instance->app = app;
         instance->event_queue = app->fetch.event_queue;
@@ -489,9 +489,19 @@ static void process_thread_exit(JsFetch* instance) {
     furi_thread_free(instance->fetch.thread);
     instance->fetch.thread = NULL;
     instance->fetch.status = ChildStatusDone;
+
     JsRunnerApp* app = instance->app;
+    js_runner_del_fetch_thread(app, instance);
+    fetch_free(instance->fetch.fetch);
+    instance->fetch.fetch = NULL;
+
+    if(instance->promise.status == ChildStatusRunning) {
+        // Thread exit before headers
+        process_error(instance, furi_string_alloc_set("Connection closed unexpectedly"));
+        return;
+    }
+
     free_if_not_running(instance);
-    js_runner_del_fetch_thread(app);
 }
 
 void js_fetch_process_event(const JsFetchEvent* event) {
@@ -558,6 +568,13 @@ bool js_fetch_cancel(JsFetch* instance) {
     }
     free_if_not_running(instance);
     return true;
+}
+
+void js_fetch_abort(JsFetch* instance) {
+    JS_TRACE("Abort fetch");
+    if(instance->fetch.status == ChildStatusRunning) {
+        fetch_stop(instance->fetch.fetch);
+    }
 }
 
 void js_setup_fetch(void) {

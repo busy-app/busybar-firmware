@@ -613,6 +613,19 @@ size_t storage_simply_read_entire_file(
     size_t buf_sz);
 
 /**
+ * @brief Simply read the entire file into memory as a FuriString.
+ * 
+ * @param storage pointer to a storage API instance.
+ * @param path pointer to a zero-terminated string containing the file path.
+ * @param size_limit maximum number of bytes to be read
+ * @return caller-owned string (NULL on failure)
+ */
+FuriString* storage_simply_read_entire_file_to_string(
+    Storage* storage,
+    const char* path,
+    size_t size_limit);
+
+/**
  * @brief Simply truncate and write the entire file from memory.
  * 
  * @param storage pointer to a storage API instance.
@@ -626,6 +639,19 @@ bool storage_simply_write_entire_file(
     const char* path,
     const void* buffer,
     size_t length);
+
+/**
+ * @brief Simply truncate and write the entire file from a string in memory.
+ * 
+ * @param storage pointer to a storage API instance.
+ * @param path pointer to a zero-terminated string containing the file path.
+ * @param string caller-owned string
+ * @return whether all of the requested bytes were written
+ */
+bool storage_simply_write_entire_file_from_string(
+    Storage* storage,
+    const char* path,
+    FuriString* string);
 
 /**
  * @brief Get the next free filename in a directory.
