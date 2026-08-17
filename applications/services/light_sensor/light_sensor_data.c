@@ -2,6 +2,7 @@
 #include "light_sensor_common.h"
 
 #include <math.h>
+#include <float_tools.h>
 
 #include <core/check.h>
 #include <core/log.h>
@@ -68,11 +69,17 @@ void light_sensor_data_free(LightSensorData* instance) {
     free(instance);
 }
 
-void light_sensor_data_add_measurement(LightSensorData* instance, float lux) {
+bool light_sensor_data_add_measurement(LightSensorData* instance, float lux) {
     furi_check(instance);
 
     LightSensorLuxLevel* lux_level = &instance->state.lux;
-    lux_level->instant = CLAMP(lux, LIGHT_SENSOR_DATA_LUX_MAX, LIGHT_SENSOR_DATA_LUX_MIN);
+
+    const float lux_clamped = CLAMP(lux, LIGHT_SENSOR_DATA_LUX_MAX, LIGHT_SENSOR_DATA_LUX_MIN);
+    if(float_is_equal(lux_level->mean, lux_clamped)) {
+        return false;
+    }
+
+    lux_level->instant = lux_clamped;
 
     instance->measurements[instance->measurement_index] = lux_level->instant;
     instance->measurement_index =
@@ -82,9 +89,11 @@ void light_sensor_data_add_measurement(LightSensorData* instance, float lux) {
     for(size_t i = 0; i < LIGHT_SENSOR_DATA_WINDOW_SIZE; i++) {
         lux_sum += instance->measurements[i];
     }
-    lux_level->mean = lux_sum / LIGHT_SENSOR_DATA_WINDOW_SIZE;
 
+    lux_level->mean = lux_sum / LIGHT_SENSOR_DATA_WINDOW_SIZE;
     light_sensor_data_update_light_level(instance);
+
+    return true;
 }
 
 void light_sensor_data_get_state(const LightSensorData* instance, LightSensorState* state) {

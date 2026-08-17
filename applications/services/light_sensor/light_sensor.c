@@ -35,11 +35,11 @@ static void light_sensor_timer_callback(void* context) {
         return;
     }
 
-    light_sensor_data_add_measurement(instance->data, lux);
-
-    with_furi_state(instance->state, LightSensorState * state, {
-        light_sensor_data_get_state(instance->data, state);
-    });
+    if(light_sensor_data_add_measurement(instance->data, lux)) {
+        with_furi_state(instance->state, LightSensorState * state, {
+            light_sensor_data_get_state(instance->data, state);
+        });
+    }
 }
 
 LightSensor* light_sensor_alloc() {
