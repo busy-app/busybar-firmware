@@ -46,35 +46,45 @@ static char* serialize(const LocalStorage* instance) {
     return contents;
 }
 
-static void save(const LocalStorage* instance) {
+static bool save(const LocalStorage* instance) {
     JS_TRACE("save %s", furi_string_get_cstr(instance->filename));
+    bool result = false;
     Storage* storage = furi_record_open(RECORD_STORAGE);
-
-    if(!storage_simply_mkpath(storage, DATABASE_DIR)) {
-        FURI_LOG_E(TAG, "Failed to make path: \"%s\".", DATABASE_DIR);
-    }
-
-    File* file = storage_file_alloc(storage);
     do {
-        if(!storage_file_open(
-               file, furi_string_get_cstr(instance->filename), FSAM_WRITE, FSOM_CREATE_ALWAYS)) {
-            FURI_LOG_E(
-                TAG,
-                "Failed to open file for writing: \"%s\".",
-                furi_string_get_cstr(instance->filename));
+        if(!storage_simply_mkpath(storage, DATABASE_DIR)) {
+            FURI_LOG_E(TAG, "Failed to make path: \"%s\".", DATABASE_DIR);
             break;
         }
 
-        char* contents = serialize(instance);
-        size_t contents_len = strlen(contents);
-        if(!storage_file_write(file, contents, contents_len)) {
-            FURI_LOG_E(
-                TAG, "Failed to write file: \"%s\".", furi_string_get_cstr(instance->filename));
-        }
-        free(contents);
+        File* file = storage_file_alloc(storage);
+        do {
+            if(!storage_file_open(
+                   file,
+                   furi_string_get_cstr(instance->filename),
+                   FSAM_WRITE,
+                   FSOM_CREATE_ALWAYS)) {
+                FURI_LOG_E(
+                    TAG,
+                    "Failed to open file for writing: \"%s\".",
+                    furi_string_get_cstr(instance->filename));
+                break;
+            }
+
+            char* contents = serialize(instance);
+            size_t contents_len = strlen(contents);
+            if(!storage_file_write(file, contents, contents_len)) {
+                FURI_LOG_E(
+                    TAG,
+                    "Failed to write file: \"%s\".",
+                    furi_string_get_cstr(instance->filename));
+            }
+            free(contents);
+            result = true;
+        } while(false);
+        storage_file_free(file);
     } while(false);
-    storage_file_free(file);
     furi_record_close(RECORD_STORAGE);
+    return result;
 }
 
 static void load(LocalStorage* instance) {
@@ -176,6 +186,8 @@ static jerry_value_t method_key(
     const jerry_call_info_t* call_info,
     const jerry_value_t args[],
     const jerry_length_t args_count) {
+    JS_CHECK_ARGS_COUNT(1);
+
     LocalStorage* instance =
         jerry_object_get_native_ptr(call_info->this_value, &local_storage_native_info);
     JS_CHECK_INSTANCE();
@@ -183,12 +195,10 @@ static jerry_value_t method_key(
 
     jerry_value_t arg = JS_ARG(0);
 
-    if(!jerry_value_is_number(arg)) {
-        return jerry_throw_sz(JERRY_ERROR_TYPE, "Argument is not a number");
-    }
+    int idx = 0;
+    bool ok = js_value_to_integer(arg, &idx);
 
-    int idx = (int)jerry_value_as_number(arg);
-    if(idx < 0 || (size_t)idx >= LocalStorageDict_size(instance->dict)) {
+    if(!ok || idx < 0 || (size_t)idx >= LocalStorageDict_size(instance->dict)) {
         return jerry_null();
     }
 
@@ -211,13 +221,20 @@ static jerry_value_t method_get_item(
     const jerry_call_info_t* call_info,
     const jerry_value_t args[],
     const jerry_length_t args_count) {
+    JS_CHECK_ARGS_COUNT(1);
+
     LocalStorage* instance =
         jerry_object_get_native_ptr(call_info->this_value, &local_storage_native_info);
     JS_CHECK_INSTANCE();
     load(instance);
 
     jerry_value_t arg = JS_ARG(0);
+    jerry_value_t arg_str = jerry_value_to_string(arg);
+    if(jerry_value_is_exception(arg_str)) {
+        return arg_str;
+    }
     FuriString* key = js_string_to_furi_string(arg);
+    jerry_value_free(arg_str);
     if(!key) {
         return jerry_throw_sz(JERRY_ERROR_TYPE, "Argument is not a string");
     }
@@ -240,17 +257,29 @@ static jerry_value_t method_set_item(
     const jerry_call_info_t* call_info,
     const jerry_value_t args[],
     const jerry_length_t args_count) {
+    JS_CHECK_ARGS_COUNT(2);
+
     LocalStorage* instance =
         jerry_object_get_native_ptr(call_info->this_value, &local_storage_native_info);
     JS_CHECK_INSTANCE();
     load(instance);
 
-    FuriString* key = js_string_to_furi_string(JS_ARG(0));
+    jerry_value_t key_str = jerry_value_to_string(JS_ARG(0));
+    if(jerry_value_is_exception(key_str)) {
+        return key_str;
+    }
+    FuriString* key = js_string_to_furi_string(key_str);
+    jerry_value_free(key_str);
     if(!key) {
         return jerry_throw_sz(JERRY_ERROR_TYPE, "Argument is not a string");
     }
 
-    FuriString* value = js_string_to_furi_string(JS_ARG(1));
+    jerry_value_t value_str = jerry_value_to_string(JS_ARG(1));
+    if(jerry_value_is_exception(value_str)) {
+        return value_str;
+    }
+    FuriString* value = js_string_to_furi_string(value_str);
+    jerry_value_free(value_str);
     if(!value) {
         furi_string_free(key);
         return jerry_throw_sz(JERRY_ERROR_TYPE, "Argument is not a string");
@@ -261,21 +290,30 @@ static jerry_value_t method_set_item(
     furi_string_free(key);
     furi_string_free(value);
 
-    save(instance);
-
-    return jerry_undefined();
+    if(save(instance)) {
+        return jerry_undefined();
+    } else {
+        return jerry_throw_sz(JERRY_ERROR_COMMON, "Local storage database cannot be saved");
+    }
 }
 
 static jerry_value_t method_remove_item(
     const jerry_call_info_t* call_info,
     const jerry_value_t args[],
     const jerry_length_t args_count) {
+    JS_CHECK_ARGS_COUNT(1);
+
     LocalStorage* instance =
         jerry_object_get_native_ptr(call_info->this_value, &local_storage_native_info);
     JS_CHECK_INSTANCE();
     load(instance);
 
-    FuriString* key = js_string_to_furi_string(JS_ARG(0));
+    jerry_value_t key_str = jerry_value_to_string(JS_ARG(0));
+    if(jerry_value_is_exception(key_str)) {
+        return key_str;
+    }
+    FuriString* key = js_string_to_furi_string(key_str);
+    jerry_value_free(key_str);
     if(!key) {
         return jerry_throw_sz(JERRY_ERROR_TYPE, "Argument is not a string");
     }
@@ -284,9 +322,11 @@ static jerry_value_t method_remove_item(
 
     furi_string_free(key);
 
-    save(instance);
-
-    return jerry_undefined();
+    if(save(instance)) {
+        return jerry_undefined();
+    } else {
+        return jerry_throw_sz(JERRY_ERROR_COMMON, "Local storage database cannot be saved");
+    }
 }
 
 static jerry_value_t method_clear(
@@ -301,9 +341,12 @@ static jerry_value_t method_clear(
     JS_CHECK_INSTANCE();
 
     LocalStorageDict_reset(instance->dict);
-    save(instance);
 
-    return jerry_undefined();
+    if(save(instance)) {
+        return jerry_undefined();
+    } else {
+        return jerry_throw_sz(JERRY_ERROR_COMMON, "Local storage database cannot be saved");
+    }
 }
 
 static LocalStorage* local_storage_alloc(void) {

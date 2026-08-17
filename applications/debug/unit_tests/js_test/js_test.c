@@ -85,6 +85,9 @@ MU_TEST(js_tests_local_storage) {
         "ok = ok && localStorage.length === 2;"
         "ok = ok && localStorage.getItem('hello') === 'world';"
         "ok = ok && localStorage.getItem('storage') === 'test';"
+        "ok = ok && localStorage.key(0) !== null;"
+        "ok = ok && localStorage.key(1) !== null;"
+        "ok = ok && localStorage.key(2) === null;"
         "if(ok) { console.log('OK'); }"));
 
     JsRunner* js_runner = furi_record_open(RECORD_JS_RUNNER);

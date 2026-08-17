@@ -216,22 +216,9 @@ assert(
                     assert(errorCaught, operation + " did not throw");
                 }
 
-                assertTypeError(function() { localStorage.key("0"); },
-                    "key string index");
-                assertTypeError(function() { localStorage.key(); },
-                    "key missing index");
-                assertTypeError(function() { localStorage.getItem(1); },
-                    "getItem numeric key");
-assertTypeError(
-    function() { localStorage.setItem(1, "value"); },
-    "setItem numeric key"
-);
-                assertTypeError(function() { localStorage.setItem("key", 1); },
-                    "setItem numeric value");
+                assertTypeError(function() { localStorage.key(); }, "key missing index");
                 assertTypeError(function() { localStorage.setItem("key"); },
                     "setItem missing value");
-                assertTypeError(function() { localStorage.removeItem(1); },
-                    "removeItem numeric key");
                 assert(localStorage.length === 0,
                     "invalid calls mutated storage");
             """
