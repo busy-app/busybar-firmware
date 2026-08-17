@@ -1,3 +1,7 @@
+/**
+ * @file light_sensor_data.h
+ * @brief Data structure containing various light sensor values.
+ */
 #pragma once
 
 #include "light_sensor_common.h"
@@ -16,25 +20,32 @@ typedef struct LightSensorData LightSensorData;
 /**
  * @brief Allocate a new LightSensorData instance.
  *
- * @return Pointer to the allocated LightSensorData instance.
+ * @returns Pointer to the allocated LightSensorData instance.
  */
 LightSensorData* light_sensor_data_alloc(void);
 
 /**
  * @brief Free a LightSensorData instance.
  *
- * @param instance Pointer to the LightSensorData instance to be freed.
+ * @param[in,out] instance Pointer to the LightSensorData instance to be freed.
  */
 void light_sensor_data_free(LightSensorData* instance);
 
 /**
  * @brief Add a new light measurement.
  *
- * @param instance Pointer to the LightSensorData instance.
- * @param lux Light level in lux.
+ * @param[in,out] instance Pointer to the LightSensorData instance.
+ * @param[in] lux Light level in lux.
+ *
+ * @returns @c true if the measurement contributed to the mean value change, @c false otherwise
  */
 bool light_sensor_data_add_measurement(LightSensorData* instance, float lux);
 
+/**
+ * @brief Get the current light sensor state.
+ * @param[in] instance Pointer to the LightSensorData instance.
+ * @param[out] state Pointer to the state object to be copied into (must be allocated).
+ */
 void light_sensor_data_get_state(const LightSensorData* instance, LightSensorState* state);
 
 #ifdef __cplusplus

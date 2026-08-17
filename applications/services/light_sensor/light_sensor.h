@@ -39,7 +39,6 @@ FuriState* light_sensor_get_state(LightSensor* instance);
 
 /**
  * @brief Get the raw light sensor value.
- * @note Must be called after RECORD_LIGHT_SENSOR_EVENTS is created.
  *
  * @param[in] instance pointer to the LightSensor instance.
  * @param[in] wavelength Wavelength to read.

@@ -7,8 +7,6 @@
 #include <core/check.h>
 #include <core/log.h>
 
-#define TAG "LightSensorData"
-
 #define LIGHT_SENSOR_DATA_LUX_MIN     (1.0f)
 #define LIGHT_SENSOR_DATA_LUX_MAX     (10000.0f)
 #define LIGHT_SENSOR_DATA_WINDOW_SIZE (5)
