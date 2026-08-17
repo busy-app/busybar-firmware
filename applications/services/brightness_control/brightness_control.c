@@ -19,8 +19,6 @@
         50                 \
     }
 
-#define LIGHT_SENSOR_EPSILON (0.01f)
-
 struct BrightnessControl {
     FuriEventLoop* event_loop;
     FuriMessageQueue* message_queue;
@@ -203,7 +201,7 @@ static void light_sensor_event(const void* item, void* context) {
     BrightnessControl* instance = context;
     const LightSensorState* state = item;
 
-    Message msg = {
+    const Message msg = {
         .type = MessageTypeLightSensor,
         .light_sensor_level = state->level,
     };
@@ -314,11 +312,10 @@ static void do_process_light_sensor(BrightnessControl* instance, Message* messag
     furi_assert(message->type == MessageTypeLightSensor);
 
 #if defined(SRV_LIGHT_SENSOR)
-    // TODO: A more efficient and precise way of determining updates
-    if(fabsf(instance->last_light_sensor_level.val - message->light_sensor_level.val) >
-       LIGHT_SENSOR_EPSILON) {
-        FURI_LOG_I(TAG, "Light sensor brightness: %.02f", message->light_sensor_level.val);
+    if(instance->last_light_sensor_level.val != message->light_sensor_level.val) {
+        FURI_LOG_I(TAG, "Light sensor brightness: %hhu", message->light_sensor_level.val);
         instance->last_light_sensor_level = message->light_sensor_level;
+
         if(instance->is_auto) {
             apply_brightness(instance);
             update_state(instance);

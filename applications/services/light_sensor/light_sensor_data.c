@@ -12,6 +12,8 @@
 #define LIGHT_SENSOR_DATA_LUX_MAX     (10000.0f)
 #define LIGHT_SENSOR_DATA_WINDOW_SIZE (5)
 
+#define LIGHT_SENSOR_DATA_THRESHOLD ((1.0f / LIGHT_SENSOR_LIGHT_LEVEL_MAX) / 2.0f)
+
 struct LightSensorData {
     float measurements[LIGHT_SENSOR_DATA_WINDOW_SIZE];
     size_t measurement_index;
@@ -31,7 +33,12 @@ static void light_sensor_data_update_light_level(LightSensorData* instance) {
     const float a = LIGHT_SENSOR_LIGHT_LEVEL_MAX / (log_max - log_min);
     const float b = -a * log_min;
 
-    state->level.val = a * logf(state->lux.mean) + b;
+    const float light_level_real = a * logf(state->lux.mean) + b;
+    const float light_level_delta = light_level_real - state->level.val;
+
+    if(fabsf(light_level_delta) > LIGHT_SENSOR_DATA_THRESHOLD) {
+        state->level.val = roundf(light_level_real);
+    }
 }
 
 LightSensorData* light_sensor_data_alloc(void) {

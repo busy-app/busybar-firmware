@@ -3,10 +3,12 @@
  */
 #pragma once
 
+#include <stdint.h>
+
 /** Light sensor light level min */
-#define LIGHT_SENSOR_LIGHT_LEVEL_MIN (0.0f)
+#define LIGHT_SENSOR_LIGHT_LEVEL_MIN (0U)
 /** Light sensor light level max */
-#define LIGHT_SENSOR_LIGHT_LEVEL_MAX (1.0f)
+#define LIGHT_SENSOR_LIGHT_LEVEL_MAX (15U)
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,7 +20,7 @@ typedef struct {
 } LightSensorLuxLevel;
 
 typedef struct LightSensorLevel {
-    float val;
+    uint8_t val;
 } LightSensorLevel;
 
 typedef struct {
