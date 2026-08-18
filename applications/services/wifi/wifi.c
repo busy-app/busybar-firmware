@@ -41,18 +41,21 @@ static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* 
 
 static void wifi_print_connection_info(Wifi* instance) {
     with_furi_state(instance->state, const WifiInfo* info, {
-        const WifiIpv4* addr = &info->ip_config.ip4.address;
+        const WifiIpv4Settings* addresses = &info->ip_config.ip4;
 
         FURI_LOG_I(
             TAG,
             "Connection success\r\n"
             "\tSSID:\t\t%s\r\n"
-            "\tIPv4 address:\t%hhu.%hhu.%hhu.%hhu",
+            "\tIPv4 address:\t" WIFI_IP4_ADDR_FORMAT "\r\n"
+            "\tIPv4 gateway:\t" WIFI_IP4_ADDR_FORMAT "\r\n"
+            "\tIPv4 mask:\t" WIFI_IP4_ADDR_FORMAT "\r\n"
+            "\tDNS address:\t" WIFI_IP4_ADDR_FORMAT "\r\n",
             info->ssid,
-            addr->bytes[0],
-            addr->bytes[1],
-            addr->bytes[2],
-            addr->bytes[3]);
+            WIFI_IP4_ADDR_SPREAD(&addresses->address),
+            WIFI_IP4_ADDR_SPREAD(&addresses->gateway),
+            WIFI_IP4_ADDR_SPREAD(&addresses->mask),
+            WIFI_IP4_ADDR_SPREAD(&addresses->dns));
     });
 }
 
