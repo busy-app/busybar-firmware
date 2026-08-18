@@ -6,6 +6,21 @@
 
 #include "light_sensor_common.h"
 
+/**
+ * @brief Minimum light intensity value, in lux.
+ */
+#define LIGHT_SENSOR_DATA_LUX_MIN     (1.0f)
+
+/**
+ * @brief Maximum light intensity value, in lux.
+ */
+#define LIGHT_SENSOR_DATA_LUX_MAX     (10000.0f)
+
+/**
+ * @brief Number of data points for the sliding average.
+ */
+#define LIGHT_SENSOR_DATA_WINDOW_SIZE (5)
+
 #ifdef __cplusplus
 extern "C" {
 #endif

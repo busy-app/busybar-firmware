@@ -7,10 +7,6 @@
 #include <core/check.h>
 #include <core/log.h>
 
-#define LIGHT_SENSOR_DATA_LUX_MIN     (1.0f)
-#define LIGHT_SENSOR_DATA_LUX_MAX     (10000.0f)
-#define LIGHT_SENSOR_DATA_WINDOW_SIZE (5)
-
 #define LIGHT_SENSOR_DATA_THRESHOLD ((1.0f / LIGHT_SENSOR_LIGHT_LEVEL_MAX) / 2.0f)
 
 struct LightSensorData {

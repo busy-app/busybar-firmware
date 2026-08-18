@@ -18,28 +18,77 @@ struct LightSensor {
     FuriEventLoopTimer* timer;
     FuriState* state;
     LightSensorData* data;
-    bool sensor_alive;
+    bool is_alive;
 };
 
-static void light_sensor_timer_callback(void* context) {
-    LightSensor* instance = context;
+static bool light_sensor_read(LightSensor* instance) {
+    bool success = false;
 
-    if(!instance->sensor_alive) {
-        return;
-    }
+    do {
+        float lux = 0.0f;
 
-    float lux = 0.0f;
+        if(!furi_hal_light_sensor_read_lux(LIGHT_SENSOR_I2C, &lux)) {
+            FURI_LOG_E(TAG, "Failed to read light sensor");
+            break;
+        }
 
-    if(!furi_hal_light_sensor_read_lux(LIGHT_SENSOR_I2C, &lux)) {
-        FURI_LOG_E(TAG, "Failed to read light sensor");
-        return;
-    }
+        light_sensor_data_add_measurement(instance->data, lux);
 
-    light_sensor_data_add_measurement(instance->data, lux);
+        success = true;
+    } while(false);
 
+    return success;
+}
+
+static void light_sensor_update_state(LightSensor* instance) {
     with_furi_state(instance->state, LightSensorState * state, {
         light_sensor_data_get_state(instance->data, state);
     });
+}
+
+static void light_sensor_timer_callback(void* context) {
+    furi_assert(context);
+    LightSensor* instance = context;
+
+    if(light_sensor_read(instance)) {
+        light_sensor_update_state(instance);
+    }
+}
+
+static bool light_sensor_get_initial_readings(LightSensor* instance) {
+    bool success = true;
+
+    for(uint32_t i = 0; i < LIGHT_SENSOR_DATA_WINDOW_SIZE; ++i) {
+        if(!light_sensor_read(instance)) {
+            success = false;
+            break;
+        }
+    }
+
+    return success;
+}
+
+static bool light_sensor_init(LightSensor* instance) {
+    bool success = false;
+
+    do {
+        if(!furi_hal_light_sensor_init(LIGHT_SENSOR_I2C)) {
+            break;
+        }
+
+        if(!light_sensor_get_initial_readings(instance)) {
+            break;
+        }
+
+        furi_event_loop_timer_start(instance->timer, LIGHT_SENSOR_SAMPLE_INTERVAL_MS);
+
+        light_sensor_update_state(instance);
+
+        success = true;
+
+    } while(false);
+
+    return success;
 }
 
 LightSensor* light_sensor_alloc() {
@@ -53,26 +102,22 @@ LightSensor* light_sensor_alloc() {
         FuriEventLoopTimerTypePeriodic,
         instance);
     instance->state = furi_state_alloc(sizeof(LightSensorState));
+    instance->is_alive = light_sensor_init(instance);
+
+    if(!instance->is_alive) {
+        FURI_LOG_E(TAG, "Failed to initialize light sensor");
+    }
 
     furi_record_create(RECORD_LIGHT_SENSOR, instance);
-
-    furi_event_loop_timer_start(instance->timer, LIGHT_SENSOR_SAMPLE_INTERVAL_MS);
-
     return instance;
 }
 
 int32_t light_sensor_srv(void* p) {
     UNUSED(p);
-
     // Must be first to ensure that power subsystem is OK
     furi_record_open(RECORD_POWER);
+
     LightSensor* instance = light_sensor_alloc();
-
-    instance->sensor_alive = furi_hal_light_sensor_init(LIGHT_SENSOR_I2C);
-    if(instance->sensor_alive == false) {
-        FURI_LOG_E(TAG, "Failed to initialize light sensor");
-    }
-
     furi_event_loop_run(instance->event_loop);
 
     return 0;
@@ -90,12 +135,15 @@ bool light_sensor_get_raw_data(
     furi_check(instance);
 
     bool result = false;
-    if(wavelength == LightSensorLightWavelength600nm) {
-        result = furi_hal_light_sensor_read_raw(
-            LIGHT_SENSOR_I2C, FuriHalLightSensorLightWavelength600nm, raw);
-    } else if(wavelength == LightSensorLightWavelength840nm) {
-        result = furi_hal_light_sensor_read_raw(
-            LIGHT_SENSOR_I2C, FuriHalLightSensorLightWavelength840nm, raw);
+
+    if(instance->is_alive) {
+        if(wavelength == LightSensorLightWavelength600nm) {
+            result = furi_hal_light_sensor_read_raw(
+                LIGHT_SENSOR_I2C, FuriHalLightSensorLightWavelength600nm, raw);
+        } else if(wavelength == LightSensorLightWavelength840nm) {
+            result = furi_hal_light_sensor_read_raw(
+                LIGHT_SENSOR_I2C, FuriHalLightSensorLightWavelength840nm, raw);
+        }
     }
 
     return result;
