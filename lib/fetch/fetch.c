@@ -409,7 +409,7 @@ FetchStatus fetch_run(Fetch* instance, const FetchRequest* request) {
 #endif
 
     mg_mgr_init(&instance->mgr);
-    mongoose_dns_init_auto(&instance->mgr);
+    mongoose_dns_init(&instance->mgr);
 
     struct mg_connection* conn =
         mg_http_connect(&instance->mgr, request->url, fetch_mg_handler, instance);

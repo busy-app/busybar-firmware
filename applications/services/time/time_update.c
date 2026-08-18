@@ -103,7 +103,7 @@ static int32_t time_update_thread_callback(void* context) {
 
     struct mg_mgr mgr;
     mg_mgr_init(&mgr);
-    mongoose_dns_init_auto(&mgr);
+    mongoose_dns_init(&mgr);
 
     struct mg_connection* conn =
         mg_sntp_connect(&mgr, settings.server_address, time_update_callback, &time_update_context);

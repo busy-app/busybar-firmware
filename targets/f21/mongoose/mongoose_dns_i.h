@@ -1,8 +1,7 @@
 /**
  * @file mongoose_dns_i.h
- * Mongoose DNS Configuration manager - Private API
+ * @brief Mongoose DNS Configuration manager - Private API
  */
-
 #pragma once
 
 #include <mongoose_dns.h>

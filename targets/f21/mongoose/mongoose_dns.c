@@ -93,18 +93,12 @@ static void mongoose_dns_apply(struct mg_mgr* mgr, uint32_t address) {
 // Public API
 // ==========
 
-void mongoose_dns_init_auto(struct mg_mgr* mgr) {
+void mongoose_dns_init(struct mg_mgr* mgr) {
     furi_check(mgr);
 
     MongooseDns* dns = furi_record_open(RECORD_MONGOOSE_DNS);
     mongoose_dns_apply(mgr, dns->address);
     furi_record_close(RECORD_MONGOOSE_DNS);
-}
-
-void mongoose_dns_init_manual(struct mg_mgr* mgr, uint32_t address) {
-    furi_check(mgr);
-
-    mongoose_dns_apply(mgr, address);
 }
 
 void mongoose_dns_deinit(struct mg_mgr* mgr) {

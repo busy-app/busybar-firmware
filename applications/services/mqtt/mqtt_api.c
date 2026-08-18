@@ -382,7 +382,7 @@ static void mqtt_wifi_state_api_message_handler(Mqtt* instance, const MqttApiMes
 
     if(wifi_state->state == WifiStateConnected) {
         if((!instance->is_wifi_up) && (instance->conn == NULL)) {
-            mongoose_dns_init_auto(&instance->mgr);
+            mongoose_dns_init(&instance->mgr);
             mqtt_connection_open(instance);
         }
 

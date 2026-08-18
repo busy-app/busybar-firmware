@@ -37,7 +37,7 @@ static TimeTestApp* time_test_alloc(void) {
     network_init_current_thread(instance->network);
 
     mg_mgr_init(&instance->mgr);
-    mongoose_dns_init_auto(&instance->mgr);
+    mongoose_dns_init(&instance->mgr);
     mg_time_connect(&instance->mgr, NULL, time_test_client_callback, instance);
 
     return instance;
