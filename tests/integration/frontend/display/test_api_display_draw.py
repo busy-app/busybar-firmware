@@ -658,22 +658,25 @@ class TestAnimElement:
             streaming_api, _all_black, "an all-black canvas base"
         )
 
-        # The missing asset must render nothing: whether the request is
-        # rejected or accepted, the canvas settles back to the black base.
-        _draw(assets_api, [base, missing_elem])
-        settled = capture_stable_front_frame(streaming_api)
-        assert settled.raw == blank.raw, (
-            f"stock_path {_MISSING_ANIM!r} rendered pixels despite the asset "
-            f"missing; frame sha256={settled.digest()}"
+        # A missing asset is accepted, but instead of animation frames the
+        # player renders the static load-error placeholder (I_load_error_9x9,
+        # see anim_player.c) — the canvas must stop matching the black base.
+        assets_api.assert_status(_draw(assets_api, [base, missing_elem]), 200)
+        placeholder = capture_stable_front_frame(streaming_api)
+        assert placeholder.raw != blank.raw, (
+            f"stock_path {_MISSING_ANIM!r} rendered nothing; expected the "
+            f"load-error placeholder; frame sha256={placeholder.digest()}"
         )
 
-        # The builtin animation renders non-black pixels over the base.
+        # The builtin animation renders pixels distinct from both the black
+        # base and the placeholder.
         assets_api.assert_status(_draw(assets_api, [base, valid_elem]), 200)
         wait_for_front_frame(
             streaming_api,
-            lambda frame: frame.raw != blank.raw,
-            f"builtin animation pixels from {_BUILTIN_ANIM!r} over the black "
-            "base (file may not exist on the device)",
+            lambda frame: frame.raw != blank.raw
+            and frame.raw != placeholder.raw,
+            f"builtin animation pixels from {_BUILTIN_ANIM!r} distinct from "
+            "the load-error placeholder (file may not exist on the device)",
         )
 
     @allure.title("Anim with both path and stock_path \u2192 400")
