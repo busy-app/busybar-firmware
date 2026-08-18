@@ -1,7 +1,6 @@
 #include "fetch.h"
 
 #include <network/network.h>
-
 #include <toolbox/timers.h>
 
 #include <mongoose_dns.h>
