@@ -60,17 +60,11 @@ LightSensorData* light_sensor_data_alloc(void) {
     return instance;
 }
 
-bool light_sensor_data_add_measurement(LightSensorData* instance, float lux) {
+void light_sensor_data_add_measurement(LightSensorData* instance, float lux) {
     furi_check(instance);
 
     LightSensorLuxLevel* lux_level = &instance->state.lux;
-
-    const float lux_clamped = CLAMP(lux, LIGHT_SENSOR_DATA_LUX_MAX, LIGHT_SENSOR_DATA_LUX_MIN);
-    if(float_is_equal(lux_level->mean, lux_clamped)) {
-        return false;
-    }
-
-    lux_level->instant = lux_clamped;
+    lux_level->instant = CLAMP(lux, LIGHT_SENSOR_DATA_LUX_MAX, LIGHT_SENSOR_DATA_LUX_MIN);
 
     instance->measurements[instance->measurement_index] = lux_level->instant;
     instance->measurement_index =
@@ -83,8 +77,6 @@ bool light_sensor_data_add_measurement(LightSensorData* instance, float lux) {
 
     lux_level->mean = lux_sum / LIGHT_SENSOR_DATA_WINDOW_SIZE;
     light_sensor_data_update_light_level(instance);
-
-    return true;
 }
 
 void light_sensor_data_get_state(const LightSensorData* instance, LightSensorState* state) {

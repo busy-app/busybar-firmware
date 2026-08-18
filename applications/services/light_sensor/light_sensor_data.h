@@ -6,8 +6,6 @@
 
 #include "light_sensor_common.h"
 
-#include <stdbool.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -29,10 +27,8 @@ LightSensorData* light_sensor_data_alloc(void);
  *
  * @param[in,out] instance Pointer to the LightSensorData instance.
  * @param[in] lux Light level in lux.
- *
- * @returns @c true if the measurement contributed to the mean value change, @c false otherwise
  */
-bool light_sensor_data_add_measurement(LightSensorData* instance, float lux);
+void light_sensor_data_add_measurement(LightSensorData* instance, float lux);
 
 /**
  * @brief Get the current light sensor state.
