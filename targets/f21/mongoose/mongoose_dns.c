@@ -1,9 +1,10 @@
 #include "mongoose_dns.h"
 
 #include <furi_hal_memory.h>
+
 #include <wifi/wifi.h>
 
-#define TAG "MgDnsConfig"
+#define TAG "MongooseDns"
 
 #define DEFAULT_DNS_SERVER "udp://8.8.8.8:53"
 
@@ -14,8 +15,7 @@
 #define RECORD_MONGOOSE_DNS "mongoose_dns"
 
 typedef struct {
-    uint32_t address;
-    Wifi* wifi;
+    _Atomic uint32_t address;
 } MongooseDns;
 
 static void mongoose_dns_wifi_event(const void* item, void* context) {
@@ -31,8 +31,8 @@ static void mongoose_dns_wifi_event(const void* item, void* context) {
 void mongoose_dns_startup(void) {
     MongooseDns* dns = malloc(sizeof(MongooseDns));
 
-    dns->wifi = furi_record_open(RECORD_WIFI);
-    furi_state_subscribe(wifi_get_state(dns->wifi), mongoose_dns_wifi_event, dns);
+    Wifi* wifi = furi_record_open(RECORD_WIFI);
+    furi_state_subscribe(wifi_get_state(wifi), mongoose_dns_wifi_event, dns);
 
     furi_record_create(RECORD_MONGOOSE_DNS, dns);
 }
@@ -86,7 +86,7 @@ static void mongoose_dns_apply(struct mg_mgr* mgr, uint32_t address) {
     if(mgr->dns4.c) mg_close_conn(mgr->dns4.c);
     mgr->dns4.c = NULL;
 
-    FURI_LOG_D(TAG, "Applied DNS %s to mg_mgr %p", mgr->dns4.url, mgr);
+    FURI_LOG_D(TAG, "Applied DNS %s to mg_mgr 0x%p", mgr->dns4.url, mgr);
 }
 
 // ==========
