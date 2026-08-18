@@ -1,0 +1,10 @@
+App(
+    appid="api_tokens",
+    name="ApiTokens",
+    apptype=FlipperAppType.STARTUP,
+    entry_point="api_tokens_start",
+    stack_size=2 * 1024,
+    order=180,
+    requires=["storage", "time"],
+    targets=["f20", "f21", "f22"],
+)

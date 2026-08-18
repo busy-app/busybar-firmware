@@ -3,6 +3,13 @@
 
 #include <cli/args.h>
 #include <js_runner/js_runner.h>
+#include <argparse.h>
+
+typedef struct JsCliParams {
+    FuriString* script_path;
+    FuriString* app_id;
+    bool abort_scripts;
+} JsCliParams;
 
 static void js_console_cb(
     JsRunnerConsoleSeverity severity,
@@ -37,19 +44,71 @@ static void js_console_cb(
     }
 }
 
+static void run_script(const FuriString* arg, const FuriString* app_id) {
+    UNUSED(app_id); // TODO in localStorage
+    JsRunner* runner = furi_record_open(RECORD_JS_RUNNER);
+    JsRunnerError error =
+        js_runner_run(runner, furi_string_get_cstr(arg), 64 * 1024, js_console_cb, NULL);
+    if(error != JsRunnerErrorNone) {
+        printf("Error running script: %s", js_runner_get_error_message(error));
+    }
+    furi_record_close(RECORD_JS_RUNNER);
+}
+
+static void abort_all(void) {
+    JsRunner* runner = furi_record_open(RECORD_JS_RUNNER);
+    js_runner_abort_all(runner);
+    furi_record_close(RECORD_JS_RUNNER);
+}
+
+static void argparse_callback(char opt, const char* optarg, void* context) {
+    JsCliParams* params = context;
+    switch(opt) {
+    case 'i': {
+        params->app_id = furi_string_alloc_set(optarg);
+        break;
+    }
+    case 'k': {
+        params->abort_scripts = true;
+        break;
+    }
+    case 0: {
+        params->script_path = furi_string_alloc_set(optarg);
+        break;
+    }
+    default:
+        furi_check(false);
+        break;
+    }
+}
+
+static bool validate_params(const JsCliParams* params) {
+    bool has_abort = params->abort_scripts;
+    bool has_run = params->script_path || params->app_id;
+    return has_abort != has_run;
+}
+
 void cli_command_js(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
     UNUSED(context);
 
-    if(furi_string_size(args) > 0) {
-        JsRunner* runner = furi_record_open(RECORD_JS_RUNNER);
-        JsRunnerError error =
-            js_runner_run(runner, furi_string_get_cstr(args), 64 * 1024, js_console_cb, NULL);
-        if(error != JsRunnerErrorNone) {
-            printf("Error running script: %d", error);
-        }
-        furi_record_close(RECORD_JS_RUNNER);
+    JsCliParams params = {0};
+    bool parse_ok = parse_args(args, "i:k", argparse_callback, &params);
+    bool validate_ok = validate_params(&params);
+    if(!parse_ok || !validate_ok) {
+        printf("Usage: js [-i app_id] <filename>\r\n");
+        printf("       js -k\r\n");
     } else {
-        printf("Usage: js <filename>\r\n");
+        if(params.abort_scripts) {
+            abort_all();
+        } else if(params.script_path) {
+            run_script(params.script_path, params.app_id);
+        }
+    }
+    if(params.app_id) {
+        furi_string_free(params.app_id);
+    }
+    if(params.script_path) {
+        furi_string_free(params.script_path);
     }
 }

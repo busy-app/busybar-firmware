@@ -194,7 +194,8 @@ static void http_upload_poll_callback(struct mg_connection* conn) {
 void http_upload_start(
     struct mg_connection* conn,
     struct mg_http_message* msg,
-    const char* file_path) {
+    const char* file_path,
+    bool append) {
     // Create upload context
     HttpUploadCtx* upload_ctx = malloc(sizeof(HttpUploadCtx));
     upload_ctx->len_remain = msg->body.len;
@@ -208,7 +209,9 @@ void http_upload_start(
     conn_ctx->raw.on_poll = http_upload_poll_callback;
     conn_ctx->context = upload_ctx;
 
-    http_fs_get()->rm(file_path); // Delete file if it exists
+    if(!append) {
+        http_fs_get()->rm(file_path); // Delete file if it exists
+    }
     FuriString* dir_path = furi_string_alloc();
     path_extract_dirname(file_path, dir_path);
     http_fs_get()->mkd(furi_string_get_cstr(dir_path));

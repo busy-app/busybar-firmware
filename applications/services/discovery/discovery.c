@@ -1,6 +1,8 @@
 #include "discovery.h"
 
 #include <device_name/device_name.h>
+#include <lwip/api.h>
+#include <lwip/netif.h>
 #include <lwip/tcpip.h>
 #include <lwip/apps/mdns.h>
 #include <m-array.h>
@@ -8,6 +10,8 @@
 #include <network/network.h>
 #include <wifi/wifi.h>
 #include <usb_network/usb_network.h>
+
+#include <furi_hal_version.h>
 
 #define TAG "Discovery"
 
@@ -24,7 +28,7 @@ typedef struct {
     void* context;
 } DiscoveryService;
 
-ARRAY_DEF(DiscoveryServices, DiscoveryService, M_POD_OPLIST);
+ARRAY_DEF(DiscoveryServices, DiscoveryService, M_POD_OPLIST)
 #define M_OPL_DiscoveryServices_t() ARRAY_OPLIST(DiscoveryServices, M_POD_OPLIST)
 
 struct Discovery {
@@ -33,6 +37,8 @@ struct Discovery {
     DiscoveryServices_t services;
 
     DeviceName* device_name;
+    DiscoveryInfo device_discovery;
+    char device_service_name[(FURI_HAL_VERSION_MAC_LENGTH * 2) + 1];
 
     Wifi* wifi;
     WifiState wifi_state;
@@ -290,6 +296,20 @@ static void discovery_subscribe_to_network_drivers(Discovery* discovery) {
 // Service startup
 // ===============
 
+static void discovery_busybar_txt(DiscoveryRequest* request, void* context) {
+    Discovery* discovery = context;
+
+    FuriString* device_name = furi_string_alloc();
+    device_name_get(discovery->device_name, device_name);
+
+    FuriString* txt_record =
+        furi_string_alloc_printf("name=%s", furi_string_get_cstr(device_name));
+    discovery_request_feed_txt(request, furi_string_get_cstr(txt_record));
+
+    furi_string_free(txt_record);
+    furi_string_free(device_name);
+}
+
 static Discovery* discovery_alloc(void) {
     Discovery* discovery = malloc(sizeof(Discovery));
 
@@ -301,6 +321,19 @@ static Discovery* discovery_alloc(void) {
         device_name_get_pubsub(discovery->device_name), discovery_device_name_event, discovery);
 
     discovery_subscribe_to_network_drivers(discovery);
+
+    const uint8_t* usb_mac = furi_hal_version_get_usb_mac();
+    for(size_t i = 0; i < FURI_HAL_VERSION_MAC_LENGTH; i++) {
+        snprintf(discovery->device_service_name + (i * 2), 3, "%02hhx", usb_mac[i]);
+    }
+    discovery->device_discovery = (DiscoveryInfo){
+        .name = discovery->device_service_name,
+        .service = "_busybar",
+        .transport = DiscoveryTransportTcp,
+        .port = 0,
+        .txt = discovery_busybar_txt,
+    };
+    discovery_service_add(discovery, &discovery->device_discovery, discovery);
 
     return discovery;
 }

@@ -62,6 +62,7 @@ Brewfile.lock.json
 
 # openocd output file
 openocd.log
+.openocd.lock
 
 # PVS Studio temporary files
 .PVS-Studio/

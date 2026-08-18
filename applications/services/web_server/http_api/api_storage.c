@@ -35,6 +35,25 @@ static bool api_storage_parse_path_parameter(
     return furi_string_start_with(path, STORAGE_EXT_PATH_PREFIX);
 }
 
+static bool api_storage_parse_append_parameter(struct mg_str* params_str, bool* append) {
+    char value_str[2];
+
+    int value_len = mg_http_get_var(params_str, "append", value_str, sizeof(value_str));
+    if(value_len == 1) {
+        if(value_str[0] == '1') {
+            *append = true;
+        } else if(value_str[0] == '0') {
+            *append = false;
+        } else {
+            return false;
+        }
+    } else if(value_len != -4) { /* -4 = var not present, see mg_http_get_var */
+        return false;
+    }
+
+    return true;
+}
+
 static bool api_storage_write_headers_callback(
     FuriString* path,
     HttpMethod method,
@@ -47,13 +66,35 @@ static bool api_storage_write_headers_callback(
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
     FuriString* file_path = furi_string_alloc();
-    if(api_storage_parse_path_parameter(&msg->query, "path", file_path)) {
-        http_upload_start(conn, msg, furi_string_get_cstr(file_path));
+    bool append = false;
+    if(api_storage_parse_path_parameter(&msg->query, "path", file_path) &&
+       api_storage_parse_append_parameter(&msg->query, &append)) {
+        http_upload_start(conn, msg, furi_string_get_cstr(file_path), append);
     } else {
         MG_REPLY_ERROR_CLOSE(conn, 400, "Bad Request");
     }
 
     furi_string_free(file_path);
+
+    return true;
+}
+
+static bool api_storage_write_request_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(path);
+    UNUSED(msg);
+    UNUSED(ctx);
+
+    if(method == HttpMethodOptions) {
+        http_reply_cors_preflight(conn, HttpMethodPost);
+        return true;
+    }
+
+    MG_REPLY_BAD_REQUEST(conn);
 
     return true;
 }
@@ -306,6 +347,7 @@ static const HttpHandler handlers_storage[] = {
         .method = HttpMethodPost,
         .type = HttpHandlerCustom,
         .on_headers = api_storage_write_headers_callback,
+        .on_request = api_storage_write_request_callback,
     },
     {
         .uri = "read",
