@@ -69,7 +69,7 @@ typedef void (*MessageHandler)(BrightnessControl* instance, Message* message);
 
 static const MessageHandler message_handlers[];
 
-static void light_sensor_event(const void* message, void* context);
+static void light_sensor_state_callback(const void* message, void* context);
 
 void brightness_control_set_auto_brightness(BrightnessControl* instance) {
     Message msg = {
@@ -163,7 +163,9 @@ static BrightnessControl* brightness_control_alloc(void) {
 
 #if defined(SRV_LIGHT_SENSOR)
     LightSensor* light_sensor = furi_record_open(RECORD_LIGHT_SENSOR);
-    furi_state_subscribe(light_sensor_get_state(light_sensor), light_sensor_event, instance);
+    LightSensorState light_sensor_state;
+    furi_state_get_subscribe(light_sensor_get_state(light_sensor), &light_sensor_state, light_sensor_state_callback, instance);
+    instance->last_light_sensor_level = light_sensor_state.level;
 #else
     UNUSED(light_sensor_event);
     instance->last_light_sensor_level = (LightSensorLevel){0};
@@ -173,12 +175,9 @@ static BrightnessControl* brightness_control_alloc(void) {
         BRIGHTNESS_SETTINGS_FILE_PATH, BRIGHTNESS_SETTINGS_VERSION, NULL, 0);
     load_config(instance);
 
-    bzero(instance->is_overridden, sizeof(instance->is_overridden));
-
     instance->state = furi_state_alloc(sizeof(BrightnessControlState));
-    furi_state_set(instance->state, &(BrightnessControlState){0});
-    update_state(instance);
 
+    update_state(instance);
     apply_brightness(instance);
 
     return instance;
@@ -194,7 +193,7 @@ int brightness_control_srv(void* arg) {
     return 0;
 }
 
-static void light_sensor_event(const void* item, void* context) {
+static void light_sensor_state_callback(const void* item, void* context) {
     furi_assert(item);
     furi_assert(context);
 
