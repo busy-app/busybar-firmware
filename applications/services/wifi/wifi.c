@@ -50,7 +50,7 @@ static void wifi_print_connection_info(Wifi* instance) {
             "\tIPv4 address:\t" WIFI_IP4_ADDR_FORMAT "\r\n"
             "\tIPv4 gateway:\t" WIFI_IP4_ADDR_FORMAT "\r\n"
             "\tIPv4 mask:\t" WIFI_IP4_ADDR_FORMAT "\r\n"
-            "\tDNS:\t" WIFI_IP4_ADDR_FORMAT "\r\n",
+            "\tDNS address:\t" WIFI_IP4_ADDR_FORMAT "\r\n",
             info->ssid,
             WIFI_IP4_ADDR_SPREAD(&addresses->address),
             WIFI_IP4_ADDR_SPREAD(&addresses->gateway),
