@@ -1,7 +1,6 @@
 #include "fetch.h"
 
 #include <network/network.h>
-#include <storage/storage.h>
 
 #include <toolbox/timers.h>
 
