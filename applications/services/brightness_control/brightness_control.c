@@ -171,7 +171,7 @@ static BrightnessControl* brightness_control_alloc(void) {
         instance);
     instance->last_light_sensor_level = light_sensor_state.level;
 #else
-    UNUSED(light_sensor_event);
+    UNUSED(light_sensor_state_callback);
     instance->last_light_sensor_level = (LightSensorLevel){0};
 #endif
 
