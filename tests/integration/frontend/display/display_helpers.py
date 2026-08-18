@@ -313,6 +313,56 @@ def capture_stable_front_frame(streaming_api: StreamingAPI) -> FrontFrame:
     )
 
 
+def assert_front_pixels(
+    streaming_api: StreamingAPI,
+    expected: dict[tuple[int, int], tuple[int, int, int]],
+    attach_as: str,
+) -> FrontFrame:
+    """Wait until every (x, y) front pixel matches its RGB value.
+
+    Attaches the matching frame to Allure under ``attach_as`` and returns it;
+    on timeout the wait helper attaches the last frame and raises.
+    """
+    def matches(frame: FrontFrame) -> bool:
+        return all(frame.pixel(x, y) == rgb for (x, y), rgb in expected.items())
+
+    frame = wait_for_front_frame(
+        streaming_api, matches, f"front pixels {expected!r}"
+    )
+    frame.attach(attach_as)
+    actual = {(x, y): frame.pixel(x, y) for (x, y) in expected}
+    assert actual == expected, (
+        f"Unexpected front pixels: expected {expected!r}, got {actual!r}"
+    )
+    return frame
+
+
+def assert_back_pixels(
+    streaming_api: StreamingAPI,
+    expected: dict[tuple[int, int], int],
+    attach_as: str,
+) -> BackFrame:
+    """Wait until every (x, y) back pixel matches its 4-bit luma value.
+
+    Attaches the matching frame to Allure under ``attach_as`` and returns it;
+    on timeout the wait helper attaches the last frame and raises.
+    """
+    def matches(frame: BackFrame) -> bool:
+        return all(
+            frame.pixel(x, y) == luma for (x, y), luma in expected.items()
+        )
+
+    frame = wait_for_back_frame(
+        streaming_api, matches, f"back pixels {expected!r}"
+    )
+    frame.attach(attach_as)
+    actual = {(x, y): frame.pixel(x, y) for (x, y) in expected}
+    assert actual == expected, (
+        f"Unexpected back pixels: expected {expected!r}, got {actual!r}"
+    )
+    return frame
+
+
 # ---------------------------------------------------------------------------
 # Migration seams (thin delegates; prefer the frame objects in new code)
 # ---------------------------------------------------------------------------

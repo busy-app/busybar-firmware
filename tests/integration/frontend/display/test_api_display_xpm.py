@@ -23,11 +23,12 @@ from .display_helpers import (
     RGB_GREEN,
     RGB_RED,
     RGB_WHITE,
+    assert_back_pixels,
+    assert_front_pixels,
     colors_xpm,
     pixel_xpm,
     solid_rectangle,
     solid_xpm,
-    wait_for_back_frame,
     wait_for_front_frame,
     xpm_element,
     xpm_source,
@@ -83,32 +84,15 @@ class TestXpmBitmapElement:
             assets_api.assert_status(response, 200)
 
         with allure.step("Verify the four rendered RGB pixels"):
-            expected = {
-                "red": RGB_RED,
-                "green": RGB_GREEN,
-                "blue": RGB_BLUE,
-                "white": RGB_WHITE,
-            }
-
-            def rendered_pixels(
-                frame: FrontFrame,
-            ) -> dict[str, tuple[int, int, int]]:
-                return {
-                    "red": frame.pixel(x, y),
-                    "green": frame.pixel(x + 1, y),
-                    "blue": frame.pixel(x, y + 1),
-                    "white": frame.pixel(x + 1, y + 1),
-                }
-
-            frame = wait_for_front_frame(
+            assert_front_pixels(
                 streaming_api,
-                lambda current: rendered_pixels(current) == expected,
-                "four rendered XPM colors",
-            )
-            frame.attach("Front XPM colors")
-            actual = rendered_pixels(frame)
-            assert actual == expected, (
-                f"Unexpected front XPM pixels: {actual!r}"
+                {
+                    (x, y): RGB_RED,
+                    (x + 1, y): RGB_GREEN,
+                    (x, y + 1): RGB_BLUE,
+                    (x + 1, y + 1): RGB_WHITE,
+                },
+                "Front XPM colors",
             )
 
     @allure.title("XPM bitmap renders luma on the back display")
@@ -121,9 +105,6 @@ class TestXpmBitmapElement:
         busy_timer_stopped,
     ):
         x, y = 20, 30
-        # 0x8 pins the luma conversion itself: unlike black (canvas
-        # background) and white, mid-gray cannot be satisfied by accident.
-        expected = (0x0, 0x8, 0xF)
 
         with allure.step(
             "Draw adjacent black, mid-gray, and white pixels on the back "
@@ -136,22 +117,12 @@ class TestXpmBitmapElement:
             assets_api.assert_status(response, 200)
 
         with allure.step("Verify the nibble-packed luma values"):
-            def rendered_pixels(frame) -> tuple[int, int, int]:
-                return (
-                    frame.pixel(x, y),
-                    frame.pixel(x + 1, y),
-                    frame.pixel(x + 2, y),
-                )
-
-            frame = wait_for_back_frame(
+            # 0x8 pins the luma conversion itself: unlike black (canvas
+            # background) and white, mid-gray cannot be satisfied by accident.
+            assert_back_pixels(
                 streaming_api,
-                lambda current: rendered_pixels(current) == expected,
-                "black, gray, and white XPM luma pixels",
-            )
-            frame.attach("Back XPM luma")
-            actual = rendered_pixels(frame)
-            assert actual == expected, (
-                f"Unexpected back XPM pixels: {actual!r}"
+                {(x, y): 0x0, (x + 1, y): 0x8, (x + 2, y): 0xF},
+                "Back XPM luma",
             )
 
     @allure.title("XPM bitmap requires data")
@@ -390,15 +361,8 @@ class TestXpmBitmapElement:
             assets_api.assert_status(response, 200)
 
         with allure.step("Verify the red background remains visible"):
-            frame = wait_for_front_frame(
-                streaming_api,
-                lambda current: current.pixel(x, y) == RGB_RED,
-                "red background below zero-opacity XPM",
-            )
-            frame.attach("Zero-opacity XPM")
-            actual = frame.pixel(x, y)
-            assert actual == RGB_RED, (
-                f"Zero-opacity XPM covered the background: {actual!r}"
+            assert_front_pixels(
+                streaming_api, {(x, y): RGB_RED}, "Zero-opacity XPM"
             )
 
     @allure.title("XPM opacity changes the rendered front pixel")
@@ -435,10 +399,8 @@ class TestXpmBitmapElement:
                 ],
             )
             assets_api.assert_status(response, 200)
-            full_frame = wait_for_front_frame(
-                streaming_api,
-                lambda current: current.pixel(x, y) == RGB_RED,
-                "full-opacity red XPM pixel",
+            full_frame = assert_front_pixels(
+                streaming_api, {(x, y): RGB_RED}, "Full-opacity XPM"
             )
             full = full_frame.pixel(x, y)
 
@@ -510,20 +472,10 @@ class TestXpmBitmapElement:
             assets_api.assert_status(response, 200)
 
         with allure.step("Verify transparent composition"):
-            expected = (RGB_RED, RGB_GREEN)
-
-            def pixels(frame: FrontFrame) -> tuple[tuple[int, int, int], ...]:
-                return frame.pixel(x, y), frame.pixel(x + 1, y)
-
-            frame = wait_for_front_frame(
+            assert_front_pixels(
                 streaming_api,
-                lambda current: pixels(current) == expected,
-                "transparent XPM composition",
-            )
-            frame.attach("Transparent XPM composition")
-            actual = pixels(frame)
-            assert actual == expected, (
-                f"Unexpected transparent XPM composition: {actual!r}"
+                {(x, y): RGB_RED, (x + 1, y): RGB_GREEN},
+                "Transparent XPM composition",
             )
 
     @allure.title("XPM renders alongside another element in one request")
@@ -556,20 +508,10 @@ class TestXpmBitmapElement:
             assets_api.assert_status(response, 200)
 
         with allure.step("Verify both element types reached the framebuffer"):
-            expected = (RGB_RED, RGB_GREEN)
-
-            def pixels(frame: FrontFrame) -> tuple[tuple[int, int, int], ...]:
-                return frame.pixel(x, y), frame.pixel(x + 2, y)
-
-            frame = wait_for_front_frame(
+            assert_front_pixels(
                 streaming_api,
-                lambda current: pixels(current) == expected,
-                "mixed XPM and rectangle pixels",
-            )
-            frame.attach("Mixed XPM and rectangle")
-            actual = pixels(frame)
-            assert actual == expected, (
-                f"Unexpected mixed-element pixels: {actual!r}"
+                {(x, y): RGB_RED, (x + 2, y): RGB_GREEN},
+                "Mixed XPM and rectangle",
             )
 
     @allure.title("XPM can be replaced, cleared, and drawn again")
@@ -601,14 +543,8 @@ class TestXpmBitmapElement:
                 [background, xpm_element(red_data, x=x, y=y, z_index=1)],
             )
             assets_api.assert_status(response, 200)
-            red_frame = wait_for_front_frame(
-                streaming_api,
-                lambda current: current.pixel(x, y) == RGB_RED,
-                "red XPM pixel before replacement",
-            )
-            red = red_frame.pixel(x, y)
-            assert red == RGB_RED, (
-                f"Initial XPM was not rendered: {red!r}"
+            assert_front_pixels(
+                streaming_api, {(x, y): RGB_RED}, "XPM lifecycle: red"
             )
 
         with allure.step("Replace it with and verify a green XPM image"):
@@ -618,26 +554,14 @@ class TestXpmBitmapElement:
                 [background, xpm_element(green_data, x=x, y=y, z_index=1)],
             )
             assets_api.assert_status(response, 200)
-            green_frame = wait_for_front_frame(
-                streaming_api,
-                lambda current: current.pixel(x, y) == RGB_GREEN,
-                "green replacement XPM pixel",
-            )
-            green = green_frame.pixel(x, y)
-            assert green == RGB_GREEN, (
-                f"XPM replacement was not rendered: {green!r}"
+            assert_front_pixels(
+                streaming_api, {(x, y): RGB_GREEN}, "XPM lifecycle: green"
             )
 
         with allure.step("Remove the XPM image and verify its background"):
             assets_api.clear_display_elements(["xpm1"], app_name=_APP)
-            cleared_frame = wait_for_front_frame(
-                streaming_api,
-                lambda current: current.pixel(x, y) == RGB_BLACK,
-                "black background after removing XPM",
-            )
-            cleared = cleared_frame.pixel(x, y)
-            assert cleared == RGB_BLACK, (
-                f"XPM pixels remained after clear: {cleared!r}"
+            assert_front_pixels(
+                streaming_api, {(x, y): RGB_BLACK}, "XPM lifecycle: cleared"
             )
 
         with allure.step("Draw a blue XPM after clearing"):
@@ -647,15 +571,8 @@ class TestXpmBitmapElement:
                 [background, xpm_element(blue_data, x=x, y=y, z_index=1)],
             )
             assets_api.assert_status(response, 200)
-            blue_frame = wait_for_front_frame(
-                streaming_api,
-                lambda current: current.pixel(x, y) == RGB_BLUE,
-                "blue XPM after clearing",
-            )
-            blue_frame.attach("XPM redraw lifecycle")
-            blue = blue_frame.pixel(x, y)
-            assert blue == RGB_BLUE, (
-                f"XPM redraw after clear failed: {blue!r}"
+            assert_front_pixels(
+                streaming_api, {(x, y): RGB_BLUE}, "XPM redraw lifecycle"
             )
 
     @allure.title("Shrinking an XPM element clears its previous bounds")
@@ -681,9 +598,6 @@ class TestXpmBitmapElement:
         red_data = solid_xpm(2, 1, color="#FF0000")
         green_data = pixel_xpm("#00FF00")
 
-        def pixels(frame: FrontFrame) -> tuple[tuple[int, int, int], ...]:
-            return frame.pixel(x, y), frame.pixel(x + 1, y)
-
         with allure.step("Draw and verify a red 2x1 XPM image"):
             response = _draw(
                 assets_api,
@@ -693,12 +607,11 @@ class TestXpmBitmapElement:
                 ],
             )
             assets_api.assert_status(response, 200)
-            initial_frame = wait_for_front_frame(
+            assert_front_pixels(
                 streaming_api,
-                lambda current: pixels(current) == (RGB_RED, RGB_RED),
-                "two red pixels before shrinking the XPM",
+                {(x, y): RGB_RED, (x + 1, y): RGB_RED},
+                "XPM before geometry shrink",
             )
-            initial_frame.attach("XPM before geometry shrink")
 
         with allure.step("Replace it with a green 1x1 XPM using the same ID"):
             response = _draw(
@@ -710,16 +623,10 @@ class TestXpmBitmapElement:
         with allure.step(
             "Verify the retired pixel returns to the black background"
         ):
-            expected = (RGB_GREEN, RGB_BLACK)
-            resized_frame = wait_for_front_frame(
+            assert_front_pixels(
                 streaming_api,
-                lambda current: pixels(current) == expected,
-                "green 1x1 XPM followed by its black background",
-            )
-            resized_frame.attach("XPM after geometry shrink")
-            actual = pixels(resized_frame)
-            assert actual == expected, (
-                f"Unexpected pixels after shrinking XPM: {actual!r}"
+                {(x, y): RGB_GREEN, (x + 1, y): RGB_BLACK},
+                "XPM after geometry shrink",
             )
 
     @allure.title("XPM clipped at a display edge renders the visible part: {case}")
@@ -756,15 +663,8 @@ class TestXpmBitmapElement:
             assets_api.assert_status(response, 200)
 
         with allure.step("Verify the on-screen pixel renders"):
-            frame = wait_for_front_frame(
-                streaming_api,
-                lambda current: current.pixel(visible_x, y) == RGB_RED,
-                f"clipped XPM pixel at x={visible_x}",
-            )
-            frame.attach(f"Clipped XPM ({case})")
-            actual = frame.pixel(visible_x, y)
-            assert actual == RGB_RED, (
-                f"Clipped XPM did not render its visible pixel: {actual!r}"
+            assert_front_pixels(
+                streaming_api, {(visible_x, y): RGB_RED}, f"Clipped XPM ({case})"
             )
 
     @allure.title("XPM color spec variants render: {visual} {color}")
@@ -797,15 +697,8 @@ class TestXpmBitmapElement:
             assets_api.assert_status(response, 200)
 
         with allure.step(f"Verify the pixel renders as {expected}"):
-            frame = wait_for_front_frame(
-                streaming_api,
-                lambda current: current.pixel(x, y) == expected,
-                f"XPM pixel colored {spec!r}",
-            )
-            frame.attach(f"XPM color spec ({spec})")
-            actual = frame.pixel(x, y)
-            assert actual == expected, (
-                f"Unexpected pixel for color spec {spec!r}: {actual!r}"
+            assert_front_pixels(
+                streaming_api, {(x, y): expected}, f"XPM color spec ({spec})"
             )
 
     @allure.title("Rectangle above XPM wins the overlapping pixel by z_index")
@@ -839,13 +732,6 @@ class TestXpmBitmapElement:
             assets_api.assert_status(response, 200)
 
         with allure.step("Verify the rectangle covers the XPM pixel"):
-            frame = wait_for_front_frame(
-                streaming_api,
-                lambda current: current.pixel(x, y) == RGB_GREEN,
-                "rectangle covering the XPM pixel",
-            )
-            frame.attach("Rectangle over XPM")
-            actual = frame.pixel(x, y)
-            assert actual == RGB_GREEN, (
-                f"Rectangle above XPM did not win the pixel: {actual!r}"
+            assert_front_pixels(
+                streaming_api, {(x, y): RGB_GREEN}, "Rectangle over XPM"
             )
