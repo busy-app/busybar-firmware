@@ -140,10 +140,15 @@ bool wifi_net_up(Wifi* instance, const WifiIpConfig* ip_config) {
         netif->ip_addr.addr = ip4_settings->address.value;
         netif->netmask.addr = ip4_settings->mask.value;
         netif->gw.addr = ip4_settings->gateway.value;
-        ip_addr_t dns_addr = {
+
+        const ip_addr_t dns_addr = {
             .addr = ip4_settings->dns.value,
         };
+
         dns_setserver(DNS_PRIMARY_SERVER_INDEX, &dns_addr);
+
+    } else if(ip_config->mgmt == WifiIpManagementDynamic) {
+        dns_setserver(DNS_PRIMARY_SERVER_INDEX, NULL);
     }
 
     netif_set_link_up(netif);
