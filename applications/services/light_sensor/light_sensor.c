@@ -81,9 +81,6 @@ static bool light_sensor_init(LightSensor* instance) {
         }
 
         furi_event_loop_timer_start(instance->timer, LIGHT_SENSOR_SAMPLE_INTERVAL_MS);
-
-        light_sensor_update_state(instance);
-
         success = true;
 
     } while(false);
@@ -103,6 +100,8 @@ LightSensor* light_sensor_alloc() {
         instance);
     instance->state = furi_state_alloc(sizeof(LightSensorState));
     instance->is_alive = light_sensor_init(instance);
+
+    light_sensor_update_state(instance);
 
     if(!instance->is_alive) {
         FURI_LOG_E(TAG, "Failed to initialize light sensor");
