@@ -36,7 +36,7 @@ static void light_sensor_data_update_light_level(LightSensorData* instance) {
     const float light_level_delta = light_level_real - state->level.val;
 
     if(fabsf(light_level_delta) > LIGHT_SENSOR_DATA_THRESHOLD) {
-        state->level.val = roundf(light_level_real);
+        state->level.val = floorf(light_level_real);
     }
 }
 
