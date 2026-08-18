@@ -5,7 +5,7 @@ App(
     entry_point="web_srv_start",
     stack_size=8 * 1024,
     order=170,
-    requires=["usb_srv", "canvas"],
+    requires=["usb_srv", "canvas", "api_tokens"],
     targets=["f20", "f21", "f22"],
     resources="resources",
 )

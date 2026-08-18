@@ -17,6 +17,7 @@
 #define DEFAULT_ACCEPTMBOX_SIZE   64
 
 #define LWIP_MDNS_RESPONDER 1
+#define MDNS_MAX_SERVICES   4
 
 #define NO_SYS                                 0
 #define NO_SYS_NO_TIMERS                       0

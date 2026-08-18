@@ -2,24 +2,24 @@
 
 from __future__ import annotations
 
-import hashlib
-import time
-from collections.abc import Callable
-
 import allure
 import pytest
 import requests
 
 from clients.api import AssetsAPI, StreamingAPI
 from clients.api.assets import DEFAULT_ELEMENT_PRIORITY
+from .display_helpers import (
+    capture_stable_front_frame as _capture_stable_front_frame,
+    frame_digest as _frame_digest,
+    solid_rectangle as _solid_rectangle,
+    wait_for_front_frame as _wait_for_front_frame,
+)
 
 
 _APP_NAME = "display_elements_test"
 _OTHER_APP_NAME = "display_elements_other"
 _FRONT_WIDTH = 72
 _FRONT_HEIGHT = 16
-_FRAME_TIMEOUT = 2.0
-_FRAME_POLL_INTERVAL = 0.1
 _FILL_BLUE = "#FF0000FF"
 _FILL_GREEN = "#00FF00FF"
 _RGB_BLACK = b"\x00\x00\x00"
@@ -41,35 +41,6 @@ def _clear_test_application_canvases(assets_api: AssetsAPI):
         assets_api.clear_display_raw({}, app_name=app_name)
 
 
-def _solid_rectangle(
-    element_id: str,
-    color: str,
-    *,
-    x: int = 0,
-    width: int = _FRONT_WIDTH,
-    z_index: int | str | float | None = None,
-) -> dict:
-    element = {
-        "id": element_id,
-        "type": "rectangle",
-        "x": x,
-        "y": 0,
-        "width": width,
-        "height": _FRONT_HEIGHT,
-        "fill": "solid",
-        "fill_colors": [color],
-        "border_width": 0,
-        "timeout": 0,
-    }
-    if z_index is not None:
-        element["z_index"] = z_index
-    return element
-
-
-def _frame_digest(frame: bytes) -> str:
-    return hashlib.sha256(frame).hexdigest()
-
-
 def _expected_front_frame(
     spans: list[tuple[int, int, bytes]],
 ) -> bytes:
@@ -81,43 +52,6 @@ def _expected_front_frame(
             start = (y * _FRONT_WIDTH + x) * 3
             frame[start : start + width * 3] = rgb * width
     return bytes(frame)
-
-
-def _wait_for_front_frame(
-    streaming_api: StreamingAPI,
-    predicate: Callable[[bytes], bool],
-    description: str,
-) -> bytes:
-    deadline = time.monotonic() + _FRAME_TIMEOUT
-    last_frame = streaming_api.get_screen_bytes(display=0)
-
-    while time.monotonic() < deadline:
-        if predicate(last_frame):
-            return last_frame
-        time.sleep(_FRAME_POLL_INTERVAL)
-        last_frame = streaming_api.get_screen_bytes(display=0)
-
-    assert predicate(last_frame), (
-        f"Timed out waiting for {description}; "
-        f"last_frame_sha256={_frame_digest(last_frame)}"
-    )
-    return last_frame
-
-
-def _capture_stable_front_frame(streaming_api: StreamingAPI) -> bytes:
-    previous = streaming_api.get_screen_bytes(display=0)
-
-    def frame_is_stable(current: bytes) -> bool:
-        nonlocal previous
-        stable = current == previous
-        previous = current
-        return stable
-
-    return _wait_for_front_frame(
-        streaming_api,
-        frame_is_stable,
-        "two consecutive identical front-display frames",
-    )
 
 
 def _draw_and_capture(

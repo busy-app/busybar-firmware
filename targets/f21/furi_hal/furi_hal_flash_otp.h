@@ -1,8 +1,12 @@
 #pragma once
+
 #include <stdint.h>
 #include <stdbool.h>
-#include <stm32u5xx.h>
 #include <core/common_defines.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // OTP area (512 bytes) is split into 4x 128-byte blocks
 #define FURI_HAL_FLASH_OTP_BLOCK_SIZE (128)
@@ -53,3 +57,7 @@ uint32_t furi_hal_flash_otp_get_block_address(FuriHalFlashOtpBlock block);
  * @return true on success, false if OTP area is not empty or on error
  */
 bool furi_hal_flash_otp_program(FuriHalFlashOtpBlock block, const uint8_t* data, uint16_t length);
+
+#ifdef __cplusplus
+}
+#endif

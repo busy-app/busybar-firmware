@@ -1168,6 +1168,41 @@ size_t storage_simply_read_entire_file(
     return read;
 }
 
+FuriString* storage_simply_read_entire_file_to_string(
+    Storage* storage,
+    const char* path,
+    size_t size_limit) {
+    furi_check(storage);
+    furi_check(path);
+
+    FuriString* string = NULL;
+
+    File* file = storage_file_alloc(storage);
+
+    do {
+        if(!storage_file_open(file, path, FSAM_READ, FSOM_OPEN_EXISTING)) break;
+        size_t file_size = storage_file_size(file);
+        size_t read_size = MIN(file_size, size_limit);
+
+        const size_t block_size = 128;
+        char block[block_size + 1];
+
+        string = furi_string_alloc();
+
+        while(read_size) {
+            size_t iteration_size = MIN(read_size, block_size);
+            if(storage_file_read(file, block, iteration_size) != iteration_size) break;
+            block[iteration_size] = '\0';
+            furi_string_cat_str(string, block);
+            read_size -= iteration_size;
+        }
+    } while(0);
+
+    storage_file_free(file);
+
+    return string;
+}
+
 bool storage_simply_write_entire_file(
     Storage* storage,
     const char* path,
@@ -1187,6 +1222,17 @@ bool storage_simply_write_entire_file(
 
     storage_file_free(file);
     return written;
+}
+
+bool storage_simply_write_entire_file_from_string(
+    Storage* storage,
+    const char* path,
+    FuriString* string) {
+    furi_check(storage);
+    furi_check(path);
+    furi_check(string);
+    return storage_simply_write_entire_file(
+        storage, path, furi_string_get_cstr(string), furi_string_size(string));
 }
 
 void storage_get_next_filename(

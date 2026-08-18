@@ -19,6 +19,14 @@ paths:
             pattern: "^/ext(/[a-zA-Z0-9._\\-]*)*$"
           description: Path for the uploaded file
           example: "/ext/test.png"
+        - name: append
+          in: query
+          required: false
+          schema:
+            type: integer
+            enum: [0, 1]
+          description: Append to the file instead of replacing it (0 - replace (default), 1 - append; the file is created if it does not exist)
+          example: 1
       requestBody:
         required: true
         content:

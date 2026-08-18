@@ -54,7 +54,7 @@ JsAppLauncherError js_app_launcher_translate_from_js_runner_error(JsRunnerError 
     furi_assert(js_runner_error < JsRunnerErrorMax);
     JsAppLauncherError translated_error;
 
-    if(js_runner_error == JsRunnerParseException) {
+    if(js_runner_error == JsRunnerErrorParseException) {
         translated_error = JsAppLauncherErrorSyntaxError;
     } else {
         translated_error = JsAppLauncherErrorLoadFailed;

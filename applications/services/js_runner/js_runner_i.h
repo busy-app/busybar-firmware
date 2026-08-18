@@ -29,6 +29,7 @@
 
 #define MIN_INTERVAL_DELAY_MS 10.0f
 #define MAX_FETCH_MESSAGES    32
+#define MAX_COMMAND_MESSAGES  4
 
 #define PTR_HASH(p) ((size_t)(p))
 
@@ -59,16 +60,27 @@ typedef struct JsRunnerAppInterval {
     uint32_t last_id;
 } JsRunnerAppInterval;
 
+typedef struct JsFetch JsFetch;
+ARRAY_DEF(FetchArray, JsFetch*, M_PTR_OPLIST);
 typedef struct JsRunnerAppFetch {
-    uint32_t num_threads;
+    FetchArray_t fetches;
     FuriMessageQueue* event_queue;
 } JsRunnerAppFetch;
+
+typedef enum JsRunnerAppCommandType {
+    JsRunnerAppCommandTypeInvalid,
+    JsRunnerAppCommandTypeAbort,
+
+    JsRunnerAppCommandTypeMax,
+} JsRunnerAppCommandType;
 
 typedef struct JsRunnerApp {
     size_t heap_size;
     void* jrs_context;
     FuriEventLoop* event_loop;
     FuriString* root_path;
+    _Atomic bool should_terminate;
+    FuriMessageQueue* command_queue;
 
     JsRunnerAppConsole console;
     JsRunnerAppInterval interval;
@@ -90,25 +102,25 @@ typedef struct JsRunner {
     AppDict_t apps;
 } JsRunner;
 
-#define WITH_JS_RUNNER_APP(APP, BLOCK)                                     \
-    do {                                                                   \
-        JsRunner* __instance = furi_record_open(RECORD_JS_RUNNER);         \
-        furi_mutex_acquire(__instance->apps_mutex, FuriWaitForever);       \
-        FuriThread* current_thread = furi_thread_get_current();            \
-        JsRunnerApp* APP = *AppDict_get(__instance->apps, current_thread); \
-        if(APP) {                                                          \
-            BLOCK                                                          \
-        } else {                                                           \
-            FURI_LOG_E(TAG, "No JS app handle for current thread");        \
-            furi_crash();                                                  \
-        }                                                                  \
-        furi_mutex_release(__instance->apps_mutex);                        \
-        furi_record_close(RECORD_JS_RUNNER);                               \
+#define WITH_JS_RUNNER_APP(APP, BLOCK)                                                           \
+    do {                                                                                         \
+        JsRunner* __instance = furi_record_open(RECORD_JS_RUNNER);                               \
+        furi_check(furi_mutex_acquire(__instance->apps_mutex, FuriWaitForever) == FuriStatusOk); \
+        FuriThread* current_thread = furi_thread_get_current();                                  \
+        JsRunnerApp* APP = *AppDict_get(__instance->apps, current_thread);                       \
+        if(APP) {                                                                                \
+            BLOCK                                                                                \
+        } else {                                                                                 \
+            FURI_LOG_E(TAG, "No JS app handle for current thread");                              \
+            furi_crash();                                                                        \
+        }                                                                                        \
+        furi_check(furi_mutex_release(__instance->apps_mutex) == FuriStatusOk);                  \
+        furi_record_close(RECORD_JS_RUNNER);                                                     \
     } while(false)
 
 #define JS_ARG(n) (args_count > (n) ? args[(n)] : jerry_undefined())
 
-void js_runner_check_event_loop(JsRunnerApp* app);
+void js_runner_app_stop_if_done(JsRunnerApp* app);
 void js_run_jobs(void);
 
 /** @brief Allocate Jerryscript context for current thread. This function is used by jerryscript glue.
@@ -133,5 +145,5 @@ void* js_runner_thread_context_get(void);
  * This function is used by jerryscript glue. */
 void js_runner_get_root_path(FuriString* path);
 
-void js_runner_add_fetch_thread(JsRunnerApp* app);
-void js_runner_del_fetch_thread(JsRunnerApp* app);
+void js_runner_add_fetch_thread(JsRunnerApp* app, JsFetch* fetch);
+void js_runner_del_fetch_thread(JsRunnerApp* app, JsFetch* fetch);
