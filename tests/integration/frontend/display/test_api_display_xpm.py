@@ -24,6 +24,7 @@ from .display_helpers import (
     RGB_RED,
     RGB_WHITE,
     colors_xpm,
+    pixel_xpm,
     solid_rectangle,
     solid_xpm,
     wait_for_back_frame,
@@ -368,7 +369,7 @@ class TestXpmBitmapElement:
         busy_timer_stopped,
     ):
         x, y = 3, 4
-        blue_data = solid_xpm(1, 1, key="B", color="#0000FF")
+        blue_data = pixel_xpm("#0000FF")
         elements = [
             solid_rectangle(
                 "background",
@@ -409,7 +410,7 @@ class TestXpmBitmapElement:
         streaming_api: StreamingAPI,
         busy_timer_stopped,
     ):
-        red_data = solid_xpm(1, 1, key="R", color="#FF0000")
+        red_data = pixel_xpm("#FF0000")
         x, y = 3, 4
         background = solid_rectangle(
             "background",
@@ -535,7 +536,7 @@ class TestXpmBitmapElement:
         busy_timer_stopped,
     ):
         x, y = 3, 4
-        red_data = solid_xpm(1, 1, key="R", color="#FF0000")
+        red_data = pixel_xpm("#FF0000")
         elements = [
             xpm_element(red_data, x=x, y=y),
             solid_rectangle(
@@ -594,7 +595,7 @@ class TestXpmBitmapElement:
         )
 
         with allure.step("Draw and verify a red XPM image"):
-            red_data = solid_xpm(1, 1, color="#FF0000")
+            red_data = pixel_xpm("#FF0000")
             response = _draw(
                 assets_api,
                 [background, xpm_element(red_data, x=x, y=y, z_index=1)],
@@ -611,7 +612,7 @@ class TestXpmBitmapElement:
             )
 
         with allure.step("Replace it with and verify a green XPM image"):
-            green_data = solid_xpm(1, 1, color="#00FF00")
+            green_data = pixel_xpm("#00FF00")
             response = _draw(
                 assets_api,
                 [background, xpm_element(green_data, x=x, y=y, z_index=1)],
@@ -640,7 +641,7 @@ class TestXpmBitmapElement:
             )
 
         with allure.step("Draw a blue XPM after clearing"):
-            blue_data = solid_xpm(1, 1, color="#0000FF")
+            blue_data = pixel_xpm("#0000FF")
             response = _draw(
                 assets_api,
                 [background, xpm_element(blue_data, x=x, y=y, z_index=1)],
@@ -678,7 +679,7 @@ class TestXpmBitmapElement:
             z_index=0,
         )
         red_data = solid_xpm(2, 1, color="#FF0000")
-        green_data = solid_xpm(1, 1, color="#00FF00")
+        green_data = pixel_xpm("#00FF00")
 
         def pixels(frame: FrontFrame) -> tuple[tuple[int, int, int], ...]:
             return frame.pixel(x, y), frame.pixel(x + 1, y)
@@ -766,36 +767,16 @@ class TestXpmBitmapElement:
                 f"Clipped XPM did not render its visible pixel: {actual!r}"
             )
 
-    @allure.title("XPM color spec variants render: {case}")
+    @allure.title("XPM color spec variants render: {visual} {color}")
     @pytest.mark.api
     @pytest.mark.frontend
     @pytest.mark.parametrize(
-        ("case", "data", "expected"),
+        ("color", "visual", "expected"),
         [
-            pytest.param(
-                "named color red",
-                xpm_source(1, 1, {"R": "c red"}, ["R"]),
-                RGB_RED,
-                id="named-red",
-            ),
-            pytest.param(
-                "named color white",
-                xpm_source(1, 1, {"W": "c white"}, ["W"]),
-                RGB_WHITE,
-                id="named-white",
-            ),
-            pytest.param(
-                "grayscale visual",
-                xpm_source(1, 1, {"G": "g #FFFFFF"}, ["G"]),
-                RGB_WHITE,
-                id="visual-g",
-            ),
-            pytest.param(
-                "monochrome visual",
-                xpm_source(1, 1, {"M": "m #FFFFFF"}, ["M"]),
-                RGB_WHITE,
-                id="visual-m",
-            ),
+            pytest.param("red", "c", RGB_RED, id="named-red"),
+            pytest.param("white", "c", RGB_WHITE, id="named-white"),
+            pytest.param("#FFFFFF", "g", RGB_WHITE, id="visual-g"),
+            pytest.param("#FFFFFF", "m", RGB_WHITE, id="visual-m"),
         ],
     )
     def test_color_spec_variants(
@@ -803,13 +784,15 @@ class TestXpmBitmapElement:
         assets_api: AssetsAPI,
         streaming_api: StreamingAPI,
         busy_timer_stopped,
-        case: str,
-        data: str,
+        color: str,
+        visual: str,
         expected: tuple[int, int, int],
     ):
         x, y = 3, 4
+        spec = f"{visual} {color}"
+        data = pixel_xpm(color, visual=visual)
 
-        with allure.step(f"Draw a one-pixel XPM using a {case}"):
+        with allure.step(f"Draw a one-pixel XPM colored {spec!r}"):
             response = _draw(assets_api, [xpm_element(data, x=x, y=y)])
             assets_api.assert_status(response, 200)
 
@@ -817,12 +800,12 @@ class TestXpmBitmapElement:
             frame = wait_for_front_frame(
                 streaming_api,
                 lambda current: current.pixel(x, y) == expected,
-                f"{case} XPM pixel",
+                f"XPM pixel colored {spec!r}",
             )
-            frame.attach(f"XPM color spec ({case})")
+            frame.attach(f"XPM color spec ({spec})")
             actual = frame.pixel(x, y)
             assert actual == expected, (
-                f"Unexpected {case} pixel: {actual!r}"
+                f"Unexpected pixel for color spec {spec!r}: {actual!r}"
             )
 
     @allure.title("Rectangle above XPM wins the overlapping pixel by z_index")
@@ -835,7 +818,7 @@ class TestXpmBitmapElement:
         busy_timer_stopped,
     ):
         x, y = 3, 4
-        red_data = solid_xpm(1, 1, color="#FF0000")
+        red_data = pixel_xpm("#FF0000")
         elements = [
             xpm_element(red_data, x=x, y=y, z_index=1),
             solid_rectangle(

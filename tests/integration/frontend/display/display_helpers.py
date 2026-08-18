@@ -225,6 +225,17 @@ def solid_xpm(
     return xpm_source(width, height, {key: f"c {color}"}, [key * width] * height)
 
 
+def pixel_xpm(
+    color: str = "#FFFFFF", *, visual: str = "c", key: str = "X"
+) -> str:
+    """Build a one-pixel XPM2 image from a single color definition.
+
+    ``visual`` is the XPM color-line visual type: c (color), g (grayscale),
+    m (monochrome), or s (symbolic).
+    """
+    return xpm_source(1, 1, {key: f"{visual} {color}"}, [key])
+
+
 def colors_xpm(count: int) -> str:
     """Build a valid one-pixel XPM2 image with the requested color count."""
     keys = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
