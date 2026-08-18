@@ -1,0 +1,8 @@
+App(
+    appid="ca_storage",
+    apptype=FlipperAppType.STARTUP,
+    entry_point="ca_storage_on_system_start",
+    resources="resources",
+    stack_size=1024,
+    order=70,
+)

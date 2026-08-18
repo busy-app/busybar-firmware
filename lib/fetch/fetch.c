@@ -1,17 +1,13 @@
 #include "fetch.h"
 
 #include <network/network.h>
-#include <storage/storage.h>
-
 #include <toolbox/timers.h>
 
-#include <mongoose_glue.h>
+#include <mongoose_tls.h>
 
 #define TAG "Fetch"
 
 #define FETCH_INACTIVITY_TIMEOUT_MS (5 * 1000)
-
-#define FETCH_CA_BUNDLE_PATH EXT_PATH("apps_assets/shared/ca/cacert.pem")
 
 #define FETCH_USER_AGENT                         \
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " \
@@ -108,39 +104,13 @@ static void fetch_raise_error(Fetch* instance, const char* error_message) {
     instance->is_error_occurred = true;
 }
 
-static bool fetch_init_tls(Fetch* instance, struct mg_connection* conn, struct mg_str hostname) {
-    bool success = false;
-
-    struct mg_str ca_data = mg_file_read(http_fs_get(), FETCH_CA_BUNDLE_PATH);
-
-    if(ca_data.buf != NULL && ca_data.len > 0) {
-        const struct mg_tls_opts opts = {
-            .ca = ca_data,
-            .name = hostname,
-        };
-
-        mg_tls_init(conn, &opts);
-
-        success = true;
-
-    } else {
-        fetch_raise_error(instance, "Failed to read CA certificate bundle");
-    }
-
-    if(ca_data.buf != NULL) {
-        free(ca_data.buf);
-    }
-
-    return success;
-}
-
-static bool fetch_init_connection(Fetch* instance, struct mg_connection* conn) {
+static bool fetch_init_connection(const FetchRequest* request, struct mg_connection* conn) {
     bool success = true;
 
-    const char* url = instance->request->url;
+    const char* url = request->url;
 
     if(mg_url_is_ssl(url)) {
-        success = fetch_init_tls(instance, conn, mg_url_host(url));
+        success = mongoose_tls_init(conn, url, &request->tls_config);
     }
 
     return success;
@@ -199,13 +169,14 @@ static FURI_ALWAYS_INLINE void fetch_connect_event(Fetch* instance, struct mg_co
     const FetchRequest* request = instance->request;
     furi_assert(request);
 
-    if(fetch_init_connection(instance, conn)) {
+    if(fetch_init_connection(request, conn)) {
         fetch_send_request_method(request, conn);
         fetch_send_request_headers(request, conn);
         fetch_send_extra_request_headers(request, conn);
         fetch_send_request_body(request, conn);
 
     } else {
+        fetch_raise_error(instance, "Failed to establish TLS connection");
         conn->is_draining = 1;
     }
 }
