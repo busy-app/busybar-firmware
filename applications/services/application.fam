@@ -63,6 +63,7 @@ App(
         "low_power",
         "api_tokens",
         "js_runner",
+        "ca_storage",
     ],
     targets=["f20", "f21", "f22"],
 )

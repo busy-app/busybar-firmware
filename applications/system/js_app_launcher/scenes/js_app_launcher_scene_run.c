@@ -1,11 +1,12 @@
 #include "../js_app_launcher_i.h"
 #include "js_app_launcher_scenes.h"
 
-#define JS_THREAD_STACK_SIZE (2048)
+#define JS_THREAD_STACK_SIZE (3 * 1024)
 
 typedef struct {
     FuriThread* js_thread;
     JsAppInfo js_info;
+    JsRunner* js_runner;
     JsRunnerError js_error;
 } JsAppLauncherSceneRun;
 
@@ -33,16 +34,13 @@ static int32_t js_app_laucher_scene_run_thread_callback(void* arg) {
     JsAppLauncherSceneRun* data = arg;
 
     const JsAppInfo* info = &data->js_info;
-    JsRunner* runner = furi_record_open(RECORD_JS_RUNNER);
 
     const JsRunnerError error = js_runner_run(
-        runner,
+        data->js_runner,
         info->path.entry,
         info->manifest.heap_size,
         js_app_launcher_scene_run_console_out_callback,
         NULL);
-
-    furi_record_close(RECORD_JS_RUNNER);
 
     if(error != JsRunnerErrorNone) {
         FURI_LOG_E(TAG, "JsRunner error: %d", error);
@@ -74,6 +72,8 @@ static void js_app_launcher_scene_run_on_enter(void* context) {
     JsAppLauncherSceneRun* data =
         scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdRun);
 
+    data->js_runner = furi_record_open(RECORD_JS_RUNNER);
+
     if(js_app_get_info(instance->js_app, &data->js_info)) {
         FuriThread* js_thread = furi_thread_alloc_ex(
             data->js_info.manifest.name,
@@ -102,11 +102,18 @@ static void js_app_launcher_scene_run_on_exit(void* context) {
     FuriThread* js_thread = data->js_thread;
 
     if(js_thread != NULL) {
-        // TODO: Ask JsRunner to stop the script
+        // Not checking the return value of js_runner_abort
+        // because it is completely ambiguous here.
+        js_runner_abort(data->js_runner, js_thread);
+        // Assuming this will not block forever during normal operation.
+        // The script should have stopped at this point either due to
+        // its internal logic or due to the above abort request.
         furi_thread_join(js_thread);
         furi_thread_free(js_thread);
         data->js_thread = NULL;
     }
+
+    furi_record_close(RECORD_JS_RUNNER);
 }
 
 static bool js_app_launcher_scene_run_on_event(const SceneManagerEvent* event, void* context) {

@@ -5,17 +5,20 @@
 #include <version/version.h>
 #include <web_server/web_server.h>
 
+#include <mongoose_tls.h>
+
 #include "mqtt_common.h"
 
 #define MQTT_VERSION     (5)
 #define MQTT_PING_PERIOD M_TO_MS(10)
 
-#define CERT_FILE_CA_BUNDLE EXT_PATH("apps_assets/shared/ca/cacert.pem")
-
 #define STATUS_ONLINE  "\"status\":\"online\""
 #define STATUS_OFFLINE "\"status\":\"offline\""
 
 #define MQTT_SERVER_URL_DEFAULT MQTT_URL_TLS_PREFIX "mqtt.busy.app:8883"
+
+#define TLS_CUSTOM_CERT_PATH APP_ASSETS_PATH("device.crt")
+#define TLS_CUSTOM_KEY_PATH  APP_ASSETS_PATH("device.key")
 
 static void mqtt_ping_timer_callback(void* data) {
     furi_assert(data);
@@ -101,34 +104,30 @@ static const char* mqtt_get_server_url(const Mqtt* instance) {
     }
 }
 
-static bool mqtt_load_ca_bundle(Mqtt* instance) {
-    furi_assert(instance->ca_bundle == NULL);
+static bool mqtt_init_tls(Mqtt* instance, struct mg_connection* conn) {
+    const MqttConfig* mqtt_config = &instance->settings.config;
+    const MqttClientCertType client_cert_type = mqtt_config->client_cert_type;
 
-    bool success = false;
+    TlsConfig tls_config;
+    tls_config.is_server_cert_ignored = mqtt_config->ignore_server_cert;
 
-    Storage* storage = furi_record_open(RECORD_STORAGE);
-    File* file = storage_file_alloc(storage);
+    TlsClientCertInfo* client_cert_info = &tls_config.client_cert_info;
 
-    do {
-        if(!storage_file_open(file, CERT_FILE_CA_BUNDLE, FSAM_READ, FSOM_OPEN_EXISTING)) {
-            FURI_LOG_E(TAG, "CA bundle file error: %s", storage_file_get_error_desc(file));
-            break;
-        }
+    if(client_cert_type == MqttClientCertTypeDefault) {
+        client_cert_info->type = TlsClientCertTypeDevice;
 
-        const uint64_t file_size = storage_file_size(file);
-        instance->ca_bundle = malloc(file_size);
+    } else if(client_cert_type == MqttClientCertTypeCustom) {
+        client_cert_info->type = TlsClientCertTypeCustom;
 
-        if(storage_file_read(file, instance->ca_bundle, file_size) != file_size) {
-            FURI_LOG_E(TAG, "CA bundle file read error");
-            break;
-        }
+        TlsClientCertPaths* paths = &client_cert_info->paths;
+        paths->certificate = TLS_CUSTOM_CERT_PATH;
+        paths->private_key = TLS_CUSTOM_KEY_PATH;
 
-        success = true;
-    } while(0);
+    } else {
+        client_cert_info->type = TlsClientCertTypeNone;
+    }
 
-    storage_file_free(file);
-    furi_record_close(RECORD_STORAGE);
-    return success;
+    return mongoose_tls_init(conn, mqtt_get_server_url(instance), &tls_config);
 }
 
 static void mqtt_connect_mg_event_handler(
@@ -140,46 +139,24 @@ static void mqtt_connect_mg_event_handler(
     bool success = false;
 
     do {
-        const char* server_url = mqtt_get_server_url(instance);
-
-        if(!mg_url_is_ssl(server_url)) {
+        if(!mg_url_is_ssl(mqtt_get_server_url(instance))) {
             // No additional configuration is necessary
             success = true;
             break;
         }
 
-        if(!mqtt_load_ca_bundle(instance)) {
-            // TODO: Preload CA bundle on startup
-            break;
-        }
-
-        const char* ca_bundle = instance->ca_bundle;
-        const MqttConfig* config = &instance->settings.config;
-
-        if(!mqtt_tls_init(connection, server_url, ca_bundle, config)) {
+        if(!mqtt_init_tls(instance, connection)) {
             break;
         }
 
         success = true;
+
     } while(false);
 
     if(!success) {
         mqtt_connection_close(instance, false);
         mqtt_set_status(instance, MqttStatusError);
     }
-}
-
-static void mqtt_tls_handshake_mg_event_handler(
-    Mqtt* instance,
-    struct mg_connection* connection,
-    const void* event_data) {
-    UNUSED(event_data);
-
-    FURI_LOG_D(TAG, "TLS handshake done");
-    // Free CA bundle data
-    mqtt_tls_free_ca(connection);
-    free(instance->ca_bundle);
-    instance->ca_bundle = NULL;
 }
 
 static void mqtt_online_message_prepare(FuriString* message) {
@@ -260,11 +237,6 @@ static void mqtt_close_mg_event_handler(
     mqtt_stop_ping_timer(instance);
 
     instance->conn = NULL;
-
-    if(instance->ca_bundle) {
-        free(instance->ca_bundle);
-        instance->ca_bundle = NULL;
-    }
 
     if(instance->is_wifi_up) {
         if(instance->should_reconnect_now) {
@@ -373,7 +345,7 @@ static void mqtt_connection_mg_event_callback(
     if(event == MG_EV_CONNECT) {
         mqtt_connect_mg_event_handler(instance, connection, event_data);
     } else if(event == MG_EV_TLS_HS) {
-        mqtt_tls_handshake_mg_event_handler(instance, connection, event_data);
+        FURI_LOG_D(TAG, "TLS handshake done");
     } else if(event == MG_EV_MQTT_OPEN) {
         mqtt_open_mg_event_handler(instance, connection, event_data);
     } else if(event == MG_EV_CLOSE) {
