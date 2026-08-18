@@ -1,7 +1,7 @@
 #include "fetch.h"
 
 #include <network/network.h>
-#include <mg_dns_config.h>
+#include <mongoose_dns.h>
 #include <storage/storage.h>
 
 #include <toolbox/timers.h>
@@ -405,7 +405,7 @@ FetchStatus fetch_run(Fetch* instance, const FetchRequest* request) {
 #endif
 
     mg_mgr_init(&instance->mgr);
-    mg_dns_config_apply_auto(&instance->mgr);
+    mongoose_dns_init_auto(&instance->mgr);
 
     struct mg_connection* conn =
         mg_http_connect(&instance->mgr, request->url, fetch_mg_handler, instance);
@@ -440,7 +440,7 @@ FetchStatus fetch_run(Fetch* instance, const FetchRequest* request) {
         fetch_raise_error(instance, "Failed to connect to server");
     }
 
-    mg_dns_config_cleanup(&instance->mgr);
+    mongoose_dns_deinit(&instance->mgr);
     mg_mgr_free(&instance->mgr);
 
     network_deinit_current_thread(network);

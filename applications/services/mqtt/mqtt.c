@@ -5,7 +5,7 @@
 
 #include <network/network.h>
 #include <storage/storage.h>
-#include <mg_dns_config.h>
+#include <mongoose_dns.h>
 
 #include <toolbox/hex.h>
 
@@ -23,7 +23,8 @@ static void mqtt_wifi_event_callback(const void* state, void* context) {
             },
     };
 
-    mg_dns_config_apply_from_info(&instance->mgr, info);
+    mongoose_dns_deinit(&instance->mgr);
+    mongoose_dns_init_manual(&instance->mgr, info->ip_config.ip4.dns.value);
     mg_wakeup(&instance->mgr, instance->api_connection_id, &msg, sizeof(MqttApiMessage));
 }
 

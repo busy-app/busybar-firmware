@@ -5,7 +5,7 @@
 #include <mongoose.h>
 
 #include <network/network.h>
-#include <mg_dns_config.h>
+#include <mongoose_dns.h>
 
 #define TAG "TimeUpdate"
 
@@ -103,7 +103,7 @@ static int32_t time_update_thread_callback(void* context) {
 
     struct mg_mgr mgr;
     mg_mgr_init(&mgr);
-    mg_dns_config_apply_auto(&mgr);
+    mongoose_dns_init_auto(&mgr);
 
     struct mg_connection* conn =
         mg_sntp_connect(&mgr, settings.server_address, time_update_callback, &time_update_context);
@@ -122,7 +122,7 @@ static int32_t time_update_thread_callback(void* context) {
         mg_mgr_poll(&mgr, 1000);
     }
 
-    mg_dns_config_cleanup(&mgr);
+    mongoose_dns_deinit(&mgr);
     mg_mgr_free(&mgr);
     network_deinit_current_thread(network);
     furi_record_close(RECORD_NETWORK);

@@ -7,6 +7,7 @@
 
 #if defined(BSB_MCU_U5)
 #include <mongoose_glue.h>
+#include <mongoose_dns_i.h>
 #endif // BSB_MCU_U5
 
 #define TAG "Network"
@@ -65,4 +66,8 @@ void network_on_system_start(void) {
 #endif // BSB_MCU_U5
 
     furi_record_create(RECORD_NETWORK, NULL);
+
+#if defined(BSB_MCU_U5)
+    mongoose_dns_startup();
+#endif // BSB_MCU_U5
 }
