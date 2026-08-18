@@ -164,7 +164,11 @@ static BrightnessControl* brightness_control_alloc(void) {
 #if defined(SRV_LIGHT_SENSOR)
     LightSensor* light_sensor = furi_record_open(RECORD_LIGHT_SENSOR);
     LightSensorState light_sensor_state;
-    furi_state_get_subscribe(light_sensor_get_state(light_sensor), &light_sensor_state, light_sensor_state_callback, instance);
+    furi_state_get_subscribe(
+        light_sensor_get_state(light_sensor),
+        &light_sensor_state,
+        light_sensor_state_callback,
+        instance);
     instance->last_light_sensor_level = light_sensor_state.level;
 #else
     UNUSED(light_sensor_event);
