@@ -60,13 +60,6 @@ LightSensorData* light_sensor_data_alloc(void) {
     return instance;
 }
 
-void light_sensor_data_free(LightSensorData* instance) {
-    furi_check(instance);
-
-    free(instance->measurements);
-    free(instance);
-}
-
 bool light_sensor_data_add_measurement(LightSensorData* instance, float lux) {
     furi_check(instance);
 

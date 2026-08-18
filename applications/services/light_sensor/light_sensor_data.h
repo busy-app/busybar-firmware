@@ -25,13 +25,6 @@ typedef struct LightSensorData LightSensorData;
 LightSensorData* light_sensor_data_alloc(void);
 
 /**
- * @brief Free a LightSensorData instance.
- *
- * @param[in,out] instance Pointer to the LightSensorData instance to be freed.
- */
-void light_sensor_data_free(LightSensorData* instance);
-
-/**
  * @brief Add a new light measurement.
  *
  * @param[in,out] instance Pointer to the LightSensorData instance.
