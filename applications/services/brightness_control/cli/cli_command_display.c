@@ -118,8 +118,18 @@ static void cli_action_gamma(PipeSide* pipe, FuriString* args, GuiDisplayId id) 
         return;
     }
 
+    if((max < 0) || (max >= 64)) {
+        printf("Error: maximum value is out of range");
+        return;
+    }
+
     if(!args_read_int_and_trim(args, &gamma)) {
         printf("Error: missing gamma value");
+        return;
+    }
+
+    if(gamma <= 0) {
+        printf("Error: gamma value is out of range");
         return;
     }
 
