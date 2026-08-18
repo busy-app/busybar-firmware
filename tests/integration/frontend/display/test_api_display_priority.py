@@ -51,7 +51,7 @@ from clients.api.assets import (
     LOADER_PASSTHROUGH_PRIORITY,
     DEFAULT_ELEMENT_PRIORITY,
 )
-from clients.api.streaming import raw_to_png
+from clients.api.streaming import FRONT_DISPLAY_WIDTH, raw_to_png
 from utils.busy_timer import (
     WORK_CARD_UUID,
     next_timestamp,
@@ -164,7 +164,7 @@ def _nearest_avg_distance(frame: bytes, references: list[bytes]) -> float:
 
 
 def _front_region(frame: bytes, region: tuple[int, int, int, int]) -> bytes:
-    width = 72
+    width = FRONT_DISPLAY_WIDTH
     x1, y1, x2, y2 = region
 
     roi = bytearray()
