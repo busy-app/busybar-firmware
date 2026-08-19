@@ -117,8 +117,8 @@ class TestXpmBitmapElement:
             assets_api.assert_status(response, 200)
 
         with allure.step("Verify the nibble-packed luma values"):
-            # 0x8 pins the luma conversion itself: unlike black (canvas
-            # background) and white, mid-gray cannot be satisfied by accident.
+            # mid-gray pins the luma conversion; black and white alone can
+            # match the canvas background
             assert_back_pixels(
                 streaming_api,
                 {(x, y): 0x0, (x + 1, y): 0x8, (x + 2, y): 0xF},

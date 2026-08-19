@@ -40,8 +40,7 @@ def raw_to_png(raw_pixels: bytes, display: int) -> bytes:
         PNG image bytes, upscaled for readability.
     """
     if display == 0:
-        # The device framebuffer is BGR; decode accordingly so PNGs are
-        # color-correct (see FrontFrame.pixel for the same byte order).
+        # Front framebuffer bytes are BGR
         img = Image.frombytes(
             "RGB",
             (FRONT_DISPLAY_WIDTH, FRONT_DISPLAY_HEIGHT),

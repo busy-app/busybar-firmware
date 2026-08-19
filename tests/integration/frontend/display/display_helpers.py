@@ -1,9 +1,7 @@
-"""Shared element builders, XPM2 sources, and frame-wait helpers.
+"""Shared element builders, XPM2 source builders, and frame-wait helpers.
 
-Framebuffer layout knowledge (byte order, nibble packing) lives in
-``clients.api.streaming`` (``FrontFrame`` / ``BackFrame``); this module owns
-the test-level vocabulary: how to build draw-request elements, how to compose
-XPM2 sources, and how to wait for rendered frames with useful diagnostics.
+Framebuffer layout lives in clients.api.streaming (FrontFrame/BackFrame);
+this module owns the draw-request vocabulary and render waits.
 """
 
 from __future__ import annotations
@@ -26,9 +24,8 @@ _FRAME_POLL_INTERVAL = 0.1
 
 _FrameT = TypeVar("_FrameT", FrontFrame, BackFrame)
 
-# Draw-request fill colors (#RRGGBBAA) with their expected readback values:
-# RGB_* are (R, G, B) tuples as returned by FrontFrame.pixel; BGR_* are the
-# raw framebuffer byte triplets for whole-frame comparisons.
+# Fill colors (#RRGGBBAA) and their readback forms: RGB_* as FrontFrame.pixel
+# tuples, BGR_* as raw framebuffer byte triplets.
 FILL_BLACK = "#000000FF"
 FILL_RED = "#FF0000FF"
 FILL_GREEN = "#00FF00FF"
@@ -51,9 +48,8 @@ BGR_BLUE = b"\xff\x00\x00"
 XPM_API_MAX_COLORS = 32
 XPM_API_MAX_CPP = 4
 
-# Smallest real shared assets on the device (from /ext/shared/images and
-# /ext/shared/animations). stock_path resolution: firmware takes the filename
-# after the last "/" and looks it up in /ext/shared/images/ (image) or
+# Smallest real shared assets on the device. stock_path resolution: firmware
+# takes the basename and looks it up in /ext/shared/images/ (image) or
 # /ext/shared/animations/ (anim).
 BUILTIN_IMAGE = "shared/checkmark_front_8x8.image"  # 28 bytes
 BUILTIN_ANIM = "shared/spinner_front_8x8.anim"  # 2985 bytes
@@ -362,12 +358,3 @@ def assert_back_pixels(
     )
     return frame
 
-
-# ---------------------------------------------------------------------------
-# Migration seams (thin delegates; prefer the frame objects in new code)
-# ---------------------------------------------------------------------------
-
-
-def back_pixel(frame: bytes, x: int, y: int) -> int:
-    """Return one 4-bit luma pixel from a nibble-packed back-display frame."""
-    return BackFrame(frame).pixel(x, y)

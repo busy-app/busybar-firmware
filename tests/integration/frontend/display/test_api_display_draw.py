@@ -106,10 +106,6 @@ def _draw_raw(api: AssetsAPI, body: dict) -> requests.Response:
     return api.draw_raw(body)
 
 
-# Element builders (`_text`, `_countdown`, `_image`, `_anim`) and the builtin
-# asset paths are imported from display_helpers above.
-
-
 # ───────────────────────────────────────────────────────────────────────────
 # TestDrawRequestValidation — top-level request body validation
 # ───────────────────────────────────────────────────────────────────────────
@@ -602,9 +598,8 @@ class TestImageElement:
         # A missing image asset fails decoder validation and is rejected with 400.
         assets_api.assert_status(_draw(assets_api, [missing_elem]), 400)
 
-        # Own the canvas with a black base so the reference frame is static
-        # regardless of the underlying app screen, then verify the builtin
-        # image renders non-black pixels over it.
+        # A black base keeps the reference frame static regardless of the
+        # underlying app screen
         base = solid_rectangle("bi_base", FILL_BLACK, timeout=10)
         assets_api.assert_status(_draw(assets_api, [base]), 200)
         blank = wait_for_front_frame(
@@ -673,18 +668,16 @@ class TestAnimElement:
         valid_elem = _anim(element_id="ba1", timeout=10)
         missing_elem = _anim(element_id="ba1", stock_path=_MISSING_ANIM, timeout=10)
 
-        # Own the canvas with a black base so both checks compare against a
-        # static reference regardless of the underlying app screen.
+        # A black base keeps the reference frame static regardless of the
+        # underlying app screen
         base = solid_rectangle("ba_base", FILL_BLACK, timeout=10)
         assets_api.assert_status(_draw(assets_api, [base]), 200)
         blank = wait_for_front_frame(
             streaming_api, _all_black, "an all-black canvas base"
         )
 
-        # A missing asset is accepted, but instead of animation frames the
-        # player renders the static load-error placeholder (I_load_error_9x9,
-        # see anim_player.c) at the element position — verified pixel-exact
-        # against the source PNG.
+        # A missing asset is accepted; the player renders the load-error
+        # placeholder instead (see _load_error_icon_expectation)
         assets_api.assert_status(_draw(assets_api, [base, missing_elem]), 200)
         placeholder = assert_front_pixels(
             streaming_api,
@@ -692,8 +685,6 @@ class TestAnimElement:
             "Anim load-error placeholder",
         )
 
-        # The builtin animation renders pixels distinct from both the black
-        # base and the placeholder.
         assets_api.assert_status(_draw(assets_api, [base, valid_elem]), 200)
         wait_for_front_frame(
             streaming_api,
