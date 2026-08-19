@@ -79,6 +79,26 @@ static bool api_storage_write_headers_callback(
     return true;
 }
 
+static bool api_storage_write_request_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(path);
+    UNUSED(msg);
+    UNUSED(ctx);
+
+    if(method == HttpMethodOptions) {
+        http_reply_cors_preflight(conn, HttpMethodPost);
+        return true;
+    }
+
+    MG_REPLY_BAD_REQUEST(conn);
+
+    return true;
+}
+
 static bool api_storage_filename_is_header_safe(const FuriString* filename) {
     return furi_string_search_char(filename, '"', 0) == FURI_STRING_FAILURE &&
            furi_string_search_char(filename, '\r', 0) == FURI_STRING_FAILURE &&
@@ -327,6 +347,7 @@ static const HttpHandler handlers_storage[] = {
         .method = HttpMethodPost,
         .type = HttpHandlerCustom,
         .on_headers = api_storage_write_headers_callback,
+        .on_request = api_storage_write_request_callback,
     },
     {
         .uri = "read",

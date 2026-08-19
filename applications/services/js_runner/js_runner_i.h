@@ -75,6 +75,8 @@ typedef enum JsRunnerAppCommandType {
 } JsRunnerAppCommandType;
 
 typedef struct JsRunnerApp {
+    FuriString* app_id;
+
     size_t heap_size;
     void* jrs_context;
     FuriEventLoop* event_loop;
@@ -147,3 +149,5 @@ void js_runner_get_root_path(FuriString* path);
 
 void js_runner_add_fetch_thread(JsRunnerApp* app, JsFetch* fetch);
 void js_runner_del_fetch_thread(JsRunnerApp* app, JsFetch* fetch);
+
+const char* js_runner_app_get_id(const JsRunnerApp* app);

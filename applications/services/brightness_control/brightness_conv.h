@@ -1,5 +1,6 @@
 #pragma once
 #include <light_sensor/light_sensor.h>
+#include <light_sensor/light_sensor_common.h>
 #include <front_display/front_display.h>
 #include <back_display/back_display.h>
 #if defined(SRV_STATUS_LIGHTS)

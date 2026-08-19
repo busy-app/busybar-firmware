@@ -1,8 +1,25 @@
+/**
+ * @file light_sensor_data.h
+ * @brief Data structure containing various light sensor values.
+ */
 #pragma once
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
+#include "light_sensor_common.h"
+
+/**
+ * @brief Minimum light intensity value, in lux.
+ */
+#define LIGHT_SENSOR_DATA_LUX_MIN (1.0f)
+
+/**
+ * @brief Maximum light intensity value, in lux.
+ */
+#define LIGHT_SENSOR_DATA_LUX_MAX (10000.0f)
+
+/**
+ * @brief Number of data points for the sliding average.
+ */
+#define LIGHT_SENSOR_DATA_WINDOW_SIZE (5)
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,66 +31,26 @@ extern "C" {
 typedef struct LightSensorData LightSensorData;
 
 /**
- * @brief Configuration structure for LightSensorData.
- */
-typedef struct {
-    size_t window_size; /**< Size of the measurement window. The less value, the faster response */
-
-    // Light level range
-    uint8_t light_level_max; /**< Maximum light level index */
-
-    // Light mapping parameters
-    float lux_min; /**< Minimum lux value to map (default: 5.0) */
-    float lux_max; /**< Maximum lux value to map (default: 15000.0) */
-    bool use_logarithmic_mapping; /**< Whether to use logarithmic mapping (true) or linear (false) */
-} LightSensorDataConfig;
-
-/**
  * @brief Allocate a new LightSensorData instance.
- * 
- * @param config Configuration for the LightSensorData instance.
- * @return Pointer to the allocated LightSensorData instance.
+ *
+ * @returns Pointer to the allocated LightSensorData instance.
  */
-LightSensorData* light_sensor_data_alloc(const LightSensorDataConfig* config);
-
-/**
- * @brief Free a LightSensorData instance.
- * 
- * @param instance Pointer to the LightSensorData instance to be freed.
- */
-void light_sensor_data_free(LightSensorData* instance);
+LightSensorData* light_sensor_data_alloc(void);
 
 /**
  * @brief Add a new light measurement.
- * 
- * @param instance Pointer to the LightSensorData instance.
- * @param lux Light level in lux.
+ *
+ * @param[in,out] instance Pointer to the LightSensorData instance.
+ * @param[in] lux Light level in lux.
  */
 void light_sensor_data_add_measurement(LightSensorData* instance, float lux);
 
 /**
- * @brief Get the mean light level in lux.
- * 
- * @param instance Pointer to the LightSensorData instance.
- * @return Mean light level in lux.
+ * @brief Get the current light sensor state.
+ * @param[in] instance Pointer to the LightSensorData instance.
+ * @param[out] state Pointer to the state object to be copied into (must be allocated).
  */
-float light_sensor_data_get_lux(LightSensorData* instance);
-
-/**
- * @brief Get the instant light level in lux.
- * 
- * @param instance Pointer to the LightSensorData instance.
- * @return Instant light level in lux.
- */
-float light_sensor_data_get_lux_instant(LightSensorData* instance);
-
-/**
- * @brief Get the current light level.
- * 
- * @param instance Pointer to the LightSensorData instance.
- * @return Current light level.
- */
-uint8_t light_sensor_data_get_light_level(LightSensorData* instance);
+void light_sensor_data_get_state(const LightSensorData* instance, LightSensorState* state);
 
 #ifdef __cplusplus
 }

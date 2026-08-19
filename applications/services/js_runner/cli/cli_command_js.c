@@ -11,6 +11,8 @@ typedef struct JsCliParams {
     bool abort_scripts;
 } JsCliParams;
 
+#define CLI_APP_ID "app.busy.cli"
+
 static void js_console_cb(
     JsRunnerConsoleSeverity severity,
     const char* buf,
@@ -45,10 +47,10 @@ static void js_console_cb(
 }
 
 static void run_script(const FuriString* arg, const FuriString* app_id) {
-    UNUSED(app_id); // TODO in localStorage
     JsRunner* runner = furi_record_open(RECORD_JS_RUNNER);
+    const char* id = app_id ? furi_string_get_cstr(app_id) : CLI_APP_ID;
     JsRunnerError error =
-        js_runner_run(runner, furi_string_get_cstr(arg), 64 * 1024, js_console_cb, NULL);
+        js_runner_run(runner, id, furi_string_get_cstr(arg), 64 * 1024, js_console_cb, NULL);
     if(error != JsRunnerErrorNone) {
         printf("Error running script: %s", js_runner_get_error_message(error));
     }

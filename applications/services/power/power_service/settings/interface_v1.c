@@ -21,7 +21,7 @@ const SettingProviderSetting power_v1_settings[] = {
                 },
             .context =
                 &(const IntMinMaxValidationContext){
-                    .min = 50,
+                    .min = 30,
                     .max = 100,
                 },
             .field_offset = offsetof(PowerSettingsV1, charge_limit),
