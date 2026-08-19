@@ -54,6 +54,73 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /api/access/tokens:
+    get:
+      tags:
+        - Settings
+      summary: List all access tokens
+      description: Provides basic information all access tokens (IDs, names and timestamps)
+      operationId: getAccessTokens
+      responses:
+        "200":
+          description: Information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessTokensInfo"
+    post:
+      tags:
+        - Settings
+      summary: Create a new access token
+      description: Generates a new access token for authorization alongside the access key
+      operationId: createAccessToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccessTokensCreateRequest"
+      responses:
+        "200":
+          description: Retrieved information about access tokens
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessToken"
+    delete:
+      tags:
+        - Settings
+      summary: Revoke all access tokens
+      description: Removes all access tokens all at once
+      operationId: deleteAllAccessTokens
+      responses:
+        "200":
+          description: Deleted all access tokens
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+  /api/access/tokens/{short_id}:
+    delete:
+      tags:
+        - Settings
+      summary: Revoke an access token
+      description: Removes the access token with the specified short ID
+      operationId: revokeAccessToken
+      parameters:
+        - name: short_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Deleted corresponding access token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
   /api/name:
     get:
       tags:
@@ -199,6 +266,56 @@ schemas:
         type: boolean
         description: Access key was set and is valid
         example: true
+
+  AccessToken:
+    type: object
+    properties:
+      short_id:
+        type: string
+        minLength: 8
+        maxLength: 8
+        description: Short ID of the access token. Matches the first 8 characters of the token.
+        example: "AAMTBO0f"
+      display_id:
+        type: string
+        minLength: 15
+        maxLength: 15
+        description: Long ("display") ID of the access token. Matches the first 8 characters and last 6 characters of the token.
+        example: "AAMTBO0f…Wn4fID"
+      name:
+        type: string
+        description: User-assigned name of the token
+        example: "My Script Name"
+      created_at:
+        type: string
+        description: "Unix millisecond timestamp of when the token was created. Note: it's a number in a string."
+        example: "1785812863582"
+      last_used_at:
+        type: string
+        description: "Unix millisecond timestamp of when the token was used to make any request. Note: it's a number in a string."
+        example: "1785812891337"
+      token:
+        type: string
+        description: "Full access token. Can be used in place of the access key in \"X-API-Token\" header. Only shown once when generated, never again."
+        example: "AAMTBO0fvAxB5ZO8ds8bA1JofGWn4fID"
+
+  AccessTokensInfo:
+    type: object
+    properties:
+      tokens:
+        type: array
+        items:
+          $ref: "#/components/schemas/AccessToken"
+
+  AccessTokensCreateRequest:
+    type: object
+    properties:
+      name:
+        type: string
+        description: Arbitrary name to differentiate this token from others
+        example: "My Script Name"
+    required:
+      - name
 
   NameInfo:
     type: object

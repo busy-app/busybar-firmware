@@ -269,6 +269,25 @@ export const useDeviceStore = defineStore('device', () => {
       });
   }
 
+  // Debug log
+  const DEBUG_LOG_FILENAME = 'web-debug-log';
+  async function requestDebugLogDump () {
+    return await busyBar.value.SystemLogDump({ filename: DEBUG_LOG_FILENAME })
+      .then(({ path }) => path)
+      .catch(async error => {
+        await handleHTTPError(error, 'Failed to generate debug log due to an internal error. Please try again.', true);
+        return undefined;
+      });
+  }
+  async function fetchDebugLog (path: string) {
+    return await busyBar.value.StorageRead({ path })
+      .then(file => file instanceof Blob ? file : new Blob([file], { type: 'text/plain' }))
+      .catch(async error => {
+        await handleHTTPError(error, 'Unable to download debug log. Please try again.', true);
+        return undefined;
+      });
+  }
+
   // Account
   const accountInfo = ref<AccountInfo | null>(null);
   async function fetchAccountInfo () {
@@ -309,6 +328,9 @@ export const useDeviceStore = defineStore('device', () => {
     httpAPIAccess,
     fetchHttpAPIAccess,
     setHttpAPIAccess,
+
+    requestDebugLogDump,
+    fetchDebugLog,
 
     accountInfo,
     fetchAccountInfo

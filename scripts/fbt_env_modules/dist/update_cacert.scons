@@ -1,0 +1,14 @@
+Import("FW_ENV")
+fwenv = FW_ENV
+
+fw_assets_env = fwenv.Clone(tools=["bsb_certs"])
+
+target_path = "${PROJECT_ROOT}/assets/shared/ca/"
+target_name = fw_assets_env['CACERT_FILENAME']
+
+target_file = fw_assets_env.File(target_path+target_name)
+
+fw_assets_env.Precious(target_file)
+file = fw_assets_env.UpdateCerts(target=target_file, source=[])
+
+Alias("update_cacert", file)

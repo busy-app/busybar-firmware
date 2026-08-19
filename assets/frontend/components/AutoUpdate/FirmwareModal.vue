@@ -148,7 +148,7 @@ const updateErrorMarkdown = `
     [How to charge BUSY Bar](https://go.busy.app/bar-battery-charge)
 4. Update your BUSY Bar from another device via BUSY App\n
     [How to update BUSY Bar firmware](https://go.busy.app/bar-firmware-update)
-5. If you’re using a custom file, make sure it’s the correct package (.tar or .tgz)
+5. If you’re using a custom file, make sure it’s the correct package (.tgz)
 `;
 
 const indeterminateProgressModel = ref(null);

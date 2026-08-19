@@ -3,7 +3,6 @@
 #include <settings_helpers/gui_params.h>
 
 #include <gui/modules/dialog.h>
-#include <gui/modules/image.h>
 
 typedef enum {
     SceneEventConfirm = AppEventSceneEventsStart,
@@ -11,9 +10,7 @@ typedef enum {
 } SceneEvent;
 
 typedef struct {
-    FlexLayout* front_layout;
     Dialog* front_dialog;
-
     Dialog* back_dialog;
 } SceneSystemFactoryResetConfirm;
 
@@ -37,18 +34,8 @@ static void system_settings_scene_factory_reset_confirm_on_enter(void* context) 
 
     with_gui(instance->gui, {
         /* front layout setup */
-        data->front_layout = flex_layout_alloc(instance->front_scene_window, FlexLayoutTypeRow);
-        flex_layout_set_spacing(data->front_layout, 2);
-        flex_layout_set_align(
-            data->front_layout, FlexLayoutAlignStart, FlexLayoutAlignCenter, FlexLayoutAlignCenter);
-
-        Image* front_image = image_alloc(flex_layout_get_base(data->front_layout));
-        image_set_source(front_image, SHARED_IMG_PATH("error_front_8x8.image"));
-        widget_set_size_content(image_get_base(front_image));
-
-        data->front_dialog = dialog_alloc(flex_layout_get_base(data->front_layout));
-        flex_layout_set_child_widget_grow(
-            data->front_layout, dialog_get_base(data->front_dialog), 1);
+        data->front_dialog = dialog_alloc(instance->front_scene_window);
+        dialog_set_icon(data->front_dialog, SHARED_IMG_PATH("error_front_8x8.image"));
         dialog_set_text(data->front_dialog, "Reset\ndevice?");
         dialog_set_option_colors(
             data->front_dialog,
@@ -74,8 +61,8 @@ static void system_settings_scene_factory_reset_confirm_on_exit(void* context) {
         scene_manager_get_scene_data(instance->scene_manager, SceneIdFactoryResetConfirm);
 
     with_gui(instance->gui, {
+        dialog_free(data->front_dialog);
         dialog_free(data->back_dialog);
-        flex_layout_free(data->front_layout);
     });
 }
 

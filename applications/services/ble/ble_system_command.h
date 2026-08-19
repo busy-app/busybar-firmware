@@ -4,7 +4,8 @@
  */
 #pragma once
 
-#include "ble_i.h"
+#include "ble.h"
+#include "ble_intercom_types.h"
 
 /** 
 * @brief Enumeration of possible ble commands. 
@@ -27,14 +28,21 @@ typedef enum {
 } BleSystemCommand;
 
 /**
- * @brief Get pointer to frame from different source
+ * @brief Command handler callback function type
  *
- * @param[in] instance pointer to the ble instance
- * @param[in] source source with frame pending for processing
- * @returns pointer to frame for further processing
+ * @param[in] frame Pointer to frame
+ * @param[in] context Execution context
+ * @return true when handling was fine, otherwise false
  */
-BleIntercomFrameGeneric*
-    ble_command_extract_frame(Ble* instance, BleCommandEngineExtractFrameSource source);
+typedef bool (*BleCommandHandler)(BleIntercomFrameGeneric* frame, void* context);
+
+/**
+ * @brief Struct for one command handlers
+ */
+typedef struct {
+    BleCommandHandler request;
+    BleCommandHandler response;
+} BleCommandItem;
 
 /**
  * @brief Send frame as a request to another side
@@ -68,24 +76,9 @@ bool ble_command_response_process(BleIntercomFrameGeneric* frame, void* context)
 bool ble_command_deinit_process(BleIntercomFrameGeneric* frame, void* context);
 
 /**
- * @brief Unblocks external thread which has been waiting for ble command to be completed
- *
- * @param[in] instance pointer to the ble instance
- * @param[in] result result if command processing, which will be transferred to public api
- * call and become its return value
- */
-void ble_command_unblock_with_result(Ble* instance, bool result);
-
-/**
  * @brief Array with command handlers. 
  *
  * Each side has its own command handlers implementation which are placed in ble_system_command_u5.c
  * for U5 and and ble_system_command_917.c for 917. This array is used for command engine initialization
  */
 extern const BleCommandItem ble_commands[];
-
-void ble_invoke_retry_command_on_internal_event(
-    Ble* instance,
-    BleSystemCommand command,
-    BleEventType retry_event,
-    uint32_t retry_timeout);

@@ -23,9 +23,18 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
     oasdiff:
         runs-on: ubuntu-latest
+
+        # Job outputs only accept scalar expressions; the description/value
+        # object form is only valid for on.workflow_call.outputs.
+        outputs:
+            oasdiff_report: ${{ steps.export-report.outputs.oasdiff_report }}
 
         env:
             OAPI_DIR: applications/services/web_server/openapi
@@ -109,15 +118,18 @@ jobs:
                     echo "exit_code=$?" >> "$GITHUB_OUTPUT"
                   fi
 
-                  CHANGELOG="$(oasdiff changelog --format markdown "base/${OAS_OUT}" "${OAS_OUT}" 2>&1 | sed -E 's/(^|[^#])#([0-9]+)/\1`#\2`/g')" || true
-                  echo 'changelog<<EOF' >> "$GITHUB_OUTPUT"
-                  echo "$CHANGELOG" >> "$GITHUB_OUTPUT"
-                  echo 'EOF' >> "$GITHUB_OUTPUT"
+                  # Run oasdiff changelog once, then derive both payloads from it
+                  oasdiff changelog --format markdown "base/${OAS_OUT}" "${OAS_OUT}" 2>/dev/null > oasdiff_changelog_raw.txt || true
 
-                  REPORT_MD="$(oasdiff diff --format markdown --exclude-elements description,summary,examples "base/${OAS_OUT}" "${OAS_OUT}" 2>&1 | sed -E 's/(^|[^#])#([0-9]+)/\1`#\2`/g')" || true
-                  echo 'report_md<<EOF' >> "$GITHUB_OUTPUT"
-                  echo "$REPORT_MD" >> "$GITHUB_OUTPUT"
-                  echo 'EOF' >> "$GITHUB_OUTPUT"
+                  # GitHub comment payload: escape #NNN so GitHub does not auto-link to issues/PRs
+                  sed -E 's/(^|[^#])#([0-9]+)/\1`#\2`/g' oasdiff_changelog_raw.txt > oasdiff_changelog.md
+                  oasdiff diff --format markdown --exclude-elements description,summary,examples "base/${OAS_OUT}" "${OAS_OUT}" 2>/dev/null \
+                    | sed -E 's/(^|[^#])#([0-9]+)/\1`#\2`/g' > oasdiff_diff.md || true
+
+                  # Slack payload: escape HTML entities that Slack mrkdwn would interpret as markup
+                  grep -v '^# ' oasdiff_changelog_raw.txt | head -20 \
+                    | sed -e 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g' > oasdiff_changelog_slack.txt
+                  rm -f oasdiff_changelog_raw.txt
 
             - name: Check version bump
               id: version_check
@@ -185,26 +197,46 @@ jobs:
                     echo "version_msg=$SYNC_MSG" >> "$GITHUB_OUTPUT"
                   fi
 
-            - name: Comment on PR
+            - name: Prepare PR comment
               if: ${{ github.event_name == 'pull_request' }}
+              run: |
+                  # Build the comment from files so the changelog/diff text is never
+                  # interpolated into a shell script (backticks, quotes and $ are safe).
+                  {
+                    echo "## OpenAPI Diff Report"
+                    echo "**Version:** ${{ steps.version_check.outputs.base_version }} → ${{ steps.version_check.outputs.current_version }} ${{ steps.version_check.outputs.version_ok == 'true' && '✅' || format('❌ {0}', steps.version_check.outputs.version_msg) }}"
+                    echo "**Breaking changes:** ${{ steps.oasdiff.outputs.exit_code == '0' && '✅ None' || '❌ Detected' }}"
+                    echo ""
+                    cat oasdiff_changelog.md
+                    echo ""
+                    echo "<details>"
+                    echo "<summary>Full diff</summary>"
+                    echo ""
+                    cat oasdiff_diff.md
+                    echo ""
+                    echo "</details>"
+                    echo ""
+                    echo "<sub>Description, summary, and example changes are excluded.</sub>"
+                  } > oasdiff_comment.md
+
+            - name: Comment on PR
+              if: ${{ github.event_name == 'pull_request' && !github.event.pull_request.head.repo.fork }}
               uses: thollander/actions-comment-pull-request@v3
               with:
-                  message: |
-                      ## OpenAPI Diff Report
-                      **Version:** ${{ steps.version_check.outputs.base_version }} → ${{ steps.version_check.outputs.current_version }} ${{ steps.version_check.outputs.version_ok == 'true' && '✅' || format('❌ {0}', steps.version_check.outputs.version_msg) }}
-                      **Breaking changes:** ${{ steps.oasdiff.outputs.exit_code == '0' && '✅ None' || '❌ Detected' }}
-
-                      ${{ steps.oasdiff.outputs.changelog }}
-
-                      <details>
-                      <summary>Full diff</summary>
-
-                      ${{ steps.oasdiff.outputs.report_md }}
-
-                      </details>
-
-                      <sub>Description, summary, and example changes are excluded.</sub>
+                  file-path: oasdiff_comment.md
                   comment-tag: oasdiff-report
+
+            - name: Export report to job output (fork PRs)
+              if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork }}
+              id: export-report
+              run: |
+                  # Fork PRs cannot receive PR comments (GITHUB_TOKEN is read-only), so
+                  # publish the report as a job output instead.
+                  {
+                    echo "oasdiff_report<<OASDIFF_REPORT_EOF"
+                    cat oasdiff_comment.md
+                    echo "OASDIFF_REPORT_EOF"
+                  } >> "$GITHUB_OUTPUT"
 
             - name: Post to Slack
               if: ${{ github.event_name == 'push' && steps.version_check.outputs.version_ok == 'true' && steps.version_check.outputs.base_version != steps.version_check.outputs.current_version }}
@@ -221,12 +253,6 @@ jobs:
                   EVENT_AUTHOR="${{ github.actor }}"
                   STATUS=${{ steps.oasdiff.outputs.exit_code == '0' && '"✅ No breaking changes"' || '"❌ Breaking changes detected"' }}
 
-                  # Build a brief changelog for Slack (strip markdown heading, limit length)
-                  CHANGELOG=$(echo '${{ steps.oasdiff.outputs.changelog }}' | grep -v '^# ' | head -20)
-                  if [ -z "$CHANGELOG" ]; then
-                    CHANGELOG="No structural API changes"
-                  fi
-
                   VERSION_BASE="${{ steps.version_check.outputs.base_version }}"
                   VERSION_CURR="${{ steps.version_check.outputs.current_version }}"
                   VERSION_OK="${{ steps.version_check.outputs.version_ok }}"
@@ -241,7 +267,7 @@ jobs:
                     -H 'Content-Type: application/json' \
                     -d "$(jq -n \
                       --arg status "$STATUS" \
-                      --arg changelog "$CHANGELOG" \
+                      --rawfile changelog oasdiff_changelog_slack.txt \
                       --arg version "$VERSION_LINE" \
                       --arg pr_title "$EVENT_TITLE" \
                       --arg pr_url "$EVENT_URL" \
@@ -258,7 +284,7 @@ jobs:
                           },
                           {
                             type: "section",
-                            text: { type: "mrkdwn", text: $changelog }
+                            text: { type: "mrkdwn", text: (if $changelog == "" then "No structural API changes" else $changelog end) }
                           }
                         ]
                       }'

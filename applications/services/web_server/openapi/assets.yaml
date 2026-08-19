@@ -8,25 +8,24 @@ paths:
       tags:
         - Assets
       summary: Upload asset file with app ID
-      description: Uploads a file to a specific app's assets directory
+      description: |
+        Upload a file to the application-specific assets directory. If the directory does not yet exist, it will be created automatically.
+        Additionally, if the file name contains a subdirectory, it will be created as well, and the file will be placed inside of it.
       operationId: uploadAssetWithAppId
       parameters:
         - name: application_name
           in: query
           required: true
           schema:
-            type: string
-            pattern: "^[a-zA-Z0-9._-]+$"
-          description: Application ID for organizing assets
-          example: "my_app"
+            $ref: "#/components/schemas/ApplicationName"
+          description: Application name for organizing assets
         - name: file
           in: query
           required: true
           schema:
-            type: string
-            pattern: "^[a-zA-Z0-9._-]+$"
-          description: Filename for the uploaded asset
-          example: "data.png"
+            $ref: "#/components/schemas/AssetsPath"
+          description: File path for the uploaded asset within the app assets directory
+          example: "file.png"
       requestBody:
         required: true
         content:
@@ -72,10 +71,8 @@ paths:
           in: query
           required: true
           schema:
-            type: string
-            pattern: "^[a-zA-Z0-9._-]+$"
+            $ref: "#/components/schemas/ApplicationName"
           description: Application ID whose assets should be deleted
-          example: "my_app"
       responses:
         "200":
           description: Assets deleted successfully
@@ -134,23 +131,34 @@ paths:
       tags:
         - Assets
       summary: Clear display
-      description: Deletes display elements drawn by the Canvas application. If application_name is specified, only elements for that app are removed.
+      description: Deletes display elements drawn via this API. This operation can be selective - see the request body type.
       operationId: clearDisplay
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeletionParameters"
       parameters:
         - name: application_name
           in: query
           required: false
           schema:
-            type: string
+            $ref: "#/components/schemas/ApplicationName"
           description: Application identifier
-          example: "my_app"
       responses:
         "200":
-          description: Display cleared successfully
+          description: Display or some elements cleared successfully
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid deletion data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /api/audio/play:
     post:
@@ -214,14 +222,28 @@ paths:
                 $ref: "#/components/schemas/Error"
 
 schemas:
+  ApplicationName:
+    type: string
+    maxLength: 32
+    pattern: "^[a-zA-Z0-9._-]+$"
+    example: "my_app"
+
+  AssetsPath:
+    type: string
+    maxLength: 64
+    pattern: "^[a-zA-Z0-9._/-]+$"
+
+  StockPath:
+    type: string
+    maxLength: 256
+    pattern: "shared/[a-zA-Z0-9._/-]+$"
+
   DisplayElements:
     type: object
     properties:
       application_name:
-        type: string
-        pattern: "^[a-zA-Z0-9._-]+$"
-        description: Application ID for organizing assets
-        example: "my_app"
+        $ref: "#/components/schemas/ApplicationName"
+        description: Application name for organizing assets
       priority:
         type: integer
         minimum: 1
@@ -240,7 +262,7 @@ schemas:
         type: string
         pattern: "^#[a-fA-F0-9]{8}$"
         description: >-
-          Color to blink the status LED, in #RRGGBBAA format. 
+          Color to blink the status LED, in #RRGGBBAA format.
           If not specified, the LED will not blink.
         example: "#FF0000FF"
       elements:
@@ -253,6 +275,7 @@ schemas:
             - $ref: "#/components/schemas/AnimationElement"
             - $ref: "#/components/schemas/CountdownElement"
             - $ref: "#/components/schemas/RectangleElement"
+            - $ref: "#/components/schemas/XpmBitmapElement"
         description: Array of elements to display
     required:
       - application_name
@@ -285,13 +308,6 @@ schemas:
           font: small
           color: "#AAFF00FF"
           display: "front"
-        - id: "2"
-          timeout: 6
-          type: "image"
-          path: "data.png"
-          x: 0
-          y: 0
-          display: "back"
 
   DisplayElement:
     type: object
@@ -312,7 +328,7 @@ schemas:
         description: The element will be hidden when system time reaches the specified Unix timestamp (in seconds). Mutually exclusive with timeout.
       type:
         type: string
-        enum: [text, image, animation, countdown, rectangle]
+        enum: [text, image, animation, countdown, rectangle, xpmbitmap]
         description: Type of display element
       x:
         type: integer
@@ -344,6 +360,11 @@ schemas:
           - bottom_left
           - bottom_mid
           - bottom_right
+      z_index:
+        type: integer
+        minimum: 0
+        maximum: 2147483647
+        description: Order of the element. Elements with higher Z-indexes are drawn on top of those with lower ones.
     discriminator:
       propertyName: type
       mapping:
@@ -352,6 +373,7 @@ schemas:
         animation: "#/components/schemas/AnimationElement"
         countdown: "#/components/schemas/CountdownElement"
         rectangle: "#/components/schemas/RectangleElement"
+        xpmbitmap: "#/components/schemas/XpmBitmapElement"
   TextElement:
     allOf:
       - $ref: "#/components/schemas/DisplayElement"
@@ -409,15 +431,13 @@ schemas:
                 - path
               properties:
                 path:
-                  type: string
-                  pattern: "^[a-zA-Z0-9._/-]+$"
+                  $ref: "#/components/schemas/AssetsPath"
                   description: Path to the image file in the app's assets
             - required:
                 - stock_path
               properties:
                 stock_path:
-                  type: string
-                  pattern: "shared/[a-z0-9_.]+$"
+                  $ref: "#/components/schemas/StockPath"
                   description: Stock image file name
           - properties:
               opacity:
@@ -435,13 +455,11 @@ schemas:
           - oneOf:
               - properties:
                   path:
-                    type: string
-                    pattern: "^[a-zA-Z0-9._/-]+$"
+                    $ref: "#/components/schemas/AssetsPath"
                     description: Path to the animation file in the app's assets
               - properties:
                   stock_path:
-                    type: string
-                    pattern: "shared/[a-z0-9_.]+$"
+                    $ref: "#/components/schemas/StockPath"
                     description: Stock animation file name
           - properties:
               loop:
@@ -488,7 +506,7 @@ schemas:
             type: string
             enum: [when_non_zero, always]
             description: When to show the hours position
-  
+
   RectangleElement:
     allOf:
       - $ref: "#/components/schemas/DisplayElement"
@@ -533,31 +551,71 @@ schemas:
             pattern: "^#[a-fA-F0-9]{8}$"
             description: "Color of the rectangle border in #RRGGBBAA format"
             default: "#FFFFFFFF"
+  XpmBitmapElement:
+    allOf:
+      - $ref: "#/components/schemas/DisplayElement"
+      - type: object
+        required:
+          - data
+        properties:
+          data:
+            type: string
+            minLength: 1
+            description: >-
+              XPM2 source as plain text: must begin with a "! XPM2" signature
+              line, followed by a "width height ncolors cpp" header line, then
+              ncolors color lines, then height pixel rows.
+              Each color line is "<chars> <visual> <value>" where visual is
+              c (color), g/g4 (grayscale), m (monochrome), or s (symbolic).
+              Values can be hex (#RGB, #RRGGBB, #RRRGGGBBB, #RRRRGGGGBBBB), 
+              or named (none, black, white, red, green, blue, yellow, cyan,
+              magenta, gray, grey).
+              Limits: ncolors <= 32, cpp <= 4, and width/height must not exceed
+              the target display dimensions (see the "display" field).
+          opacity:
+            type: integer
+            minimum: 0
+            maximum: 100
+            description: Opacity of the image in percentage (0-100)
+            default: 100
 
   PlayAudio:
     type: object
     allOf:
       - properties:
           application_name:
-            type: string
-            pattern: "^[a-zA-Z0-9._-]+$"
-            description: Application ID for organizing assets
-            example: "my_app"
+            $ref: "#/components/schemas/ApplicationName"
+            description: Application name for organizing assets
         required:
           - application_name
       - oneOf:
         - properties:
             path:
-              type: string
-              pattern: "^[a-zA-Z0-9._/-]+$"
+              $ref: "#/components/schemas/AssetsPath"
               description: Path to audio file within app's assets directory
-              example: "data.snd"
           required:
             - path
         - properties:
             stock_path:
-              type: string
-              pattern: "shared/[a-z0-9_.]+$"
+              $ref: "#/components/schemas/StockPath"
               description: Stock audio file name
+              examples:
+                - "beep.snd"
+                - "sounds/alert.snd"
           required:
               - stock_path
+
+  DeletionParameters:
+    type: object
+    properties:
+      application_name:
+        $ref: "#/components/schemas/ApplicationName"
+        description: Fill in this field for a sanity check that you actually own these elements. Omit it to delete them anyway.
+        example: my_app
+      element_ids:
+        description: Unique identifiers of elements that should be deleted. Omit this field to delete all elements.
+        type: array
+        items:
+          type: string
+          pattern: "^[a-zA-Z0-9._-]+$"
+          example: my_element

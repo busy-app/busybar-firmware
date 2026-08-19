@@ -77,6 +77,19 @@ void path_concat(const char* path, const char* suffix, FuriString* out_path);
  */
 bool path_contains_only_ascii(const char* path);
 
+/**
+ * @brief Normalizes path (resolves current and parent directory references).
+ *
+ * @param path path to normalize
+ * @param out_path output string to normalize path into. Must be initialized
+ * @param allow_escape_root if true, resulting paths can reference parents of current directory.
+ *
+ * @code
+ * path_normalize("a/../../b", out_path, true); // produces "../b"
+ * path_normalize("a/../../b", out_path, false); // produces "b"
+ * @endcode
+ */
+void path_normalize(const char* path, FuriString* out_path, bool allow_escape_root);
 #ifdef __cplusplus
 }
 #endif

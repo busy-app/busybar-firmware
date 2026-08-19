@@ -29,6 +29,8 @@ extern "C" {
 #include "timer_test/timer_test.h"
 #include "record_test/record_test.h"
 #include "argparse_test/argparse_test.h"
+#include "js_test/js_test.h"
+#include "xpm_test/xpm_test.h"
 #undef TEST_FUNCTION_DECLS
 
 typedef int (*TestCallback)(void);
@@ -52,6 +54,8 @@ static TestCallback unit_test_callbacks[] = {
 #include "timer_test/timer_test.h"
 #include "record_test/record_test.h"
 #include "argparse_test/argparse_test.h"
+#include "js_test/js_test.h"
+#include "xpm_test/xpm_test.h"
 #undef TEST_FUNCTION_REFS
 };
 

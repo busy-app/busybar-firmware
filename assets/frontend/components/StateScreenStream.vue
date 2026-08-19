@@ -25,7 +25,7 @@
 </template>
 
 <script lang="ts" setup>
-import { BSB_Frame, LEDRenderer } from '@busy-app/busy-lib';
+import { BSB_Frame, Display, ScreenRenderer } from '@busy-app/busy-lib';
 import type { ProcessedFrame } from '@busy-app/busy-lib';
 
 const screenStreamStore = useScreenStreamStore();
@@ -141,12 +141,12 @@ async function getInitialFrame (): Promise<ProcessedFrame> {
 
 function renderFrame (frame: ProcessedFrame) {
   if (canvasRef.value && frame?.data && frame.width && frame.height) {
-    LEDRenderer.renderFrame(
-      canvasRef.value,
-      frame.data,
-      frame.width,
-      frame.height
-    );
+    ScreenRenderer.renderFrame(Display.FRONT, {
+      canvas: canvasRef.value,
+      data: frame.data,
+      width: frame.width,
+      height: frame.height
+    });
   }
 }
 

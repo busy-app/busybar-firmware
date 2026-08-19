@@ -12,140 +12,143 @@
 #define LIGHT_SENSOR_I2C (&furi_hal_i2c_handle_1)
 
 #define LIGHT_SENSOR_SAMPLE_INTERVAL_MS (1000)
-#define LIGHT_SENSOR_LUX_MIN            (10.0f)
-#define LIGHT_SENSOR_LUX_MAX            (10000.0f)
-#define LIGHT_SENSOR_WINDOW_SIZE        (5)
 
-typedef struct {
+struct LightSensor {
     FuriEventLoop* event_loop;
     FuriEventLoopTimer* timer;
-    FuriPubSub* pubsub;
-
+    FuriState* state;
     LightSensorData* data;
-    uint8_t light_level_previous;
-    uint8_t light_level;
+    bool is_alive;
+};
 
-    bool sensor_alive;
-} LightSensor;
+static bool light_sensor_read(LightSensor* instance) {
+    bool success = false;
 
-LightSensor* light_sensor = NULL;
+    do {
+        float lux = 0.0f;
+
+        if(!furi_hal_light_sensor_read_lux(LIGHT_SENSOR_I2C, &lux)) {
+            FURI_LOG_E(TAG, "Failed to read light sensor");
+            break;
+        }
+
+        light_sensor_data_add_measurement(instance->data, lux);
+
+        success = true;
+    } while(false);
+
+    return success;
+}
+
+static void light_sensor_update_state(LightSensor* instance) {
+    with_furi_state(instance->state, LightSensorState * state, {
+        light_sensor_data_get_state(instance->data, state);
+    });
+}
 
 static void light_sensor_timer_callback(void* context) {
+    furi_assert(context);
     LightSensor* instance = context;
 
-    if(instance->sensor_alive == false) {
-        return;
+    if(light_sensor_read(instance)) {
+        light_sensor_update_state(instance);
+    }
+}
+
+static bool light_sensor_get_initial_readings(LightSensor* instance) {
+    bool success = true;
+
+    for(uint32_t i = 0; i < LIGHT_SENSOR_DATA_WINDOW_SIZE; ++i) {
+        if(!light_sensor_read(instance)) {
+            success = false;
+            break;
+        }
     }
 
-    float lux = 0.0f;
-    bool read_success = furi_hal_light_sensor_read_lux(LIGHT_SENSOR_I2C, &lux);
-    if(!read_success) {
-        FURI_LOG_E(TAG, "Failed to read light sensor");
-        return;
-    }
+    return success;
+}
 
-    FURI_LOG_T(TAG, "Light sensor: %.2f lux", lux);
-    light_sensor_data_add_measurement(instance->data, lux);
+static bool light_sensor_init(LightSensor* instance) {
+    bool success = false;
 
-    instance->light_level = light_sensor_data_get_light_level(instance->data);
-    if(instance->light_level != instance->light_level_previous) {
-        FURI_LOG_D(
-            TAG,
-            "Light level changed: %u -> %u",
-            instance->light_level_previous,
-            instance->light_level);
-        LightSensorEvent event = {
-            .type = LightSensorEventTypeLightLevelChanged,
-            .light_level = {instance->light_level},
-        };
+    do {
+        if(!furi_hal_light_sensor_init(LIGHT_SENSOR_I2C)) {
+            break;
+        }
 
-        furi_pubsub_publish(instance->pubsub, &event);
-        instance->light_level_previous = instance->light_level;
-    }
+        if(!light_sensor_get_initial_readings(instance)) {
+            break;
+        }
+
+        furi_event_loop_timer_start(instance->timer, LIGHT_SENSOR_SAMPLE_INTERVAL_MS);
+        success = true;
+
+    } while(false);
+
+    return success;
 }
 
 LightSensor* light_sensor_alloc() {
     LightSensor* instance = malloc(sizeof(LightSensor));
 
-    // Configure light sensor data
-    LightSensorDataConfig data_config = {
-        .window_size = LIGHT_SENSOR_WINDOW_SIZE,
-        .light_level_max = LIGHT_SENSOR_LIGHT_LEVEL_MAX,
-        .lux_min = LIGHT_SENSOR_LUX_MIN,
-        .lux_max = LIGHT_SENSOR_LUX_MAX,
-        .use_logarithmic_mapping = true, // Use logarithmic mapping by default
-    };
-    instance->data = light_sensor_data_alloc(&data_config);
-
-    instance->light_level_previous = LIGHT_SENSOR_LIGHT_LEVEL_MAX;
-    instance->light_level = LIGHT_SENSOR_LIGHT_LEVEL_MIN; // This will immediately trigger an event
-
+    instance->data = light_sensor_data_alloc();
     instance->event_loop = furi_event_loop_alloc();
     instance->timer = furi_event_loop_timer_alloc(
         instance->event_loop,
         light_sensor_timer_callback,
         FuriEventLoopTimerTypePeriodic,
         instance);
-    instance->pubsub = furi_pubsub_alloc();
+    instance->state = furi_state_alloc(sizeof(LightSensorState));
+    instance->is_alive = light_sensor_init(instance);
 
-    furi_record_create(RECORD_LIGHT_SENSOR_EVENTS, instance->pubsub);
+    light_sensor_update_state(instance);
 
-    furi_event_loop_timer_start(instance->timer, LIGHT_SENSOR_SAMPLE_INTERVAL_MS);
+    if(!instance->is_alive) {
+        FURI_LOG_E(TAG, "Failed to initialize light sensor");
+    }
 
+    furi_record_create(RECORD_LIGHT_SENSOR, instance);
     return instance;
 }
 
 int32_t light_sensor_srv(void* p) {
     UNUSED(p);
-
     // Must be first to ensure that power subsystem is OK
     furi_record_open(RECORD_POWER);
+
     LightSensor* instance = light_sensor_alloc();
-
-    instance->sensor_alive = furi_hal_light_sensor_init(LIGHT_SENSOR_I2C);
-    if(instance->sensor_alive == false) {
-        FURI_LOG_E(TAG, "Failed to initialize light sensor");
-    }
-
-    light_sensor = instance;
     furi_event_loop_run(instance->event_loop);
 
     return 0;
 }
 
-float light_sensor_get_lux(void) {
-    furi_check(light_sensor);
-
-    return light_sensor_data_get_lux(light_sensor->data);
+FuriState* light_sensor_get_state(LightSensor* instance) {
+    furi_check(instance);
+    return instance->state;
 }
 
-float light_sensor_get_lux_instant(void) {
-    furi_check(light_sensor);
-
-    return light_sensor_data_get_lux_instant(light_sensor->data);
-}
-
-LightSensorLevel light_sensor_get_light_level(void) {
-    furi_check(light_sensor);
-
-    return (LightSensorLevel){light_sensor_data_get_light_level(light_sensor->data)};
-}
-
-bool light_sensor_get_raw_data(LightSensorLightWavelength wavelength, uint16_t* raw) {
-    furi_check(light_sensor);
+bool light_sensor_get_raw_data(
+    LightSensor* instance,
+    LightSensorLightWavelength wavelength,
+    uint16_t* raw) {
+    furi_check(instance);
 
     bool result = false;
-    if(wavelength == LightSensorLightWavelength600nm) {
-        result = furi_hal_light_sensor_read_raw(
-            LIGHT_SENSOR_I2C, FuriHalLightSensorLightWavelength600nm, raw);
-    } else if(wavelength == LightSensorLightWavelength840nm) {
-        result = furi_hal_light_sensor_read_raw(
-            LIGHT_SENSOR_I2C, FuriHalLightSensorLightWavelength840nm, raw);
+
+    if(instance->is_alive) {
+        if(wavelength == LightSensorLightWavelength600nm) {
+            result = furi_hal_light_sensor_read_raw(
+                LIGHT_SENSOR_I2C, FuriHalLightSensorLightWavelength600nm, raw);
+        } else if(wavelength == LightSensorLightWavelength840nm) {
+            result = furi_hal_light_sensor_read_raw(
+                LIGHT_SENSOR_I2C, FuriHalLightSensorLightWavelength840nm, raw);
+        }
     }
 
     return result;
 }
 
-bool light_sensor_sleep(bool sleep) {
+bool light_sensor_sleep(LightSensor* instance, bool sleep) {
+    furi_check(instance);
     return furi_hal_light_sensor_sleep(LIGHT_SENSOR_I2C, sleep);
 }

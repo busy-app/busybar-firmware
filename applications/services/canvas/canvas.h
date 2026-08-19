@@ -5,6 +5,7 @@
 #include <gui/gui.h>
 #include <gui/modules/countdown.h>
 #include <gui/modules/anim_player.h>
+#include <gui/modules/image.h>
 #include <loader/loader.h>
 #include <time.h>
 
@@ -20,6 +21,8 @@ typedef enum {
     CanvasResultLowPriority,
     CanvasResultEmptyScreen,
     CanvasResultTooManyElements,
+    CanvasResultNonexistentElementId,
+    CanvasResultWrongAppId,
 
     CanvasResultMax,
 } CanvasResult;
@@ -30,6 +33,7 @@ typedef enum {
     CanvasElementTypeText,
     CanvasElementTypeCountdown,
     CanvasElementTypeRectangle,
+    CanvasElementTypeRawImage,
 
     CanvasElementTypeMax,
 } CanvasElementType;
@@ -43,6 +47,7 @@ typedef struct {
     GuiDisplayId display;
     Align align;
     CanvasElementType type;
+    int32_t z_index;
 
     union {
         struct {
@@ -90,6 +95,15 @@ typedef struct {
             Color fill_color[2];
             Color border_color;
         } rectangle;
+
+        struct {
+            void* data;
+            size_t data_size;
+            uint32_t width;
+            uint32_t height;
+            ImageColorFormat format;
+            uint8_t opacity;
+        } raw_image;
     };
 } CanvasElement;
 
@@ -106,6 +120,8 @@ static inline void canvas_element_clear(CanvasElement* obj) {
     } else if(obj->type == CanvasElementTypeAnimPlayer) {
         if(obj->anim_player.file_path) furi_string_free(obj->anim_player.file_path);
         if(obj->anim_player.section) furi_string_free(obj->anim_player.section);
+    } else if(obj->type == CanvasElementTypeRawImage) {
+        if(obj->raw_image.data) free(obj->raw_image.data);
     }
 }
 
@@ -125,6 +141,11 @@ static inline void canvas_element_clone(CanvasElement* obj, const CanvasElement*
         }
         if(src->anim_player.section) {
             obj->anim_player.section = furi_string_alloc_set(src->anim_player.section);
+        }
+    } else if(src->type == CanvasElementTypeRawImage) {
+        if(src->raw_image.data) {
+            obj->raw_image.data = malloc(src->raw_image.data_size);
+            memcpy(obj->raw_image.data, src->raw_image.data, src->raw_image.data_size);
         }
     }
 }
@@ -157,9 +178,16 @@ void canvas_show_elements_async(
  * @brief Delete elements by filter and possibly terminate Canvas
  * 
  * Deletes ALL elements (`app_id` is NULL) or elements related to a non-NULL
- * `app_id`. If no elements are left after this possibly selective delete, the
- * Canvas closes itself.
+ * `app_id`.
+ * 
+ * Elements are further filtered by the `element_ids` list. If the list is
+ * provided, element IDs that are not in the list are kept. The list is
+ * terminated with a NULL string pointer.
+ * 
+ * If no elements are left after this possibly selective delete, the Canvas
+ * closes itself.
  */
-CanvasResult canvas_delete_elements(CanvasSrv* canvas, const char* app_id);
+CanvasResult
+    canvas_delete_elements(CanvasSrv* canvas, const char* app_id, const char* const* element_ids);
 
 CanvasResult canvas_get_app_id(CanvasSrv* canvas, FuriString* string);

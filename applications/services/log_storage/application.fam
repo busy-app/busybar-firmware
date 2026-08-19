@@ -1,13 +1,21 @@
 App(
     appid="log_storage",
-    apptype=FlipperAppType.STARTUP,
-    entry_point="log_storage_on_system_start",
+    name="LogStorageSrv",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="log_storage_srv",
     stack_size=2 * 1024,
-    order=125,
+    order=3,
+    cdefines=["SRV_LOG_STORAGE"],
     provides=["log_storage_cli"],
     targets=["f20", "f21", "f22"],
     sdk_headers=["log_storage.h"],
-    sources=["log_storage.c"],
+    requires=["storage"],
+    sources=[
+        "log_storage_base.c",
+        "log_storage_local.c",
+        "log_storage_remote.c",
+        "log_storage.c",
+    ],
 )
 
 App(

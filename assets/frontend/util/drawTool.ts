@@ -27,6 +27,7 @@ export const DRAW_TOOL_PIXEL_ART_MAX_DIMENSION = 72;
 export const DRAW_TOOL_DISPLAY_APPLICATION_NAME = 'draw_tool';
 export const DRAW_TOOL_TEMP_FILE_NAME = 'temp.png';
 export const DRAW_TOOL_SAVE_DIR = '/ext/user_assets/draw_tool';
+export const DRAW_TOOL_DISPLAY_PRIORITY = 40;
 
 let drawToolShapeIdCounter = 0;
 const pixelArtImageSourceCache = new WeakMap<HTMLImageElement, HTMLCanvasElement>();

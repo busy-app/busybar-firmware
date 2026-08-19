@@ -13,6 +13,16 @@ extern "C" {
 /** Image opaque structure. */
 typedef struct Image Image;
 
+/** Pixel format of raw image data passed to image_set_source_raw(). */
+typedef enum {
+    ImageColorFormatL8, ///< 1 byte per pixel: luma.
+    ImageColorFormatLA88, ///< 2 bytes per pixel: luma, alpha.
+    ImageColorFormatBGR888, ///< 3 bytes per pixel: B, G, R.
+    ImageColorFormatBGRA8888, ///< 4 bytes per pixel: B, G, R, A.
+
+    ImageColorFormatsCount,
+} ImageColorFormat;
+
 /**
  * @brief Create a new Image instance.
  *
@@ -56,6 +66,28 @@ bool image_set_source(Image* instance, const char* file_path);
  * @returns true if the source was successfully set, false otherwise
  */
 bool image_set_source_no_cache(Image* instance, const char* file_path);
+
+/**
+ * @brief Show an image from a raw pixel buffer.
+ *
+ * The data is copied internally; the caller's buffer does not need to outlive
+ * the call. Switching to a file source by image_set_source() or calling this
+ * function again frees the previous buffer automatically.
+ *
+ * @param[in,out] instance pointer to the Image instance to be modified
+ * @param[in] format pixel format of the data
+ * @param[in] width image width in pixels
+ * @param[in] height image height in pixels
+ * @param[in] data raw pixel data of size @p data_size
+ * @param[in] data_size raw pixel data size
+ */
+void image_set_source_raw(
+    Image* instance,
+    ImageColorFormat format,
+    size_t width,
+    size_t height,
+    const void* data,
+    size_t data_size);
 
 /**
  * @brief Set the opacity of an Image instance.

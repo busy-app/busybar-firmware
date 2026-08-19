@@ -36,7 +36,7 @@
               :ui="{
                 label: 'relative -right-4 sm:static'
               }"
-              @click="saveStatus()"
+              @click="() => { saveStatus(); }"
             />
             <UDropdownMenu
               :items="[
@@ -771,7 +771,7 @@
             variant="ghost"
             square
             :class="toolbarIconButtonClass"
-            @click="es.showImageUploadModal = true"
+            @click="() => { es.showImageUploadModal = true; }"
           >
             <UIcon
               name="i-bi-image"
@@ -795,7 +795,7 @@
             variant="ghost"
             square
             :class="toolbarIconButtonClass"
-            @click="showGrid = !showGrid"
+            @click="() => { showGrid = !showGrid; }"
           >
             <UIcon
               :name="showGrid ? 'i-bi-grid' : 'i-bi-grid-off'"
@@ -941,7 +941,7 @@ import {
   Transformer as VTransformer
 } from 'vue-konva';
 import drawToolIconsData from '@/generated/drawTool/icons.json';
-import { DRAW_TOOL_EXPORT_PIXEL_SIZE, pixelateImageData } from '@/util/drawTool';
+import { DRAW_TOOL_DISPLAY_PRIORITY, DRAW_TOOL_EXPORT_PIXEL_SIZE, pixelateImageData } from '@/util/drawTool';
 import type { TransformerBox } from '@/util/drawTool';
 import type { DisplayDrawParams } from '@busy-app/busy-lib';
 
@@ -2031,10 +2031,15 @@ async function drawStatusOnBusyBar (fileName: string) {
         path: fileName
       }
     ],
-    priority: 50
+    priority: DRAW_TOOL_DISPLAY_PRIORITY
   } as DisplayDrawParams)
     .catch(async error => {
-      await handleHTTPError(error, 'Display draw command failed', true);
+      if (isDisplayPriorityConflict(error)) {
+        notifyDisplayPriorityConflict();
+      } else {
+        await handleHTTPError(error, 'Display draw command failed', true);
+      }
+
       throw error;
     });
 }
@@ -2075,9 +2080,8 @@ async function writeStatusFile (path: string, file: File) {
 
   await deviceStore.busyBar.StorageWrite({
     path,
-    file,
-    timeout: 0
-  });
+    file
+  }, { timeout: 0 });
 }
 
 async function saveStatus (options?: { saveAsNew?: boolean }) {

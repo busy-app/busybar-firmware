@@ -4,6 +4,8 @@
 
 static Widget*
     canvas_image_update(CanvasWidget* widget, Widget* root, const CanvasElement* element) {
+    if(!element) return image_get_base(widget->image);
+
     if(!widget->image) {
         widget->image = image_alloc(root);
     }
@@ -19,7 +21,34 @@ static void canvas_image_delete(CanvasWidget* widget) {
 }
 
 static Widget*
+    canvas_raw_update(CanvasWidget* widget, Widget* root, const CanvasElement* element) {
+    if(!element) return image_get_base(widget->image);
+
+    if(!widget->image) {
+        widget->image = image_alloc(root);
+    }
+
+    image_set_source_raw(
+        widget->image,
+        element->raw_image.format,
+        element->raw_image.width,
+        element->raw_image.height,
+        element->raw_image.data,
+        element->raw_image.data_size);
+    image_set_opacity(widget->image, element->raw_image.opacity);
+
+    return image_get_base(widget->image);
+}
+
+static void canvas_raw_delete(CanvasWidget* widget) {
+    furi_assert(widget->image);
+    image_free(widget->image);
+}
+
+static Widget*
     canvas_anim_player_update(CanvasWidget* widget, Widget* root, const CanvasElement* element) {
+    if(!element) return anim_player_get_base(widget->anim_player);
+
     if(!widget->anim_player) {
         widget->anim_player = anim_player_alloc(root);
     }
@@ -43,6 +72,8 @@ static void canvas_anim_player_delete(CanvasWidget* widget) {
 
 static Widget*
     canvas_text_update(CanvasWidget* widget, Widget* root, const CanvasElement* element) {
+    if(!element) return label_get_base(widget->text);
+
     if(!widget->text) {
         widget->text = label_alloc(root);
     }
@@ -83,6 +114,8 @@ static_assert((size_t)RectangleWidgetBackgroundMax == (size_t)RectangleFillMax);
 
 static Widget*
     canvas_countdown_update(CanvasWidget* widget, Widget* root, const CanvasElement* element) {
+    if(!element) return label_get_base(widget->text);
+
     if(!widget->countdown) {
         widget->countdown = countdown_alloc(root);
     }
@@ -103,6 +136,8 @@ static void canvas_countdown_delete(CanvasWidget* widget) {
 
 static Widget*
     canvas_rectangle_update(CanvasWidget* widget, Widget* root, const CanvasElement* element) {
+    if(!element) return rectangle_widget_get_base(widget->rectangle);
+
     if(!widget->rectangle) {
         widget->rectangle = rectangle_widget_alloc(root);
     }
@@ -136,6 +171,7 @@ static const struct {
     [CanvasElementTypeText] = {canvas_text_update, canvas_text_delete},
     [CanvasElementTypeCountdown] = {canvas_countdown_update, canvas_countdown_delete},
     [CanvasElementTypeRectangle] = {canvas_rectangle_update, canvas_rectangle_delete},
+    [CanvasElementTypeRawImage] = {canvas_raw_update, canvas_raw_delete},
 };
 
 static_assert(COUNT_OF(canvas_widgets) == CanvasElementTypeMax);
@@ -194,4 +230,10 @@ void canvas_widget_delete(CanvasWidget* widget) {
     furi_assert(widget->type < CanvasElementTypeMax);
     furi_assert(canvas_widgets[widget->type].delete);
     canvas_widgets[widget->type].delete(widget);
+}
+
+void canvas_widget_to_front(CanvasWidget* widget) {
+    furi_assert(widget);
+    Widget* base = canvas_widgets[widget->type].update(widget, NULL, NULL);
+    widget_move_to_foreground(base);
 }

@@ -5,7 +5,7 @@
 #include "../transport/ble_receiver.h"
 
 #include "../_nwp_callbacks/ble_nwp_headers.h"
-#include "../../ble_common.h"
+#include "../../ble_log.h"
 
 #define TAG "BleDevice"
 
@@ -157,7 +157,8 @@ bool ble_device_connection_close(BleDevice* instance) {
         instance->update_done_context = NULL;
         ble_service_registry_reset_cccds(instance->registry);
 
-        if(instance->state != BleDeviceStateStopping) {
+        if(instance->state != BleDeviceStateStopping &&
+           instance->state != BleDeviceStateForgetting) {
             instance->state = BleDeviceStateAdvertising;
             ble_device_stop_advertise(instance);
 
@@ -290,7 +291,14 @@ bool ble_device_forget_paired(BleDevice* instance) {
     furi_assert(instance);
 
     BleDeviceState prev_state = instance->state;
-    if(prev_state == BleDeviceStateAdvertising) {
+
+    if(prev_state == BleDeviceStateConnected && ble_device_disconnect(instance)) {
+        BLE_LOG_I("Disconnect before forget");
+        instance->state = BleDeviceStateForgetting;
+        return false;
+    }
+
+    if(prev_state == BleDeviceStateAdvertising || prev_state == BleDeviceStateForgetting) {
         ble_device_stop_advertise(instance);
     }
 
@@ -298,7 +306,7 @@ bool ble_device_forget_paired(BleDevice* instance) {
 
     bool result = ble_security_delete_data(instance->security_data);
 
-    if(prev_state == BleDeviceStateAdvertising) {
+    if(prev_state == BleDeviceStateAdvertising || prev_state == BleDeviceStateForgetting) {
         ble_device_start_advertise(instance);
     }
 

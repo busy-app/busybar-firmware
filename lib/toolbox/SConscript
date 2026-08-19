@@ -23,7 +23,9 @@ env.Append(
         File("sha256_calc.h"),
         File("strint.h"),
         File("timer.h"),
+        File("tls_config.h"),
         File("value_index.h"),
+        File("http_headers.h"),
     ],
 )
 
@@ -45,7 +47,9 @@ sources = [
     "sha256_calc.c",
     "strint.c",
     "timers.c",
+    "tls_config.c",
     "value_index.c",
+    "http_headers.c",
 ]
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
