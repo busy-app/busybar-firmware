@@ -18,6 +18,7 @@ typedef enum JsRunnerError {
     JsRunnerErrorInvalidFileSize,
     JsRunnerErrorCannotReadFile,
     JsRunnerErrorParseException,
+    JsRunnerErrorInvalidAppId,
     JsRunnerErrorMax,
 } JsRunnerError;
 

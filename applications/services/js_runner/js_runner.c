@@ -257,6 +257,17 @@ const char* js_runner_app_get_id(const JsRunnerApp* app) {
     return furi_string_get_cstr(app->app_id);
 }
 
+bool validate_app_id(const char* app_id) {
+    while(*app_id) {
+        int c = *app_id;
+        if(!isalnum(c) && c != '.' && c != '_') {
+            return false;
+        }
+        ++app_id;
+    }
+    return true;
+}
+
 JsRunnerError js_runner_run(
     JsRunner* instance,
     const char* app_id,
@@ -264,6 +275,9 @@ JsRunnerError js_runner_run(
     size_t heap_size,
     JsRunnerConsoleOutCallback console_out_cb,
     void* console_write_context) {
+    if(!validate_app_id(app_id)) {
+        return JsRunnerErrorInvalidAppId;
+    }
     FURI_LOG_I(TAG, "Running script: %s", path);
 
     JsRunnerError ret = JsRunnerErrorNone;
@@ -453,6 +467,7 @@ static const char* const error_messages[] = {
     [JsRunnerErrorInvalidFileSize] = "Invalid file size",
     [JsRunnerErrorCannotReadFile] = "Cannot read file",
     [JsRunnerErrorParseException] = "Parse exception",
+    [JsRunnerErrorInvalidAppId] = "Invalid App ID",
 };
 
 static_assert(COUNT_OF(error_messages) == JsRunnerErrorMax);
