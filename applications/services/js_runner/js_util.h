@@ -9,11 +9,11 @@
 #pragma GCC diagnostic pop
 #include <furi/core/string.h>
 
-#define JS_CHECK_ARGS_COUNT(n)                                                            \
-    do {                                                                                  \
-        if(args_count < n) {                                                              \
-            return jerry_throw_sz(JERRY_ERROR_TYPE, "At least " #n "arguments required"); \
-        }                                                                                 \
+#define JS_CHECK_ARGS_COUNT(n)                                                             \
+    do {                                                                                   \
+        if(args_count < n) {                                                               \
+            return jerry_throw_sz(JERRY_ERROR_TYPE, "At least " #n " arguments required"); \
+        }                                                                                  \
     } while(false)
 #define JS_CHECK_INSTANCE()                                                    \
     do {                                                                       \

@@ -77,9 +77,11 @@ static bool save(const LocalStorage* instance) {
                     TAG,
                     "Failed to write file: \"%s\".",
                     furi_string_get_cstr(instance->filename));
+                result = false;
+            } else {
+                result = true;
             }
             free(contents);
-            result = true;
         } while(false);
         storage_file_free(file);
     } while(false);
@@ -233,7 +235,7 @@ static jerry_value_t method_get_item(
     if(jerry_value_is_exception(arg_str)) {
         return arg_str;
     }
-    FuriString* key = js_string_to_furi_string(arg);
+    FuriString* key = js_string_to_furi_string(arg_str);
     jerry_value_free(arg_str);
     if(!key) {
         return jerry_throw_sz(JERRY_ERROR_TYPE, "Argument is not a string");
