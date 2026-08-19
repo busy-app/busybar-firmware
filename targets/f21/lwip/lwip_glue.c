@@ -284,6 +284,11 @@ void sys_check_core_locking(void) {
     }
 }
 
+uint32_t lwip_glue_rand(void) {
+    // TODO: Better rand() implementation
+    return (uint32_t)rand();
+}
+
 void lwip_glue_log(const char* fmt, ...) {
     FuriString* string = furi_string_alloc();
 

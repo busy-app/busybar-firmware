@@ -87,6 +87,20 @@ static void cli_action_brightness(PipeSide* pipe, FuriString* args) {
     } while(false);
 }
 
+static void calc_gamma_table(uint8_t max, float gamma, BackDisplayGammaTable* table) {
+    printf("New gamma table: ");
+
+    for(uint32_t i = 0; i < COUNT_OF(table->data); ++i) {
+        const float value_in = (float)(i + 1) / COUNT_OF(table->data);
+        const uint8_t value_out = ceilf(powf(value_in, gamma) * max);
+
+        table->data[i] = value_out;
+        printf("0x%02hhX, ", value_out);
+    }
+
+    printf("\r\n");
+}
+
 static void cli_action_gamma(PipeSide* pipe, FuriString* args, GuiDisplayId id) {
     UNUSED(pipe);
 
@@ -97,18 +111,30 @@ static void cli_action_gamma(PipeSide* pipe, FuriString* args, GuiDisplayId id) 
 
     BackDisplayGammaTable gamma_table;
 
-    for(uint32_t i = 0; i < sizeof(gamma_table); ++i) {
-        int value;
-        if(!args_read_int_and_trim(args, &value)) {
-            printf("Error: too few arguments");
-            return;
-        }
-        if((value < 0) || (value >= 64)) {
-            printf("Error: value out of range");
-            return;
-        }
-        gamma_table.data[i] = value;
+    int max, gamma;
+
+    if(!args_read_int_and_trim(args, &max)) {
+        printf("Error: missing maximum value");
+        return;
     }
+
+    if((max < 0) || (max >= 64)) {
+        printf("Error: maximum value is out of range");
+        return;
+    }
+
+    if(!args_read_int_and_trim(args, &gamma)) {
+        printf("Error: missing gamma value");
+        return;
+    }
+
+    if(gamma <= 0) {
+        printf("Error: gamma value is out of range");
+        return;
+    }
+
+    // Gamma is given as an integer in 1/100th units
+    calc_gamma_table(max, gamma / 100.f, &gamma_table);
 
     BackDisplaySrv* back_display = furi_record_open(RECORD_BACK_DISPLAY);
     back_display_set_gamma_table(back_display, &gamma_table);

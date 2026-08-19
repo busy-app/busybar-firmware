@@ -1,5 +1,6 @@
 App(
     appid="log_storage",
+    name="LogStorageSrv",
     apptype=FlipperAppType.SERVICE,
     entry_point="log_storage_srv",
     stack_size=2 * 1024,

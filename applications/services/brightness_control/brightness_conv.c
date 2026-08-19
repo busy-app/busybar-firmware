@@ -35,7 +35,7 @@ static const BrightnessCurve front_display_curve = {
 static const BrightnessCurve back_display_curve = {
     .min = 1,
     .max = 71,
-    .power = 4.f,
+    .power = 3.f,
 };
 
 #if defined(SRV_STATUS_LIGHTS)
