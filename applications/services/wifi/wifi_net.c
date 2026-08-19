@@ -3,13 +3,15 @@
 #include <network/network.h>
 #include <lwip/tcpip.h>
 #include <lwip/etharp.h>
+#include <lwip/dns.h>
 #include <lwip/dhcp.h>
 
 #include <usb_network/usb_network.h>
 
-#define MAX_DATA_LEN (1019UL) // Limited by Intercom
-#define WIRELESS_MTU (MAX_DATA_LEN - SIZEOF_ETH_HDR + ETH_PAD_SIZE)
-#define DHCP_WAIT_MS (30 * 1000)
+#define MAX_DATA_LEN             (1019UL) // Limited by Intercom
+#define WIRELESS_MTU             (MAX_DATA_LEN - SIZEOF_ETH_HDR + ETH_PAD_SIZE)
+#define DHCP_WAIT_MS             (30 * 1000)
+#define DNS_PRIMARY_SERVER_INDEX (0)
 
 #define INTERCOM_TX_TIMEOUT_MS (500)
 
@@ -138,6 +140,15 @@ bool wifi_net_up(Wifi* instance, const WifiIpConfig* ip_config) {
         netif->ip_addr.addr = ip4_settings->address.value;
         netif->netmask.addr = ip4_settings->mask.value;
         netif->gw.addr = ip4_settings->gateway.value;
+
+        const ip_addr_t dns_addr = {
+            .addr = ip4_settings->dns.value,
+        };
+
+        dns_setserver(DNS_PRIMARY_SERVER_INDEX, &dns_addr);
+
+    } else if(ip_config->mgmt == WifiIpManagementDynamic) {
+        dns_setserver(DNS_PRIMARY_SERVER_INDEX, NULL);
     }
 
     netif_set_link_up(netif);
@@ -191,4 +202,5 @@ void wifi_net_get_ip_config(Wifi* instance, WifiIpConfig* ip_config) {
     ip4->address.value = netif->ip_addr.addr;
     ip4->mask.value = netif->netmask.addr;
     ip4->gateway.value = netif->gw.addr;
+    ip4->dns.value = dns_getserver(DNS_PRIMARY_SERVER_INDEX)->addr;
 }
