@@ -189,11 +189,13 @@ jerry_value_t js_utf8_string(const FuriString* s) {
 
 bool js_value_to_integer(jerry_value_t value, int* result) {
     jerry_value_t num = jerry_value_to_number(value);
-    double d = jerry_value_as_number(num);
     bool ok = false;
-    if(isfinite(d) && d < (double)INT_MAX && d > (double)INT_MIN) {
-        *result = (int)d;
-        ok = true;
+    if(jerry_value_is_number(num)) {
+        double d = jerry_value_as_number(num);
+        if(isfinite(d) && d < (double)INT_MAX && d > (double)INT_MIN) {
+            *result = (int)d;
+            ok = true;
+        }
     }
     jerry_value_free(num);
     return ok;
