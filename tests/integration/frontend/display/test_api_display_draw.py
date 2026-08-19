@@ -22,10 +22,12 @@ OpenAPI schema:          openapi.yaml  (DisplayElements, DisplayElement, ...)
 from __future__ import annotations
 
 import time
+from pathlib import Path
 
 import allure
 import pytest
 import requests
+from PIL import Image
 
 from clients.api.assets import (
     AssetsAPI,
@@ -37,8 +39,9 @@ from .display_helpers import (
     BUILTIN_ANIM as _BUILTIN_ANIM,
     BUILTIN_IMAGE as _BUILTIN_IMAGE,
     FILL_BLACK,
+    RGB_BLACK,
     anim_element as _anim,
-    capture_stable_front_frame,
+    assert_front_pixels,
     countdown_element as _countdown,
     image_element as _image,
     solid_rectangle,
@@ -63,6 +66,26 @@ _VALID_TEXT_FONTS = [
 def _all_black(frame) -> bool:
     """True when every front pixel is black (canvas owned by a black base)."""
     return frame.raw == BGR_BLACK * (len(frame.raw) // 3)
+
+
+def _load_error_icon_expectation() -> dict[tuple[int, int], tuple[int, int, int]]:
+    """Expected front pixels for I_load_error_9x9 drawn at (0, 0) over black.
+
+    The firmware renders this placeholder when an image/anim asset fails to
+    load (see anim_player.c). The expectation is built from the source PNG:
+    opaque icon pixels keep their color, transparent ones show the black base.
+    """
+    icon_path = (
+        Path(__file__).resolve().parents[4]
+        / "assets" / "images" / "internal" / "load_error_9x9.png"
+    )
+    icon = Image.open(icon_path).convert("RGBA")
+    expectation = {}
+    for y in range(icon.height):
+        for x in range(icon.width):
+            r, g, b, a = icon.getpixel((x, y))
+            expectation[(x, y)] = (r, g, b) if a else RGB_BLACK
+    return expectation
 
 
 # ---------------------------------------------------------------------------
@@ -660,12 +683,13 @@ class TestAnimElement:
 
         # A missing asset is accepted, but instead of animation frames the
         # player renders the static load-error placeholder (I_load_error_9x9,
-        # see anim_player.c) — the canvas must stop matching the black base.
+        # see anim_player.c) at the element position — verified pixel-exact
+        # against the source PNG.
         assets_api.assert_status(_draw(assets_api, [base, missing_elem]), 200)
-        placeholder = capture_stable_front_frame(streaming_api)
-        assert placeholder.raw != blank.raw, (
-            f"stock_path {_MISSING_ANIM!r} rendered nothing; expected the "
-            f"load-error placeholder; frame sha256={placeholder.digest()}"
+        placeholder = assert_front_pixels(
+            streaming_api,
+            _load_error_icon_expectation(),
+            "Anim load-error placeholder",
         )
 
         # The builtin animation renders pixels distinct from both the black
