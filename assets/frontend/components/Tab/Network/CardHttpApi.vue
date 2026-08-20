@@ -10,10 +10,10 @@
       <UButton
         variant="link"
         class="p-0 gap-0.5"
-        href="http://10.0.4.20/docs"
+        :href="`${runtimeConfig.public.barUrl || 'http://10.0.4.20'}/docs`"
         target="_blank"
       >
-        <span class="underline">http://10.0.4.20/docs</span>
+        <span class="underline">{{ runtimeConfig.public.barUrl || 'http://10.0.4.20' }}/docs</span>
         <UIcon
           name="i-bi-open-in-new"
           class="size-4"
@@ -191,6 +191,7 @@
 const deviceStore = useDeviceStore();
 const wifiStore = useWifiStore();
 const pms = usePasswordModalStore();
+const runtimeConfig = useRuntimeConfig();
 
 const loading = ref({
   access: false
