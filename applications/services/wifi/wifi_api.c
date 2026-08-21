@@ -13,7 +13,8 @@ static bool wifi_api_send_message(
         furi_message_queue_put(queue, message, furi_ms_to_ticks(timeout_ms));
 
     if(queue_status != FuriStatusOk) {
-        furi_check(queue_status == FuriStatusErrorTimeout);
+        furi_check(
+            (queue_status == FuriStatusErrorTimeout) || (queue_status == FuriStatusErrorResource));
         success = false;
     }
 
@@ -40,15 +41,24 @@ static WifiStatus wifi_api_blocking_request(Wifi* instance, WifiMessage* message
     return status;
 }
 
+static void wifi_api_send_priority_request(Wifi* instance, const WifiMessage* message) {
+    if(!wifi_api_send_message(instance->priority_queue, message, WIFI_PRIORITY_QUEUE_TIMEOUT_MS)) {
+        FURI_LOG_E(TAG, "Priority request timed out");
+    }
+}
+
 static void wifi_api_send_nonblocking_request(Wifi* instance, const WifiMessage* message) {
     if(!wifi_api_send_message(instance->api_queue, message, 0)) {
         FURI_LOG_W(TAG, "Failed to send nonblocking request");
     }
 }
 
-static void wifi_api_send_priority_request(Wifi* instance, const WifiMessage* message) {
-    if(!wifi_api_send_message(instance->priority_queue, message, WIFI_PRIORITY_QUEUE_TIMEOUT_MS)) {
-        FURI_LOG_E(TAG, "Priority request timed out");
+static void wifi_api_send_event(Wifi* instance, const WifiEvent* event) {
+    const FuriStatus queue_status = furi_message_queue_put(instance->event_queue, event, 0);
+
+    if(queue_status != FuriStatusOk) {
+        furi_check(queue_status == FuriStatusErrorResource);
+        FURI_LOG_W(TAG, "Failed to deliver event");
     }
 }
 
@@ -116,18 +126,15 @@ void wifi_schedule_disconnect_request(Wifi* instance) {
     wifi_api_send_nonblocking_request(instance, &msg);
 }
 
-void wifi_schedule_set_hostname_request(Wifi* instance, const DeviceNameInfo* device_name_info) {
+void wifi_send_device_name_info_event(Wifi* instance, const DeviceNameInfo* device_name_info) {
     furi_assert(instance);
 
-    const WifiMessage msg = {
-        .request_type = WifiRequestTypeSetHostname,
-        .set_hostname_message =
-            {
-                .device_name_info = *device_name_info,
-            },
+    const WifiEvent event = {
+        .type = WifiEventTypeDeviceNameInfo,
+        .device_name_info = *device_name_info,
     };
 
-    wifi_api_send_nonblocking_request(instance, &msg);
+    wifi_api_send_event(instance, &event);
 }
 
 FuriState* wifi_get_state(Wifi* instance) {

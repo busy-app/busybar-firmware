@@ -223,4 +223,6 @@ void wifi_net_set_hostname(Wifi* instance, const char* hostname) {
     dhcp_network_changed_link_up(netif);
 
     UNLOCK_TCPIP_CORE();
+
+    FURI_LOG_D(TAG, "New hostname: \"%s\"", furi_string_get_cstr(instance->hostname));
 }

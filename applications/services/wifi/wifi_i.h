@@ -14,6 +14,17 @@
 
 #define TAG "WifiSrv"
 
+typedef enum {
+    WifiEventTypeDeviceNameInfo,
+} WifiEventType;
+
+typedef struct {
+    WifiEventType type;
+    union {
+        DeviceNameInfo device_name_info;
+    };
+} WifiEvent;
+
 typedef struct {
     WifiCredentials credentials;
     WifiIpConfig ip_config;
@@ -30,17 +41,12 @@ typedef struct {
 } WifiGetInfoMessage;
 
 typedef struct {
-    DeviceNameInfo device_name_info;
-} WifiSetHostnameMessage;
-
-typedef struct {
     WifiRequestType request_type;
     WifiStatus* status;
     union {
         WifiConnectMessage connect_message;
         WifiScanMessage scan_message;
         WifiGetInfoMessage get_info_message;
-        WifiSetHostnameMessage set_hostname_message;
     };
     FuriApiLock lock;
 } WifiMessage;
@@ -48,6 +54,7 @@ typedef struct {
 struct Wifi {
     FuriEventLoop* event_loop;
     FuriMessageQueue* api_queue;
+    FuriMessageQueue* event_queue;
     FuriMessageQueue* priority_queue;
     FuriMessageQueue* response_queue;
     FuriSemaphore* dhcp_semaphore;
@@ -74,7 +81,7 @@ void wifi_schedule_disconnect_request(Wifi* instance);
 
 void wifi_schedule_deinit_request(Wifi* instance);
 
-void wifi_schedule_set_hostname_request(Wifi* instance, const DeviceNameInfo* device_name_state);
+void wifi_send_device_name_info_event(Wifi* instance, const DeviceNameInfo* device_name_state);
 
 // Network management
 void wifi_net_init(Wifi* instance, const uint8_t* hw_addr);
