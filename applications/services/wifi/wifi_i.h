@@ -10,6 +10,7 @@
 #include <lwip/netif.h>
 
 #include <intercom/intercom.h>
+#include <device_name/device_name.h>
 
 #define TAG "WifiSrv"
 
@@ -33,12 +34,17 @@ typedef struct {
 } WifiGetInfoMessage;
 
 typedef struct {
+    DeviceNameInfo device_name_info;
+} WifiSetHostnameMessage;
+
+typedef struct {
     WifiRequestType request_type;
     WifiStatus* status;
     union {
         WifiConnectMessage connect_message;
         WifiScanMessage scan_message;
         WifiGetInfoMessage get_info_message;
+        WifiSetHostnameMessage set_hostname_message;
     };
     FuriApiLock lock;
 } WifiMessage;
@@ -53,7 +59,7 @@ struct Wifi {
     Intercom* intercom;
     IntercomChannel* intercom_ch_control;
     IntercomChannel* intercom_ch_data;
-    FuriString* dhcp_hostname;
+    FuriString* hostname;
     struct netif netif;
     WifiMessage api_message;
     WifiRequest request;
@@ -77,6 +83,8 @@ void wifi_schedule_disconnect_request(Wifi* instance);
 
 void wifi_schedule_deinit_request(Wifi* instance);
 
+void wifi_schedule_set_hostname_request(Wifi* instance, const DeviceNameInfo* device_name_state);
+
 // Network management
 void wifi_net_init(Wifi* instance, const uint8_t* hw_addr);
 
@@ -85,6 +93,8 @@ bool wifi_net_up(Wifi* instance, const WifiIpConfig* ip_config);
 void wifi_net_down(Wifi* instance);
 
 void wifi_net_get_ip_config(Wifi* instance, WifiIpConfig* ip_config);
+
+void wifi_net_set_hostname(Wifi* instance, const char* hostname);
 
 // Power management
 void wifi_power_init(Wifi* instance);

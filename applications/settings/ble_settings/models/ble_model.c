@@ -13,7 +13,7 @@ struct BleModel {
     FuriMutex* lock;
     BleState state;
     FuriPubSubSubscription* ble_subscription;
-    FuriPubSubSubscription* device_name_subscription;
+    FuriStateSub* device_name_subscription;
     FuriTimer* pairing_timer;
 
     BleModelStateCallback callback;
@@ -61,8 +61,9 @@ BleModel* ble_model_alloc(void) {
     BleModel* model = malloc(sizeof(BleModel));
 
     model->device_name = furi_record_open(RECORD_DEVICE_NAME);
-    model->device_name_subscription = furi_pubsub_subscribe(
-        device_name_get_pubsub(model->device_name),
+    model->device_name_subscription = furi_state_get_subscribe(
+        device_name_get_state(model->device_name),
+        NULL,
         ble_model_on_device_name_change_callback,
         model);
 
@@ -86,8 +87,7 @@ void ble_model_free(BleModel* model) {
     model->callback = NULL;
 
     furi_timer_free(model->pairing_timer);
-    furi_pubsub_unsubscribe(
-        device_name_get_pubsub(model->device_name), model->device_name_subscription);
+    furi_state_unsubscribe(model->device_name_subscription);
     furi_pubsub_unsubscribe(ble_get_pubsub(model->ble), model->ble_subscription);
     furi_mutex_free(model->lock);
     furi_record_close(RECORD_BLE);
