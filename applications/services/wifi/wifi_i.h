@@ -14,10 +14,6 @@
 
 #define TAG "WifiSrv"
 
-typedef enum {
-    WifiEventRequest = 1UL << 0,
-} WifiEvent;
-
 typedef struct {
     WifiCredentials credentials;
     WifiIpConfig ip_config;
@@ -51,9 +47,8 @@ typedef struct {
 
 struct Wifi {
     FuriEventLoop* event_loop;
+    FuriMessageQueue* api_queue;
     FuriMessageQueue* response_queue;
-    FuriMessageQueue* override_queue;
-    FuriSemaphore* api_semaphore;
     FuriSemaphore* dhcp_semaphore;
     FuriState* state;
     Intercom* intercom;
@@ -63,16 +58,11 @@ struct Wifi {
     struct netif netif;
     WifiMessage api_message;
     WifiRequest request;
+    bool is_processing;
 };
 
 // API management
-bool wifi_api_is_locked(Wifi* instance);
-
-bool wifi_api_try_lock(Wifi* instance);
-
 void wifi_api_unlock(Wifi* instance, WifiStatus status);
-
-void wifi_api_unlock_pending_request(Wifi* instance, WifiStatus status);
 
 // Internal nonblocking API calls
 void wifi_schedule_init_request(Wifi* instance);

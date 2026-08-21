@@ -2,9 +2,21 @@
 
 #define WIFI_API_TIMEOUT_MS (5000)
 
-static void wifi_api_send_message(Wifi* instance, const WifiMessage* message) {
-    instance->api_message = *message;
-    furi_event_loop_set_custom_event(instance->event_loop, WifiEventRequest);
+static bool
+    wifi_api_send_message(Wifi* instance, const WifiMessage* message, uint32_t timeout_ms) {
+    bool success = true;
+
+    const FuriStatus queue_status =
+        furi_message_queue_put(instance->api_queue, message, furi_ms_to_ticks(timeout_ms));
+
+    if(queue_status != FuriStatusOk) {
+        furi_check(queue_status == FuriStatusErrorTimeout);
+        FURI_LOG_E(TAG, "Failed to override current request: timeout");
+
+        success = false;
+    }
+
+    return success;
 }
 
 static WifiStatus wifi_api_blocking_request(Wifi* instance, WifiMessage* message) {
@@ -14,11 +26,7 @@ static WifiStatus wifi_api_blocking_request(Wifi* instance, WifiMessage* message
     message->status = &status;
     message->lock = api_lock_alloc_locked();
 
-    const FuriStatus sem_status =
-        furi_semaphore_acquire(instance->api_semaphore, furi_ms_to_ticks(WIFI_API_TIMEOUT_MS));
-
-    if(sem_status == FuriStatusOk) {
-        wifi_api_send_message(instance, message);
+    if(wifi_api_send_message(instance, message, furi_ms_to_ticks(WIFI_API_TIMEOUT_MS))) {
         api_lock_wait_unlock_and_free(message->lock);
 
     } else {
@@ -32,37 +40,14 @@ static WifiStatus wifi_api_blocking_request(Wifi* instance, WifiMessage* message
 }
 
 static void wifi_api_nonblocking_request(Wifi* instance, const WifiMessage* message) {
-    if(wifi_api_try_lock(instance)) {
-        wifi_api_send_message(instance, message);
-    } else {
+    if(!wifi_api_send_message(instance, message, 0)) {
         FURI_LOG_W(TAG, "Failed to send nonblocking request");
     }
 }
 
-static void wifi_api_override_request(Wifi* instance, const WifiMessage* message) {
-    const FuriStatus queue_status = furi_message_queue_put(
-        instance->override_queue, message, furi_ms_to_ticks(WIFI_API_TIMEOUT_MS));
-
-    if(queue_status != FuriStatusOk) {
-        furi_check(queue_status == FuriStatusErrorTimeout);
-        FURI_LOG_E(TAG, "Failed to override current request: timeout");
-    }
-}
-
-bool wifi_api_is_locked(Wifi* instance) {
-    return furi_semaphore_get_count(instance->api_semaphore) == 0;
-}
-
-bool wifi_api_try_lock(Wifi* instance) {
-    return furi_semaphore_acquire(instance->api_semaphore, 0) == FuriStatusOk;
-}
-
 void wifi_api_unlock(Wifi* instance, WifiStatus status) {
-    wifi_api_unlock_pending_request(instance, status);
-    furi_check(furi_semaphore_release(instance->api_semaphore) == FuriStatusOk);
-}
+    furi_assert(instance->is_processing);
 
-void wifi_api_unlock_pending_request(Wifi* instance, WifiStatus status) {
     WifiMessage* message = &instance->api_message;
 
     if(message->lock) {
@@ -73,6 +58,10 @@ void wifi_api_unlock_pending_request(Wifi* instance, WifiStatus status) {
 
         api_lock_unlock(message->lock);
     }
+
+    instance->is_processing = false;
+
+    furi_check(furi_message_queue_reset(instance->api_queue) == FuriStatusOk);
 }
 
 void wifi_schedule_init_request(Wifi* instance) {
@@ -82,7 +71,7 @@ void wifi_schedule_init_request(Wifi* instance) {
         .request_type = WifiRequestTypeInit,
     };
 
-    wifi_api_override_request(instance, &msg);
+    wifi_api_nonblocking_request(instance, &msg);
 }
 
 void wifi_schedule_connect_request(Wifi* instance, const WifiSettings* settings) {
@@ -117,7 +106,8 @@ void wifi_schedule_deinit_request(Wifi* instance) {
         .request_type = WifiRequestTypeDeinit,
     };
 
-    wifi_api_override_request(instance, &msg);
+    // TODO: cancel all requests
+    wifi_api_nonblocking_request(instance, &msg);
 }
 
 void wifi_schedule_set_hostname_request(Wifi* instance, const DeviceNameInfo* device_name_info) {
@@ -125,7 +115,10 @@ void wifi_schedule_set_hostname_request(Wifi* instance, const DeviceNameInfo* de
 
     const WifiMessage msg = {
         .request_type = WifiRequestTypeSetHostname,
-        .set_hostname_message = {.device_name_info = *device_name_info},
+        .set_hostname_message =
+            {
+                .device_name_info = *device_name_info,
+            },
     };
 
     wifi_api_nonblocking_request(instance, &msg);
