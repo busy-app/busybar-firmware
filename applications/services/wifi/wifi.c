@@ -5,6 +5,7 @@
 #include "wifi_state.h"
 
 #define API_QUEUE_SIZE            (1)
+#define PRIORITY_QUEUE_SIZE       (2)
 #define RESPONSE_QUEUE_SIZE       (4)
 #define RESPONSE_QUEUE_TIMEOUT_MS (200)
 
@@ -314,13 +315,34 @@ static void wifi_api_queue_callback(FuriEventLoopObject* object, void* context) 
     Wifi* instance = context;
     furi_assert(object == instance->api_queue);
 
-    if(!instance->is_processing) {
-        if(furi_message_queue_peek(instance->api_queue, &instance->api_message, 0) ==
-           FuriStatusOk) {
-            instance->is_processing = true;
-            wifi_process_request(instance);
-        }
+    if(instance->is_processing) {
+        return;
     }
+
+    furi_check(
+        furi_message_queue_peek(instance->api_queue, &instance->api_message, 0) == FuriStatusOk);
+
+    instance->is_processing = true;
+    wifi_process_request(instance);
+}
+
+static void wifi_priority_queue_callback(FuriEventLoopObject* object, void* context) {
+    furi_assert(context);
+
+    Wifi* instance = context;
+    furi_assert(object == instance->priority_queue);
+
+    if(instance->is_processing) {
+        furi_check(furi_message_queue_reset(instance->response_queue) == FuriStatusOk);
+        wifi_api_unlock(instance, WifiStatusError);
+    }
+
+    furi_check(
+        furi_message_queue_get(instance->priority_queue, &instance->api_message, 0) ==
+        FuriStatusOk);
+
+    instance->is_processing = true;
+    wifi_process_request(instance);
 }
 
 static void wifi_response_queue_callback(FuriEventLoopObject* object, void* context) {
@@ -344,6 +366,7 @@ static Wifi* wifi_alloc(void) {
 
     instance->event_loop = furi_event_loop_alloc();
     instance->api_queue = furi_message_queue_alloc(API_QUEUE_SIZE, sizeof(WifiMessage));
+    instance->priority_queue = furi_message_queue_alloc(PRIORITY_QUEUE_SIZE, sizeof(WifiMessage));
     instance->response_queue = furi_message_queue_alloc(RESPONSE_QUEUE_SIZE, sizeof(WifiResponse));
     instance->dhcp_semaphore = furi_semaphore_alloc(1, 0);
     instance->state = furi_state_alloc(sizeof(WifiInfo));
@@ -359,6 +382,13 @@ static Wifi* wifi_alloc(void) {
         instance->api_queue,
         FuriEventLoopEventIn | FuriEventLoopEventFlagEdge,
         wifi_api_queue_callback,
+        instance);
+
+    furi_event_loop_subscribe_message_queue(
+        instance->event_loop,
+        instance->priority_queue,
+        FuriEventLoopEventIn,
+        wifi_priority_queue_callback,
         instance);
 
     furi_event_loop_subscribe_message_queue(

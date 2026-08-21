@@ -48,6 +48,7 @@ typedef struct {
 struct Wifi {
     FuriEventLoop* event_loop;
     FuriMessageQueue* api_queue;
+    FuriMessageQueue* priority_queue;
     FuriMessageQueue* response_queue;
     FuriSemaphore* dhcp_semaphore;
     FuriState* state;
