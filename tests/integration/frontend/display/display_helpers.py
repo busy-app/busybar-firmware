@@ -250,21 +250,29 @@ def frame_digest(frame: bytes) -> str:
     return hashlib.sha256(frame).hexdigest()
 
 
-def _wait_for_frame(
+def _poll_for_frame(
     capture: Callable[[], _FrameT],
     predicate: Callable[[_FrameT], bool],
-    description: str,
-) -> _FrameT:
+) -> tuple[bool, _FrameT]:
     deadline = time.monotonic() + _FRAME_TIMEOUT
     last_frame = capture()
 
     while time.monotonic() < deadline:
         if predicate(last_frame):
-            return last_frame
+            return True, last_frame
         time.sleep(_FRAME_POLL_INTERVAL)
         last_frame = capture()
 
-    if predicate(last_frame):
+    return predicate(last_frame), last_frame
+
+
+def _wait_for_frame(
+    capture: Callable[[], _FrameT],
+    predicate: Callable[[_FrameT], bool],
+    description: str,
+) -> _FrameT:
+    matched, last_frame = _poll_for_frame(capture, predicate)
+    if matched:
         return last_frame
 
     last_frame.attach(f"Timeout: {description}")
@@ -316,19 +324,18 @@ def assert_front_pixels(
 ) -> FrontFrame:
     """Wait until every (x, y) front pixel matches its RGB value.
 
-    Attaches the matching frame to Allure under ``attach_as`` and returns it;
-    on timeout the wait helper attaches the last frame and raises.
+    Attaches the last captured frame to Allure under ``attach_as`` and
+    returns it; on timeout raises with the expected-vs-actual pixel diff.
     """
     def matches(frame: FrontFrame) -> bool:
         return all(frame.pixel(x, y) == rgb for (x, y), rgb in expected.items())
 
-    frame = wait_for_front_frame(
-        streaming_api, matches, f"front pixels {expected!r}"
-    )
-    frame.attach(attach_as)
+    matched, frame = _poll_for_frame(streaming_api.front_frame, matches)
+    frame.attach(attach_as if matched else f"Timeout: {attach_as}")
     actual = {(x, y): frame.pixel(x, y) for (x, y) in expected}
     assert actual == expected, (
-        f"Unexpected front pixels: expected {expected!r}, got {actual!r}"
+        f"Timed out waiting for front pixels: expected {expected!r}, "
+        f"got {actual!r}; last_frame_sha256={frame.digest()}"
     )
     return frame
 
@@ -340,21 +347,20 @@ def assert_back_pixels(
 ) -> BackFrame:
     """Wait until every (x, y) back pixel matches its 4-bit luma value.
 
-    Attaches the matching frame to Allure under ``attach_as`` and returns it;
-    on timeout the wait helper attaches the last frame and raises.
+    Attaches the last captured frame to Allure under ``attach_as`` and
+    returns it; on timeout raises with the expected-vs-actual pixel diff.
     """
     def matches(frame: BackFrame) -> bool:
         return all(
             frame.pixel(x, y) == luma for (x, y), luma in expected.items()
         )
 
-    frame = wait_for_back_frame(
-        streaming_api, matches, f"back pixels {expected!r}"
-    )
-    frame.attach(attach_as)
+    matched, frame = _poll_for_frame(streaming_api.back_frame, matches)
+    frame.attach(attach_as if matched else f"Timeout: {attach_as}")
     actual = {(x, y): frame.pixel(x, y) for (x, y) in expected}
     assert actual == expected, (
-        f"Unexpected back pixels: expected {expected!r}, got {actual!r}"
+        f"Timed out waiting for back pixels: expected {expected!r}, "
+        f"got {actual!r}; last_frame_sha256={frame.digest()}"
     )
     return frame
 
