@@ -98,7 +98,7 @@ typedef struct JsRunner {
 } JsRunner;
 
 typedef struct JsRunnerStaticContext {
-    atomic_flag running;
+    atomic_flag is_running;
     JsRunnerApp* volatile app;
 } JsRunnerStaticContext;
 

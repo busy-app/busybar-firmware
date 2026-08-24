@@ -8,7 +8,7 @@
 
 JsRunnerStaticContext js_runner_static_context = {
     .app = NULL,
-    .running = ATOMIC_FLAG_INIT,
+    .is_running = ATOMIC_FLAG_INIT,
 };
 
 size_t js_runner_thread_context_alloc(size_t context_size) {
@@ -284,7 +284,7 @@ JsRunnerError js_runner_run(
     if(!validate_app_id(app_id)) {
         return JsRunnerErrorInvalidAppId;
     }
-    if(atomic_flag_test_and_set(&js_runner_static_context.running)) {
+    if(atomic_flag_test_and_set(&js_runner_static_context.is_running)) {
         return JsRunnerErrorTooManyApps;
     }
     FURI_LOG_I(TAG, "Running script: %s", path);
@@ -377,7 +377,7 @@ JsRunnerError js_runner_run(
     } while(false);
     storage_file_free(f);
     furi_record_close(RECORD_STORAGE);
-    atomic_flag_clear(&js_runner_static_context.running);
+    atomic_flag_clear(&js_runner_static_context.is_running);
     return ret;
 }
 
