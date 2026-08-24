@@ -202,7 +202,13 @@ const showEnableHttpApiModal = ref(false);
 
 const connected = computed(() => wifiStore.wifi?.state === 'connected');
 
-const barUrl = computed(() => runtimeConfig.public.barUrl || window.location.origin);
+const barUrl = computed(() => {
+  if (deviceStore.connectionType === 'usb') {
+    return runtimeConfig.public.barUrl || window.location.origin;
+  }
+
+  return 'http://10.0.4.20/';
+});
 
 watch(() => deviceStore.httpAPIAccess, access => {
   if (!access) {
