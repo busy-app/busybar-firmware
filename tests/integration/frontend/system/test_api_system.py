@@ -59,7 +59,7 @@ class TestSystemAPI:
                 "retries once with a reconnect — empty output here means the "
                 "device CLI itself is unhealthy."
             )
-              for marker in ("u5_firmware_version", "sl_firmware_version"):
+            for marker in ("u5_firmware_version", "sl_firmware_version"):
                 assert marker in data, (
                     f"CLI `device_info` is missing {marker!r}. Output:\n{data}"
                 )
