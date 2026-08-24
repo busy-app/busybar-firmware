@@ -207,7 +207,7 @@ const barUrl = computed(() => {
     return runtimeConfig.public.barUrl || window.location.origin;
   }
 
-  return 'http://10.0.4.20/';
+  return 'http://10.0.4.20';
 });
 
 watch(() => deviceStore.httpAPIAccess, access => {
