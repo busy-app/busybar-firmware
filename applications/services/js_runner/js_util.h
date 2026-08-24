@@ -9,6 +9,12 @@
 #pragma GCC diagnostic pop
 #include <furi/core/string.h>
 
+#define JS_CHECK_ARGS_COUNT(n)                                                             \
+    do {                                                                                   \
+        if(args_count < n) {                                                               \
+            return jerry_throw_sz(JERRY_ERROR_TYPE, "At least " #n " arguments required"); \
+        }                                                                                  \
+    } while(false)
 #define JS_CHECK_INSTANCE()                                                    \
     do {                                                                       \
         if(!instance) {                                                        \
@@ -95,6 +101,21 @@ char* js_string_to_c_string(jerry_value_t value);
  * @return a new string or NULL if value is not a JS string.
  */
 FuriString* js_string_to_furi_string(jerry_value_t value);
+
+/** @brief Create a JS string by decoding a UTF-8 FuriString.
+ *
+ * @param s source string
+ * @return JS string
+ */
+jerry_value_t js_utf8_string(const FuriString* s);
+
+/** @brief Convert a JS value to an integer. Usual JS rules are applied.
+ *
+ * @param value The value.
+ * @param[out] result Result placeholder.
+ * @return true if conversion was successful, false if value could not be converted to an integer.
+ */
+bool js_value_to_integer(jerry_value_t value, int* result);
 
 /** @brief Copy a property (if it exists) from one object to another. */
 void js_copy_property(jerry_value_t dst, jerry_value_t src, const char* key);

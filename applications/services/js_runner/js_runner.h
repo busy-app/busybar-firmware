@@ -18,6 +18,7 @@ typedef enum JsRunnerError {
     JsRunnerErrorInvalidFileSize,
     JsRunnerErrorCannotReadFile,
     JsRunnerErrorParseException,
+    JsRunnerErrorInvalidAppId,
     JsRunnerErrorMax,
 } JsRunnerError;
 
@@ -45,6 +46,7 @@ typedef void (*JsRunnerConsoleOutCallback)(
  * This function blocks until the script terminates. To forcefully terminate the script use js_runner_kill().
  *
  * @param instance JsRunner instance. Can be obtained with furi_record_open().
+ * @param app_id JS application ID (see js_app_launcher).
  * @param path entry point script path.
  * @param heap_size JS heap size for the app in bytes.
  * @param console_write_cb callback function for JS console methods (console.log, console.error, console.info). Supply NULL to disable console.
@@ -54,6 +56,7 @@ typedef void (*JsRunnerConsoleOutCallback)(
  */
 JsRunnerError js_runner_run(
     JsRunner* instance,
+    const char* app_id,
     const char* path,
     size_t heap_size,
     JsRunnerConsoleOutCallback console_write_cb,

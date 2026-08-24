@@ -2,6 +2,7 @@
 #include "js_fetch.h"
 #include "js_interval.h"
 #include "js_console.h"
+#include "js_local_storage.h"
 
 #define TAG "JsRunner"
 
@@ -142,10 +143,12 @@ static void js_runner_app_fetch_deinit(JsRunnerAppFetch* fetch) {
 
 static void js_runner_app_init(
     JsRunnerApp* app,
+    const char* app_id,
     const char* script_path,
     size_t heap_size,
     JsRunnerConsoleOutCallback console_out_cb,
     void* console_cb_context) {
+    app->app_id = furi_string_alloc_set(app_id);
     app->should_terminate = false;
     app->heap_size = heap_size;
     app->jrs_context = NULL;
@@ -171,6 +174,7 @@ static void js_runner_app_init(
 
 static void js_runner_app_deinit(JsRunnerApp* app) {
     JS_TRACE("app deinit");
+    furi_string_free(app->app_id);
     furi_event_loop_unsubscribe(app->event_loop, app->command_queue);
     furi_message_queue_free(app->command_queue);
     furi_event_loop_unsubscribe(app->event_loop, app->fetch.event_queue);
@@ -249,12 +253,31 @@ void js_runner_del_fetch_thread(JsRunnerApp* app, JsFetch* fetch) {
     js_runner_app_stop_if_done(app);
 }
 
+const char* js_runner_app_get_id(const JsRunnerApp* app) {
+    return furi_string_get_cstr(app->app_id);
+}
+
+bool validate_app_id(const char* app_id) {
+    while(*app_id) {
+        int c = *app_id;
+        if(!isalnum(c) && c != '.' && c != '_') {
+            return false;
+        }
+        ++app_id;
+    }
+    return true;
+}
+
 JsRunnerError js_runner_run(
     JsRunner* instance,
+    const char* app_id,
     const char* path,
     size_t heap_size,
     JsRunnerConsoleOutCallback console_out_cb,
     void* console_write_context) {
+    if(!validate_app_id(app_id)) {
+        return JsRunnerErrorInvalidAppId;
+    }
     FURI_LOG_I(TAG, "Running script: %s", path);
 
     JsRunnerError ret = JsRunnerErrorNone;
@@ -278,7 +301,7 @@ JsRunnerError js_runner_run(
         }
 
         JsRunnerApp app;
-        js_runner_app_init(&app, path, heap_size, console_out_cb, console_write_context);
+        js_runner_app_init(&app, app_id, path, heap_size, console_out_cb, console_write_context);
 
         {
             furi_check(furi_mutex_acquire(instance->apps_mutex, FuriWaitForever) == FuriStatusOk);
@@ -299,11 +322,12 @@ JsRunnerError js_runner_run(
         js_setup_console(&app.console);
         js_setup_interval_methods();
         js_setup_fetch();
+        js_setup_local_storage();
 
         FuriString* path_furi = furi_string_alloc_set_str(path);
         FuriString* filename_furi = furi_string_alloc();
         path_extract_filename(path_furi, filename_furi, false);
-        jerry_value_t source_name = jerry_string_sz(furi_string_get_cstr(filename_furi));
+        jerry_value_t source_name = js_utf8_string(filename_furi);
         furi_string_free(filename_furi);
         furi_string_free(path_furi);
 
@@ -443,6 +467,7 @@ static const char* const error_messages[] = {
     [JsRunnerErrorInvalidFileSize] = "Invalid file size",
     [JsRunnerErrorCannotReadFile] = "Cannot read file",
     [JsRunnerErrorParseException] = "Parse exception",
+    [JsRunnerErrorInvalidAppId] = "Invalid App ID",
 };
 
 static_assert(COUNT_OF(error_messages) == JsRunnerErrorMax);
