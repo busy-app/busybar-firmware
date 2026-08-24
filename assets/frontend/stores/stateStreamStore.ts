@@ -6,7 +6,10 @@ import {
   StreamLifecycle,
   ConnectionStatus
 } from '@busy-app/busy-lib';
-import type { BSB_State, ProcessedState, ProcessedUpdate, StreamStatus, SmartHomePairingInfo } from '@busy-app/busy-lib';
+import type { ProcessedState, ProcessedUpdate, StreamStatus, SmartHomePairingInfo,
+  BSB_State
+} from '@busy-app/busy-lib';
+import { normalizeBatteryStatus } from '@/util/battery';
 
 type WifiUpdate = NonNullable<ProcessedUpdate['wifi']>;
 type PowerUpdate = NonNullable<ProcessedUpdate['power']>;
@@ -78,7 +81,7 @@ export const useStateStreamStore = defineStore('stateStream', () => {
 
     const nextPower = known
       ? {
-        state: known.batteryStatus ?? undefined,
+        state: normalizeBatteryStatus(known.batteryStatus),
         battery_charge: known.batteryChargePercent ?? 0,
         battery_voltage: known.batteryVoltageMv ?? 0,
         battery_current: known.batteryCurrentMa ?? 0,
