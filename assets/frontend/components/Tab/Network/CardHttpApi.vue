@@ -10,10 +10,10 @@
       <UButton
         variant="link"
         class="p-0 gap-0.5"
-        :href="`${runtimeConfig.public.barUrl || 'http://10.0.4.20'}/docs`"
+        :href="`${barUrl}/docs`"
         target="_blank"
       >
-        <span class="underline">{{ runtimeConfig.public.barUrl || 'http://10.0.4.20' }}/docs</span>
+        <span class="underline">{{ barUrl }}/docs</span>
         <UIcon
           name="i-bi-open-in-new"
           class="size-4"
@@ -201,6 +201,8 @@ const httpApiSwitchModel = ref(false);
 const showEnableHttpApiModal = ref(false);
 
 const connected = computed(() => wifiStore.wifi?.state === 'connected');
+
+const barUrl = computed(() => runtimeConfig.public.barUrl || window.location.origin);
 
 watch(() => deviceStore.httpAPIAccess, access => {
   if (!access) {
