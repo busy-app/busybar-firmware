@@ -8,6 +8,7 @@ Endpoints:
 from __future__ import annotations
 
 import base64
+import hashlib
 from io import BytesIO
 
 import allure
@@ -19,7 +20,7 @@ from .base import BaseAPI
 # Display specifications
 FRONT_DISPLAY_WIDTH = 72
 FRONT_DISPLAY_HEIGHT = 16
-FRONT_DISPLAY_BPP = 3  # RGB, 3 bytes per pixel
+FRONT_DISPLAY_BPP = 3  # BGR, 3 bytes per pixel
 
 BACK_DISPLAY_WIDTH = 160
 BACK_DISPLAY_HEIGHT = 80
@@ -33,16 +34,19 @@ def raw_to_png(raw_pixels: bytes, display: int) -> bytes:
 
     Args:
         raw_pixels: Raw pixel data from GET /api/screen (base64-decoded).
-        display: 0 = front (72x16 RGB), 1 = back (160x80 4-bit grayscale).
+        display: 0 = front (72x16 BGR), 1 = back (160x80 4-bit grayscale).
 
     Returns:
         PNG image bytes, upscaled for readability.
     """
     if display == 0:
+        # Front framebuffer bytes are BGR
         img = Image.frombytes(
             "RGB",
             (FRONT_DISPLAY_WIDTH, FRONT_DISPLAY_HEIGHT),
             raw_pixels,
+            "raw",
+            "BGR",
         )
     else:
         w, h = BACK_DISPLAY_WIDTH, BACK_DISPLAY_HEIGHT
@@ -92,6 +96,55 @@ def attach_failure_screenshots(base_url: str) -> None:
                 pass  # device unreachable or decode error — skip
 
 
+# === Captured frames ===
+
+
+class _Frame:
+    """A captured display frame; subclasses define layout-aware pixel access."""
+
+    display: int
+
+    def __init__(self, raw: bytes):
+        self.raw = raw
+
+    def digest(self) -> str:
+        """Return a compact identity for assertion messages."""
+        return hashlib.sha256(self.raw).hexdigest()
+
+    def to_png(self) -> bytes:
+        """Render the frame as PNG bytes (upscaled for readability)."""
+        return raw_to_png(self.raw, self.display)
+
+    def attach(self, name: str) -> None:
+        """Attach the frame to the Allure report as a PNG."""
+        allure.attach(
+            self.to_png(), name=name, attachment_type=allure.attachment_type.PNG
+        )
+
+
+class FrontFrame(_Frame):
+    """Front display frame: 72x16, 3 bytes per pixel, BGR byte order."""
+
+    display = 0
+
+    def pixel(self, x: int, y: int) -> tuple[int, int, int]:
+        """Return the (R, G, B) tuple at the given coordinates."""
+        offset = (y * FRONT_DISPLAY_WIDTH + x) * 3
+        return self.raw[offset + 2], self.raw[offset + 1], self.raw[offset]
+
+
+class BackFrame(_Frame):
+    """Back display frame: 160x80, 4-bit luma, even pixel in the low nibble."""
+
+    display = 1
+
+    def pixel(self, x: int, y: int) -> int:
+        """Return the 4-bit luma value at the given coordinates."""
+        pixel_index = y * BACK_DISPLAY_WIDTH + x
+        packed = self.raw[pixel_index // 2]
+        return (packed & 0x0F) if pixel_index % 2 == 0 else (packed >> 4)
+
+
 # === API Client ===
 
 
@@ -121,12 +174,20 @@ class StreamingAPI(BaseAPI):
 
         Returns:
             Raw pixel data bytes.
-            Front (display=0): 3456 bytes (72x16x3 RGB)
+            Front (display=0): 3456 bytes (72x16x3 BGR)
             Back (display=1): 6400 bytes (160x80/2, nibble-packed 4-bit grayscale)
         """
         response = self.get_screen(display)
         response.raise_for_status()
         return base64.b64decode(response.content)
+
+    def front_frame(self) -> FrontFrame:
+        """Capture the front display as a layout-aware frame object."""
+        return FrontFrame(self.get_screen_bytes(display=0))
+
+    def back_frame(self) -> BackFrame:
+        """Capture the back display as a layout-aware frame object."""
+        return BackFrame(self.get_screen_bytes(display=1))
 
     def get_front_display(self) -> requests.Response:
         """Get front display frame."""
