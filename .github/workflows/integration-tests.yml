@@ -258,7 +258,7 @@ jobs:
         continue-on-error: true
         uses: allure-framework/setup-allurectl@2d89ee0b7ba2f59dbe9849b6df5763cab78e14db # v1.0.3
         with:
-          allure-endpoint: ${{ secrets.ALLURE_TESTOPS_URL }}
+          allure-endpoint: ${{ vars.ALLURE_TESTOPS_URL }}
           allure-token: ${{ secrets.ALLURE_TESTOPS_TOKEN }}
           allure-project-id: ${{ secrets.ALLURE_PROJECT_ID }}
 
@@ -270,14 +270,14 @@ jobs:
         run: |
           cd tests
           OUTPUT=$(allurectl upload allure-results \
-            --endpoint "${{ secrets.ALLURE_TESTOPS_URL }}" \
+            --endpoint "${{ vars.ALLURE_TESTOPS_URL }}" \
             --token "${{ secrets.ALLURE_TESTOPS_TOKEN }}" \
             --project-id "${{ secrets.ALLURE_PROJECT_ID }}" \
             --launch-name "BSB Firmware - Integration Tests - ${LAUNCH_BRANCH} - ${GITHUB_SHA::7}" 2>&1) || true
           echo "$OUTPUT"
           LAUNCH_ID=$(echo "$OUTPUT" | grep -oP 'Launch \[\K[0-9]+' | head -1)
           if [ -n "$LAUNCH_ID" ]; then
-            echo "allure_launch_url=${{ secrets.ALLURE_TESTOPS_URL }}/launch/$LAUNCH_ID" >> "$GITHUB_OUTPUT"
+            echo "allure_launch_url=${{ vars.ALLURE_TESTOPS_URL }}/launch/$LAUNCH_ID" >> "$GITHUB_OUTPUT"
           fi
 
       - name: 'Configure AWS CLI'

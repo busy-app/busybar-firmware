@@ -15,6 +15,19 @@ from utils.fetch_http_server import (
 
 pytestmark = pytest.mark.cli
 
+FETCH_USAGE = """Usage:
+fetch [options] <url>
+Options:
+-o Output file path
+-d HTTP POST/PUT data
+-H Custom header(s)
+-X Request method
+-k (TLS) Ignore server certificate
+-a (TLS) Client auth type ("none" (default), "device" or "cert")
+-C (TLS) Custom client certificate file path
+-K (TLS) Custom client private key file path
+-v Enable full output"""
+
 
 @allure.epic("BSB CLI Testing")
 @allure.feature("6. CLI")
@@ -49,6 +62,18 @@ class TestCLIFetch:
         with allure.step("Verify missing-URL error and usage"):
             assert "Error: No URL specified" in response, response
             assert "fetch [options] <url>" in response, response
+
+    @allure.title("CLI. Command fetch prints the complete usage contract.")
+    def test_fetch_usage_contract(self, persistent_cli_connection):
+        response = persistent_cli_connection.execute_command("fetch")
+
+        with allure.step("Extract and verify the complete Fetch usage block"):
+            prefix, separator, usage = response.partition("Usage:")
+            assert separator, f"Fetch usage header is missing: {response!r}"
+            assert prefix.strip() == "Error: No URL specified", response
+            assert (
+                f"Usage:{usage}" == FETCH_USAGE
+            ), f"Fetch usage differs from its public CLI contract: {response!r}"
 
     @allure.title("CLI. Command fetch rejects invalid arguments.")
     @pytest.mark.parametrize(
@@ -217,9 +242,10 @@ class TestCLIFetch:
                     f"expected request path '/unknown.bin', captured {captured!r}; "
                     f"Fetch output was {response!r}"
                 )
-                assert (
-                    "HTTP/1.0 200 OK" in response
-                ), f"expected close-delimited success for {captured!r}, got {response!r}"
+                assert "HTTP/1.0 200 OK" in response, (
+                    f"expected close-delimited success for {captured!r}, "
+                    f"got {response!r}"
+                )
                 assert "Content-Length" not in response, response
                 assert "Transfer-Encoding" not in response, response
 
