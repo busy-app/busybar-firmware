@@ -59,8 +59,6 @@ class TestSystemAPI:
                 "retries once with a reconnect — empty output here means the "
                 "device CLI itself is unhealthy."
             )
-            # Cross-verify: device_info must expose both U5 and 917 firmware sections,
-            # otherwise the API status above can't be meaningfully cross-checked.
             for marker in ("u5_firmware_version", "sl_firmware_version"):
                 assert marker in data, (
                     f"CLI `device_info` is missing {marker!r}. Output:\n{data}"

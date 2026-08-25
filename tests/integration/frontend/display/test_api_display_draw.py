@@ -22,18 +22,33 @@ OpenAPI schema:          openapi.yaml  (DisplayElements, DisplayElement, ...)
 from __future__ import annotations
 
 import time
+from pathlib import Path
 
 import allure
 import pytest
 import requests
+from PIL import Image
 
 from clients.api.assets import (
     AssetsAPI,
     DEFAULT_ELEMENT_PRIORITY,
 )
 from clients.api import StreamingAPI
+from .display_helpers import (
+    BGR_BLACK,
+    BUILTIN_ANIM as _BUILTIN_ANIM,
+    BUILTIN_IMAGE as _BUILTIN_IMAGE,
+    FILL_BLACK,
+    RGB_BLACK,
+    anim_element as _anim,
+    assert_front_pixels,
+    countdown_element as _countdown,
+    image_element as _image,
+    solid_rectangle,
+    text_element as _text,
+    wait_for_front_frame,
+)
 
-_RENDER_SETTLE = 0.5  # seconds to wait after draw before capturing screenshot
 _MISSING_IMAGE = "nonexistent/does_not_exist.image"
 _MISSING_ANIM = "nonexistent/does_not_exist.anim"
 _VALID_TEXT_FONTS = [
@@ -48,16 +63,30 @@ _VALID_TEXT_FONTS = [
 ]
 
 
-def _capture_after_draw(
-    assets_api: AssetsAPI,
-    streaming_api: StreamingAPI,
-    elements: list[dict],
-    display: int = 0,
-) -> bytes:
-    """Draw elements, wait for render, return display screenshot bytes."""
-    _draw(assets_api, elements)
-    time.sleep(_RENDER_SETTLE)
-    return streaming_api.get_screen_bytes(display=display)
+def _all_black(frame) -> bool:
+    """True when every front pixel is black (canvas owned by a black base)."""
+    return frame.raw == BGR_BLACK * (len(frame.raw) // 3)
+
+
+def _load_error_icon_expectation() -> dict[tuple[int, int], tuple[int, int, int]]:
+    """Expected front pixels for I_load_error_9x9 drawn at (0, 0) over black.
+
+    The firmware renders this placeholder when an image/anim asset fails to
+    load (see anim_player.c). The expectation is built from the source PNG:
+    opaque icon pixels keep their color, transparent ones show the black base.
+    """
+    icon_path = (
+        Path(__file__).resolve().parents[4]
+        / "assets" / "images" / "internal" / "load_error_9x9.png"
+    )
+    icon = Image.open(icon_path).convert("RGBA")
+    expectation = {}
+    for y in range(icon.height):
+        for x in range(icon.width):
+            r, g, b, a = icon.getpixel((x, y))
+            expectation[(x, y)] = (r, g, b) if a else RGB_BLACK
+    return expectation
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -75,61 +104,6 @@ def _draw(api: AssetsAPI, elements: list[dict], **kw) -> requests.Response:
 def _draw_raw(api: AssetsAPI, body: dict) -> requests.Response:
     """Post an arbitrary JSON body and return the raw response."""
     return api.draw_raw(body)
-
-
-def _text(overrides: dict | None = None, **extra) -> dict:
-    """Build a minimal valid text element, applying *overrides*."""
-    base = {"id": "t1", "type": "text", "text": "hello", "font": "small", "timeout": 5}
-    if overrides:
-        base.update(overrides)
-    base.update(extra)
-    return base
-
-
-def _countdown(overrides: dict | None = None, **extra) -> dict:
-    """Build a minimal valid countdown element."""
-    base = {
-        "id": "cd1",
-        "type": "countdown",
-        "timestamp": "1700000000",
-        "direction": "time_left",
-        "show_hours": "when_non_zero",
-        "timeout": 5,
-    }
-    if overrides:
-        base.update(overrides)
-    base.update(extra)
-    return base
-
-
-# Smallest real shared assets on the device (from /ext/shared/images and /ext/shared/animations).
-# stock_path resolution: firmware takes the filename after the last "/" and
-# looks it up in /ext/shared/images/ (image) or /ext/shared/animations/ (anim).
-_BUILTIN_IMAGE = "shared/checkmark_front_8x8.image"  # 28 bytes
-_BUILTIN_ANIM = "shared/spinner_front_8x8.anim"  # 2985 bytes
-
-
-def _image(overrides: dict | None = None, **extra) -> dict:
-    """Build a minimal valid image element using a real builtin image."""
-    base = {
-        "id": "img1",
-        "type": "image",
-        "stock_path": _BUILTIN_IMAGE,
-        "timeout": 5,
-    }
-    if overrides:
-        base.update(overrides)
-    base.update(extra)
-    return base
-
-
-def _anim(overrides: dict | None = None, **extra) -> dict:
-    """Build a minimal valid anim element using a real builtin animation."""
-    base = {"id": "a1", "type": "animation", "stock_path": _BUILTIN_ANIM, "timeout": 5}
-    if overrides:
-        base.update(overrides)
-    base.update(extra)
-    return base
 
 
 # ───────────────────────────────────────────────────────────────────────────
@@ -618,21 +592,26 @@ class TestImageElement:
     def test_image_with_builtin(
         self, assets_api: AssetsAPI, streaming_api: StreamingAPI, busy_timer_stopped
     ):
-        valid_elem = {"id": "bi1", "type": "image", "stock_path": _BUILTIN_IMAGE, "timeout": 10}
-        missing_elem = {"id": "bi1", "type": "image", "stock_path": _MISSING_IMAGE, "timeout": 10}
+        valid_elem = _image(element_id="bi1", timeout=10)
+        missing_elem = _image(element_id="bi1", stock_path=_MISSING_IMAGE, timeout=10)
 
         # A missing image asset fails decoder validation and is rejected with 400.
         assets_api.assert_status(_draw(assets_api, [missing_elem]), 400)
 
-        # The builtin image is accepted and renders non-blank pixels (vs a cleared display).
-        assets_api.clear_display()
-        time.sleep(_RENDER_SETTLE)
-        blank_screen = streaming_api.get_screen_bytes(display=0)
-        valid_screen = _capture_after_draw(assets_api, streaming_api, [valid_elem])
+        # A black base keeps the reference frame static regardless of the
+        # underlying app screen
+        base = solid_rectangle("bi_base", FILL_BLACK, timeout=10)
+        assets_api.assert_status(_draw(assets_api, [base]), 200)
+        blank = wait_for_front_frame(
+            streaming_api, _all_black, "an all-black canvas base"
+        )
 
-        assert valid_screen != blank_screen, (
-            f"stock_path {_BUILTIN_IMAGE!r} rendered nothing — "
-            "file may not exist on the device"
+        assets_api.assert_status(_draw(assets_api, [base, valid_elem]), 200)
+        wait_for_front_frame(
+            streaming_api,
+            lambda frame: frame.raw != blank.raw,
+            f"builtin image pixels from {_BUILTIN_IMAGE!r} over the black "
+            "base (file may not exist on the device)",
         )
 
     @allure.title("Image with both path and stock_path \u2192 400")
@@ -686,15 +665,33 @@ class TestAnimElement:
     def test_anim_with_builtin(
         self, assets_api: AssetsAPI, streaming_api: StreamingAPI, busy_timer_stopped
     ):
-        valid_elem = {"id": "ba1", "type": "animation", "stock_path": _BUILTIN_ANIM, "timeout": 10}
-        missing_elem = {"id": "ba1", "type": "animation", "stock_path": _MISSING_ANIM, "timeout": 10}
+        valid_elem = _anim(element_id="ba1", timeout=10)
+        missing_elem = _anim(element_id="ba1", stock_path=_MISSING_ANIM, timeout=10)
 
-        valid_screen = _capture_after_draw(assets_api, streaming_api, [valid_elem])
-        missing_screen = _capture_after_draw(assets_api, streaming_api, [missing_elem])
+        # A black base keeps the reference frame static regardless of the
+        # underlying app screen
+        base = solid_rectangle("ba_base", FILL_BLACK, timeout=10)
+        assets_api.assert_status(_draw(assets_api, [base]), 200)
+        blank = wait_for_front_frame(
+            streaming_api, _all_black, "an all-black canvas base"
+        )
 
-        assert valid_screen != missing_screen, (
-            f"stock_path {_BUILTIN_ANIM!r} rendered same pixels as a missing asset — "
-            "file may not exist on the device"
+        # A missing asset is accepted; the player renders the load-error
+        # placeholder instead (see _load_error_icon_expectation)
+        assets_api.assert_status(_draw(assets_api, [base, missing_elem]), 200)
+        placeholder = assert_front_pixels(
+            streaming_api,
+            _load_error_icon_expectation(),
+            "Anim load-error placeholder",
+        )
+
+        assets_api.assert_status(_draw(assets_api, [base, valid_elem]), 200)
+        wait_for_front_frame(
+            streaming_api,
+            lambda frame: frame.raw != blank.raw
+            and frame.raw != placeholder.raw,
+            f"builtin animation pixels from {_BUILTIN_ANIM!r} distinct from "
+            "the load-error placeholder (file may not exist on the device)",
         )
 
     @allure.title("Anim with both path and stock_path \u2192 400")
