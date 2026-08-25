@@ -908,16 +908,16 @@ class TestDisplayZIndex:
         streaming_api: StreamingAPI,
         busy_timer_stopped,
     ):
-        blue_lower = _solid_rectangle("blue", FILL_RED, z_index=10)
+        red_lower = _solid_rectangle("red", FILL_RED, z_index=10)
         green_higher = _solid_rectangle("green", FILL_GREEN, z_index=100)
         expected_green = _expected_front_frame([(0, FRONT_DISPLAY_WIDTH, BGR_GREEN)])
-        expected_blue = _expected_front_frame([(0, FRONT_DISPLAY_WIDTH, BGR_RED)])
+        expected_red = _expected_front_frame([(0, FRONT_DISPLAY_WIDTH, BGR_RED)])
 
         with allure.step("Draw and verify the initial z-index ordering"):
             initial = _draw_and_capture(
                 assets_api,
                 streaming_api,
-                [blue_lower, green_higher],
+                [red_lower, green_higher],
             )
             assert initial == expected_green, (
                 f"Expected initial frame sha256={_frame_digest(expected_green)}, "
@@ -928,7 +928,7 @@ class TestDisplayZIndex:
             response = assets_api.draw_response(
                 _APP_NAME,
                 [
-                    _solid_rectangle("blue", FILL_RED, z_index=200),
+                    _solid_rectangle("red", FILL_RED, z_index=200),
                     _solid_rectangle("green", FILL_GREEN, z_index=0),
                 ],
                 priority=DEFAULT_ELEMENT_PRIORITY,
@@ -940,8 +940,8 @@ class TestDisplayZIndex:
             actual = _capture_stable_front_frame(streaming_api).raw
 
         with allure.step("Verify the updated higher element is now visible"):
-            assert actual == expected_blue, (
-                f"Expected reordered frame sha256={_frame_digest(expected_blue)}, "
+            assert actual == expected_red, (
+                f"Expected reordered frame sha256={_frame_digest(expected_red)}, "
                 f"got sha256={_frame_digest(actual)}"
             )
 
@@ -954,16 +954,16 @@ class TestDisplayZIndex:
         streaming_api: StreamingAPI,
         busy_timer_stopped,
     ):
-        blue_lower = _solid_rectangle("blue", FILL_RED, z_index=100)
+        red_lower = _solid_rectangle("red", FILL_RED, z_index=100)
         green_higher = _solid_rectangle("green", FILL_GREEN, z_index=200)
         expected_green = _expected_front_frame([(0, FRONT_DISPLAY_WIDTH, BGR_GREEN)])
-        expected_blue = _expected_front_frame([(0, FRONT_DISPLAY_WIDTH, BGR_RED)])
+        expected_red = _expected_front_frame([(0, FRONT_DISPLAY_WIDTH, BGR_RED)])
 
         with allure.step("Draw and verify the initial explicit z-index ordering"):
             initial = _draw_and_capture(
                 assets_api,
                 streaming_api,
-                [blue_lower, green_higher],
+                [red_lower, green_higher],
             )
             assert initial == expected_green, (
                 f"Expected initial frame sha256={_frame_digest(expected_green)}, "
@@ -983,8 +983,8 @@ class TestDisplayZIndex:
             actual = _capture_stable_front_frame(streaming_api).raw
 
         with allure.step("Verify the omitted z_index was reset to default 0"):
-            assert actual == expected_blue, (
-                f"Expected z_index=100 frame sha256={_frame_digest(expected_blue)}, "
+            assert actual == expected_red, (
+                f"Expected z_index=100 frame sha256={_frame_digest(expected_red)}, "
                 f"got sha256={_frame_digest(actual)}; "
                 "the updated element should use default z_index=0"
             )

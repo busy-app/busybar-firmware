@@ -20,7 +20,7 @@ from .base import BaseAPI
 # Display specifications
 FRONT_DISPLAY_WIDTH = 72
 FRONT_DISPLAY_HEIGHT = 16
-FRONT_DISPLAY_BPP = 3  # RGB, 3 bytes per pixel
+FRONT_DISPLAY_BPP = 3  # BGR, 3 bytes per pixel
 
 BACK_DISPLAY_WIDTH = 160
 BACK_DISPLAY_HEIGHT = 80
@@ -34,7 +34,7 @@ def raw_to_png(raw_pixels: bytes, display: int) -> bytes:
 
     Args:
         raw_pixels: Raw pixel data from GET /api/screen (base64-decoded).
-        display: 0 = front (72x16 RGB), 1 = back (160x80 4-bit grayscale).
+        display: 0 = front (72x16 BGR), 1 = back (160x80 4-bit grayscale).
 
     Returns:
         PNG image bytes, upscaled for readability.
@@ -174,7 +174,7 @@ class StreamingAPI(BaseAPI):
 
         Returns:
             Raw pixel data bytes.
-            Front (display=0): 3456 bytes (72x16x3 RGB)
+            Front (display=0): 3456 bytes (72x16x3 BGR)
             Back (display=1): 6400 bytes (160x80/2, nibble-packed 4-bit grayscale)
         """
         response = self.get_screen(display)
