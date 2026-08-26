@@ -295,6 +295,9 @@ export const useStateStreamStore = defineStore('stateStream', () => {
         console.debug('Connection check failed after state stream data stale, stopping stream and starting polling');
         stopStream();
         deviceStore.setRefreshInterval();
+      } else if (conncheckResult === true) {
+        console.debug('Connection check succeeded after state stream data stale, refreshing device status');
+        await deviceStore.fetchDeviceStatus();
       }
     }
 
