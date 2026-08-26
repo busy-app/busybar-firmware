@@ -2,7 +2,7 @@ let counter = 0;
 
 function displayText() {
     const request = new Request(
-        "http://10.0.4.20/api/display/draw",
+        "http://127.0.0.1/api/display/draw",
         {
             method: "POST",
             body: JSON.stringify({

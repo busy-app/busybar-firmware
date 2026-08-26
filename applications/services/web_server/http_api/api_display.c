@@ -49,6 +49,7 @@ static bool api_display_draw_parse_text_element(
             "large",
             "extra_large",
             "global",
+            "superscript",
         };
 
         static const char* const font_paths[] = {
@@ -60,6 +61,7 @@ static bool api_display_draw_parse_text_element(
             FONT_BUSY_REGULAR_9,
             FONT_BUSY_BOLD_10,
             FONT_LANA_PIXEL_REGULAR_11,
+            FONT_BUSY_SUPERSCRIPT_7,
         };
 
         const char* font_path =
