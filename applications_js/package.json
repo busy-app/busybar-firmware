@@ -1,0 +1,23 @@
+{
+  "name": "busy-apps",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "typecheck": "tsc -b",
+    "fonts:build": "node scripts/build-font-maps.mjs",
+    "fonts:check": "node scripts/build-font-maps.mjs --check",
+    "build": "tsc -b && node scripts/build.mjs",
+    "build:app": "node scripts/build.mjs",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "typescript": "~6.0.2",
+    "vite": "^8.1.1"
+  },
+  "dependencies": {
+    "@busy-app/busy-lib": "^0.18.0"
+  }
+}
