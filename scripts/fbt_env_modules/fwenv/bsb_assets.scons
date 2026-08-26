@@ -162,6 +162,15 @@ if fwenv.get("IS_BASE_FIRMWARE", False):
         update_certs,
     ]
 
+    target_directories = [
+        app_assets_dir,
+        shared_assets_dir,
+        user_assets_dir,
+    ]
+
+    for directory in target_directories:
+        os.makedirs(directory.abspath, exist_ok=True)
+
     for converter in converters_app:
         resources_dist += converter("#/assets/", app_assets_dir)
 
