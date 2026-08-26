@@ -70,6 +70,7 @@ paths:
     get:
       tags:
         - BLE
+      summary: Get BLE status
       description: Returns current BLE status
       responses:
         "200":

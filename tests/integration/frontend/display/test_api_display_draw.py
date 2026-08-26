@@ -60,6 +60,7 @@ _VALID_TEXT_FONTS = [
     "large",
     "extra_large",
     "global",
+    "superscript"
 ]
 
 

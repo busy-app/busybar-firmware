@@ -29,6 +29,7 @@ paths:
       tags:
         - Streaming
       summary: Get single frame for requested screen
+      description: Captures and returns a single static image frame of the specified display (Front or Back)
       parameters:
         - name: display
           in: query
