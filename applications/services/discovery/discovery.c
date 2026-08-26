@@ -26,7 +26,7 @@ typedef struct {
     void* context;
 } DiscoveryService;
 
-ARRAY_DEF(DiscoveryServiceArray, DiscoveryService, M_POD_OPLIST)
+ARRAY_DEF(DiscoveryServiceArray, DiscoveryService*, M_PTR_OPLIST)
 #define M_OPL_DiscoveryServiceArray_t() ARRAY_OPLIST(DiscoveryServiceArray, M_POD_OPLIST)
 
 typedef enum {
@@ -189,7 +189,7 @@ static void discovery_netif_up(Discovery* discovery, NetworkNetif netif_id) {
 
         /* clang-format off */
         for M_EACH(service, discovery->services, DiscoveryServiceArray_t) {
-            discovery_bind_service_to_netif(service, netif);
+            discovery_bind_service_to_netif(*service, netif);
         }
         /* clang-format on */
 
@@ -206,8 +206,10 @@ static void discovery_netif_up(Discovery* discovery, NetworkNetif netif_id) {
 
 static void
     discovery_add_service_handler(Discovery* discovery, const DiscoveryApiMessage* api_message) {
-    DiscoveryService* service = DiscoveryServiceArray_push_new(discovery->services);
+    DiscoveryService* service = malloc(sizeof(DiscoveryService));
     *service = api_message->service_to_add;
+
+    DiscoveryServiceArray_push_back(discovery->services, service);
 
     LOCK_TCPIP_CORE();
 
