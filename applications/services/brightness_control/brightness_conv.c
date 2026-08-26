@@ -29,13 +29,13 @@ typedef struct {
 static const BrightnessCurve front_display_curve = {
     .min = 1,
     .max = 100,
-    .power = 2.f,
+    .power = 0.5f,
 };
 
 static const BrightnessCurve back_display_curve = {
     .min = 1,
     .max = 71,
-    .power = 3.f,
+    .power = 0.f,
 };
 
 #if defined(SRV_STATUS_LIGHTS)
