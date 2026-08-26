@@ -2,7 +2,7 @@ from SCons.Action import Action
 from SCons.Builder import Builder
 from SCons.Errors import StopError
 from SCons.Defaults import Delete
-from SCons.Node.FS import Dir, File
+from SCons.Node.FS import Dir
 from shutil import copytree
 
 
