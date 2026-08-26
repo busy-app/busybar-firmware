@@ -28,6 +28,7 @@ paho-mqtt = ">=2.0"
 PyYAML = "^6.0"
 websocket-client = "^1.9.0"
 zeroconf = "^0.150.0"
+cryptography = ">=44,<47"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.0.0"
@@ -63,6 +64,7 @@ markers = [
     "long_running: marks long-running hardware regression tests",
     "regression: marks heavy regression tests",
     "uses_si917: marks tests that exercise the Si917 coprocessor",
+    "mtls: marks mutual TLS authentication tests",
     "asyncio: marks tests as async tests",
     "story_commands_check: marks tests for commands check story",
     "story_ui_validation: marks tests for UI validation story",

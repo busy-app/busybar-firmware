@@ -14,6 +14,8 @@
 #include <m-dict.h>
 #include <m-array.h>
 
+#include <stdatomic.h>
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
 #include <jerryscript.h>
@@ -76,6 +78,7 @@ typedef enum JsRunnerAppCommandType {
 
 typedef struct JsRunnerApp {
     FuriString* app_id;
+    FuriThread* thread;
 
     size_t heap_size;
     void* jrs_context;
@@ -89,35 +92,23 @@ typedef struct JsRunnerApp {
     JsRunnerAppFetch fetch;
 } JsRunnerApp;
 
-M_DICT_DEF2(
-    AppDict,
-    FuriThread*,
-    M_OPEXTEND(M_PTR_OPLIST, HASH(PTR_HASH)),
-    JsRunnerApp*,
-    M_PTR_OPLIST);
-
 typedef struct JsRunner {
     FuriEventLoop* event_loop;
     FuriMessageQueue* message_queue;
-
-    FuriMutex* apps_mutex;
-    AppDict_t apps;
 } JsRunner;
 
-#define WITH_JS_RUNNER_APP(APP, BLOCK)                                                           \
-    do {                                                                                         \
-        JsRunner* __instance = furi_record_open(RECORD_JS_RUNNER);                               \
-        furi_check(furi_mutex_acquire(__instance->apps_mutex, FuriWaitForever) == FuriStatusOk); \
-        FuriThread* current_thread = furi_thread_get_current();                                  \
-        JsRunnerApp* APP = *AppDict_get(__instance->apps, current_thread);                       \
-        if(APP) {                                                                                \
-            BLOCK                                                                                \
-        } else {                                                                                 \
-            FURI_LOG_E(TAG, "No JS app handle for current thread");                              \
-            furi_crash();                                                                        \
-        }                                                                                        \
-        furi_check(furi_mutex_release(__instance->apps_mutex) == FuriStatusOk);                  \
-        furi_record_close(RECORD_JS_RUNNER);                                                     \
+typedef struct JsRunnerStaticContext {
+    atomic_flag is_running;
+    JsRunnerApp* volatile app;
+} JsRunnerStaticContext;
+
+extern JsRunnerStaticContext js_runner_static_context;
+
+#define WITH_JS_RUNNER_APP(APP, BLOCK)                         \
+    do {                                                       \
+        JsRunnerApp* APP = js_runner_static_context.app;       \
+        furi_assert(APP->thread == furi_thread_get_current()); \
+        BLOCK                                                  \
     } while(false)
 
 #define JS_ARG(n) (args_count > (n) ? args[(n)] : jerry_undefined())

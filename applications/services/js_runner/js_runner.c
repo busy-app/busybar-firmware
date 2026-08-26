@@ -6,6 +6,11 @@
 
 #define TAG "JsRunner"
 
+JsRunnerStaticContext js_runner_static_context = {
+    .app = NULL,
+    .is_running = ATOMIC_FLAG_INIT,
+};
+
 size_t js_runner_thread_context_alloc(size_t context_size) {
     size_t alloc_size = 0;
     WITH_JS_RUNNER_APP(app, {
@@ -27,7 +32,7 @@ void js_runner_thread_context_free(void) {
 void* js_runner_thread_context_get(void) {
     void* result = NULL;
     WITH_JS_RUNNER_APP(app, {
-        furi_check(app->jrs_context);
+        furi_assert(app->jrs_context);
         result = app->jrs_context;
     });
     return result;
@@ -149,6 +154,7 @@ static void js_runner_app_init(
     JsRunnerConsoleOutCallback console_out_cb,
     void* console_cb_context) {
     app->app_id = furi_string_alloc_set(app_id);
+    app->thread = furi_thread_get_current();
     app->should_terminate = false;
     app->heap_size = heap_size;
     app->jrs_context = NULL;
@@ -278,6 +284,9 @@ JsRunnerError js_runner_run(
     if(!validate_app_id(app_id)) {
         return JsRunnerErrorInvalidAppId;
     }
+    if(atomic_flag_test_and_set(&js_runner_static_context.is_running)) {
+        return JsRunnerErrorTooManyApps;
+    }
     FURI_LOG_I(TAG, "Running script: %s", path);
 
     JsRunnerError ret = JsRunnerErrorNone;
@@ -303,11 +312,7 @@ JsRunnerError js_runner_run(
         JsRunnerApp app;
         js_runner_app_init(&app, app_id, path, heap_size, console_out_cb, console_write_context);
 
-        {
-            furi_check(furi_mutex_acquire(instance->apps_mutex, FuriWaitForever) == FuriStatusOk);
-            AppDict_set_at(instance->apps, furi_thread_get_current(), &app);
-            furi_check(furi_mutex_release(instance->apps_mutex) == FuriStatusOk);
-        }
+        js_runner_static_context.app = &app;
 
         jerry_init(JERRY_INIT_EMPTY);
         jerry_halt_handler(1, engine_halt_callback, &app);
@@ -366,25 +371,19 @@ JsRunnerError js_runner_run(
         jerry_value_free(parsed_script);
         jerry_value_free(source_name);
         jerry_cleanup();
-
-        {
-            furi_check(furi_mutex_acquire(instance->apps_mutex, FuriWaitForever) == FuriStatusOk);
-            AppDict_erase(instance->apps, furi_thread_get_current());
-            furi_check(furi_mutex_release(instance->apps_mutex) == FuriStatusOk);
-        }
+        js_runner_static_context.app = NULL;
 
         js_runner_app_deinit(&app);
     } while(false);
     storage_file_free(f);
     furi_record_close(RECORD_STORAGE);
+    atomic_flag_clear(&js_runner_static_context.is_running);
     return ret;
 }
 
 static JsRunner* js_runner_alloc(void) {
     JsRunner* instance = malloc(sizeof(JsRunner));
     instance->event_loop = furi_event_loop_alloc();
-    instance->apps_mutex = furi_mutex_alloc(FuriMutexTypeRecursive);
-    AppDict_init(instance->apps);
     furi_record_create(RECORD_JS_RUNNER, instance);
     return instance;
 }
@@ -429,25 +428,24 @@ static void app_terminate_from_another_thread(JsRunnerApp* app) {
 }
 
 bool js_runner_abort(JsRunner* instance, FuriThread* thread) {
-    bool result = false;
-    furi_check(furi_mutex_acquire(instance->apps_mutex, FuriWaitForever) == FuriStatusOk);
-    JsRunnerApp** app_ptr = AppDict_get(instance->apps, thread);
-    if(app_ptr) {
-        app_terminate_from_another_thread(*app_ptr);
-        result = true;
+    UNUSED(instance);
+    if(!js_runner_static_context.app) {
+        return false;
     }
-    furi_check(furi_mutex_release(instance->apps_mutex) == FuriStatusOk);
-    return result;
+    JsRunnerApp* app = js_runner_static_context.app;
+    if(app->thread != thread) {
+        return false;
+    }
+    app_terminate_from_another_thread(app);
+    return true;
 }
 
 void js_runner_abort_all(JsRunner* instance) {
-    furi_check(furi_mutex_acquire(instance->apps_mutex, FuriWaitForever) == FuriStatusOk);
-    AppDict_it_t iter;
-    for(AppDict_it(iter, instance->apps); !AppDict_end_p(iter); AppDict_next(iter)) {
-        JsRunnerApp* app = AppDict_cref(iter)->value;
-        app_terminate_from_another_thread(app);
+    UNUSED(instance);
+    if(!js_runner_static_context.app) {
+        return;
     }
-    furi_check(furi_mutex_release(instance->apps_mutex) == FuriStatusOk);
+    app_terminate_from_another_thread(js_runner_static_context.app);
 }
 
 int32_t js_runner_srv(void* p) {
@@ -468,6 +466,7 @@ static const char* const error_messages[] = {
     [JsRunnerErrorCannotReadFile] = "Cannot read file",
     [JsRunnerErrorParseException] = "Parse exception",
     [JsRunnerErrorInvalidAppId] = "Invalid App ID",
+    [JsRunnerErrorTooManyApps] = "Too many running apps",
 };
 
 static_assert(COUNT_OF(error_messages) == JsRunnerErrorMax);
