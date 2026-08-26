@@ -17,7 +17,7 @@
 #define POWER_ON_ANIM_SECTION "loop"
 #define POWER_ON_ANIM_FLAGS   (AnimFilePlayFlagFinishCurrent | AnimFilePlayFlagLoop)
 
-#define POWER_ON_ANIM_PATH(path) BACKUP_PATH("recovery/resources/power_on/animations") "/" path
+#define POWER_ON_ANIM_PATH(path) APP_ASSETS_PATH("animations/") "/" path
 #define POWER_ON_DONE_PATH       APP_DATA_PATH("done.txt")
 
 typedef enum {

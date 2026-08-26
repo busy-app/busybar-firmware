@@ -35,7 +35,7 @@ AnimFile* FURI_WARN_UNUSED anim_file_alloc(Storage* storage, const char* path) {
                             .fps = header.fps,
                             .width = header.width,
                             .height = header.height,
-                            .frames = header.display_frame_count,
+                            .frames = header.frame_count,
                         },
                     .color_format = header.color_format,
                     .sections = sections_chunk,
@@ -50,6 +50,8 @@ AnimFile* FURI_WARN_UNUSED anim_file_alloc(Storage* storage, const char* path) {
 
         result = malloc(sizeof(anim));
         *result = anim;
+
+        anim_file_mask_init(result);
     } while(0);
 
     if(!result) {
@@ -63,6 +65,7 @@ AnimFile* FURI_WARN_UNUSED anim_file_alloc(Storage* storage, const char* path) {
 void anim_file_free(AnimFile* anim) {
     furi_check(anim);
     anim_file_img_deinit(anim);
+    anim_file_mask_deinit(anim);
     storage_file_free(anim->file);
     if(anim->meta.sections) free(anim->meta.sections);
     free(anim);
@@ -76,15 +79,15 @@ AnimFileInfo anim_file_info(const AnimFile* anim) {
 void anim_file_set_out_buf(AnimFile* anim, size_t width, size_t height, void* buffer) {
     furi_check(anim);
     furi_check(buffer);
-    anim_file_img_init(anim, buffer, width, height, false);
+    anim_file_img_init(anim, buffer, width, height);
 }
 
 AnimFileFrameInfo anim_file_frame(AnimFile* anim) {
     furi_check(anim);
 
     AnimFileFrameInfo info;
-    info.index = anim_file_seq_disp_frame_idx(anim);
-    info.flags = anim_file_seq_load_current_frame(anim);
+    info.index = anim_file_seq_frame_idx(anim);
+    info.flags = anim_file_seq_draw_requested_and_go_to_next(anim);
     return info;
 }
 

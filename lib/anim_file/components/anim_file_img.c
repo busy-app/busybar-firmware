@@ -3,256 +3,79 @@
 #include <toolbox/rle_encode.h>
 #include <toolbox/dsp.h>
 
-size_t anim_file_img_packed_length(const AnimFileHeader* file_hdr) {
-    furi_assert(file_hdr);
+#define ANIM_FILE_BUFFER_MARGIN (ANIM_FILE_IMG_KERNEL_SZ - 1)
 
-    if(file_hdr->color_format == AnimFileColorFormatBgr888) {
-        return file_hdr->width * file_hdr->height * 3;
-    } else if(file_hdr->color_format == AnimFileColorFormatGray4) {
-        return file_hdr->width * file_hdr->height / 2;
-    } else if(file_hdr->color_format == AnimFileColorFormatBgra8888) {
-        return file_hdr->width * file_hdr->height * 4;
-    } else {
-        furi_crash();
-    }
-}
-
-void anim_file_img_init(
-    AnimFile* anim,
-    uint8_t* cutout_buffer,
-    size_t width,
-    size_t height,
-    bool force_sheet_buffer) {
+void anim_file_img_init(AnimFile* anim, uint8_t* cutout_buffer, size_t width, size_t height) {
     furi_assert(anim);
     furi_assert(cutout_buffer);
 
     const AnimFileHeader* file_hdr = &anim->meta.header;
     AnimFileImg* img = &anim->img;
 
-    if(!img->encoded_buffer && file_hdr->max_encoded_length) {
-        img->encoded_buffer = malloc(file_hdr->max_encoded_length);
+    if(!img->buffer_a.data) {
+        furi_assert(!img->buffer_b.data);
+        size_t pixels = (file_hdr->width + ANIM_FILE_BUFFER_MARGIN) *
+                        (file_hdr->height + ANIM_FILE_BUFFER_MARGIN);
+        size_t bytes = pixels * ANIM_FILE_OUT_BYTES_PER_PIXEL;
+
+        img->buffer_a = (AnimFileBuffer){
+            .data = malloc(bytes),
+            .max_size = bytes,
+            .content = AnimFileBufferContentUninitialized,
+            .filled_size = 0,
+        };
+        img->buffer_b = (AnimFileBuffer){
+            .data = malloc(bytes),
+            .max_size = bytes,
+            .content = AnimFileBufferContentUninitialized,
+            .filled_size = 0,
+        };
+        img->buffer_persistent = (AnimFileBuffer){
+            .data = malloc(bytes),
+            .max_size = bytes,
+            .content = AnimFileBufferContentUninitialized,
+            .filled_size = 0,
+        };
     }
 
-    bool sheet_buffer_needed = (width < file_hdr->width) || (height < file_hdr->height) ||
-                               force_sheet_buffer;
-    if(sheet_buffer_needed && !img->sheet_buffer) {
-        size_t margin = ANIM_FILE_IMG_KERNEL_SZ - 1;
-        size_t sheet_buf_size = (file_hdr->width + margin) * (file_hdr->height + margin) *
-                                ANIM_FILE_OUT_BYTES_PER_PIXEL;
-        img->sheet_buffer = malloc(sheet_buf_size);
-    }
-    if(!sheet_buffer_needed && img->sheet_buffer) {
-        free(img->sheet_buffer);
-        img->sheet_buffer = NULL;
-    }
-
-    bool packed_buffer_needed = (file_hdr->color_format != AnimFileColorFormatBgra8888) ||
-                                sheet_buffer_needed;
-    if(packed_buffer_needed && !img->packed_buffer) {
-        img->packed_buffer = malloc(anim_file_img_packed_length(file_hdr));
-    }
-    if(!packed_buffer_needed && img->packed_buffer) {
-        free(img->packed_buffer);
-        img->packed_buffer = NULL;
-    }
-
-    img->cutout_buffer = cutout_buffer;
     img->cutout_w = width;
     img->cutout_h = height;
+    img->buffer_cutout = (AnimFileBuffer){
+        .data = cutout_buffer,
+        .max_size = width * height * ANIM_FILE_OUT_BYTES_PER_PIXEL,
+        .content = AnimFileBufferContentUninitialized,
+        .filled_size = 0,
+    };
+
+    anim_file_img_set_cutout(anim, 0, 0);
 }
 
 void anim_file_img_deinit(AnimFile* anim) {
     furi_assert(anim);
-
     AnimFileImg* img = &anim->img;
 
-    if(img->sheet_buffer) free(img->sheet_buffer);
-    if(img->packed_buffer) free(img->packed_buffer);
-    if(img->encoded_buffer) free(img->encoded_buffer);
+    free(img->buffer_a.data);
+    free(img->buffer_b.data);
+    free(img->buffer_persistent.data);
+    img->buffer_a.data = NULL;
+    img->buffer_b.data = NULL;
+    img->buffer_persistent.data = NULL;
+    img->buffer_a.content = AnimFileBufferContentUninitialized;
+    img->buffer_b.content = AnimFileBufferContentUninitialized;
+    img->buffer_persistent.content = AnimFileBufferContentUninitialized;
 
-    img->cutout_buffer = NULL;
-    img->sheet_buffer = NULL;
-    img->packed_buffer = NULL;
-    img->encoded_buffer = NULL;
+    img->buffer_cutout.data = NULL;
+    img->buffer_cutout.content = AnimFileBufferContentUninitialized;
 }
 
-static uint8_t* anim_file_img_sheet_buffer(AnimFile* anim) {
+static AnimFileBuffer* anim_file_img_request_buffer(AnimFile* anim, AnimFileBuffer* previous) {
     furi_assert(anim);
-
     AnimFileImg* img = &anim->img;
 
-    if(img->sheet_buffer) {
-        return img->sheet_buffer;
-    }
-
-    return img->cutout_buffer;
-}
-
-static uint8_t* anim_file_img_packed_buffer(AnimFile* anim, size_t* size) {
-    furi_assert(anim);
-
-    const AnimFileHeader* file_hdr = &anim->meta.header;
-    AnimFileImg* img = &anim->img;
-
-    if((file_hdr->color_format != AnimFileColorFormatBgra8888) || img->sheet_buffer) {
-        if(size) *size = anim_file_img_packed_length(file_hdr);
-        furi_assert(img->packed_buffer);
-        return img->packed_buffer;
-    }
-
-    if(size) *size = file_hdr->width * file_hdr->height * ANIM_FILE_OUT_BYTES_PER_PIXEL;
-    return anim_file_img_sheet_buffer(anim);
-}
-
-uint8_t* anim_file_img_encoded_buffer(AnimFile* anim, AnimFileFrameEncoding encoding) {
-    furi_assert(anim);
-    furi_assert(encoding < AnimFileFrameEncodingMAX);
-
-    AnimFileImg* img = &anim->img;
-
-    if(encoding != AnimFileFrameEncodingRaw) {
-        if(anim->meta.header.max_encoded_length == 0) {
-            ANIM_FILE_ERR(
-                "Invalid file header: frame_hdr.encoding is non-Raw but max_encoded_length is 0");
-            return NULL;
-        }
-        furi_assert(img->encoded_buffer);
-        return img->encoded_buffer;
-    }
-
-    return anim_file_img_packed_buffer(anim, NULL);
-}
-
-static bool anim_file_img_decode(
-    AnimFile* anim,
-    const AnimFileFrameHeader* frame_hdr,
-    const uint8_t* source,
-    uint8_t* dest,
-    size_t dest_len) {
-    furi_assert(anim);
-    furi_assert(frame_hdr);
-    furi_assert(source);
-    furi_assert(dest);
-
-    furi_assert(frame_hdr->encoding != AnimFileFrameEncodingRaw);
-    const AnimFileHeader* file_hdr = &anim->meta.header;
-
-    if(frame_hdr->encoding == AnimFileFrameEncodingRle) {
-        size_t blk_size = 0;
-        if(file_hdr->color_format == AnimFileColorFormatBgr888) {
-            blk_size = 3;
-        } else if(file_hdr->color_format == AnimFileColorFormatGray4) {
-            blk_size = 1;
-        } else if(file_hdr->color_format == AnimFileColorFormatBgra8888) {
-            blk_size = 4;
-        }
-
-        size_t decoded_sz = 0;
-
-        if(!rle_decompress(
-               source, frame_hdr->encoded_length, dest, dest_len, blk_size, &decoded_sz)) {
-            ANIM_FILE_ERR("RLE compressed data too large");
-            return false;
-        }
-
-        if(decoded_sz != dest_len) {
-            ANIM_FILE_ERR("RLE compressed data too short");
-            return false;
-        }
-    }
-
-    return true;
-}
-
-static bool
-    anim_file_img_unpack(AnimFile* anim, const uint8_t* source, size_t src_len, uint8_t* dest) {
-    furi_assert(anim);
-    furi_assert(source);
-    furi_assert(dest);
-
-    const AnimFileHeader* file_hdr = &anim->meta.header;
-    AnimFileImg* img = &anim->img;
-
-    if(file_hdr->color_format == AnimFileColorFormatGray4) {
-        for(size_t i = 0; i < src_len; i++) {
-            uint8_t left_px = source[i] & 0xF0;
-            uint8_t right_px = source[i] << 4;
-            dest[0] = left_px;
-            dest[1] = left_px;
-            dest[2] = left_px;
-            dest[3] = 255;
-            dest[4] = right_px;
-            dest[5] = right_px;
-            dest[6] = right_px;
-            dest[7] = 255;
-
-            dest += 8;
-        }
-
-    } else if(file_hdr->color_format == AnimFileColorFormatBgr888) {
-        for(size_t i = 0; i < src_len; i += 3) {
-            dest[0] = source[0];
-            dest[1] = source[1];
-            dest[2] = source[2];
-            dest[3] = 255;
-            dest += 4;
-            source += 3;
-        }
-
-    } else if(file_hdr->color_format == AnimFileColorFormatBgra8888) {
-        furi_assert(img->sheet_buffer);
-    }
-
-    if(img->sheet_buffer) {
-        const size_t margin = ANIM_FILE_IMG_KERNEL_SZ / 2;
-        const size_t w_with_margin = file_hdr->width + (2 * margin);
-        const size_t h_with_margin = file_hdr->height + (2 * margin);
-
-        memset(dest, 0, w_with_margin * h_with_margin * sizeof(uint32_t));
-
-        uint32_t* dst_start = (uint32_t*)dest + (w_with_margin + margin);
-        uint32_t* src_start = (uint32_t*)source;
-        for(size_t y = 0; y < file_hdr->height; y++) {
-            size_t line_size = file_hdr->width * sizeof(uint32_t);
-            memcpy(dst_start + (y * w_with_margin), src_start + (y * file_hdr->width), line_size);
-        }
-    }
-
-    return true;
-}
-
-static bool anim_file_img_cut_part(AnimFile* anim, const uint8_t* source, uint8_t* dest) {
-    furi_assert(anim);
-    furi_assert(source);
-    furi_assert(dest);
-
-    const AnimFileInfo* info = &anim->meta.info;
-    AnimFileImg* img = &anim->img;
-
-    const size_t margin = ANIM_FILE_IMG_KERNEL_SZ / 2;
-    const size_t w_with_margin = info->width + (2 * margin);
-
-    dsp_2d_kernel_apply(
-        ANIM_FILE_IMG_KERNEL_SZ,
-        (const float*)img->cutout_kernel,
-        (DspImageBuffer){
-            .first_pixel = (uint8_t*)((uint32_t*)source + ((w_with_margin) + margin)),
-            .width = info->width,
-            .stride = w_with_margin,
-            .height = info->height,
-            .channels = ANIM_FILE_OUT_BYTES_PER_PIXEL,
-        },
-        (DspImageBuffer){
-            .first_pixel = dest,
-            .width = img->cutout_w,
-            .stride = img->cutout_w,
-            .height = img->cutout_h,
-            .channels = ANIM_FILE_OUT_BYTES_PER_PIXEL,
-        },
-        img->cutout_x,
-        img->cutout_y);
-
-    return true;
+    if(previous == &img->buffer_a) return &img->buffer_b;
+    if(previous == &img->buffer_b) return &img->buffer_a;
+    if(previous == &img->buffer_persistent) return &img->buffer_a;
+    furi_crash();
 }
 
 void anim_file_img_set_cutout(AnimFile* anim, float x, float y) {
@@ -265,42 +88,236 @@ void anim_file_img_set_cutout(AnimFile* anim, float x, float y) {
 
     dsp_2d_kernel_subpixel_translate(
         ANIM_FILE_IMG_KERNEL_SZ, img->cutout_kernel, img->cutout_x - x, img->cutout_y - y);
-
-    bool nonzero_offset = (fabsf(x) > DSP_EPSILON) || (fabsf(y) > DSP_EPSILON);
-    bool sheet_buffer_present = !!img->sheet_buffer;
-
-    if(nonzero_offset && !sheet_buffer_present) {
-        // force-allocate the sheet buffer
-        anim_file_img_init(anim, img->cutout_buffer, img->cutout_w, img->cutout_h, true);
-    }
 }
 
-bool anim_file_img_full_decode(AnimFile* anim, const AnimFileFrameHeader* frame_hdr) {
+AnimFileBuffer* anim_file_img_initial_buffer(AnimFile* anim) {
     furi_assert(anim);
-
     AnimFileImg* img = &anim->img;
-    furi_check(img->cutout_buffer);
+    return &img->buffer_a;
+}
 
-    const uint8_t* encoded_source = anim_file_img_encoded_buffer(anim, frame_hdr->encoding);
-    size_t decoded_dst_size;
-    uint8_t* decoded_dst = anim_file_img_packed_buffer(anim, &decoded_dst_size);
-    if(encoded_source != decoded_dst) {
-        if(!anim_file_img_decode(anim, frame_hdr, encoded_source, decoded_dst, decoded_dst_size))
-            return false;
+static AnimFileBuffer* anim_file_img_step_decode(
+    AnimFile* anim,
+    const AnimFileFrameHeader* frame_hdr,
+    AnimFileBuffer* source) {
+    furi_assert(anim);
+    furi_assert(frame_hdr);
+    furi_assert(source);
+    furi_assert(source->content == AnimFileBufferContentFromFile);
+
+    AnimFilePixelEncoding encoding = anim_file_px_encoding(frame_hdr->joint_encoding);
+    if(encoding == AnimFilePixelEncodingRaw) {
+        source->content = AnimFileBufferContentDecoded;
+        return source;
     }
 
-    const uint8_t* packed_source = decoded_dst;
-    uint8_t* unpacked_dst = anim_file_img_sheet_buffer(anim);
-    if(packed_source != unpacked_dst) {
-        if(!anim_file_img_unpack(anim, packed_source, decoded_dst_size, unpacked_dst))
-            return false;
+    const AnimFileHeader* file_hdr = &anim->meta.header;
+    AnimFileBuffer* destination = anim_file_img_request_buffer(anim, source);
+
+    if(encoding == AnimFilePixelEncodingRle) {
+        static const size_t blk_sizes[] = {
+            [AnimFileColorFormatBgr888] = 3,
+            [AnimFileColorFormatGray4] = 1,
+            [AnimFileColorFormatBgra8888] = 4,
+        };
+        size_t blk_size = blk_sizes[file_hdr->color_format];
+
+        size_t decoded_sz_limit = destination->max_size;
+        size_t decoded_sz = 0;
+        if(!rle_decompress(
+               source->data,
+               source->filled_size,
+               destination->data,
+               decoded_sz_limit,
+               blk_size,
+               &decoded_sz)) {
+            ANIM_FILE_ERR("RLE compressed pixels too large");
+            return NULL;
+        }
+        destination->filled_size = decoded_sz;
     }
 
-    const uint8_t* sheet_source = unpacked_dst;
-    uint8_t* cutout_dst = img->cutout_buffer;
-    if(sheet_source != cutout_dst) {
-        if(!anim_file_img_cut_part(anim, sheet_source, cutout_dst)) return false;
+    destination->content = AnimFileBufferContentDecoded;
+    return destination;
+}
+
+static AnimFileBuffer* anim_file_img_step_unpack(
+    AnimFile* anim,
+    const AnimFileFrameHeader* frame_hdr,
+    AnimFileBuffer* source) {
+    furi_assert(anim);
+    furi_assert(frame_hdr);
+    furi_assert(source);
+    furi_assert(source->content == AnimFileBufferContentDecoded);
+
+    AnimFileColorFormat format = anim->meta.color_format;
+    if(format == AnimFileColorFormatBgra8888) {
+        source->content = AnimFileBufferContentFullColor;
+        return source;
     }
+
+    AnimFileBuffer* destination = anim_file_img_request_buffer(anim, source);
+    uint8_t* src_data = source->data;
+    uint8_t* dest_data = destination->data;
+
+    if(format == AnimFileColorFormatGray4) {
+        for(size_t i = 0; i < source->filled_size; i++) {
+            uint8_t left_px = src_data[i] & 0xF0;
+            uint8_t right_px = src_data[i] << 4;
+            dest_data[0] = left_px;
+            dest_data[1] = left_px;
+            dest_data[2] = left_px;
+            dest_data[3] = 255;
+            dest_data[4] = right_px;
+            dest_data[5] = right_px;
+            dest_data[6] = right_px;
+            dest_data[7] = 255;
+            dest_data += 8;
+        }
+        destination->filled_size = source->filled_size * 2;
+    } else if(format == AnimFileColorFormatBgr888) {
+        for(size_t i = 0; i < source->filled_size; i += 3) {
+            dest_data[0] = src_data[0];
+            dest_data[1] = src_data[1];
+            dest_data[2] = src_data[2];
+            dest_data[3] = 255;
+            dest_data += 4;
+            src_data += 3;
+        }
+        destination->filled_size = source->filled_size * ANIM_FILE_OUT_BYTES_PER_PIXEL / 3;
+    }
+
+    destination->content = AnimFileBufferContentFullColor;
+    return destination;
+}
+
+static AnimFileBuffer* anim_file_img_step_disperse(
+    AnimFile* anim,
+    const AnimFileFrameHeader* frame_hdr,
+    AnimFileBuffer* source) {
+    furi_assert(anim);
+    furi_assert(frame_hdr);
+    furi_assert(source);
+    furi_assert(source->content == AnimFileBufferContentFullColor);
+    AnimFileImg* img = &anim->img;
+
+    AnimFileBuffer* destination = &img->buffer_persistent;
+
+    size_t half_margin = ANIM_FILE_BUFFER_MARGIN / 2;
+    size_t w_with_margin = anim->meta.info.width + ANIM_FILE_BUFFER_MARGIN;
+    size_t h_with_margin = anim->meta.info.height + ANIM_FILE_BUFFER_MARGIN;
+
+    uint32_t* src_pixel = (uint32_t*)&source->data[0];
+    size_t src_pixels_left = source->filled_size / ANIM_FILE_OUT_BYTES_PER_PIXEL;
+
+#ifdef ANIM_FILE_SHOW_MASK_INSTEAD_OF_IMAGE
+    for(size_t i = 0; i < destination->max_size; i++) {
+        destination->data[i] = (uint8_t)MAX(0, (int)destination->data[i] - 0x22);
+    }
+#endif
+
+    void place_pixels(AnimFileMaskPixelRange range, void* context) {
+        UNUSED(context);
+
+        range.y += half_margin;
+        range.x_start += half_margin;
+        range.x_end += half_margin;
+
+        uint32_t* dst_start =
+            (uint32_t*)destination->data + ((range.y * w_with_margin) + range.x_start);
+        size_t pixel_cnt = MIN(range.x_end - range.x_start, src_pixels_left);
+#ifdef ANIM_FILE_SHOW_MASK_INSTEAD_OF_IMAGE
+        memset(dst_start, 0xff, pixel_cnt * ANIM_FILE_OUT_BYTES_PER_PIXEL);
+#else
+        memcpy(dst_start, src_pixel, pixel_cnt * ANIM_FILE_OUT_BYTES_PER_PIXEL);
+#endif
+        src_pixel += pixel_cnt;
+        src_pixels_left -= pixel_cnt;
+    }
+
+    anim_file_mask_iterate(anim, frame_hdr, place_pixels, NULL);
+
+    if(src_pixels_left) {
+        ANIM_FILE_ERR("Invalid frame: %zu leftover pixels after dispersion", src_pixels_left);
+        return NULL;
+    }
+
+    destination->content = AnimFileBufferContentDispersed;
+    destination->filled_size = w_with_margin * h_with_margin * ANIM_FILE_OUT_BYTES_PER_PIXEL;
+    return destination;
+}
+
+static AnimFileBuffer* anim_file_img_step_cut(
+    AnimFile* anim,
+    const AnimFileFrameHeader* frame_hdr,
+    AnimFileBuffer* source) {
+    furi_assert(anim);
+    furi_assert(frame_hdr);
+    furi_assert(source);
+    furi_assert(source->content == AnimFileBufferContentDispersed);
+    AnimFileImg* img = &anim->img;
+
+    const AnimFileInfo* info = &anim->meta.info;
+    AnimFileBuffer* destination = &img->buffer_cutout;
+
+    size_t half_margin = ANIM_FILE_BUFFER_MARGIN / 2;
+    size_t w_with_margin = info->width + ANIM_FILE_BUFFER_MARGIN;
+    size_t h_with_margin = info->height + ANIM_FILE_BUFFER_MARGIN;
+
+    furi_assert(
+        source->filled_size == w_with_margin * h_with_margin * ANIM_FILE_OUT_BYTES_PER_PIXEL);
+
+    dsp_2d_kernel_apply(
+        ANIM_FILE_IMG_KERNEL_SZ,
+        (const float*)img->cutout_kernel,
+        (DspImageBuffer){
+            .first_pixel = (uint8_t*)&((uint32_t*)source->data)[w_with_margin + half_margin],
+            .width = info->width,
+            .stride = w_with_margin,
+            .height = info->height,
+            .channels = ANIM_FILE_OUT_BYTES_PER_PIXEL,
+        },
+        (DspImageBuffer){
+            .first_pixel = destination->data,
+            .width = img->cutout_w,
+            .stride = img->cutout_w,
+            .height = img->cutout_h,
+            .channels = ANIM_FILE_OUT_BYTES_PER_PIXEL,
+        },
+        img->cutout_x,
+        img->cutout_y);
+
+    destination->content = AnimFileBufferContentCut;
+    destination->filled_size = info->width * info->height * ANIM_FILE_OUT_BYTES_PER_PIXEL;
+    return destination;
+}
+
+typedef AnimFileBuffer* (*AnimFileImgPipelineStep)(
+    AnimFile* anim,
+    const AnimFileFrameHeader* frame_hdr,
+    AnimFileBuffer* source);
+
+bool anim_file_img_full_decode(AnimFile* anim, const AnimFileFrameHeader* frame_hdr) {
+    // return true;
+    furi_assert(anim);
+    AnimFileImg* img = &anim->img;
+
+    AnimFileImgPipelineStep steps[] = {
+        anim_file_img_step_decode,
+        anim_file_img_step_unpack,
+        anim_file_img_step_disperse,
+        anim_file_img_step_cut,
+    };
+
+    AnimFileBuffer* buffer = anim_file_img_initial_buffer(anim);
+
+    for(size_t i = 0; i < COUNT_OF(steps); i++) {
+        buffer = steps[i](anim, frame_hdr, buffer);
+        if(!buffer) return false;
+    }
+
+    furi_assert(buffer == &img->buffer_cutout);
+    furi_assert(buffer->content == AnimFileBufferContentCut);
 
     return true;
 }

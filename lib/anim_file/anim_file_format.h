@@ -105,51 +105,70 @@ typedef struct FURI_PACKED {
     uint8_t height;
     AnimFileColorFormat color_format;
 
+    uint16_t max_mask_length;
+    uint16_t max_pixel_length;
     uint8_t fps;
-    uint16_t max_encoded_length;
     uint8_t _unused[1];
 
     uint32_t sections_chunk_length;
     uint32_t frames_chunk_length;
 
     uint32_t section_count;
-    uint32_t file_frame_count;
-    uint32_t display_frame_count;
+    uint32_t frame_count;
 } AnimFileHeader;
 
-// Busybar Image Container speciallY Crafted for file Length Eradication, ver. 0
-#define ANIM_FILE_HEADER_SIGNATURE "bicycle0"
+// Busybar Image Container speciallY Crafted for file Length Eradication, major ver. 1
+#define ANIM_FILE_HEADER_SIGNATURE "bicycle1"
 
 /**
  * @brief Descriptor of one Section
  */
 typedef struct FURI_PACKED {
-    uint32_t start; //<! Index of the first Display Frame (inclusive)
-    uint32_t end; //<! Index of the last Display Frame (inclusive)
-    uint32_t frame_offs; //<! File offset of the first File Frame in this Section
-    uint8_t
-        duration_override; //<! In case the Section starts in the middle of a File Frame that spans multiple Display Frames, this field will indicate the adjusted duration of the affected File Frame
+    uint32_t start; //<! Index of the first Frame (inclusive)
+    uint32_t end; //<! Index of the last Frame (inclusive)
+    uint32_t frame_offs; //<! File offset of the first Frame in this Section
     char name[]; //<! NUL-terminated
 } AnimFileSection;
 
 /**
- * @brief Encoding mode of one File Frame
+ * @brief Encoding mode of Frame Mask
  */
 typedef enum FURI_PACKED {
-    AnimFileFrameEncodingRaw, //<! Plain pixels encoded according to `AnimFileColorFormat`
-    AnimFileFrameEncodingRle, //<! Run-length encoding of `Raw` data implemented by `toolbox/rle_encode`. `blk_size` parameter is 3 for `Bgr888`, 1 for `Gray4`, and 4 for `Bgra8888`
-    AnimFileFrameEncodingMAX,
-} AnimFileFrameEncoding;
-static_assert(sizeof(AnimFileFrameEncoding) == sizeof(uint8_t));
+    AnimFileMaskEncodingFullyBlack, //<! No mask data. Fully black mask: none of the pixels are present, frame is no different from last one
+    AnimFileMaskEncodingFullyWhite, //<! No mask data. Fully white mask: all `width`x`height` pixels are present
+    AnimFileMaskEncodingRleFirstBlack, //<! Binary run-length encoding, first pixel is black
+    AnimFileMaskEncodingRleFirstWhite, //<! Binary run-length encoding, first pixel is white
+    AnimFileMaskEncodingBitmap, //<! Binary bitmap
+    AnimFileMaskEncodingMAX,
+} AnimFileMaskEncoding;
+static_assert(sizeof(AnimFileMaskEncoding) == sizeof(uint8_t));
+
+/**
+ * @brief Encoding mode of Frame Pixels
+ */
+typedef enum FURI_PACKED {
+    AnimFilePixelEncodingRaw, //<! Plain pixels encoded according to `AnimFileColorFormat`
+    AnimFilePixelEncodingRle, //<! Run-length encoding of `Raw` data implemented by `toolbox/rle_encode`. `blk_size` parameter is 3 for `Bgr888`, 1 for `Gray4`, and 4 for `Bgra8888`
+    AnimFilePixelEncodingMAX,
+} AnimFilePixelEncoding;
+static_assert(sizeof(AnimFilePixelEncoding) == sizeof(uint8_t));
 
 /**
  * @brief Header of one File Frame
  */
 typedef struct FURI_PACKED {
-    AnimFileFrameEncoding encoding;
-    uint8_t duration; //<! How many Display Frames to show this File Frame for
-    uint16_t encoded_length; //<! Length of encoded frame data following this header
+    uint8_t joint_encoding; //<! `PixelEncoding` in bottom 4 bits, `MaskEncoding` in top 4 bits
+    uint16_t mask_length; //<! Length of encoded mask data following this header (in bits)
+    uint16_t pixel_length; //<! Length of encoded pixel data following the mask data (in bytes)
 } AnimFileFrameHeader;
+
+static inline AnimFilePixelEncoding anim_file_px_encoding(uint8_t joint_encoding) {
+    return joint_encoding & 0xF;
+}
+
+static inline AnimFileMaskEncoding anim_file_mask_encoding(uint8_t joint_encoding) {
+    return (joint_encoding & 0xF0) >> 4;
+}
 
 #ifdef __cplusplus
 }

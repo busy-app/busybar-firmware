@@ -17,12 +17,14 @@ extern "C" {
 
 #define TAG "AnimFile"
 
-// #define ANIM_FILE_DETAILED_ERRORS
+// Debugging flags
+#define ANIM_FILE_DETAILED_ERRORS
+// #define ANIM_FILE_SHOW_MASK_INSTEAD_OF_IMAGE
 
 #ifdef ANIM_FILE_DETAILED_ERRORS
 #define ANIM_FILE_ERR(...) FURI_LOG_E(TAG, __VA_ARGS__)
 #else
-#define ANIM_FILE_ERR(...) FURI_LOG_E(TAG, "Load error")
+#define ANIM_FILE_ERR(...) FURI_LOG_E(TAG, "Error! Enable ANIM_FILE_DETAILED_ERRORS for detail")
 #endif
 
 // =====
@@ -46,7 +48,6 @@ typedef struct {
     size_t start;
     size_t end;
     size_t start_offset;
-    size_t start_duration_override;
     AnimFilePlayFlag flags;
 } AnimFileRange;
 
@@ -54,6 +55,12 @@ typedef struct {
 #include "components/anim_file_load.h"
 #include "components/anim_file_seq.h"
 #include "components/anim_file_start.h"
+#include "components/anim_file_mask.h"
+
+// TODO: move to `anim_file_mask.h`. doesn't compile though for some reason.
+typedef struct {
+    uint8_t* mask_buffer;
+} AnimFileMask;
 
 struct AnimFile {
     File* file;
@@ -63,6 +70,7 @@ struct AnimFile {
     AnimFileImg img;
     AnimFileSeq seq;
     AnimFileStart start;
+    AnimFileMask mask;
 };
 
 #ifdef __cplusplus

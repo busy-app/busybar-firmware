@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+"""
+Converts a sequence of bitmap images into BUSY Bar's custom animation format.
+"""
+
 import struct
 import json
 from io import BufferedWriter
@@ -7,9 +11,10 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from PIL import Image
 from zipfile import PyZipFile
-from typing import Tuple, Self
+from typing import Tuple
 from dataclasses import dataclass
-from logging import Logger
+from enum import Enum
+from collections import Counter
 
 from flipper.app import App
 from flipper import rle
@@ -19,19 +24,19 @@ def number_in_str(input: str) -> int:
 
 @dataclass
 class Header:
-    FORMAT = "<8s BBBB BHB II III"
-    SIGNATURE = b"bicycle0" # Busybar Image Container speciallY Crafted for file Length Eradication, ver. 0
+    FORMAT = "<8s BBBB HHBB II II"
+    SIGNATURE = b"bicycle1" # Busybar Image Container speciallY Crafted for file Length Eradication, major ver. 1
     flags: int
     width: int
     height: int
     color_mode: int
+    max_mask_len: int
+    max_pixel_len: int
     fps: int
-    max_encoded_len: int
     sections_chunk_len: int
     frames_chunk_len: int
     section_count: int
-    file_frame_count: int
-    display_frame_count: int
+    frame_count: int
 
     @staticmethod
     def length() -> int:
@@ -47,25 +52,24 @@ class Header:
             self.height,
             self.color_mode,
 
+            self.max_mask_len,
+            self.max_pixel_len,
             self.fps,
-            self.max_encoded_len,
             0,
 
             self.sections_chunk_len,
             self.frames_chunk_len,
 
             self.section_count,
-            self.file_frame_count,
-            self.display_frame_count,
+            self.frame_count,
         )
 
 @dataclass
 class Section:
-    FORMAT = "<IIIB"
+    FORMAT = "<III"
     start: int
     end: int
     frame_offs: int
-    duration_override: int
     name: str
 
     def length(self) -> int:
@@ -77,46 +81,112 @@ class Section:
             self.start,
             self.end,
             self.frame_offs,
-            self.duration_override,
         ) + bytes(self.name, "utf8") + bytes([0])
 
+class MaskEncoding(Enum):
+    FULLY_BLACK = 0
+    FULLY_WHITE = 1
+    RLE_FIRST_BLACK = 2
+    RLE_FIRST_WHITE = 3
+    BITMAP = 4
+
+class PixelEncoding(Enum):
+    RAW = 0
+    RLE = 1
+
+run_lengths_stats = Counter()
+
+class BitQueue:
+    def __init__(self):
+        self.queue = 0
+        self.queue_len = 0
+        self.bytes = bytearray()
+        self.total_bits = 0
+        self.debug = ""
+
+    def push_bits(self, bits: int, count: int):
+        bits &= (1 << count) - 1
+        self.debug += f"{bits:0{count}b} "
+        self.queue <<= count
+        self.queue |= bits
+        self.queue_len += count
+        self.total_bits += count
+
+        while self.queue_len >= 8:
+            low_bit = self.queue_len - 8
+            to_write = self.queue >> low_bit
+            self.queue_len -= 8
+            self.queue &= ((1 << self.queue_len) - 1)
+            self.bytes.append(to_write)
+
+    def serialize(self) -> Tuple[bytes, int]:
+        if self.queue_len > 0:
+            pad = 8 - self.queue_len
+            self.bytes.append(self.queue << pad)
+            self.queue_len = 0
+            self.queue = 0
+        return (bytes(self.bytes), self.total_bits)
+
 @dataclass
-class FileFrame:
-    FORMAT = "<BBH"
-    encoding: int
-    duration: int
-    encoded: bytes
+class Frame:
+    FORMAT = "<BHH"
+    mask_encoding: MaskEncoding
+    mask: Tuple[bytes, int]
+    px_encoding: PixelEncoding
+    pixels: bytes
 
     def length(self) -> int:
-        return struct.calcsize(self.FORMAT) + len(self.encoded)
+        return struct.calcsize(self.FORMAT) + len(self.mask[0]) + len(self.pixels)
 
     def to_bytes(self) -> bytes:
         return struct.pack(
             self.FORMAT,
-            self.encoding,
-            self.duration,
-            len(self.encoded),
-        ) + self.encoded
+            self.px_encoding.value | (self.mask_encoding.value << 4),
+            self.mask[1],
+            len(self.pixels),
+        ) + self.mask[0] + self.pixels
 
     @staticmethod
-    def pack(frame: bytes, mode: str) -> bytes:
+    def subtract(new_pixels: bytes, old_pixels: bytes | None) -> Tuple[bytes, list[bool]]:
+        px_cnt = len(new_pixels) // 4
+        if not old_pixels:
+            return (new_pixels, [True] * px_cnt)
+
+        pixels = bytearray()
+        mask = [False] * px_cnt
+
+        assert len(new_pixels) == len(old_pixels)
+        for i in range(0, len(new_pixels), 4):
+            new_px = new_pixels[i : i + 4]
+            old_px = old_pixels[i : i + 4]
+            if new_px != old_px:
+                pixels.extend(new_px)
+                mask[i // 4] = True
+
+        return (bytes(pixels), mask)
+
+    @staticmethod
+    def pack_pixels(pixels: bytes, mode: str) -> bytes:
         packed = bytearray()
 
         if mode == "rgb888":
             # actually BGR888
-            for i in range(0, len(frame), 4):
-                packed.extend([frame[i + 2], frame[i + 1], frame[i + 0]])
+            for i in range(0, len(pixels), 4):
+                packed.extend([pixels[i + 2], pixels[i + 1], pixels[i + 0]])
         
         elif mode == "gray4":
-            for i in range(0, len(frame), 8):
-                px1 = frame[i + 0] & 0xF0
-                px2 = frame[i + 4] & 0xF0
+            for i in range(0, len(pixels), 8):
+                px1 = pixels[i + 0] & 0xF0
+                if i + 4 >= len(pixels):
+                    px2 = 0
+                else:
+                    px2 = pixels[i + 4] & 0xF0
                 packed.append(px1 | (px2 >> 4))
         
         elif mode == "argb8888":
             # actually BGRA8888
-            for i in range(0, len(frame), 4):
-                packed.extend([frame[i + 2], frame[i + 1], frame[i + 0], frame[i + 3]])
+            for i in range(0, len(pixels), 4):
+                packed.extend([pixels[i + 2], pixels[i + 1], pixels[i + 0], pixels[i + 3]])
         
         else:
             raise NotImplemented
@@ -124,59 +194,89 @@ class FileFrame:
         return bytes(packed)
         
     @staticmethod
-    def encode(frame: bytes, mode: str) -> Self:
-        raw = frame
+    def encode_pixels(pixels: bytes, mode: str) -> Tuple[bytes, PixelEncoding]:
+        packed = pixels
         blk_size = {"rgb888": 3, "gray4": 1, "argb8888": 4}[mode]
-        rle_encoded = rle.compress(frame, blk_size)
+        rle_encoded = rle.compress(pixels, blk_size)
 
-        if len(rle_encoded) < len(raw):
-            return FileFrame(encoding=1, duration=1, encoded=rle_encoded)
+        if len(rle_encoded) < len(packed):
+            return (rle_encoded, PixelEncoding.RLE)
         else:
-            return FileFrame(encoding=0, duration=1, encoded=raw)
+            return (packed, PixelEncoding.RAW)
+
+    @staticmethod
+    def encode_mask(mask: list[bool]) -> Tuple[Tuple[bytes, int], MaskEncoding]:
+        first_pixel = mask[0]
+
+        run_length = 0
+        run_value = first_pixel
+        run_lengths = []
+
+        for px in mask:
+            if px == run_value:
+                run_length += 1
+            else:
+                run_lengths.append(run_length)
+                run_value = px
+                run_length = 1
+        run_lengths.append(run_length)
+
+        run_lengths_stats.update(run_lengths)
+
+        if len(run_lengths) == 1:
+            encoding = MaskEncoding.FULLY_WHITE if first_pixel else MaskEncoding.FULLY_BLACK
+            return ((bytes(), 0), encoding)
+
+        bit_q = BitQueue()
+
+        SHORT_RUN_BITS = 3
+        LONG_RUN_BITS = 8
+        LONG_RUN_THRESHOLD = (1 << SHORT_RUN_BITS) - 1
+        LONG_RUN_MAX = (1 << LONG_RUN_BITS) - 1
+        LONG_RUN_MARKER = LONG_RUN_THRESHOLD
+
+        for length in run_lengths:
+            if length >= LONG_RUN_THRESHOLD:
+                while length >= LONG_RUN_MAX:
+                    bit_q.push_bits(LONG_RUN_MARKER, SHORT_RUN_BITS)
+                    bit_q.push_bits(LONG_RUN_MAX, LONG_RUN_BITS)
+                    length -= LONG_RUN_MAX
+                    bit_q.push_bits(0, SHORT_RUN_BITS)
+                bit_q.push_bits(LONG_RUN_MARKER, SHORT_RUN_BITS)
+                bit_q.push_bits(length, LONG_RUN_BITS)
+            else:
+                bit_q.push_bits(length, SHORT_RUN_BITS)
+
+        compressed, compressed_bits = bit_q.serialize()
+
+        COMPRESSION_REDUCTION_THRESHOLD = 0.75
+
+        if compressed_bits <= len(mask) * COMPRESSION_REDUCTION_THRESHOLD:
+            encoding = MaskEncoding.RLE_FIRST_WHITE if first_pixel else MaskEncoding.RLE_FIRST_BLACK
+            return ((compressed, compressed_bits), encoding)
+
+        else:
+            bitmap = bytearray()
+            for i in range(0, len(mask), 8):
+                byte = 0
+                for j in range(min(8, len(mask) - i)):
+                    byte |= (128 >> j) if mask[i + j] else 0
+                bitmap.append(byte)
+            return ((bytes(bitmap), len(mask)), MaskEncoding.BITMAP)
 
 @dataclass
 class ConversionInfo:
-    display_frame_cnt: int
-    file_frame_cnt: int
-    max_encoded_len: int
-    raw_len: int
-    mean_compression_ratio: float
+    frame_cnt: int
+    overall_compression_ratio: float
+    percent_pixels_eliminated: float
+    percent_mask_overhead: float
 
 class ConversionError(Exception):
     pass
 
 class BSBAnimConverter:
     def _do_convert(self, meta: dict, frames: list[Path], output: BufferedWriter) -> ConversionInfo:
-        # 1. encode frames
-        size: None | Tuple[int, int] = None
-        encoded_frames: list[FileFrame] = []
-        frames_chunk_len = 0
-        max_encoded_len = 0
-        last_frame = None
-
-        for i, frame in enumerate(frames):
-            with Image.open(frame) as frame:
-                frame = frame.convert("RGBA")
-                if size and frame.size != size:
-                    raise ConversionError(f"frame {i} has a different size than previous frames")
-                size = frame.size
-
-                frame = frame.tobytes()
-                if frame == last_frame:
-                    encoded_frames[-1].duration += 1
-                    continue
-
-                last_frame = frame
-                frame = FileFrame.pack(frame, meta["color_mode"])
-                frame = FileFrame.encode(frame, meta["color_mode"])
-
-                encoded_frames.append(frame)
-                frames_chunk_len += frame.length()
-                max_encoded_len = max(max_encoded_len, len(frame.encoded))
-
-        # 2. encode sections
-        encoded_sections: list[Section] = []
-        sections_chunk_len = 0
+        # 1. validate section metadata
         sections = [{"name": "default", "start": 0, "end": len(frames) - 1}] + meta["sections"]
         for i, section in enumerate(sections):
             if set(section.keys()) != {"name", "start", "end"}:
@@ -189,32 +289,79 @@ class BSBAnimConverter:
                 raise ConversionError(f"Invalid metadata: section '{section['name']}' has start > end")
             if i > 0 and section["name"] == "default":
                 raise ConversionError(f"Invalid metadata: section name \"default\" is reserved")
+        section_starts = set(section["start"] for section in sections)
 
+        # 2. encode frames
+        size: None | Tuple[int, int] = None
+        encoded_frames: list[Frame] = []
+        frames_chunk_len = 0
+        max_pixels_len = 0
+        max_mask_len = 0
+        last_pixels = None
+
+        input_pixel_cnt = 0
+        kept_pixel_cnt = 0
+        mask_size_sum = 0
+
+        for i, frame in enumerate(frames):
+            with Image.open(frame) as frame:
+                frame = frame.convert("RGBA")
+                if size and frame.size != size:
+                    raise ConversionError(f"frame {i} has a different size than previous frames")
+                size = frame.size
+
+                raw_pixels = frame.tobytes()
+
+                must_be_keyframe = i in section_starts
+                pixels, mask = Frame.subtract(raw_pixels, None if must_be_keyframe else last_pixels)
+
+                input_pixel_cnt += len(raw_pixels) // 4
+                kept_pixel_cnt += mask.count(True)
+
+                pixels = Frame.pack_pixels(pixels, meta["color_mode"])
+                pixels, pixel_encoding = Frame.encode_pixels(pixels, meta["color_mode"])
+                mask, mask_encoding = Frame.encode_mask(mask)
+
+                mask_size_sum += len(mask[0])
+
+                frame = Frame(
+                    mask_encoding,
+                    mask,
+                    pixel_encoding,
+                    pixels
+                )
+                encoded_frames.append(frame)
+                frames_chunk_len += frame.length()
+                max_pixels_len = max(max_pixels_len, len(pixels))
+                max_mask_len = max(max_mask_len, mask[1])
+
+                last_pixels = raw_pixels
+
+        # 3. encode sections
+        encoded_sections: list[Section] = []
+        sections_chunk_len = 0
+        for section in sections:
             section = Section(
                 start=section["start"],
                 end=section["end"],
                 name=section["name"],
                 # precomputed start info to be filled later
                 frame_offs=0,
-                duration_override=0,
             )
             encoded_sections.append(section)
             sections_chunk_len += section.length()
 
-        # 3. fill section precomputed start info, now that file offsets are known
-        display_frame_start: list[Tuple[int, int]] = []
+        # 4. fill section precomputed start info, now that file offsets are known
+        frame_offsets: list[int] = []
         file_frame_offs = Header.length() + sections_chunk_len
-        disp_frame_idx = 0
         for file_frame in encoded_frames:
-            for disp_offset in range(file_frame.duration, 0, -1):
-                display_frame_start.append((file_frame_offs, disp_offset))
-            disp_frame_idx += file_frame.duration
+            frame_offsets.append(file_frame_offs)
             file_frame_offs += file_frame.length()
         
         for section in encoded_sections:
-            section.frame_offs, section.duration_override = display_frame_start[section.start]
+            section.frame_offs = frame_offsets[section.start]
 
-        # 4. assemble header and write data
+        # 5. assemble header and write data
         assert size
         width, height = size
         color_fmt_map = {"rgb888": 0, "gray4": 1, "argb8888": 2}
@@ -224,12 +371,12 @@ class BSBAnimConverter:
             height=height,
             color_mode=color_fmt_map[meta["color_mode"]],
             fps=meta["fps"],
-            max_encoded_len=max_encoded_len,
+            max_pixel_len=max_pixels_len,
+            max_mask_len=max_mask_len,
             sections_chunk_len=sections_chunk_len,
             frames_chunk_len=frames_chunk_len,
             section_count=len(encoded_sections),
-            file_frame_count=len(encoded_frames),
-            display_frame_count=len(frames),
+            frame_count=len(encoded_frames),
         )
         output.write(header.to_bytes())
         for section in encoded_sections:
@@ -238,13 +385,14 @@ class BSBAnimConverter:
             output.write(frame.to_bytes())
 
         # 5. assemble info about file
-        compression_ratio = (len(frames) * width * height * 3) / frames_chunk_len
+        file_size = output.tell()
+        color_size = {"rgb888": 3, "gray4": 0.5, "argb8888": 4}[meta["color_mode"]]
+        compression_ratio = (len(frames) * width * height * color_size) / file_size
         return ConversionInfo(
-            disp_frame_idx,
             len(encoded_frames),
-            max_encoded_len,
-            width * height * 3,
-            compression_ratio
+            compression_ratio,
+            100 * (1 - (kept_pixel_cnt / input_pixel_cnt)),
+            100 * mask_size_sum / file_size,
         )
 
     def convert_dir(self, input: Path, output: Path) -> ConversionInfo:
