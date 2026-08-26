@@ -44,22 +44,36 @@ static void log_storage_remote_stream_callback(FuriEventLoopObject* object, void
     log_storage_remote_internal_flush(instance);
 }
 
-void log_storage_remote_internal_suspend(LogStorageRemote* instance) {
-    furi_check(instance);
-
+static void log_storage_remote_stop(LogStorageRemote* instance) {
     furi_hal_serial_async_rx_stop(instance->serial);
     furi_hal_serial_set_rx_callback(instance->serial, NULL, NULL);
     furi_hal_serial_control_release(instance->serial);
     instance->serial = NULL;
 }
 
-void log_storage_remote_internal_resume(LogStorageRemote* instance) {
-    furi_check(instance);
-
+static void log_storage_remote_start(LogStorageRemote* instance) {
     instance->serial = furi_hal_serial_control_acquire(FuriHalSerialIdUsart2);
     furi_hal_serial_init(instance->serial, LOG_STORAGE_REMOTE_BAUD_RATE);
     furi_hal_serial_set_rx_callback(instance->serial, log_storage_remote_rx_callback, instance);
     furi_hal_serial_async_rx_start(instance->serial, false);
+}
+
+void log_storage_remote_internal_suspend(LogStorageRemote* instance) {
+    furi_check(instance);
+
+    if(instance->suspend_nesting_count++ == 0) {
+        log_storage_remote_stop(instance);
+    }
+}
+
+void log_storage_remote_internal_resume(LogStorageRemote* instance) {
+    furi_check(instance);
+
+    if(instance->suspend_nesting_count > 0) {
+        if(--instance->suspend_nesting_count == 0) {
+            log_storage_remote_start(instance);
+        }
+    }
 }
 
 void log_storage_remote_internal_flush(LogStorageRemote* instance) {
@@ -84,6 +98,7 @@ void log_storage_remote_internal_init(LogStorageRemote* instance, FuriEventLoop*
 
     log_storage_base_internal_init(&instance->base, LOG_STORAGE_REMOTE_BUFFER_SIZE);
     instance->rx_stream = furi_stream_buffer_alloc(LOG_STORAGE_REMOTE_STREAM_SIZE, 1);
+    instance->suspend_nesting_count = 0;
     instance->did_overrun = false;
 
     furi_event_loop_subscribe_stream_buffer(
@@ -93,5 +108,5 @@ void log_storage_remote_internal_init(LogStorageRemote* instance, FuriEventLoop*
         log_storage_remote_stream_callback,
         instance);
 
-    log_storage_remote_internal_resume(instance);
+    log_storage_remote_start(instance);
 }

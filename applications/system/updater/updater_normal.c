@@ -14,6 +14,8 @@
 #define INSTALL_FROM_URL_THREAD_NAME       "UpdateInstall"
 #define INSTALL_FROM_URL_THREAD_STACK_SIZE (2 * 1024)
 
+#define UPDATE_START_MIN_BATTERY_CHARGE 40
+
 typedef struct {
     bool is_abort_request;
     UpdaterStatus status;
@@ -468,6 +470,17 @@ void updater_get_check_info(Updater* instance, UpdateCheckInfo* info) {
     }
 
     furi_mutex_release(instance->check_info_mutex);
+}
+
+UpdaterStatus updater_get_allowance_status(Updater* instance) {
+    PowerInfo power_info;
+    power_get_info(instance->power, &power_info);
+
+    return (power_info.charge >= UPDATE_START_MIN_BATTERY_CHARGE ||
+            (furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug) &&
+             power_is_usb_connected(instance->power))) ?
+               UpdaterStatusOk :
+               UpdaterStatusBatteryLow;
 }
 
 UpdaterStatus
