@@ -1,8 +1,9 @@
 from SCons.Action import Action
 from SCons.Builder import Builder
 from SCons.Errors import StopError
+from SCons.Defaults import Delete
 from SCons.Node.FS import Dir, File
-from shutil import copytree, rmtree
+from shutil import copytree
 
 
 def _js_app_action(target, source, env):
@@ -12,7 +13,9 @@ def _js_app_action(target, source, env):
     source_path = source_dir.abspath
     target_path = target_dir.abspath
 
-    rmtree(target_path)
+    if target_dir.is_under(env.Dir("${BUILD_DIR}")):
+        env.Execute(Delete(target_dir))
+
     copytree(source_path, target_path)
 
 
