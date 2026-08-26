@@ -2,6 +2,7 @@ Import("FW_ENV")
 fwenv = FW_ENV
 
 import os
+import SCons.Node.FS
 from SCons.Util import splitext
 from fbt.version import get_git_commit_unix_timestamp
 
@@ -131,7 +132,10 @@ def openapi_merge(src_dir, dst_file):
 
 
 def convert_js_apps(src_dir, dst_dir):
-    src_dirs = filter(lambda n: n.isdir(), Dir(src_dir).glob("*"))
+    src_dirs = (
+        n for n in Dir(src_dir).glob("*")
+        if isinstance(n, SCons.Node.FS.Dir)
+    )
     converted = []
 
     for d in src_dirs:
