@@ -234,12 +234,12 @@ static void
         return;
     }
 
-    furi_string_set(discovery->device_name, new_device_name);
-
     FuriString* hostname_buf = furi_string_alloc();
     const char* hostname = discovery_device_name_to_hostname(new_device_name, hostname_buf);
 
     LOCK_TCPIP_CORE();
+
+    furi_string_set(discovery->device_name, new_device_name);
 
     for(size_t i = 0; i < COUNT_OF(discovery->netifs); i++) {
         struct netif* netif = discovery->netifs[i];
@@ -369,8 +369,9 @@ static void discovery_subscribe_to_network_state(Discovery* discovery) {
 
 static void discovery_busybar_txt(FuriString* txt_out, void* context) {
     furi_assert(context);
-    Discovery* discovery = context;
+    LWIP_ASSERT_CORE_LOCKED();
 
+    Discovery* discovery = context;
     furi_string_printf(txt_out, "name=%s", furi_string_get_cstr(discovery->device_name));
 }
 
