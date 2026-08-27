@@ -41,16 +41,10 @@ void mongoose_dns_startup(void) {
 // `mg_mgr` manipulation
 // =====================
 
-static bool mongoose_dns_is_pointer_in_heap(const void* pointer) {
-    const FuriHalMemoryRegion* heap = furi_hal_memory_get_region(FuriHalMemoryRegionIdHeap);
-    const void* heap_end = (uint8_t*)heap->start + heap->size_bytes;
-    return (pointer >= heap->start) && (pointer < heap_end);
-}
-
 static void mongoose_dns_free_url(struct mg_mgr* mgr) {
     furi_assert(mgr);
 
-    if(mongoose_dns_is_pointer_in_heap(mgr->dns4.url)) {
+    if(furi_hal_memory_is_address_in_region(mgr->dns4.url, FuriHalMemoryRegionIdHeap)) {
         free((void*)mgr->dns4.url);
         mgr->dns4.url = DEFAULT_DNS_SERVER;
     }

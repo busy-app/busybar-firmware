@@ -46,7 +46,7 @@ bool furi_hal_memory_is_address_in_region(const void* address, uint32_t index) {
     furi_check(index < COUNT_OF(memory_regions));
 
     const FuriHalMemoryRegion* region = &memory_regions[index];
-    return (address >= region->start) && (address <= region->end);
+    return (address >= region->start) && (address < region->end);
 }
 
 void furi_hal_memory_set_heap_track_mode(FuriHalMemoryHeapTrackMode mode) {

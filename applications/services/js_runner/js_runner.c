@@ -8,9 +8,9 @@
 #include "js_dom_exception.h"
 #include "js_headers.h"
 
-#define TAG "JsRunner"
-
 #include <furi_hal_memory.h>
+
+#define TAG "JsRunner"
 
 JsRunnerStaticContext js_runner_static_context = {
     .app = NULL,
@@ -223,7 +223,7 @@ static void
         ByteArray_t* array = user_p;
         ByteArray_clear(*array);
         free(array);
-    } else if(furi_hal_memory_is_in_region(string_p, FuriHalMemoryRegionIdHeap)) {
+    } else if(furi_hal_memory_is_address_in_region(string_p, FuriHalMemoryRegionIdHeap)) {
         free(string_p);
     }
 }
