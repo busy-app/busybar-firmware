@@ -7,6 +7,7 @@ static const FuriHalMemoryRegion memory_regions[] = {
     [FuriHalMemoryRegionIdHeap] =
         {
             .start = (void*)&__heap_start__,
+            .end = (void*)&__heap_end__,
             .size_bytes = (size_t)&__heap_size__,
         },
 };

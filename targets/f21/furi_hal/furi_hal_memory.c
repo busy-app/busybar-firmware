@@ -27,6 +27,7 @@ static const FuriHalMemoryRegion memory_regions[] = {
     /* clang-format off */
     [FuriHalMemoryRegionIdHeap] = {
         .start = (void*)&__heap_start__,
+        .end = (void*)&__heap_end__,
         .size_bytes = (size_t)&__heap_size__,
     },
     /* clang-format on */
@@ -39,6 +40,13 @@ uint32_t furi_hal_memory_get_region_count(void) {
 const FuriHalMemoryRegion* furi_hal_memory_get_region(uint32_t index) {
     furi_check(index < COUNT_OF(memory_regions));
     return &memory_regions[index];
+}
+
+bool furi_hal_memory_is_address_in_region(const void* address, uint32_t index) {
+    furi_check(index < COUNT_OF(memory_regions));
+
+    const FuriHalMemoryRegion* region = &memory_regions[index];
+    return (address >= region->start) && (address <= region->end);
 }
 
 void furi_hal_memory_set_heap_track_mode(FuriHalMemoryHeapTrackMode mode) {
