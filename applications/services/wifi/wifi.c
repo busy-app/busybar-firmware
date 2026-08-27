@@ -4,10 +4,17 @@
 
 #include "wifi_state.h"
 
+#define API_QUEUE_SIZE            (1)
+#define EVENT_QUEUE_SIZE          (4)
+#define PRIORITY_QUEUE_SIZE       (1)
 #define RESPONSE_QUEUE_SIZE       (4)
 #define RESPONSE_QUEUE_TIMEOUT_MS (200)
 
 #define WIFI_REQUEST_TIMEOUT_MS (5000)
+
+#if(API_QUEUE_SIZE != 1)
+#error "API logic will break with API_QUEUE_SIZE other than 1"
+#endif
 
 static void wifi_intercom_state_callback(const void* item, void* context) {
     furi_assert(item);
@@ -30,7 +37,7 @@ static void wifi_device_name_state_callback(const void* item, void* context) {
     Wifi* instance = context;
     const DeviceNameInfo* device_name_info = item;
 
-    wifi_schedule_set_hostname_request(instance, device_name_info);
+    wifi_send_device_name_info_event(instance, device_name_info);
 }
 
 static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* context) {
@@ -97,6 +104,8 @@ static WifiStatus wifi_send_request(Wifi* instance, WifiRequestType request_type
 }
 
 static void wifi_process_request(Wifi* instance) {
+    furi_assert(instance->is_processing);
+
     const WifiMessage* message = &instance->api_message;
 
     WifiRequest* request = &instance->request;
@@ -144,12 +153,6 @@ static void wifi_process_request(Wifi* instance) {
             wifi_net_down(instance);
             wifi_state_transition(instance, WifiStateUnknown);
             break; // No backend request necessary
-        } else if(request_type == WifiRequestTypeSetHostname) {
-            const WifiSetHostnameMessage* set_hostname_message = &message->set_hostname_message;
-            const char* new_hostname = set_hostname_message->device_name_info.name;
-
-            wifi_net_set_hostname(instance, new_hostname);
-            break; // No backend request necessary
         }
 
         status = wifi_send_request(instance, request_type);
@@ -180,7 +183,7 @@ static void
 }
 
 static void wifi_process_response(Wifi* instance, const WifiResponse* response) {
-    furi_assert(wifi_api_is_locked(instance));
+    furi_assert(instance->is_processing);
     WifiMessage* message = &instance->api_message;
 
     const WifiRequestType request_type = message->request_type;
@@ -300,22 +303,68 @@ static void wifi_process_async_response(Wifi* instance, const WifiResponse* resp
     }
 }
 
-static void wifi_override_queue_callback(FuriEventLoopObject* object, void* context) {
+static void wifi_process_event(Wifi* instance, const WifiEvent* event) {
+    const WifiEventType event_type = event->type;
+
+    if(event_type == WifiEventTypeDeviceNameInfo) {
+        wifi_net_set_hostname(instance, event->device_name_info.name);
+    } else {
+        furi_crash("Invalid WifiEventType value");
+    }
+}
+
+static void wifi_process_api_request(Wifi* instance) {
+    if(instance->is_processing) {
+        return;
+    }
+
+    furi_check(
+        furi_message_queue_peek(instance->api_queue, &instance->api_message, 0) == FuriStatusOk);
+
+    instance->is_processing = true;
+    wifi_process_request(instance);
+}
+
+static void wifi_process_priority_request(Wifi* instance) {
+    if(instance->is_processing) {
+        furi_check(furi_message_queue_reset(instance->response_queue) == FuriStatusOk);
+        wifi_api_unlock(instance, WifiStatusError);
+    }
+
+    furi_check(
+        furi_message_queue_get(instance->priority_queue, &instance->api_message, 0) ==
+        FuriStatusOk);
+
+    instance->is_processing = true;
+    wifi_process_request(instance);
+}
+
+static void wifi_api_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
     Wifi* instance = context;
-    furi_assert(object == instance->override_queue);
+    furi_assert(object == instance->api_queue);
 
-    if(!wifi_api_try_lock(instance)) {
-        wifi_api_unlock_pending_request(instance, WifiStatusError);
+    wifi_process_api_request(instance);
+}
+
+static void wifi_priority_queue_callback(FuriEventLoopObject* object, void* context) {
+    furi_assert(context);
+
+    Wifi* instance = context;
+    furi_assert(object == instance->priority_queue);
+
+    wifi_process_priority_request(instance);
+}
+
+static void wifi_event_queue_callback(FuriEventLoopObject* object, void* context) {
+    Wifi* instance = context;
+    furi_assert(object == instance->event_queue);
+
+    WifiEvent event;
+    while(furi_message_queue_get(instance->event_queue, &event, 0) == FuriStatusOk) {
+        wifi_process_event(instance, &event);
     }
-
-    furi_check(furi_message_queue_reset(instance->response_queue) == FuriStatusOk);
-
-    furi_check(
-        furi_message_queue_get(instance->override_queue, &instance->api_message, 0) ==
-        FuriStatusOk);
-    furi_event_loop_set_custom_event(instance->event_loop, WifiEventRequest);
 }
 
 static void wifi_response_queue_callback(FuriEventLoopObject* object, void* context) {
@@ -334,24 +383,14 @@ static void wifi_response_queue_callback(FuriEventLoopObject* object, void* cont
     }
 }
 
-static void wifi_custom_event_callback(uint32_t events, void* context) {
-    furi_assert(context);
-    Wifi* instance = context;
-
-    if(events == WifiEventRequest) {
-        wifi_process_request(instance);
-    } else if(events != 0) {
-        furi_crash("Multiple Wifi events");
-    }
-}
-
 static Wifi* wifi_alloc(void) {
     Wifi* instance = malloc(sizeof(Wifi));
 
     instance->event_loop = furi_event_loop_alloc();
-    instance->override_queue = furi_message_queue_alloc(1, sizeof(WifiMessage));
+    instance->api_queue = furi_message_queue_alloc(API_QUEUE_SIZE, sizeof(WifiMessage));
+    instance->event_queue = furi_message_queue_alloc(EVENT_QUEUE_SIZE, sizeof(WifiEvent));
+    instance->priority_queue = furi_message_queue_alloc(PRIORITY_QUEUE_SIZE, sizeof(WifiMessage));
     instance->response_queue = furi_message_queue_alloc(RESPONSE_QUEUE_SIZE, sizeof(WifiResponse));
-    instance->api_semaphore = furi_semaphore_alloc(1, 1);
     instance->dhcp_semaphore = furi_semaphore_alloc(1, 0);
     instance->state = furi_state_alloc(sizeof(WifiInfo));
     instance->intercom = furi_record_open(RECORD_INTERCOM);
@@ -361,14 +400,25 @@ static Wifi* wifi_alloc(void) {
 
     furi_record_open(RECORD_NETWORK);
 
-    furi_event_loop_set_custom_event_callback(
-        instance->event_loop, wifi_custom_event_callback, instance);
+    furi_event_loop_subscribe_message_queue(
+        instance->event_loop,
+        instance->api_queue,
+        FuriEventLoopEventIn | FuriEventLoopEventFlagEdge,
+        wifi_api_queue_callback,
+        instance);
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
-        instance->override_queue,
+        instance->event_queue,
         FuriEventLoopEventIn,
-        wifi_override_queue_callback,
+        wifi_event_queue_callback,
+        instance);
+
+    furi_event_loop_subscribe_message_queue(
+        instance->event_loop,
+        instance->priority_queue,
+        FuriEventLoopEventIn,
+        wifi_priority_queue_callback,
         instance);
 
     furi_event_loop_subscribe_message_queue(
@@ -388,6 +438,13 @@ static Wifi* wifi_alloc(void) {
     furi_record_create(RECORD_WIFI, instance);
 
     return instance;
+}
+
+void wifi_pending_request_callback(void* context) {
+    furi_assert(context);
+    Wifi* instance = context;
+
+    wifi_process_api_request(instance);
 }
 
 int32_t wifi_srv(void* arg) {
