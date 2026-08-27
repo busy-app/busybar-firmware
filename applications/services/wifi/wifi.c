@@ -1,7 +1,6 @@
 #include "wifi_i.h"
 
 #include <network/network.h>
-#include <device_name/device_name.h>
 
 #include "wifi_state.h"
 
@@ -22,6 +21,16 @@ static void wifi_intercom_state_callback(const void* item, void* context) {
     } else if(intercom_status != IntercomStatusUnknown) {
         wifi_schedule_deinit_request(instance);
     }
+}
+
+static void wifi_device_name_state_callback(const void* item, void* context) {
+    furi_assert(item);
+    furi_assert(context);
+
+    Wifi* instance = context;
+    const DeviceNameInfo* device_name_info = item;
+
+    wifi_schedule_set_hostname_request(instance, device_name_info);
 }
 
 static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* context) {
@@ -134,6 +143,12 @@ static void wifi_process_request(Wifi* instance) {
             FURI_LOG_W(TAG, "Deinitializing due to error");
             wifi_net_down(instance);
             wifi_state_transition(instance, WifiStateUnknown);
+            break; // No backend request necessary
+        } else if(request_type == WifiRequestTypeSetHostname) {
+            const WifiSetHostnameMessage* set_hostname_message = &message->set_hostname_message;
+            const char* new_hostname = set_hostname_message->device_name_info.name;
+
+            wifi_net_set_hostname(instance, new_hostname);
             break; // No backend request necessary
         }
 
@@ -325,25 +340,9 @@ static void wifi_custom_event_callback(uint32_t events, void* context) {
 
     if(events == WifiEventRequest) {
         wifi_process_request(instance);
-    } else {
+    } else if(events != 0) {
         furi_crash("Multiple Wifi events");
     }
-}
-
-static void wifi_generate_dhcp_hostname(Wifi* instance) {
-    DeviceName* device_name = furi_record_open(RECORD_DEVICE_NAME);
-    FuriString* device_name_str = furi_string_alloc();
-
-    device_name_get(device_name, device_name_str);
-    instance->dhcp_hostname = furi_string_alloc_set_str(DEVICE_NAME_DEFAULT);
-
-    if(!furi_string_equal_str(device_name_str, DEVICE_NAME_DEFAULT)) {
-        furi_string_cat_printf(
-            instance->dhcp_hostname, " %s", furi_string_get_cstr(device_name_str));
-    }
-
-    furi_string_free(device_name_str);
-    furi_record_close(RECORD_DEVICE_NAME);
 }
 
 static Wifi* wifi_alloc(void) {
@@ -356,9 +355,9 @@ static Wifi* wifi_alloc(void) {
     instance->dhcp_semaphore = furi_semaphore_alloc(1, 0);
     instance->state = furi_state_alloc(sizeof(WifiInfo));
     instance->intercom = furi_record_open(RECORD_INTERCOM);
+    instance->hostname = furi_string_alloc();
 
     wifi_power_init(instance);
-    wifi_generate_dhcp_hostname(instance);
 
     furi_record_open(RECORD_NETWORK);
 
@@ -378,6 +377,10 @@ static Wifi* wifi_alloc(void) {
         FuriEventLoopEventIn,
         wifi_response_queue_callback,
         instance);
+
+    DeviceName* device_name = furi_record_open(RECORD_DEVICE_NAME);
+    furi_state_subscribe(
+        device_name_get_state(device_name), wifi_device_name_state_callback, instance);
 
     furi_state_subscribe(
         intercom_get_state(instance->intercom), wifi_intercom_state_callback, instance);
