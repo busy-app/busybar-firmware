@@ -11,7 +11,8 @@ typedef struct JsCliParams {
     bool abort_scripts;
 } JsCliParams;
 
-#define CLI_APP_ID "app.busy.cli"
+#define CLI_APP_ID        "app.busy.cli"
+#define CLI_APP_HEAP_SIZE 64 * 1024
 
 static void js_console_cb(
     JsRunnerConsoleSeverity severity,
@@ -19,7 +20,8 @@ static void js_console_cb(
     size_t size,
     JsRunnerConsoleSeparator separator,
     void* context) {
-    UNUSED(context);
+
+    PipeSide* pipe = context;
 
     static const char* const preamble[] = {
         [JsRunnerConsoleSeverityLog] = "",
@@ -31,28 +33,40 @@ static void js_console_cb(
         [JsRunnerConsoleSeverityError] = "\x1b[0m",
         [JsRunnerConsoleSeverityInfo] = "\x1b[0m",
     };
-    printf("%s", preamble[severity]);
-    printf("%.*s", size, buf);
-    printf("%s", postamble[severity]);
+    pipe_send(pipe, preamble[severity], strlen(preamble[severity]));
+    pipe_send(pipe, buf, size);
+    pipe_send(pipe, postamble[severity], strlen(postamble[severity]));
     switch(separator) {
     case JsRunnerConsoleSeparatorNone:
         break;
     case JsRunnerConsoleSeparatorSpace:
-        printf(" ");
+        pipe_send(pipe, " ", 1);
         break;
     case JsRunnerConsoleSeparatorNewline:
-        printf("\r\n");
+        pipe_send(pipe, "\r\n", 2);
         break;
     }
 }
 
-static void run_script(const FuriString* arg, const FuriString* app_id) {
+static void run_script(const FuriString* arg, const FuriString* app_id, PipeSide* pipe) {
     JsRunner* runner = furi_record_open(RECORD_JS_RUNNER);
     const char* id = app_id ? furi_string_get_cstr(app_id) : CLI_APP_ID;
-    JsRunnerError error =
-        js_runner_run(runner, id, furi_string_get_cstr(arg), 64 * 1024, js_console_cb, NULL);
-    if(error != JsRunnerErrorNone) {
-        printf("Error running script: %s", js_runner_get_error_message(error));
+    JsRunnerContextInitResult context_init_result =
+        js_runner_context_alloc(runner, id, CLI_APP_HEAP_SIZE, js_console_cb, pipe);
+    if(context_init_result.error != JsRunnerErrorNone) {
+        printf(
+            "Error allocating JS context: %s",
+            js_runner_get_error_message(context_init_result.error));
+    } else {
+        JsRunnerContextHandle* handle = context_init_result.handle;
+        JsRunnerRunResult run_result = js_runner_run(handle, furi_string_get_cstr(arg));
+        if(run_result.error != JsRunnerErrorNone) {
+            printf("Error running script: %s", js_runner_get_error_message(run_result.error));
+        } else {
+            JsRunnerError join_result = js_runner_join(run_result.handle, FuriWaitForever);
+            furi_check(join_result == JsRunnerErrorNone);
+        }
+        js_runner_context_free(handle);
     }
     furi_record_close(RECORD_JS_RUNNER);
 }
@@ -104,7 +118,7 @@ void cli_command_js(PipeSide* pipe, FuriString* args, void* context) {
         if(params.abort_scripts) {
             abort_all();
         } else if(params.script_path) {
-            run_script(params.script_path, params.app_id);
+            run_script(params.script_path, params.app_id, pipe);
         }
     }
     if(params.app_id) {

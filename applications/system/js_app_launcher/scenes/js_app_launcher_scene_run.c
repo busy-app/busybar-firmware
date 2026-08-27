@@ -33,15 +33,17 @@ static int32_t js_app_laucher_scene_run_thread_callback(void* arg) {
     furi_assert(arg);
     JsAppLauncherSceneRun* data = arg;
 
-    const JsAppInfo* info = &data->js_info;
+    // const JsAppInfo* info = &data->js_info;
 
-    const JsRunnerError error = js_runner_run(
-        data->js_runner,
-        info->manifest.id,
-        info->path.entry,
-        info->manifest.heap_size,
-        js_app_launcher_scene_run_console_out_callback,
-        NULL);
+    UNUSED(js_app_launcher_scene_run_console_out_callback);
+    const JsRunnerError error = JsRunnerErrorNone;
+    // js_runner_run(
+    //     data->js_runner,
+    //     info->manifest.id,
+    //     info->path.entry,
+    //     info->manifest.heap_size,
+    //     js_app_launcher_scene_run_console_out_callback,
+    //     NULL);
 
     if(error != JsRunnerErrorNone) {
         FURI_LOG_E(TAG, "JsRunner error: %d", error);
@@ -105,7 +107,7 @@ static void js_app_launcher_scene_run_on_exit(void* context) {
     if(js_thread != NULL) {
         // Not checking the return value of js_runner_abort
         // because it is completely ambiguous here.
-        js_runner_abort(data->js_runner, js_thread);
+        // js_runner_abort(data->js_runner, js_thread);
         // Assuming this will not block forever during normal operation.
         // The script should have stopped at this point either due to
         // its internal logic or due to the above abort request.

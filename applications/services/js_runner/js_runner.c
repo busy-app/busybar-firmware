@@ -38,13 +38,16 @@ void* js_runner_thread_context_get(void) {
     return result;
 }
 
-void js_runner_get_root_path(FuriString* path) {
-    WITH_JS_RUNNER_APP(app, { furi_string_set(path, app->root_path); });
+bool js_runner_get_root_path(FuriString* path) {
+    bool result = false;
+    WITH_JS_RUNNER_APP(app, {
+        if(app->root_path) {
+            furi_string_set(path, app->root_path);
+            result = true;
+        }
+    });
+    return result;
 }
-
-static const jerry_object_native_info_t global_native_info = {
-    .free_cb = NULL,
-};
 
 static bool has_active_fetch(JsRunnerAppFetch* instance) {
     for(size_t i = 0; i != FetchArray_size(instance->fetches); ++i) {
@@ -66,7 +69,7 @@ static bool app_has_background_tasks(JsRunnerApp* app) {
 void js_runner_app_stop_if_done(JsRunnerApp* app) {
     if(!app_has_background_tasks(app)) {
         JS_TRACE("No more tasks");
-        furi_event_loop_stop(app->event_loop);
+        furi_event_flag_set(app->is_idle, JS_RUNNER_APP_FLAG_IDLE);
     }
 }
 
@@ -96,12 +99,18 @@ static void fetch_event_queue_callback(FuriEventLoopObject* object, void* contex
     js_run_jobs();
 }
 
-typedef void (*CommandQueueHandler)(JsRunnerApp* app, JsRunnerAppCommandType cmd);
+typedef void (*CommandQueueHandler)(JsRunnerApp* app, JsRunnerAppCommand* cmd);
 
-static void abort_cmd_handler(JsRunnerApp* app, JsRunnerAppCommandType cmd);
+static void send_comand_message(JsRunnerContextHandle* handle, const JsRunnerAppCommand* message);
+
+static void abort_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd);
+static void run_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd);
+static void quit_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd);
 
 static const CommandQueueHandler command_handlers[] = {
     [JsRunnerAppCommandTypeAbort] = abort_cmd_handler,
+    [JsRunnerAppCommandTypeRun] = run_cmd_handler,
+    [JsRunnerAppCommandTypeQuit] = quit_cmd_handler,
 };
 static_assert(COUNT_OF(command_handlers) == JsRunnerAppCommandTypeMax);
 
@@ -110,11 +119,11 @@ static void app_terminate_from_app_thread(JsRunnerApp* app);
 static void command_queue_callback(FuriEventLoopObject* object, void* context) {
     UNUSED(object);
     JsRunnerApp* app = context;
-    JsRunnerAppCommandType cmd;
+    JsRunnerAppCommand cmd;
     furi_check(furi_message_queue_get(app->command_queue, &cmd, 0) == FuriStatusOk);
-    CommandQueueHandler handler = command_handlers[cmd];
+    CommandQueueHandler handler = command_handlers[cmd.type];
     furi_check(handler);
-    handler(app, cmd);
+    handler(app, &cmd);
 }
 
 static void js_runner_app_console_init(
@@ -146,23 +155,62 @@ static void js_runner_app_fetch_deinit(JsRunnerAppFetch* fetch) {
     furi_message_queue_free(fetch->event_queue);
 }
 
-static void js_runner_app_init(
-    JsRunnerApp* app,
+typedef struct AppThreadParams {
+    JsRunner* instance;
+    FuriString* app_id;
+    size_t heap_size;
+    JsRunnerConsoleOutCallback console_write_cb;
+    void* console_write_context;
+    FuriMessageQueue* command_queue;
+
+    JsRunnerContextHandle** out_handle;
+    FuriApiLock out_handle_lock;
+} AppThreadParams;
+
+static AppThreadParams* app_thread_params_alloc(
+    JsRunner* instance,
     const char* app_id,
-    const char* script_path,
     size_t heap_size,
-    JsRunnerConsoleOutCallback console_out_cb,
-    void* console_cb_context) {
-    app->app_id = furi_string_alloc_set(app_id);
+    JsRunnerConsoleOutCallback console_write_cb,
+    void* console_write_context,
+    FuriMessageQueue* command_queue,
+    JsRunnerContextHandle** out_handle) {
+    AppThreadParams* params = malloc(sizeof(AppThreadParams));
+    params->instance = instance;
+    params->app_id = furi_string_alloc_set(app_id);
+    params->heap_size = heap_size;
+    params->console_write_cb = console_write_cb;
+    params->console_write_context = console_write_context;
+    params->command_queue = command_queue;
+
+    params->out_handle = out_handle;
+    params->out_handle_lock = api_lock_alloc_locked();
+
+    return params;
+}
+static void app_thread_params_free(AppThreadParams* params) {
+    furi_string_free(params->app_id);
+    free(params);
+}
+
+static void js_runner_app_init(JsRunnerApp* app, const AppThreadParams* params) {
+    JS_TRACE("app init");
+
+    app->app_id = params->app_id;
     app->thread = furi_thread_get_current();
+    app->command_queue = params->command_queue;
     app->should_terminate = false;
-    app->heap_size = heap_size;
+    atomic_flag_clear(&app->is_execution_handle_taken);
+    app->heap_size = params->heap_size;
     app->jrs_context = NULL;
     app->event_loop = furi_event_loop_alloc();
 
-    app->root_path = furi_string_alloc();
-    path_extract_dirname(script_path, app->root_path);
-    js_runner_app_console_init(&app->console, console_out_cb, console_cb_context);
+    app->root_path = NULL;
+    app->is_idle = furi_event_flag_alloc();
+    furi_event_flag_set(app->is_idle, JS_RUNNER_APP_FLAG_IDLE);
+
+    js_runner_app_console_init(
+        &app->console, params->console_write_cb, params->console_write_context);
     js_runner_app_interval_init(&app->interval);
     js_runner_app_fetch_init(&app->fetch);
     furi_event_loop_subscribe_message_queue(
@@ -172,22 +220,32 @@ static void js_runner_app_init(
         fetch_event_queue_callback,
         app);
 
-    app->command_queue =
-        furi_message_queue_alloc(MAX_COMMAND_MESSAGES, sizeof(JsRunnerAppCommandType));
     furi_event_loop_subscribe_message_queue(
         app->event_loop, app->command_queue, FuriEventLoopEventIn, command_queue_callback, app);
 }
 
 static void js_runner_app_deinit(JsRunnerApp* app) {
     JS_TRACE("app deinit");
-    furi_string_free(app->app_id);
     furi_event_loop_unsubscribe(app->event_loop, app->command_queue);
-    furi_message_queue_free(app->command_queue);
     furi_event_loop_unsubscribe(app->event_loop, app->fetch.event_queue);
     furi_event_loop_free(app->event_loop);
-    furi_string_free(app->root_path);
+    if(app->root_path) {
+        furi_string_free(app->root_path);
+    }
     js_runner_app_interval_deinit(&app->interval);
     js_runner_app_fetch_deinit(&app->fetch);
+    furi_event_flag_free(app->is_idle);
+}
+
+static void js_runner_app_set_root_path(JsRunnerApp* app, const char* script_path) {
+    if(app->root_path) {
+        furi_string_free(app->root_path);
+        app->root_path = NULL;
+    }
+    if(script_path) {
+        app->root_path = furi_string_alloc();
+        path_extract_dirname(script_path, app->root_path);
+    }
 }
 
 static void arraybuffer_free_callback(
@@ -263,7 +321,7 @@ const char* js_runner_app_get_id(const JsRunnerApp* app) {
     return furi_string_get_cstr(app->app_id);
 }
 
-bool validate_app_id(const char* app_id) {
+static bool validate_app_id(const char* app_id) {
     while(*app_id) {
         int c = *app_id;
         if(!isalnum(c) && c != '.' && c != '_') {
@@ -274,111 +332,165 @@ bool validate_app_id(const char* app_id) {
     return true;
 }
 
-JsRunnerError js_runner_run(
+JsRunnerContextHandle*
+    context_handle_alloc(JsRunner* instance, JsRunnerApp* app, FuriMessageQueue* command_queue) {
+    JsRunnerContextHandle* handle = malloc(sizeof(JsRunnerContextHandle));
+
+    handle->instance = instance;
+    handle->app = app;
+    handle->command_queue = command_queue;
+    handle->thread = furi_thread_get_current();
+
+    return handle;
+}
+
+static int32_t app_thread_callback(void* context) {
+    AppThreadParams* params = context;
+
+    JsRunnerApp app;
+    *params->out_handle = context_handle_alloc(params->instance, &app, params->command_queue);
+    js_runner_app_init(&app, params);
+    js_runner_static_context.app = &app;
+
+    jerry_init(JERRY_INIT_EMPTY);
+    jerry_halt_handler(1, engine_halt_callback, &app);
+    jerry_arraybuffer_allocator(NULL, arraybuffer_free_callback, NULL);
+    jerry_string_external_on_free(external_string_free_callback);
+
+    js_setup_console(&app.console);
+    js_setup_interval_methods();
+    js_setup_fetch();
+    js_setup_local_storage();
+
+    api_lock_unlock(params->out_handle_lock);
+
+    furi_event_loop_run(app.event_loop);
+
+    jerry_cleanup();
+    js_runner_app_deinit(&app);
+    js_runner_static_context.app = NULL;
+    atomic_flag_clear(&js_runner_static_context.is_running);
+
+    app_thread_params_free(params);
+    return 0;
+}
+
+JsRunnerContextInitResult js_runner_context_alloc(
     JsRunner* instance,
     const char* app_id,
-    const char* path,
     size_t heap_size,
-    JsRunnerConsoleOutCallback console_out_cb,
+    JsRunnerConsoleOutCallback console_write_cb,
     void* console_write_context) {
     if(!validate_app_id(app_id)) {
-        return JsRunnerErrorInvalidAppId;
+        return (JsRunnerContextInitResult){
+            .error = JsRunnerErrorInvalidAppId,
+            .handle = NULL,
+        };
     }
     if(atomic_flag_test_and_set(&js_runner_static_context.is_running)) {
-        return JsRunnerErrorTooManyApps;
+        return (JsRunnerContextInitResult){
+            .error = JsRunnerErrorResource,
+            .handle = NULL,
+        };
     }
+
+    FuriMessageQueue* command_queue =
+        furi_message_queue_alloc(MAX_COMMAND_MESSAGES, sizeof(JsRunnerAppCommand));
+    JsRunnerContextHandle* handle = NULL;
+    AppThreadParams* params = app_thread_params_alloc(
+        instance,
+        app_id,
+        heap_size,
+        console_write_cb,
+        console_write_context,
+        command_queue,
+        &handle);
+
+    FuriThread* thread = furi_thread_alloc_ex(
+        app_id ? app_id : "JsApp", APP_THREAD_STACK_SIZE, app_thread_callback, params);
+    furi_thread_start(thread);
+
+    api_lock_wait_unlock_and_free(params->out_handle_lock);
+
+    return (JsRunnerContextInitResult){.error = JsRunnerErrorNone, .handle = handle};
+}
+
+void js_runner_context_free(JsRunnerContextHandle* handle) {
+    JS_TRACE("Stopping the thread");
+    JsRunnerAppCommand cmd = {.type = JsRunnerAppCommandTypeQuit};
+    handle->app->should_terminate = true;
+    furi_message_queue_put(handle->command_queue, &cmd, FuriWaitForever);
+    furi_thread_join(handle->thread);
+    furi_thread_free(handle->thread);
+    furi_message_queue_free(handle->command_queue);
+    free(handle);
+}
+
+static JsRunnerExecutionHandle* execution_handle_alloc(JsRunnerContextHandle* parent) {
+    if(atomic_flag_test_and_set(&parent->app->is_execution_handle_taken)) {
+        return NULL;
+    }
+    JsRunnerExecutionHandle* handle = malloc(sizeof(JsRunnerExecutionHandle));
+    handle->app = parent->app;
+    handle->context_handle = parent;
+    return handle;
+}
+
+static void execution_handle_free(JsRunnerExecutionHandle* handle) {
+    atomic_flag_clear(&handle->app->is_execution_handle_taken);
+    free(handle);
+}
+
+JsRunnerRunResult js_runner_run(JsRunnerContextHandle* handle, const char* path) {
     FURI_LOG_I(TAG, "Running script: %s", path);
 
-    JsRunnerError ret = JsRunnerErrorNone;
-    Storage* storage = furi_record_open(RECORD_STORAGE);
-    File* f = storage_file_alloc(storage);
+    JsRunnerError result = JsRunnerErrorNone;
+    JsRunnerExecutionHandle* exec_handle = NULL;
     do {
-        if(!storage_file_open(f, path, FSAM_READ, FSOM_OPEN_EXISTING)) {
-            ret = JsRunnerErrorCannotOpenFile;
-            break;
-        }
-        uint64_t file_size = storage_file_size(f);
-        if((file_size == 0) || (file_size > JS_RUNNER_MAX_SCRIPT_SIZE)) {
-            ret = JsRunnerErrorInvalidFileSize;
-            break;
-        }
-        char* buf = malloc(file_size);
-        if(storage_file_read(f, buf, file_size) != file_size) {
-            ret = JsRunnerErrorCannotReadFile;
-            free(buf);
+        exec_handle = execution_handle_alloc(handle);
+        if(!exec_handle) {
+            result = JsRunnerErrorResource;
             break;
         }
 
-        JsRunnerApp app;
-        js_runner_app_init(&app, app_id, path, heap_size, console_out_cb, console_write_context);
-
-        js_runner_static_context.app = &app;
-
-        jerry_init(JERRY_INIT_EMPTY);
-        jerry_halt_handler(1, engine_halt_callback, &app);
-        jerry_arraybuffer_allocator(NULL, arraybuffer_free_callback, NULL);
-        jerry_string_external_on_free(external_string_free_callback);
-
-        {
-            jerry_value_t global_obj = jerry_current_realm();
-            jerry_object_set_native_ptr(global_obj, &global_native_info, instance);
-            jerry_value_free(global_obj);
-        }
-        js_setup_console(&app.console);
-        js_setup_interval_methods();
-        js_setup_fetch();
-        js_setup_local_storage();
-
-        FuriString* path_furi = furi_string_alloc_set_str(path);
-        FuriString* filename_furi = furi_string_alloc();
-        path_extract_filename(path_furi, filename_furi, false);
-        jerry_value_t source_name = js_utf8_string(filename_furi);
-        furi_string_free(filename_furi);
-        furi_string_free(path_furi);
-
-        jerry_parse_options_t parse_options = {
-            .options = JERRY_PARSE_HAS_SOURCE_NAME | JERRY_PARSE_MODULE,
-            .source_name = source_name,
+        JsRunnerAppCommand cmd = {
+            .type = JsRunnerAppCommandTypeRun,
+            .lock = api_lock_alloc_locked(),
+            .result = &result,
+            .run =
+                {
+                    .path = path,
+                    .context_handle = handle,
+                },
         };
 
-        jerry_value_t parsed_script =
-            jerry_parse((const jerry_char_t*)buf, file_size, &parse_options);
-        free(buf);
-        do {
-            if(jerry_value_is_exception(parsed_script)) {
-                js_log_exception(TAG, "Error parsing script", parsed_script);
-                ret = JsRunnerErrorParseException;
-                break;
-            } else {
-                jerry_value_t link_result = jerry_module_link(parsed_script, NULL, NULL);
-                if(jerry_value_is_exception(link_result)) {
-                    js_log_exception(TAG, "Error linking modules", link_result);
-                } else {
-                    jerry_value_t result = jerry_module_evaluate(parsed_script);
-                    if(jerry_value_is_exception(result)) {
-                        js_log_exception(TAG, "Error running script", result);
-                        app_terminate_from_app_thread(&app);
-                    }
-                    js_run_jobs();
-                    if(app_has_background_tasks(&app)) {
-                        furi_event_loop_run(app.event_loop);
-                    }
-                    jerry_value_free(result);
-                }
-                jerry_value_free(link_result);
-            }
-        } while(false);
-        jerry_value_free(parsed_script);
-        jerry_value_free(source_name);
-        jerry_cleanup();
-        js_runner_static_context.app = NULL;
-
-        js_runner_app_deinit(&app);
+        send_comand_message(handle, &cmd);
+        if(result != JsRunnerErrorNone) {
+            execution_handle_free(exec_handle);
+            exec_handle = NULL;
+        }
     } while(false);
-    storage_file_free(f);
-    furi_record_close(RECORD_STORAGE);
-    atomic_flag_clear(&js_runner_static_context.is_running);
-    return ret;
+
+    return (JsRunnerRunResult){
+        .error = result,
+        .handle = exec_handle,
+    };
+}
+
+JsRunnerError js_runner_join(JsRunnerExecutionHandle* handle, uint32_t timeout) {
+    uint32_t wait_result = furi_event_flag_wait(
+        handle->app->is_idle, JS_RUNNER_APP_FLAG_IDLE, FuriFlagNoClear, timeout);
+
+    JsRunnerError result = JsRunnerErrorNone;
+    if(wait_result == JS_RUNNER_APP_FLAG_IDLE) {
+        atomic_flag_clear(&handle->app->is_execution_handle_taken);
+        free(handle);
+    } else if((FuriStatus)wait_result == FuriStatusErrorTimeout) {
+        result = JsRunnerErrorTimeout;
+    } else {
+        furi_check(false);
+    }
+    return result;
 }
 
 static JsRunner* js_runner_alloc(void) {
@@ -407,10 +519,113 @@ static void abort_intervals(JsRunnerApp* app) {
     }
 }
 
-static void abort_cmd_handler(JsRunnerApp* app, JsRunnerAppCommandType cmd) {
-    furi_check(cmd == JsRunnerAppCommandTypeAbort);
+static void unlock_with_result(JsRunnerAppCommand* cmd, JsRunnerError result) {
+    if(cmd->result) {
+        *cmd->result = result;
+    }
+    if(cmd->lock) {
+        api_lock_unlock(cmd->lock);
+    }
+}
+
+static void abort_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
+    furi_check(cmd->type == JsRunnerAppCommandTypeAbort);
     app_terminate_from_app_thread(app);
     js_runner_app_stop_if_done(app);
+}
+
+static void run_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
+    furi_check(cmd->type == JsRunnerAppCommandTypeRun);
+
+    if((furi_event_flag_get(app->is_idle) & JS_RUNNER_APP_FLAG_IDLE) == 0) {
+        unlock_with_result(cmd, JsRunnerErrorResource);
+        return;
+    }
+
+    bool unlocked = false;
+    JsRunnerError ret = JsRunnerErrorNone;
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+    File* f = storage_file_alloc(storage);
+    js_runner_app_set_root_path(app, cmd->run.path);
+    do {
+        if(!storage_file_open(f, cmd->run.path, FSAM_READ, FSOM_OPEN_EXISTING)) {
+            ret = JsRunnerErrorCannotOpenFile;
+            break;
+        }
+        uint64_t file_size = storage_file_size(f);
+        if((file_size == 0) || (file_size > JS_RUNNER_MAX_SCRIPT_SIZE)) {
+            ret = JsRunnerErrorInvalidFileSize;
+            break;
+        }
+        char* buf = malloc(file_size);
+        if(storage_file_read(f, buf, file_size) != file_size) {
+            ret = JsRunnerErrorCannotReadFile;
+            free(buf);
+            break;
+        }
+
+        FuriString* path_furi = furi_string_alloc_set_str(cmd->run.path);
+        FuriString* filename_furi = furi_string_alloc();
+        path_extract_filename(path_furi, filename_furi, false);
+        jerry_value_t source_name = js_utf8_string(filename_furi);
+        furi_string_free(filename_furi);
+        furi_string_free(path_furi);
+
+        jerry_parse_options_t parse_options = {
+            .options = JERRY_PARSE_HAS_SOURCE_NAME | JERRY_PARSE_MODULE,
+            .source_name = source_name,
+        };
+
+        jerry_value_t parsed_script =
+            jerry_parse((const jerry_char_t*)buf, file_size, &parse_options);
+        free(buf);
+        do {
+            if(jerry_value_is_exception(parsed_script)) {
+                js_log_exception(TAG, "Error parsing script", parsed_script);
+                ret = JsRunnerErrorParseException;
+                break;
+            } else {
+                jerry_value_t link_result = jerry_module_link(parsed_script, NULL, NULL);
+                if(jerry_value_is_exception(link_result)) {
+                    js_log_exception(TAG, "Error linking modules", link_result);
+                    jerry_value_free(link_result);
+                    ret = JsRunnerErrorParseException;
+                    break;
+                } else {
+                    // Evaluating the script can take an arbitrary amount of time.
+                    // Unlocking to let the API caller proceed.
+                    furi_event_flag_clear(app->is_idle, JS_RUNNER_APP_FLAG_IDLE);
+                    unlock_with_result(cmd, JsRunnerErrorNone);
+                    unlocked = true;
+
+                    jerry_value_t result = jerry_module_evaluate(parsed_script);
+                    if(jerry_value_is_exception(result)) {
+                        js_log_exception(TAG, "Error running script", result);
+                        app_terminate_from_app_thread(app);
+                    }
+                    js_run_jobs();
+                    js_runner_app_stop_if_done(app);
+                    jerry_value_free(result);
+                }
+                jerry_value_free(link_result);
+            }
+        } while(false);
+        jerry_value_free(parsed_script);
+        jerry_value_free(source_name);
+    } while(false);
+    js_runner_app_set_root_path(app, NULL);
+    storage_file_free(f);
+    furi_record_close(RECORD_STORAGE);
+    if(!unlocked) {
+        unlock_with_result(cmd, ret);
+    }
+}
+
+static void quit_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
+    furi_check(cmd->type == JsRunnerAppCommandTypeQuit);
+    app_terminate_from_app_thread(app);
+    js_runner_app_stop_if_done(app);
+    furi_event_loop_stop(app->event_loop);
 }
 
 static void app_terminate_from_app_thread(JsRunnerApp* app) {
@@ -422,20 +637,28 @@ static void app_terminate_from_app_thread(JsRunnerApp* app) {
 static void app_terminate_from_another_thread(JsRunnerApp* app) {
     if(!app->should_terminate) {
         app->should_terminate = true;
-        JsRunnerAppCommandType cmd = JsRunnerAppCommandTypeAbort;
+        JsRunnerAppCommand cmd = {
+            .type = JsRunnerAppCommandTypeAbort,
+        };
         furi_message_queue_put(app->command_queue, &cmd, FuriWaitForever);
     }
 }
 
-bool js_runner_abort(JsRunner* instance, FuriThread* thread) {
-    UNUSED(instance);
+static void send_comand_message(JsRunnerContextHandle* handle, const JsRunnerAppCommand* message) {
+    furi_check(
+        furi_message_queue_put(handle->command_queue, message, FuriWaitForever) == FuriStatusOk);
+
+    if(message->lock) {
+        api_lock_wait_unlock_and_free(message->lock);
+    }
+}
+
+bool js_runner_abort(JsRunnerExecutionHandle* handle) {
+    UNUSED(handle);
     if(!js_runner_static_context.app) {
         return false;
     }
     JsRunnerApp* app = js_runner_static_context.app;
-    if(app->thread != thread) {
-        return false;
-    }
     app_terminate_from_another_thread(app);
     return true;
 }
@@ -466,7 +689,8 @@ static const char* const error_messages[] = {
     [JsRunnerErrorCannotReadFile] = "Cannot read file",
     [JsRunnerErrorParseException] = "Parse exception",
     [JsRunnerErrorInvalidAppId] = "Invalid App ID",
-    [JsRunnerErrorTooManyApps] = "Too many running apps",
+    [JsRunnerErrorResource] = "Out of resources",
+    [JsRunnerErrorTimeout] = "Timeout",
 };
 
 static_assert(COUNT_OF(error_messages) == JsRunnerErrorMax);

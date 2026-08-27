@@ -10,6 +10,7 @@
 #include <storage/storage.h>
 #include <path.h>
 #include <fetch/fetch.h>
+#include <toolbox/api_lock.h>
 
 #include <m-dict.h>
 #include <m-array.h>
@@ -32,6 +33,10 @@
 #define MIN_INTERVAL_DELAY_MS 10.0f
 #define MAX_FETCH_MESSAGES    32
 #define MAX_COMMAND_MESSAGES  4
+
+#define APP_THREAD_STACK_SIZE 2048
+
+#define JS_RUNNER_APP_FLAG_IDLE 1
 
 #define PTR_HASH(p) ((size_t)(p))
 
@@ -72,20 +77,41 @@ typedef struct JsRunnerAppFetch {
 typedef enum JsRunnerAppCommandType {
     JsRunnerAppCommandTypeInvalid,
     JsRunnerAppCommandTypeAbort,
+    JsRunnerAppCommandTypeRun,
+    JsRunnerAppCommandTypeQuit,
 
     JsRunnerAppCommandTypeMax,
 } JsRunnerAppCommandType;
 
+typedef struct JsRunnerAppCommandRun {
+    const char* path;
+    JsRunnerContextHandle* context_handle;
+} JsRunnerAppCommandRun;
+
+typedef struct JsRunnerAppCommand {
+    JsRunnerAppCommandType type;
+    FuriApiLock lock;
+    JsRunnerError* result;
+
+    union {
+        JsRunnerAppCommandRun run;
+    };
+} JsRunnerAppCommand;
+
 typedef struct JsRunnerApp {
-    FuriString* app_id;
+    const FuriString* app_id;
     FuriThread* thread;
 
     size_t heap_size;
     void* jrs_context;
-    FuriEventLoop* event_loop;
     FuriString* root_path;
-    _Atomic bool should_terminate;
+
+    FuriEventFlag* is_idle; ///< This flag is set if a script is being run
+
+    FuriEventLoop* event_loop;
+    _Atomic bool should_terminate; ///< Flag to terminate JS busy loops
     FuriMessageQueue* command_queue;
+    atomic_flag is_execution_handle_taken;
 
     JsRunnerAppConsole console;
     JsRunnerAppInterval interval;
@@ -96,6 +122,18 @@ typedef struct JsRunner {
     FuriEventLoop* event_loop;
     FuriMessageQueue* message_queue;
 } JsRunner;
+
+typedef struct JsRunnerContextHandle {
+    JsRunner* instance;
+    JsRunnerApp* app;
+    FuriThread* thread;
+    FuriMessageQueue* command_queue;
+} JsRunnerContextHandle;
+
+typedef struct JsRunnerExecutionHandle {
+    JsRunnerContextHandle* context_handle;
+    JsRunnerApp* app;
+} JsRunnerExecutionHandle;
 
 typedef struct JsRunnerStaticContext {
     atomic_flag is_running;
@@ -135,8 +173,10 @@ void js_runner_thread_context_free(void);
 void* js_runner_thread_context_get(void);
 
 /** @brief Get root path of the current JS app (folder containg entry point).
- * This function is used by jerryscript glue. */
-void js_runner_get_root_path(FuriString* path);
+ * This function is used by jerryscript glue.
+ *
+ * @return true if root path (and file operations) is available, false otherwise */
+bool js_runner_get_root_path(FuriString* path);
 
 void js_runner_add_fetch_thread(JsRunnerApp* app, JsFetch* fetch);
 void js_runner_del_fetch_thread(JsRunnerApp* app, JsFetch* fetch);
