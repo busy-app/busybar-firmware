@@ -20,21 +20,21 @@ void anim_file_img_init(AnimFile* anim, uint8_t* cutout_buffer, size_t width, si
 
         img->buffer_a = (AnimFileBuffer){
             .data = malloc(bytes),
-            .max_size = bytes,
+            .max_bytes = bytes,
+            .filled_bytes = 0,
             .content = AnimFileBufferContentUninitialized,
-            .filled_size = 0,
         };
         img->buffer_b = (AnimFileBuffer){
             .data = malloc(bytes),
-            .max_size = bytes,
+            .max_bytes = bytes,
+            .filled_bytes = 0,
             .content = AnimFileBufferContentUninitialized,
-            .filled_size = 0,
         };
         img->buffer_persistent = (AnimFileBuffer){
             .data = malloc(bytes),
-            .max_size = bytes,
+            .max_bytes = bytes,
+            .filled_bytes = 0,
             .content = AnimFileBufferContentUninitialized,
-            .filled_size = 0,
         };
     }
 
@@ -42,9 +42,9 @@ void anim_file_img_init(AnimFile* anim, uint8_t* cutout_buffer, size_t width, si
     img->cutout_h = height;
     img->buffer_cutout = (AnimFileBuffer){
         .data = cutout_buffer,
-        .max_size = width * height * ANIM_FILE_OUT_BYTES_PER_PIXEL,
+        .max_bytes = width * height * ANIM_FILE_OUT_BYTES_PER_PIXEL,
+        .filled_bytes = 0,
         .content = AnimFileBufferContentUninitialized,
-        .filled_size = 0,
     };
 
     anim_file_img_set_cutout(anim, 0, 0);
@@ -122,11 +122,11 @@ static AnimFileBuffer* anim_file_img_step_decode(
         };
         size_t blk_size = blk_sizes[file_hdr->color_format];
 
-        size_t decoded_sz_limit = destination->max_size;
+        size_t decoded_sz_limit = destination->max_bytes;
         size_t decoded_sz = 0;
         if(!rle_decompress(
                source->data,
-               source->filled_size,
+               source->filled_bytes,
                destination->data,
                decoded_sz_limit,
                blk_size,
@@ -134,7 +134,7 @@ static AnimFileBuffer* anim_file_img_step_decode(
             ANIM_FILE_ERR("RLE compressed pixels too large");
             return NULL;
         }
-        destination->filled_size = decoded_sz;
+        destination->filled_bytes = decoded_sz;
     }
 
     destination->content = AnimFileBufferContentDecoded;
@@ -161,7 +161,7 @@ static AnimFileBuffer* anim_file_img_step_unpack(
     uint8_t* dest_data = destination->data;
 
     if(format == AnimFileColorFormatGray4) {
-        for(size_t i = 0; i < source->filled_size; i++) {
+        for(size_t i = 0; i < source->filled_bytes; i++) {
             uint8_t left_px = src_data[i] & 0xF0;
             uint8_t right_px = src_data[i] << 4;
             dest_data[0] = left_px;
@@ -174,9 +174,9 @@ static AnimFileBuffer* anim_file_img_step_unpack(
             dest_data[7] = 255;
             dest_data += 8;
         }
-        destination->filled_size = source->filled_size * 2;
+        destination->filled_bytes = source->filled_bytes * ANIM_FILE_OUT_BYTES_PER_PIXEL * 2;
     } else if(format == AnimFileColorFormatBgr888) {
-        for(size_t i = 0; i < source->filled_size; i += 3) {
+        for(size_t i = 0; i < source->filled_bytes; i += 3) {
             dest_data[0] = src_data[0];
             dest_data[1] = src_data[1];
             dest_data[2] = src_data[2];
@@ -184,7 +184,7 @@ static AnimFileBuffer* anim_file_img_step_unpack(
             dest_data += 4;
             src_data += 3;
         }
-        destination->filled_size = source->filled_size * ANIM_FILE_OUT_BYTES_PER_PIXEL / 3;
+        destination->filled_bytes = source->filled_bytes * ANIM_FILE_OUT_BYTES_PER_PIXEL / 3;
     }
 
     destination->content = AnimFileBufferContentFullColor;
@@ -208,10 +208,11 @@ static AnimFileBuffer* anim_file_img_step_disperse(
     size_t h_with_margin = anim->meta.info.height + ANIM_FILE_BUFFER_MARGIN;
 
     uint32_t* src_pixel = (uint32_t*)&source->data[0];
-    size_t src_pixels_left = source->filled_size / ANIM_FILE_OUT_BYTES_PER_PIXEL;
+    size_t src_pixels_left = source->filled_bytes / ANIM_FILE_OUT_BYTES_PER_PIXEL;
+    size_t src_pixels_overrun = 0;
 
 #ifdef ANIM_FILE_SHOW_MASK_INSTEAD_OF_IMAGE
-    for(size_t i = 0; i < destination->max_size; i++) {
+    for(size_t i = 0; i < destination->max_bytes; i++) {
         destination->data[i] = (uint8_t)MAX(0, (int)destination->data[i] - 0x22);
     }
 #endif
@@ -223,11 +224,16 @@ static AnimFileBuffer* anim_file_img_step_disperse(
         range.x_start += half_margin;
         range.x_end += half_margin;
 
-        uint32_t* dst_start =
-            (uint32_t*)destination->data + ((range.y * w_with_margin) + range.x_start);
-        size_t pixel_cnt = MIN(range.x_end - range.x_start, src_pixels_left);
+        size_t start_idx = (range.y * w_with_margin) + range.x_start;
+        uint32_t* dst_start = (uint32_t*)(destination->data + (start_idx * sizeof(uint32_t)));
+
+        size_t wanted_pixel_cnt = range.x_end - range.x_start;
+        size_t pixel_cnt = MIN(wanted_pixel_cnt, src_pixels_left);
+        if(wanted_pixel_cnt > src_pixels_left)
+            src_pixels_overrun += (wanted_pixel_cnt - src_pixels_left);
+
 #ifdef ANIM_FILE_SHOW_MASK_INSTEAD_OF_IMAGE
-        memset(dst_start, 0xff, pixel_cnt * ANIM_FILE_OUT_BYTES_PER_PIXEL);
+        memset(dst_start, 0xff, wanted_pixel_cnt * ANIM_FILE_OUT_BYTES_PER_PIXEL);
 #else
         memcpy(dst_start, src_pixel, pixel_cnt * ANIM_FILE_OUT_BYTES_PER_PIXEL);
 #endif
@@ -237,13 +243,19 @@ static AnimFileBuffer* anim_file_img_step_disperse(
 
     anim_file_mask_iterate(anim, frame_hdr, place_pixels, NULL);
 
-    if(src_pixels_left) {
+    size_t allowed_leftover_pixels =
+        (anim->meta.header.color_format == AnimFileColorFormatGray4) ? 1 : 0;
+    if(src_pixels_left > allowed_leftover_pixels) {
         ANIM_FILE_ERR("Invalid frame: %zu leftover pixels after dispersion", src_pixels_left);
+        return NULL;
+    }
+    if(src_pixels_overrun) {
+        ANIM_FILE_ERR("Invalid frame: %zu overrun pixels during dispersion", src_pixels_overrun);
         return NULL;
     }
 
     destination->content = AnimFileBufferContentDispersed;
-    destination->filled_size = w_with_margin * h_with_margin * ANIM_FILE_OUT_BYTES_PER_PIXEL;
+    destination->filled_bytes = w_with_margin * h_with_margin * ANIM_FILE_OUT_BYTES_PER_PIXEL;
     return destination;
 }
 
@@ -265,7 +277,7 @@ static AnimFileBuffer* anim_file_img_step_cut(
     size_t h_with_margin = info->height + ANIM_FILE_BUFFER_MARGIN;
 
     furi_assert(
-        source->filled_size == w_with_margin * h_with_margin * ANIM_FILE_OUT_BYTES_PER_PIXEL);
+        source->filled_bytes == w_with_margin * h_with_margin * ANIM_FILE_OUT_BYTES_PER_PIXEL);
 
     dsp_2d_kernel_apply(
         ANIM_FILE_IMG_KERNEL_SZ,
@@ -288,7 +300,7 @@ static AnimFileBuffer* anim_file_img_step_cut(
         img->cutout_y);
 
     destination->content = AnimFileBufferContentCut;
-    destination->filled_size = info->width * info->height * ANIM_FILE_OUT_BYTES_PER_PIXEL;
+    destination->filled_bytes = info->width * info->height * ANIM_FILE_OUT_BYTES_PER_PIXEL;
     return destination;
 }
 

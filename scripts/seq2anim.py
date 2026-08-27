@@ -147,6 +147,28 @@ class Frame:
         ) + self.mask[0] + self.pixels
 
     @staticmethod
+    def reduce_color(pixels: bytes, mode: str) -> bytes:
+        reduced = bytearray()
+        
+        if mode == "rgb888":
+            for i in range(0, len(pixels), 4):
+                reduced.extend(pixels[i : i + 3])
+                reduced.append(0xff)
+        
+        elif mode == "gray4":
+            for i in range(0, len(pixels), 4):
+                reduced.extend([pixels[i] & 0xf0] * 3)
+                reduced.append(0xff)
+        
+        elif mode == "argb8888":
+            return pixels
+        
+        else:
+            raise NotImplemented
+        
+        return bytes(reduced)
+
+    @staticmethod
     def subtract(new_pixels: bytes, old_pixels: bytes | None) -> Tuple[bytes, list[bool]]:
         px_cnt = len(new_pixels) // 4
         if not old_pixels:
@@ -311,6 +333,7 @@ class BSBAnimConverter:
                 size = frame.size
 
                 raw_pixels = frame.tobytes()
+                raw_pixels = Frame.reduce_color(raw_pixels, meta["color_mode"])
 
                 must_be_keyframe = i in section_starts
                 pixels, mask = Frame.subtract(raw_pixels, None if must_be_keyframe else last_pixels)

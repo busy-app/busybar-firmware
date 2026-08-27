@@ -24,8 +24,8 @@ typedef enum {
 
 typedef struct {
     uint8_t* data;
-    size_t max_size;
-    size_t filled_size;
+    size_t max_bytes;
+    size_t filled_bytes;
     AnimFileBufferContent content;
 } AnimFileBuffer;
 

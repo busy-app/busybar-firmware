@@ -68,7 +68,7 @@ static AnimFileFrameFlag anim_file_seq_render_frame(AnimFile* anim, size_t file_
     }
 
     pixel_buffer->content = AnimFileBufferContentFromFile;
-    pixel_buffer->filled_size = to_read;
+    pixel_buffer->filled_bytes = to_read;
     seq->loaded_frame_offset = file_offset;
 
     if(!anim_file_img_full_decode(anim, frame_hdr)) return AnimFileFrameFlagError;
@@ -99,9 +99,6 @@ AnimFileFrameFlag anim_file_seq_draw_requested_and_go_to_next(AnimFile* anim) {
 
     AnimFileSeq* seq = &anim->seq;
     AnimFileFrameHeader* frame_hdr = &seq->frame_hdr;
-
-    bool only_frame = anim->meta.info.frames == 1;
-    if(only_frame) return AnimFileFrameFlagNoChange;
 
     if(seq->loaded_frame_offset == seq->requested_frame_offset) {
         bool on_last_frame_in_range = seq->frame_idx == seq->last_frame_idx;
