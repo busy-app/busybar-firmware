@@ -129,8 +129,6 @@ WifiStatus wifi_state_check_request_type(Wifi* instance, WifiRequestType request
             if(current_state == WifiStateUnknown) {
                 status = WifiStatusError;
             }
-        } else if(request_type == WifiRequestTypeSetHostname) {
-            // Allowed in all states
         } else {
             furi_crash("Invalid WifiRequestType");
         }
