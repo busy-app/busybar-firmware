@@ -42,6 +42,7 @@ typedef struct {
 
 typedef struct {
     WifiRequestType request_type;
+    bool is_priority;
     WifiStatus* status;
     union {
         WifiConnectMessage connect_message;
@@ -69,17 +70,20 @@ struct Wifi {
     bool is_processing;
 };
 
+// Deferred actions
+void wifi_pending_request_callback(void* context);
+
 // API management
 void wifi_api_unlock(Wifi* instance, WifiStatus status);
 
 // Internal nonblocking API calls
 void wifi_schedule_init_request(Wifi* instance);
 
+void wifi_schedule_deinit_request(Wifi* instance);
+
 void wifi_schedule_connect_request(Wifi* instance, const WifiSettings* settings);
 
 void wifi_schedule_disconnect_request(Wifi* instance);
-
-void wifi_schedule_deinit_request(Wifi* instance);
 
 void wifi_send_device_name_info_event(Wifi* instance, const DeviceNameInfo* device_name_state);
 

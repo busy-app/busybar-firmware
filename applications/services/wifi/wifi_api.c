@@ -41,7 +41,9 @@ static WifiStatus wifi_api_blocking_request(Wifi* instance, WifiMessage* message
     return status;
 }
 
-static void wifi_api_send_priority_request(Wifi* instance, const WifiMessage* message) {
+static void wifi_api_send_priority_request(Wifi* instance, WifiMessage* message) {
+    message->is_priority = true;
+
     if(!wifi_api_send_message(instance->priority_queue, message, WIFI_PRIORITY_QUEUE_TIMEOUT_MS)) {
         FURI_LOG_E(TAG, "Priority request timed out");
     }
@@ -62,6 +64,17 @@ static void wifi_api_send_event(Wifi* instance, const WifiEvent* event) {
     }
 }
 
+static void wifi_api_schedule_pending_request(Wifi* instance) {
+    if(furi_message_queue_get_count(instance->api_queue) != 0) {
+        furi_event_loop_pend_callback(
+            instance->event_loop, wifi_pending_request_callback, instance);
+    }
+}
+
+static void wifi_api_unlock_api_queue(Wifi* instance) {
+    furi_check(furi_message_queue_reset(instance->api_queue) == FuriStatusOk);
+}
+
 void wifi_api_unlock(Wifi* instance, WifiStatus status) {
     furi_assert(instance->is_processing);
 
@@ -76,15 +89,19 @@ void wifi_api_unlock(Wifi* instance, WifiStatus status) {
         api_lock_unlock(message->lock);
     }
 
-    instance->is_processing = false;
+    if(message->is_priority) {
+        wifi_api_schedule_pending_request(instance);
+    } else {
+        wifi_api_unlock_api_queue(instance);
+    }
 
-    furi_check(furi_message_queue_reset(instance->api_queue) == FuriStatusOk);
+    instance->is_processing = false;
 }
 
 void wifi_schedule_init_request(Wifi* instance) {
     furi_assert(instance);
 
-    const WifiMessage msg = {
+    WifiMessage msg = {
         .request_type = WifiRequestTypeInit,
     };
 
@@ -94,7 +111,7 @@ void wifi_schedule_init_request(Wifi* instance) {
 void wifi_schedule_deinit_request(Wifi* instance) {
     furi_assert(instance);
 
-    const WifiMessage msg = {
+    WifiMessage msg = {
         .request_type = WifiRequestTypeDeinit,
     };
 

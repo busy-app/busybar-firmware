@@ -313,12 +313,7 @@ static void wifi_process_event(Wifi* instance, const WifiEvent* event) {
     }
 }
 
-static void wifi_api_queue_callback(FuriEventLoopObject* object, void* context) {
-    furi_assert(context);
-
-    Wifi* instance = context;
-    furi_assert(object == instance->api_queue);
-
+static void wifi_process_api_request(Wifi* instance) {
     if(instance->is_processing) {
         return;
     }
@@ -330,12 +325,7 @@ static void wifi_api_queue_callback(FuriEventLoopObject* object, void* context) 
     wifi_process_request(instance);
 }
 
-static void wifi_priority_queue_callback(FuriEventLoopObject* object, void* context) {
-    furi_assert(context);
-
-    Wifi* instance = context;
-    furi_assert(object == instance->priority_queue);
-
+static void wifi_process_priority_request(Wifi* instance) {
     if(instance->is_processing) {
         furi_check(furi_message_queue_reset(instance->response_queue) == FuriStatusOk);
         wifi_api_unlock(instance, WifiStatusError);
@@ -347,6 +337,24 @@ static void wifi_priority_queue_callback(FuriEventLoopObject* object, void* cont
 
     instance->is_processing = true;
     wifi_process_request(instance);
+}
+
+static void wifi_api_queue_callback(FuriEventLoopObject* object, void* context) {
+    furi_assert(context);
+
+    Wifi* instance = context;
+    furi_assert(object == instance->api_queue);
+
+    wifi_process_api_request(instance);
+}
+
+static void wifi_priority_queue_callback(FuriEventLoopObject* object, void* context) {
+    furi_assert(context);
+
+    Wifi* instance = context;
+    furi_assert(object == instance->priority_queue);
+
+    wifi_process_priority_request(instance);
 }
 
 static void wifi_event_queue_callback(FuriEventLoopObject* object, void* context) {
@@ -430,6 +438,13 @@ static Wifi* wifi_alloc(void) {
     furi_record_create(RECORD_WIFI, instance);
 
     return instance;
+}
+
+void wifi_pending_request_callback(void* context) {
+    furi_assert(context);
+    Wifi* instance = context;
+
+    wifi_process_api_request(instance);
 }
 
 int32_t wifi_srv(void* arg) {
