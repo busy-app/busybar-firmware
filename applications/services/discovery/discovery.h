@@ -23,12 +23,16 @@ extern "C" {
 typedef struct Discovery Discovery;
 
 /**
- * @brief Discovery TXT record callback function type.
+ * @brief Called to request one DNS-SD TXT record
  *
+ * @param[in] index Index of the record that this function should return
  * @param[out] txt_out pointer to the output buffer string
  * @param[in,out] context pointer to the user-specific object (may be @c NULL)
+ * 
+ * @returns `true` if data was given and iteration should continue,
+ *          `false` if no data was given and iteration should stop
  */
-typedef void (*DiscoveryTxtCallback)(FuriString* txt_out, void* context);
+typedef bool (*DiscoveryTxtCallback)(size_t index, FuriString* txt_out, void* context);
 
 /**
  * @brief Enumeration of supported transport protocol types.

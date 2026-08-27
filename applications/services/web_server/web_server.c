@@ -545,15 +545,25 @@ bool http_handle_headers(
     return handled;
 }
 
-static void web_srv_discovery_txt(FuriString* txt_out, void* context) {
+static bool web_srv_discovery_txt(size_t index, FuriString* txt_out, void* context) {
     furi_assert(txt_out);
     furi_assert(context);
     WebServer* server = context;
 
-    FuriString* device_name = furi_string_alloc();
-    device_name_get(server->device_name, device_name);
-    furi_string_printf(txt_out, "path=/; name=%s", furi_string_get_cstr(device_name));
-    furi_string_free(device_name);
+    if(index == 0) {
+        furi_string_printf(txt_out, "path=/");
+        return true;
+
+    } else if(index == 1) {
+        FuriString* device_name = furi_string_alloc();
+        device_name_get(server->device_name, device_name);
+        furi_string_printf(txt_out, "name=%s", furi_string_get_cstr(device_name));
+        furi_string_free(device_name);
+        return true;
+
+    } else {
+        return false;
+    }
 }
 
 static void web_srv_discovery_init(WebServer* server) {

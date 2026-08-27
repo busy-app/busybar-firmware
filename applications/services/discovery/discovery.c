@@ -116,13 +116,22 @@ static void discovery_mdns_txt_callback(struct mdns_service* lwip_srv, void* con
     DiscoveryService* service = context;
     const DiscoveryServiceInfo* info = service->info;
 
-    if(info->txt_callback) {
+    if(!info->txt_callback) return;
+
+    size_t index = 0;
+    bool record_valid = true;
+
+    while(record_valid) {
         FuriString* txt = furi_string_alloc();
 
-        info->txt_callback(txt, service->context);
-        mdns_resp_add_service_txtitem(lwip_srv, furi_string_get_cstr(txt), furi_string_size(txt));
+        record_valid = info->txt_callback(index, txt, service->context);
+        if(record_valid) {
+            mdns_resp_add_service_txtitem(
+                lwip_srv, furi_string_get_cstr(txt), furi_string_size(txt));
+        }
 
         furi_string_free(txt);
+        index++;
     }
 }
 
