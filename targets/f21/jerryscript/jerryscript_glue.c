@@ -30,6 +30,10 @@ void jerry_port_context_free(void) {
 void jerry_port_init(void) {
 }
 
+void jerry_port_log(const char* message) {
+    FURI_LOG_D(TAG, "%s", message);
+}
+
 void jerry_port_fatal(jerry_fatal_code_t code) {
     FURI_LOG_E(TAG, "jerryscript fatal error %d", code);
     furi_crash(code);

@@ -40,6 +40,8 @@ libenv.AppendUnique(
         "JERRY_BUILTIN_SHAREDARRAYBUFFER=1",
         "JERRY_BUILTIN_ATOMICS=1",
         "JERRY_BUILTIN_WEAKREF=1",
+        "JERRY_ERROR_MESSAGES=1",
+        "JERRY_LOGGING=1",
         "JERRY_MODULE_SYSTEM=1",
         "JERRY_VM_HALT=1",
     ],

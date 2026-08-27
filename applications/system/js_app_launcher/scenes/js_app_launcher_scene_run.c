@@ -1,7 +1,7 @@
 #include "../js_app_launcher_i.h"
 #include "js_app_launcher_scenes.h"
 
-#define JS_THREAD_STACK_SIZE (3 * 1024)
+#define JS_THREAD_STACK_SIZE (8 * 1024)
 
 typedef struct {
     FuriThread* js_thread;

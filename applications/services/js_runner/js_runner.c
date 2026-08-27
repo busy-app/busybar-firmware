@@ -3,8 +3,14 @@
 #include "js_interval.h"
 #include "js_console.h"
 #include "js_local_storage.h"
+#include "js_url.h"
+#include "js_abort_controller.h"
+#include "js_dom_exception.h"
+#include "js_headers.h"
 
 #define TAG "JsRunner"
+
+#include <furi_hal_memory.h>
 
 JsRunnerStaticContext js_runner_static_context = {
     .app = NULL,
@@ -217,7 +223,7 @@ static void
         ByteArray_t* array = user_p;
         ByteArray_clear(*array);
         free(array);
-    } else {
+    } else if(furi_hal_memory_is_in_region(string_p, FuriHalMemoryRegionIdHeap)) {
         free(string_p);
     }
 }
@@ -324,10 +330,15 @@ JsRunnerError js_runner_run(
             jerry_object_set_native_ptr(global_obj, &global_native_info, instance);
             jerry_value_free(global_obj);
         }
+
         js_setup_console(&app.console);
         js_setup_interval_methods();
         js_setup_fetch();
         js_setup_local_storage();
+        js_setup_url();
+        js_setup_abort_controller();
+        js_setup_dom_exception();
+        js_setup_headers();
 
         FuriString* path_furi = furi_string_alloc_set_str(path);
         FuriString* filename_furi = furi_string_alloc();

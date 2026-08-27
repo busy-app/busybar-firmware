@@ -3,8 +3,6 @@
 
 #include <m-array.h>
 
-#include <ctype.h>
-
 #define TAG "JsHeaders"
 
 typedef struct Headers {
@@ -207,6 +205,30 @@ jerry_value_t headers_foreach(
     jerry_value_free(this_value);
 
     return result;
+}
+
+static jerry_value_t headers_constructor(
+    const jerry_call_info_t* call_info,
+    const jerry_value_t args[],
+    const jerry_length_t args_count) {
+    UNUSED(call_info);
+    UNUSED(args);
+    FURI_LOG_D(TAG, "Args count: %lu", args_count);
+
+    return jerry_undefined();
+}
+
+void js_setup_headers(void) {
+    jerry_value_t global_obj = jerry_current_realm();
+
+    jerry_value_t constructor = jerry_function_external(headers_constructor);
+    jerry_value_free(jerry_object_set_sz(global_obj, "Headers", constructor));
+
+    jerry_value_t prototype = jerry_object();
+    js_check_and_free(jerry_object_set_proto(constructor, prototype));
+    jerry_value_free(prototype);
+    jerry_value_free(constructor);
+    jerry_value_free(global_obj);
 }
 
 jerry_value_t js_headers_alloc(jerry_value_t response, const char* data, size_t data_size) {
