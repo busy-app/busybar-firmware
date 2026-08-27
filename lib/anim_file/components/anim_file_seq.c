@@ -71,7 +71,15 @@ static AnimFileFrameFlag anim_file_seq_render_frame(AnimFile* anim, size_t file_
     pixel_buffer->filled_bytes = to_read;
     seq->loaded_frame_offset = file_offset;
 
+#ifdef ANIM_FILE_PROFILE_PERFORMANCE
+    profiler_start(anim->profiler, "full_decode");
+#endif
+
     if(!anim_file_img_full_decode(anim, frame_hdr)) return AnimFileFrameFlagError;
+
+#ifdef ANIM_FILE_PROFILE_PERFORMANCE
+    profiler_stop(anim->profiler, "full_decode");
+#endif
 
     return AnimFileFrameFlagNone;
 }

@@ -49,6 +49,20 @@ void dsp_2d_kernel_subpixel_translate(
     float y);
 
 /**
+ * @brief Checks whether the provided kernel is an identity kernel.
+ * 
+ * An identity kernel has all values set to 0, except the middle one, which is
+ * set to 1. When such a kernel is applied, the resulting image stays completely
+ * the same.
+ * 
+ * @param[in] kernel_sz Size of one axis of the kernel. Can't be less than 3,
+ *                      must be odd.
+ * @param[out] kernel Kernel to analyze (2-dimensional array of size `kernel_sz`
+ *                    x `kernel_sz`)
+ */
+bool dsp_2d_kernel_is_identity(size_t kernel_sz, float kernel[kernel_sz][kernel_sz]);
+
+/**
  * @brief Apply a 2-dimensional kernel to part of an image
  * 
  * @param[in] kernel_sz Size of one axis of the kernel. Can't be less than 3,

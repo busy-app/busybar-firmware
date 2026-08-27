@@ -85,9 +85,21 @@ void anim_file_set_out_buf(AnimFile* anim, size_t width, size_t height, void* bu
 AnimFileFrameInfo anim_file_frame(AnimFile* anim) {
     furi_check(anim);
 
+#ifdef ANIM_FILE_PROFILE_PERFORMANCE
+    anim->profiler = profiler_alloc(TAG);
+    profiler_start(anim->profiler, "frame");
+#endif
+
     AnimFileFrameInfo info;
     info.index = anim_file_seq_frame_idx(anim);
     info.flags = anim_file_seq_draw_requested_and_go_to_next(anim);
+
+#ifdef ANIM_FILE_PROFILE_PERFORMANCE
+    profiler_stop(anim->profiler, "frame");
+    profiler_dump(anim->profiler);
+    profiler_free(anim->profiler);
+#endif
+
     return info;
 }
 

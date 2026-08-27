@@ -80,7 +80,6 @@ static AnimFileBuffer* anim_file_img_request_buffer(AnimFile* anim, AnimFileBuff
 
 void anim_file_img_set_cutout(AnimFile* anim, float x, float y) {
     furi_assert(anim);
-
     AnimFileImg* img = &anim->img;
 
     img->cutout_x = (int)floorf(x);
@@ -88,6 +87,20 @@ void anim_file_img_set_cutout(AnimFile* anim, float x, float y) {
 
     dsp_2d_kernel_subpixel_translate(
         ANIM_FILE_IMG_KERNEL_SZ, img->cutout_kernel, img->cutout_x - x, img->cutout_y - y);
+}
+
+static bool anim_file_img_cutout_operation_requested(AnimFile* anim) {
+    furi_assert(anim);
+    AnimFileImg* img = &anim->img;
+    AnimFileInfo* info = &anim->meta.info;
+
+    if(!dsp_2d_kernel_is_identity(ANIM_FILE_IMG_KERNEL_SZ, img->cutout_kernel)) return true;
+    if(img->cutout_w != info->width) return true;
+    if(img->cutout_h != info->height) return true;
+    if(img->cutout_x != 0) return true;
+    if(img->cutout_y != 0) return true;
+
+    return false;
 }
 
 AnimFileBuffer* anim_file_img_initial_buffer(AnimFile* anim) {
@@ -279,51 +292,89 @@ static AnimFileBuffer* anim_file_img_step_cut(
     furi_assert(
         source->filled_bytes == w_with_margin * h_with_margin * ANIM_FILE_OUT_BYTES_PER_PIXEL);
 
-    dsp_2d_kernel_apply(
-        ANIM_FILE_IMG_KERNEL_SZ,
-        (const float*)img->cutout_kernel,
-        (DspImageBuffer){
-            .first_pixel = (uint8_t*)&((uint32_t*)source->data)[w_with_margin + half_margin],
-            .width = info->width,
-            .stride = w_with_margin,
-            .height = info->height,
-            .channels = ANIM_FILE_OUT_BYTES_PER_PIXEL,
-        },
-        (DspImageBuffer){
-            .first_pixel = destination->data,
-            .width = img->cutout_w,
-            .stride = img->cutout_w,
-            .height = img->cutout_h,
-            .channels = ANIM_FILE_OUT_BYTES_PER_PIXEL,
-        },
-        img->cutout_x,
-        img->cutout_y);
+    if(anim_file_img_cutout_operation_requested(anim)) {
+        dsp_2d_kernel_apply(
+            ANIM_FILE_IMG_KERNEL_SZ,
+            (const float*)img->cutout_kernel,
+            (DspImageBuffer){
+                .first_pixel = (uint8_t*)&((uint32_t*)source->data)[w_with_margin + half_margin],
+                .width = info->width,
+                .stride = w_with_margin,
+                .height = info->height,
+                .channels = ANIM_FILE_OUT_BYTES_PER_PIXEL,
+            },
+            (DspImageBuffer){
+                .first_pixel = destination->data,
+                .width = img->cutout_w,
+                .stride = img->cutout_w,
+                .height = img->cutout_h,
+                .channels = ANIM_FILE_OUT_BYTES_PER_PIXEL,
+            },
+            img->cutout_x,
+            img->cutout_y);
+
+    } else {
+        for(size_t y = 0; y < info->height; y++) {
+            uint32_t* src =
+                (uint32_t*)source->data + ((y + half_margin) * w_with_margin) + half_margin;
+            uint32_t* dst = (uint32_t*)destination->data + (y * info->width);
+            memcpy(dst, src, info->width * sizeof(uint32_t));
+        }
+    }
 
     destination->content = AnimFileBufferContentCut;
     destination->filled_bytes = info->width * info->height * ANIM_FILE_OUT_BYTES_PER_PIXEL;
     return destination;
 }
 
-typedef AnimFileBuffer* (*AnimFileImgPipelineStep)(
+typedef AnimFileBuffer* (*AnimFileImgPipelineStepPerform)(
     AnimFile* anim,
     const AnimFileFrameHeader* frame_hdr,
     AnimFileBuffer* source);
+
+typedef struct {
+    const char* name;
+    AnimFileImgPipelineStepPerform perform;
+} AnimFileImgPipelineStep;
 
 bool anim_file_img_full_decode(AnimFile* anim, const AnimFileFrameHeader* frame_hdr) {
     furi_assert(anim);
     AnimFileImg* img = &anim->img;
 
     AnimFileImgPipelineStep steps[] = {
-        anim_file_img_step_decode,
-        anim_file_img_step_unpack,
-        anim_file_img_step_disperse,
-        anim_file_img_step_cut,
+        {
+            "decode",
+            anim_file_img_step_decode,
+        },
+        {
+            "unpack",
+            anim_file_img_step_unpack,
+        },
+        {
+            "disperse",
+            anim_file_img_step_disperse,
+        },
+        {
+            "cut",
+            anim_file_img_step_cut,
+        },
     };
 
     AnimFileBuffer* buffer = anim_file_img_initial_buffer(anim);
 
     for(size_t i = 0; i < COUNT_OF(steps); i++) {
-        buffer = steps[i](anim, frame_hdr, buffer);
+        const AnimFileImgPipelineStep* step = &steps[i];
+
+#ifdef ANIM_FILE_PROFILE_PERFORMANCE
+        profiler_start(anim->profiler, step->name);
+#endif
+
+        buffer = step->perform(anim, frame_hdr, buffer);
+
+#ifdef ANIM_FILE_PROFILE_PERFORMANCE
+        profiler_stop(anim->profiler, step->name);
+#endif
+
         if(!buffer) return false;
     }
 

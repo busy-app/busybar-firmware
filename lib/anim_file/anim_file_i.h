@@ -6,6 +6,7 @@
 
 #include "anim_file.h"
 #include "anim_file_format.h"
+#include <toolbox/profiler.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,6 +21,7 @@ extern "C" {
 // Debugging flags
 #define ANIM_FILE_DETAILED_ERRORS
 // #define ANIM_FILE_SHOW_MASK_INSTEAD_OF_IMAGE
+// #define ANIM_FILE_PROFILE_PERFORMANCE
 
 #ifdef ANIM_FILE_DETAILED_ERRORS
 #define ANIM_FILE_ERR(...) FURI_LOG_E(TAG, __VA_ARGS__)
@@ -71,6 +73,10 @@ struct AnimFile {
     AnimFileSeq seq;
     AnimFileStart start;
     AnimFileMask mask;
+
+#ifdef ANIM_FILE_PROFILE_PERFORMANCE
+    Profiler* profiler;
+#endif
 };
 
 #ifdef __cplusplus

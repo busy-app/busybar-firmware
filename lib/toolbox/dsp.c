@@ -66,6 +66,21 @@ void dsp_2d_kernel_subpixel_translate(
     *x_axis *= 1 - fabsf(y);
 }
 
+bool dsp_2d_kernel_is_identity(size_t kernel_sz, float kernel[kernel_sz][kernel_sz]) {
+    furi_assert(kernel);
+
+    const size_t middle = kernel_sz / 2;
+
+    for(size_t y = 0; y < kernel_sz; y++) {
+        for(size_t x = 0; x < kernel_sz; x++) {
+            float expected = (x == middle && y == middle) ? 1.0f : 0.0f;
+            if(fabsf(expected - kernel[y][x]) > DSP_EPSILON) return false;
+        }
+    }
+
+    return true;
+}
+
 static uint32_t dsp_2d_kernel_iteration(
     const uint32_t* source,
     size_t stride,
