@@ -31,7 +31,8 @@ def mdns_interface_ip(mdns_device_ip: str) -> str:
 @pytest.fixture
 def discovery_instance(system_api: SystemAPI) -> str:
     usb_mac = system_api.get_status().device.usb_mac
-    return usb_mac.replace(":", "").lower()
+    device_id = usb_mac.replace(":", "").lower()
+    return f"busybar-{device_id}"
 
 
 @pytest.fixture
