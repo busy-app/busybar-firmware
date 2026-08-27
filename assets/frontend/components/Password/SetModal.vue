@@ -27,7 +27,7 @@
     <template #body>
       <form @submit.prevent="isInvalid || pms.loading ? null : pms.setPassword()">
         <input
-          :value="deviceStore.deviceName || 'BUSY Bar'"
+          value="BUSY Bar"
           type="text"
           name="username"
           autocomplete="username"
@@ -86,7 +86,6 @@
 import { vMaska } from 'maska/vue';
 
 const pms = usePasswordModalStore();
-const deviceStore = useDeviceStore();
 
 const isInvalid = computed(() => pms.newPasswordValidation !== undefined || pms.passwordModel.new === '');
 </script>

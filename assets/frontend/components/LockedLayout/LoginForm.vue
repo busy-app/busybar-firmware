@@ -12,7 +12,7 @@
     @submit.prevent="attemptUnlock()"
   >
     <input
-      :value="deviceStore.deviceName || 'BUSY Bar'"
+      value="BUSY Bar"
       type="text"
       name="username"
       autocomplete="username"
