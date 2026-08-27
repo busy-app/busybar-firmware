@@ -141,7 +141,7 @@ def wait_for_wifi_link_stable(
         nonlocal last_fingerprint, observed_stable_samples
 
         address = _usable_ipv4_address(status)
-        ssid_matches = not expected_ssid or status.ssid in (None, expected_ssid)
+        ssid_matches = expected_ssid is None or status.ssid == expected_ssid
         if status.state != "connected" or address is None or not ssid_matches:
             last_fingerprint = None
             observed_stable_samples = 0
