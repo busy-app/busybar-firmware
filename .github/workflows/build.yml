@@ -152,7 +152,7 @@ jobs:
         id: set-url
         if: ${{ !github.event.pull_request.head.repo.fork && matrix.target_spec == env.DEFAULT_TARGET_SPEC }}
         run: |
-          echo "update_url=${{ steps.get-env.outputs.branch_name }}/busybar-f${{ steps.build-fw.outputs.u5_target_hw }}-update_signed-${{ steps.get-env.outputs.suffix }}.tgz" >> "$GITHUB_OUTPUT"
+          echo "update_url=${{ steps.get-env.outputs.branch_name }}/busybar-f${{ steps.build-fw.outputs.u5_target_hw }}-update-${{ steps.get-env.outputs.suffix }}.tgz" >> "$GITHUB_OUTPUT"
           echo "target=${{ steps.build-fw.outputs.u5_target_hw }}" >> "$GITHUB_OUTPUT"
 
   updater-tests:
