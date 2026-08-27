@@ -142,7 +142,7 @@ jobs:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
             **Compiled f${{ matrix.target_spec }} firmware for commit `${{steps.get-env.outputs.commit_sha}}`:**
-            - [📦 Update package](https://update.busy.app/builds/busybar-firmware/${{steps.get-env.outputs.branch_name}}/busybar-f${{steps.build-fw.outputs.u5_target_hw}}-update-${{steps.get-env.outputs.suffix}}.tgz)
+            - [📦 Update package](https://update.busy.app/builds/busybar-firmware/${{steps.get-env.outputs.branch_name}}/busybar-f${{steps.build-fw.outputs.u5_target_hw}}-update_signed-${{steps.get-env.outputs.suffix}}.tgz)
             - [📁 Update files](https://update.busy.app/builds/busybar-firmware/${{steps.get-env.outputs.branch_name}}/?${{ github.run_id }})
             - [📊 Sil Size report](https://fw-reports-sil-bsb.flipp.dev/?branch=${{steps.get-env.outputs.branch_name}})
             - [📊 U5 Size report](https://fw-reports-bsb.flipp.dev/?branch=${{steps.get-env.outputs.branch_name}})
