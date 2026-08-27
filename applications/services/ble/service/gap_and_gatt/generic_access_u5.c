@@ -4,6 +4,7 @@
 
 #define BLE_GENERIC_WATCH_APPEARANCE (0x00C0)
 
+// TODO: Refactor to use device name value provided in callback
 static void ble_on_name_change_callback(const void* message, void* context) {
     UNUSED(message);
     BleServiceObject* instance = context;
@@ -12,8 +13,8 @@ static void ble_on_name_change_callback(const void* message, void* context) {
 
 static void ble_subscribe_on_name_change(BleServiceObject* instance) {
     DeviceName* name_record = furi_record_open(RECORD_DEVICE_NAME);
-    FuriPubSub* pubsub = device_name_get_pubsub(name_record);
-    furi_pubsub_subscribe(pubsub, ble_on_name_change_callback, instance);
+    FuriState* pubsub = device_name_get_state(name_record);
+    furi_state_get_subscribe(pubsub, NULL, ble_on_name_change_callback, instance);
     furi_record_close(RECORD_DEVICE_NAME);
 }
 
