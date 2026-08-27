@@ -10,8 +10,6 @@
 #include <wifi/wifi.h>
 #include <usb_network/usb_network.h>
 
-#include <furi_hal_version.h>
-
 #define TAG "Discovery"
 
 #define DISCOVERY_API_TIMEOUT_TICKS (1000)
@@ -52,8 +50,6 @@ struct Discovery {
     FuriMessageQueue* api_queue;
     struct netif* netifs[NetworkNetifCount];
     FuriString* device_name;
-    FuriString* device_service_name;
-    DiscoveryServiceInfo device_service_info;
     DiscoveryServiceArray_t services;
     WifiState wifi_state;
 };
@@ -367,35 +363,6 @@ static void discovery_subscribe_to_network_state(Discovery* discovery) {
         usb_network_get_state(usb_network), discovery_usb_network_state_callback, discovery);
 }
 
-static void discovery_busybar_txt(FuriString* txt_out, void* context) {
-    furi_assert(context);
-    LWIP_ASSERT_CORE_LOCKED();
-
-    Discovery* discovery = context;
-    furi_string_printf(txt_out, "name=%s", furi_string_get_cstr(discovery->device_name));
-}
-
-static void discovery_add_device_service(Discovery* discovery) {
-    const uint8_t* usb_mac = furi_hal_version_get_usb_mac();
-
-    FuriString* device_service_name = discovery->device_service_name;
-    furi_string_reserve(device_service_name, FURI_HAL_VERSION_MAC_LENGTH * 2);
-
-    for(size_t i = 0; i < FURI_HAL_VERSION_MAC_LENGTH; i++) {
-        furi_string_cat_printf(device_service_name, "%02hhx", usb_mac[i]);
-    }
-
-    discovery->device_service_info = (const DiscoveryServiceInfo){
-        .name = furi_string_get_cstr(device_service_name),
-        .service = "_busybar",
-        .txt_callback = discovery_busybar_txt,
-        .transport_type = DiscoveryTransportTypeTcp,
-        .port = 0,
-    };
-
-    furi_check(discovery_add_service(discovery, &discovery->device_service_info, discovery));
-}
-
 // ===============
 // Service startup
 // ===============
@@ -407,7 +374,6 @@ static Discovery* discovery_alloc(void) {
     discovery->api_queue =
         furi_message_queue_alloc(DISCOVERY_API_QUEUE_SIZE, sizeof(DiscoveryApiMessage));
     discovery->device_name = furi_string_alloc();
-    discovery->device_service_name = furi_string_alloc();
 
     DiscoveryServiceArray_init(discovery->services);
 
@@ -422,8 +388,6 @@ static Discovery* discovery_alloc(void) {
 
     discovery_subscribe_to_device_name(discovery);
     discovery_subscribe_to_network_state(discovery);
-
-    discovery_add_device_service(discovery);
 
     furi_record_create(RECORD_DISCOVERY, discovery);
 
