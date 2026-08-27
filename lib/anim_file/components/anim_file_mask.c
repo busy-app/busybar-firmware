@@ -60,6 +60,9 @@ static void anim_file_mask_iterate_rle(
 
     furi_assert(mask->mask_buffer);
 
+    const size_t width = file_hdr->width;
+    const size_t height = file_hdr->height;
+
     size_t current_idx = 0;
     bool current_is_white = first_is_white;
     BitQ bit_q;
@@ -75,8 +78,8 @@ static void anim_file_mask_iterate_rle(
             size_t left_to_notify = run_length;
 
             while(left_to_notify) {
-                size_t y = current_idx / file_hdr->width;
-                size_t x = current_idx % file_hdr->width;
+                size_t y = current_idx / width;
+                size_t x = current_idx % width;
                 size_t line_length = MIN(left_to_notify, file_hdr->width - x);
 
                 AnimFileMaskPixelRange range = {
@@ -84,7 +87,10 @@ static void anim_file_mask_iterate_rle(
                     .x_start = x,
                     .x_end = x + line_length,
                 };
-                callback(range, context);
+                if(range.y < height) {
+                    furi_assert(range.x_start < width && range.x_end <= width);
+                    callback(range, context);
+                }
 
                 current_idx += line_length;
                 left_to_notify -= line_length;
@@ -111,6 +117,9 @@ static void anim_file_mask_iterate_bitmap(
 
     furi_assert(mask->mask_buffer);
 
+    const size_t width = file_hdr->width;
+    const size_t height = file_hdr->height;
+
     size_t current_idx = 0;
     BitQ bit_q;
     bit_q_init(&bit_q, mask->mask_buffer, frame->mask_length);
@@ -119,15 +128,18 @@ static void anim_file_mask_iterate_bitmap(
         bool pixel = bit_q_read(&bit_q, 1);
 
         if(pixel) {
-            size_t y = current_idx / file_hdr->width;
-            size_t x = current_idx % file_hdr->width;
+            size_t y = current_idx / width;
+            size_t x = current_idx % width;
 
             AnimFileMaskPixelRange range = {
                 .y = y,
                 .x_start = x,
                 .x_end = x + 1,
             };
-            callback(range, context);
+            if(range.y < height) {
+                furi_assert(range.x_start < width && range.x_end <= width);
+                callback(range, context);
+            }
         }
 
         current_idx++;

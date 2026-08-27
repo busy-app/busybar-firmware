@@ -23,7 +23,7 @@ static AnimFileFrameFlag anim_file_seq_render_frame(AnimFile* anim, size_t file_
 
     AnimFileMaskEncoding mask_encoding = anim_file_mask_encoding(frame_hdr->joint_encoding);
     AnimFilePixelEncoding px_encoding = anim_file_px_encoding(frame_hdr->joint_encoding);
-    bool has_mask_data = mask_encoding >= AnimFileMaskEncodingRleFirstBlack;
+    bool should_have_mask_data = mask_encoding >= AnimFileMaskEncodingRleFirstBlack;
 
     if(mask_encoding >= AnimFileMaskEncodingMAX) {
         ANIM_FILE_ERR("Invalid frame header: invalid frame.mask_encoding");
@@ -33,9 +33,15 @@ static AnimFileFrameFlag anim_file_seq_render_frame(AnimFile* anim, size_t file_
         ANIM_FILE_ERR("Invalid frame header: invalid frame.pixel_encoding");
         return AnimFileFrameFlagError;
     }
-    if(has_mask_data) {
+    if(should_have_mask_data) {
         if(frame_hdr->mask_length > anim->meta.header.max_mask_length) {
             ANIM_FILE_ERR("Invalid file header: frame.mask_length > file.max_mask_length");
+            return AnimFileFrameFlagError;
+        }
+    } else {
+        if(frame_hdr->mask_length) {
+            ANIM_FILE_ERR(
+                "Invalid file header: frame.mask_length != 0 with frame.mask_encoding == Fully{Black,White}");
             return AnimFileFrameFlagError;
         }
     }

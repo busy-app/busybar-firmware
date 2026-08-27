@@ -298,7 +298,6 @@ typedef AnimFileBuffer* (*AnimFileImgPipelineStep)(
     AnimFileBuffer* source);
 
 bool anim_file_img_full_decode(AnimFile* anim, const AnimFileFrameHeader* frame_hdr) {
-    // return true;
     furi_assert(anim);
     AnimFileImg* img = &anim->img;
 
