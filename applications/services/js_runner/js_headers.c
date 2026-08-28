@@ -207,13 +207,46 @@ jerry_value_t headers_foreach(
     return result;
 }
 
+static jerry_value_t headers_get(
+    const jerry_call_info_t* call_info,
+    const jerry_value_t args[],
+    const jerry_length_t args_count) {
+    UNUSED(call_info);
+    UNUSED(args);
+    UNUSED(args_count);
+
+    // TODO: Implementation
+
+    return jerry_undefined();
+}
+
+static jerry_value_t headers_set(
+    const jerry_call_info_t* call_info,
+    const jerry_value_t args[],
+    const jerry_length_t args_count) {
+    UNUSED(call_info);
+    UNUSED(args);
+    UNUSED(args_count);
+
+    // TODO: Implementation
+
+    return jerry_undefined();
+}
+
 static jerry_value_t headers_constructor(
     const jerry_call_info_t* call_info,
     const jerry_value_t args[],
     const jerry_length_t args_count) {
     UNUSED(call_info);
     UNUSED(args);
-    FURI_LOG_D(TAG, "Args count: %lu", args_count);
+    UNUSED(args_count);
+
+    // TODO: Implementation
+
+    jerry_value_t obj = call_info->this_value;
+
+    js_set_method(obj, "get", headers_get);
+    js_set_method(obj, "set", headers_set);
 
     return jerry_undefined();
 }
@@ -264,6 +297,8 @@ jerry_value_t js_headers_alloc(jerry_value_t response, const char* data, size_t 
     js_set_method(obj, "values", headers_values);
     js_set_method(obj, "forEach", headers_foreach);
     js_set_method(obj, "has", headers_has);
+    js_set_method(obj, "get", headers_get);
+    js_set_method(obj, "set", headers_set);
 
     return obj;
 }

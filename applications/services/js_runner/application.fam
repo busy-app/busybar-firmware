@@ -19,8 +19,8 @@ App(
         "js_local_storage.c",
         "js_util.c",
         "js_url.c",
-        "js_abort_controller.c",
-        "js_dom_exception.c",
+        "js_stubs.c",
+        "js_response.c",
     ],
 )
 

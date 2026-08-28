@@ -2,4 +2,4 @@
 
 #include "js_runner_i.h"
 
-void js_setup_dom_exception(void);
+void js_setup_stubs(void);

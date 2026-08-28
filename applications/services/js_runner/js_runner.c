@@ -4,9 +4,9 @@
 #include "js_console.h"
 #include "js_local_storage.h"
 #include "js_url.h"
-#include "js_abort_controller.h"
-#include "js_dom_exception.h"
 #include "js_headers.h"
+#include "js_response.h"
+#include "js_stubs.h"
 
 #include <furi_hal_memory.h>
 
@@ -336,9 +336,9 @@ JsRunnerError js_runner_run(
         js_setup_fetch();
         js_setup_local_storage();
         js_setup_url();
-        js_setup_abort_controller();
-        js_setup_dom_exception();
         js_setup_headers();
+        js_setup_response();
+        js_setup_stubs();
 
         FuriString* path_furi = furi_string_alloc_set_str(path);
         FuriString* filename_furi = furi_string_alloc();

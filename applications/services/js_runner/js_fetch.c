@@ -3,6 +3,8 @@
 #include "js_fetch_body_methods.h"
 #include "js_headers.h"
 #include "js_request.h"
+#include "js_response.h"
+
 #include <fetch/fetch.h>
 
 #define TAG                     "JsFetch"
@@ -348,8 +350,7 @@ static jerry_value_t body_used_getter(
 }
 
 static jerry_value_t create_response(JsFetch* instance, SizedBuffer headers) {
-    jerry_value_t response = jerry_object();
-
+    jerry_value_t response = js_response_construct();
     jerry_object_set_native_ptr(response, &js_fetch_response_native_info, instance);
 
     jerry_value_t readable_stream = js_readable_stream_alloc(instance);
@@ -360,6 +361,7 @@ static jerry_value_t create_response(JsFetch* instance, SizedBuffer headers) {
     js_set_property_getset(response, "bodyUsed", body_used_getter, NULL);
     js_set_property(response, "type", jerry_string_sz("basic"));
     js_set_property(response, "url", jerry_string_sz(instance->request.url));
+    js_set_property(response, "status", jerry_number(0));
 
     js_set_method(response, "arrayBuffer", js_fetch_array_buffer);
     js_set_method(response, "blob", js_fetch_blob);
