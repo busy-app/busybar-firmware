@@ -26,6 +26,7 @@ typedef enum {
     BusyTimerSettingsV1AppConfigIdxThemeName,
     BusyTimerSettingsV1AppConfigIdxSmartHome,
     BusyTimerSettingsV1AppConfigIdxWorkOnly,
+    BusyTimerSettingsV1AppConfigIdxShowWorkTime,
     BusyTimerSettingsV1AppConfigIdxMax,
 } BusyTimerSettingsV1AppConfigIdx;
 
@@ -58,6 +59,7 @@ static const BusyTimerSettingsV1 busy_timer_settings_v1_defaults[BusyTimerProfil
                             .theme_name = BUSY_APP_THEME_NAME_DEFAULT,
                             .is_show_work_only_enabled = false,
                             .is_smart_home_enabled = true,
+                            .is_show_work_time_enabled = BUSY_APP_IS_SHOW_WORK_TIME_ENABLED_DEFAULT,
                         },
                     .timer_config =
                         {
@@ -89,6 +91,7 @@ static const BusyTimerSettingsV1 busy_timer_settings_v1_defaults[BusyTimerProfil
                             .theme_name = BUSY_APP_THEME_NAME_CUSTOM_DEFAULT,
                             .is_show_work_only_enabled = true,
                             .is_smart_home_enabled = true,
+                            .is_show_work_time_enabled = BUSY_APP_IS_SHOW_WORK_TIME_ENABLED_DEFAULT,
                         },
                     .timer_config =
                         {
@@ -220,6 +223,16 @@ static const SettingProviderSetting busy_timer_settings_v1_app_config[] = {
                     .default_value = BUSY_APP_IS_SHOW_WORK_ONLY_ENABLED_DEFAULT,
                 },
             .field_offset = offsetof(BusyAppConfig, is_show_work_only_enabled),
+            .type = SettingProviderSettingTypeBool,
+        },
+    [BusyTimerSettingsV1AppConfigIdxShowWorkTime] =
+        {
+            .name = "is_show_work_time_enabled",
+            .interface =
+                &(const SettingProviderBoolInterface){
+                    .default_value = BUSY_APP_IS_SHOW_WORK_TIME_ENABLED_DEFAULT,
+                },
+            .field_offset = offsetof(BusyAppConfig, is_show_work_time_enabled),
             .type = SettingProviderSettingTypeBool,
         },
 };

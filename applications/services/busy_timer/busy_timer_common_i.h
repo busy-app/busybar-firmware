@@ -19,6 +19,7 @@
 #define KEY_COMMON_BUSY_BAR_SETTINGS_THEME                "theme"
 #define KEY_COMMON_BUSY_BAR_SETTINGS_SHOW_WORK_PHASE_ONLY "show_work_phase_only"
 #define KEY_COMMON_BUSY_BAR_SETTINGS_TRIGGER_SMART_HOME   "trigger_smart_home"
+#define KEY_COMMON_BUSY_BAR_SETTINGS_SHOW_WORK_TIME       "show_work_time"
 
 // Serialization
 

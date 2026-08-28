@@ -312,6 +312,14 @@ schemas:
       trigger_smart_home:
         type: boolean
         example: true
+      show_work_time:
+        type: boolean
+        default: true
+        example: true
+        description: >-
+          Show the remaining time during work intervals. When false, the
+          time appears only during the final 3-second countdown and
+          briefly after a manual time adjustment.
     required:
       - theme
       - show_work_phase_only

@@ -12,6 +12,7 @@ typedef enum {
     VarItemListIdCycles,
     VarItemListIdAutostart,
     VarItemListIdShowWork,
+    VarItemListIdShowWorkTime,
     VarItemListIdDemoMode,
     VarItemListIdMax,
 } VarItemListId;
@@ -62,6 +63,7 @@ static void busy_scene_setup_timer_filter_items(BusySceneSetupTimer* data) {
                 [VarItemListIdMode] = true,
                 [VarItemListIdTime] = true,
                 [VarItemListIdShowWork] = true,
+                [VarItemListIdShowWorkTime] = true,
                 [VarItemListIdDemoMode] = true,
             },
         [BusyTimerModeInterval] =
@@ -72,6 +74,7 @@ static void busy_scene_setup_timer_filter_items(BusySceneSetupTimer* data) {
                 [VarItemListIdCycles] = true,
                 [VarItemListIdAutostart] = true,
                 [VarItemListIdShowWork] = true,
+                [VarItemListIdShowWorkTime] = true,
                 [VarItemListIdDemoMode] = true,
             },
     };
@@ -165,6 +168,8 @@ static void
     items[item_id++] =
         var_item_list_add_switch(container->list, "Show work\nphase only", NULL, NULL);
 
+    items[item_id++] = var_item_list_add_switch(container->list, "Show work\ntime", NULL, NULL);
+
     items[item_id++] = var_item_list_add_switch(container->list, "Demo mode", NULL, NULL);
 }
 
@@ -193,6 +198,7 @@ static void busy_scene_setup_init_var_item_values(
     }
 
     var_item_set_value(items[VarItemListIdShowWork], app_config->is_show_work_only_enabled);
+    var_item_set_value(items[VarItemListIdShowWorkTime], app_config->is_show_work_time_enabled);
     var_item_set_value(items[VarItemListIdDemoMode], timer_preset->is_demo_mode_enabled);
 }
 
@@ -219,6 +225,7 @@ static void busy_scene_setup_get_var_item_values(
     }
 
     app_config->is_show_work_only_enabled = var_item_get_value(items[VarItemListIdShowWork]);
+    app_config->is_show_work_time_enabled = var_item_get_value(items[VarItemListIdShowWorkTime]);
     timer_preset->is_demo_mode_enabled = var_item_get_value(items[VarItemListIdDemoMode]);
 }
 
