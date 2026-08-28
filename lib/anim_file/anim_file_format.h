@@ -149,9 +149,18 @@ static_assert(sizeof(AnimFileMaskEncoding) == sizeof(uint8_t));
 typedef enum FURI_PACKED {
     AnimFilePixelEncodingRaw, //<! Plain pixels encoded according to `AnimFileColorFormat`
     AnimFilePixelEncodingRle, //<! Run-length encoding of `Raw` data implemented by `toolbox/rle_encode`. `blk_size` parameter is 3 for `Bgr888`, 1 for `Gray4`, and 4 for `Bgra8888`
+    AnimFilePixelEncodingQoiLike, //<! QOI-like (without header and footer); hash and difference based. https://qoiformat.org/qoi-specification.pdf
     AnimFilePixelEncodingMAX,
 } AnimFilePixelEncoding;
 static_assert(sizeof(AnimFilePixelEncoding) == sizeof(uint8_t));
+
+#define ANIM_FILE_QOI_OP_RGB         0xfe
+#define ANIM_FILE_QOI_OP_RGBA        0xff
+#define ANIM_FILE_QOI_SHORT_TAG_MASK 0xC0
+#define ANIM_FILE_QOI_SHORT_OP_INDEX 0x00
+#define ANIM_FILE_QOI_SHORT_OP_DIFF  0x40
+#define ANIM_FILE_QOI_SHORT_OP_LUMA  0x80
+#define ANIM_FILE_QOI_SHORT_OP_RUN   0xC0
 
 /**
  * @brief Header of one File Frame

@@ -109,6 +109,118 @@ AnimFileBuffer* anim_file_img_initial_buffer(AnimFile* anim) {
     return &img->buffer_a;
 }
 
+static size_t anim_file_img_qoi_hash(uint32_t pixel) {
+    size_t a = (pixel >> 24) & 0xff;
+    size_t r = (pixel >> 16) & 0xff;
+    size_t g = (pixel >> 8) & 0xff;
+    size_t b = pixel & 0xff;
+    return ((r * 3) + (g * 5) + (b * 7) + (a * 11)) % 64;
+}
+
+static bool anim_file_img_step_decode_qoi(
+    AnimFile* anim,
+    AnimFileBuffer* destination,
+    AnimFileBuffer* source) {
+    furi_assert(anim);
+    furi_assert(source);
+    furi_assert(source->content == AnimFileBufferContentFromFile);
+    furi_assert(destination);
+
+    // order when viewed as bytes: B, G, R, A
+    // order of bytes in word: A, R, G, B
+
+    uint32_t hash_lut[64];
+    uint32_t last_px = 0xff'00'00'00;
+    memset(hash_lut, 0, sizeof(hash_lut));
+
+    size_t max_pixels = destination->max_bytes / ANIM_FILE_OUT_BYTES_PER_PIXEL;
+    size_t dest_pixels = 0;
+    uint32_t* dest_buf = (uint32_t*)destination->data;
+
+    inline void output_pixel(uint32_t pixel) {
+        hash_lut[anim_file_img_qoi_hash(pixel)] = pixel;
+        last_px = pixel;
+        dest_buf[dest_pixels++] = pixel;
+    }
+
+    inline uint8_t add_wrap(uint8_t old, int8_t diff) {
+        return (uint8_t)(((int)old + (int)diff) & 0xff);
+    }
+
+    for(size_t i = 0; i < source->filled_bytes; i++) {
+        size_t remaining_bytes = source->filled_bytes - i;
+        size_t additional_bytes_used = 0;
+        if(dest_pixels > max_pixels) {
+            ANIM_FILE_ERR("QOI destination overrun");
+            return false;
+        }
+
+        uint8_t tag = source->data[i];
+        uint8_t short_tag = source->data[i] & ANIM_FILE_QOI_SHORT_TAG_MASK;
+        uint8_t tag_payload = tag & ~ANIM_FILE_QOI_SHORT_TAG_MASK;
+        uint8_t* payload = &source->data[i + 1];
+
+        // FURI_LOG_D(TAG, "%p  i=%zu  tag=%hhu %08b", anim, i, tag, tag);
+
+        if(tag == ANIM_FILE_QOI_OP_RGB) {
+            if(remaining_bytes < 3) {
+                ANIM_FILE_ERR("QOI_OP_RGB source overrun");
+                return false;
+            }
+            uint32_t alpha = last_px & 0xff'00'00'00;
+            output_pixel(alpha | (payload[0] << 16) | (payload[1] << 8) | payload[2]);
+            additional_bytes_used = 3;
+
+        } else if(tag == ANIM_FILE_QOI_OP_RGBA) {
+            if(remaining_bytes < 4) {
+                ANIM_FILE_ERR("QOI_OP_RGBA source overrun");
+                return false;
+            }
+            output_pixel((payload[3] << 24) | (payload[0] << 16) | (payload[1] << 8) | payload[2]);
+            additional_bytes_used = 4;
+
+        } else if(short_tag == ANIM_FILE_QOI_SHORT_OP_INDEX) {
+            // FURI_LOG_D(TAG, "%p  i=%hhu  val=%08lx", anim, tag_payload, hash_lut[tag_payload]);
+            output_pixel(hash_lut[tag_payload]);
+
+        } else if(short_tag == ANIM_FILE_QOI_SHORT_OP_DIFF) {
+            int8_t dr = (((int)tag_payload >> 4) & 0x3) - 2;
+            int8_t dg = (((int)tag_payload >> 2) & 0x3) - 2;
+            int8_t db = ((int)tag_payload & 0x3) - 2;
+            uint8_t* last_ch = (uint8_t*)&last_px;
+            output_pixel(
+                (last_ch[3] << 24) | (add_wrap(last_ch[2], dr) << 16) |
+                (add_wrap(last_ch[1], dg) << 8) | add_wrap(last_ch[0], db));
+
+        } else if(short_tag == ANIM_FILE_QOI_SHORT_OP_LUMA) {
+            if(remaining_bytes < 1) {
+                ANIM_FILE_ERR("QOI_OP_LUMA source overrun");
+                return false;
+            }
+            int8_t dg = ((int)tag_payload & 0x3f) - 32;
+            int8_t dr = (((int)payload[0] >> 4) & 0xf) - 8 + dg;
+            int8_t db = ((int)payload[0] & 0xf) - 8 + dg;
+            // FURI_LOG_D(TAG, "%p  g=%d  r=%d  b=%d", anim, (int)dg, (int)dr, (int)db);
+            uint8_t* last_ch = (uint8_t*)&last_px;
+            // FURI_LOG_D(TAG, "%p  last=%08lx  new=%08x", anim, last_px, (last_ch[3] << 24) | (add_wrap(last_ch[2], dr) << 16) | (add_wrap(last_ch[1], dg) << 8) | add_wrap(last_ch[0], db));
+            output_pixel(
+                (last_ch[3] << 24) | (add_wrap(last_ch[2], dr) << 16) |
+                (add_wrap(last_ch[1], dg) << 8) | add_wrap(last_ch[0], db));
+            additional_bytes_used = 1;
+
+        } else if(short_tag == ANIM_FILE_QOI_SHORT_OP_RUN) {
+            for(size_t j = 0; j < tag_payload + 1U; j++)
+                output_pixel(last_px);
+        }
+
+        i += additional_bytes_used;
+    }
+
+    destination->content = AnimFileBufferContentFullColor;
+    destination->filled_bytes = dest_pixels * ANIM_FILE_OUT_BYTES_PER_PIXEL;
+    return true;
+}
+
 static AnimFileBuffer* anim_file_img_step_decode(
     AnimFile* anim,
     const AnimFileFrameHeader* frame_hdr,
@@ -148,9 +260,12 @@ static AnimFileBuffer* anim_file_img_step_decode(
             return NULL;
         }
         destination->filled_bytes = decoded_sz;
+        destination->content = AnimFileBufferContentDecoded;
+
+    } else if(encoding == AnimFilePixelEncodingQoiLike) {
+        if(!anim_file_img_step_decode_qoi(anim, destination, source)) return NULL;
     }
 
-    destination->content = AnimFileBufferContentDecoded;
     return destination;
 }
 
@@ -161,13 +276,15 @@ static AnimFileBuffer* anim_file_img_step_unpack(
     furi_assert(anim);
     furi_assert(frame_hdr);
     furi_assert(source);
-    furi_assert(source->content == AnimFileBufferContentDecoded);
 
     AnimFileColorFormat format = anim->meta.color_format;
     if(format == AnimFileColorFormatBgra8888) {
         source->content = AnimFileBufferContentFullColor;
         return source;
     }
+
+    if(source->content == AnimFileBufferContentFullColor) return source;
+    furi_assert(source->content == AnimFileBufferContentDecoded);
 
     AnimFileBuffer* destination = anim_file_img_request_buffer(anim, source);
     uint8_t* src_data = source->data;

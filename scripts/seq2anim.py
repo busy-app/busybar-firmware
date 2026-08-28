@@ -11,7 +11,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from PIL import Image
 from zipfile import PyZipFile
-from typing import Tuple
+from typing import Tuple, Any
 from dataclasses import dataclass
 from enum import Enum
 from collections import Counter
@@ -21,6 +21,106 @@ from flipper import rle
 
 def number_in_str(input: str) -> int:
     return int("".join(filter(str.isdigit, input))) or 0
+
+def best_choice(choices: dict[Any, float]) -> Any:
+    lowest_weight = max(choices.values()) + 1
+    best = None
+    for k, v in choices.items():
+        if v < lowest_weight:
+            best = k
+            lowest_weight = v
+    assert best is not None
+    return best
+
+def best_encoding(choices: dict[Tuple[bytes, Any], float]) -> Tuple[bytes, Any]:
+    return best_choice({k: v * len(k[0]) for k, v in choices.items()})
+
+def qoi_pixel_hash(pixel: bytes) -> int:
+    r, g, b, a = pixel
+    return (r * 3 + g * 5 + b * 7 + a * 11) % 64
+
+def qoi_headerless_compress(new_pixels: bytes, old_pixels: bytes) -> bytes:
+    assert len(new_pixels) == len(old_pixels)
+    hash_lut = [bytes([0, 0, 0, 0]) for _ in range(64)]
+    compressed = bytearray()
+    last_px = bytes([0, 0, 0, 0xff])
+    last_opcode_is_run = False
+    
+    for i in range(0, len(new_pixels), 4):
+        px = new_pixels[i : i + 4]
+        old_px = old_pixels[i : i + 4]
+
+        if px == last_px:
+            successfully_extended_last_run = False
+
+            if last_opcode_is_run:
+                previous_run = compressed[len(compressed) - 1]
+                new_run = previous_run + 1
+                if new_run < 0b11_111110:
+                    compressed[len(compressed) - 1] = new_run
+                    successfully_extended_last_run = True
+                    # print(f"px={px}  extending new_run={new_run:08b}")
+
+            if not successfully_extended_last_run:
+                compressed.append(0b11_000000)
+                # print(f"px={px}  run")
+
+            hash_lut[qoi_pixel_hash(px)] = px
+            last_opcode_is_run = True
+            last_px = px
+            continue
+
+        last_opcode_is_run = False
+
+        if hash_lut[qoi_pixel_hash(px)] == px:
+            compressed.append(0b00_000000 | qoi_pixel_hash(px))
+            last_px = px
+            # print(f"px={px}  hash={qoi_pixel_hash(px)}")
+            continue
+
+        dr = px[0] - last_px[0]
+        dg = px[1] - last_px[1]
+        db = px[2] - last_px[2]
+        if (dr in range(-2, 2)) and (dg in range(-2, 2)) and (db in range(-2, 2)) and px[3] == last_px[3]:
+            dr += 2
+            dg += 2
+            db += 2
+            compressed.append(0b01_000000 | (dr << 4) | (dg << 2) | db)
+            hash_lut[qoi_pixel_hash(px)] = px
+            # print(f"px={px}  last={last_px}  diff={dr},{dg},{db}")
+            last_px = px
+            continue
+
+        dr_dg = dr - dg
+        db_dg = db - dg
+        if (dg in range(-32, 32)) and (dr_dg in range(-8, 8)) and (db_dg in range(-8, 8)) and px[3] == last_px[3]:
+            dg += 32
+            dr_dg += 8
+            db_dg += 8
+            compressed.append(0b10_000000 | dg)
+            compressed.append((dr_dg << 4) | db_dg)
+            hash_lut[qoi_pixel_hash(px)] = px
+            # print(f"px={px}  last={last_px}  luma={dg},{dr_dg},{db_dg}")
+            last_px = px
+            continue
+
+        if px[3] == last_px[3]:
+            compressed.append(0xfe)
+            compressed.extend(px[0 : 3])
+            hash_lut[qoi_pixel_hash(px)] = px
+            last_px = px
+            # print(f"px={px}  rgb")
+            continue
+
+        compressed.append(0xff)
+        compressed.extend(px)
+        hash_lut[qoi_pixel_hash(px)] = px
+        last_px = px
+        # print(f"px={px}  rgba")
+        continue
+
+    # print()
+    return bytes(compressed)
 
 @dataclass
 class Header:
@@ -93,6 +193,7 @@ class MaskEncoding(Enum):
 class PixelEncoding(Enum):
     RAW = 0
     RLE = 1
+    QOI_LIKE = 2
 
 run_lengths_stats = Counter()
 
@@ -169,23 +270,25 @@ class Frame:
         return bytes(reduced)
 
     @staticmethod
-    def subtract(new_pixels: bytes, old_pixels: bytes | None) -> Tuple[bytes, list[bool]]:
-        px_cnt = len(new_pixels) // 4
+    def subtract(pxs: bytes, old_pixels: bytes | None) -> Tuple[bytes, bytes|None, list[bool]]:
+        px_cnt = len(pxs) // 4
         if not old_pixels:
-            return (new_pixels, [True] * px_cnt)
+            return (pxs, None, [True] * px_cnt)
 
         pixels = bytearray()
+        old_selected = bytearray()
         mask = [False] * px_cnt
 
-        assert len(new_pixels) == len(old_pixels)
-        for i in range(0, len(new_pixels), 4):
-            new_px = new_pixels[i : i + 4]
+        assert len(pxs) == len(old_pixels)
+        for i in range(0, len(pxs), 4):
+            new_px = pxs[i : i + 4]
             old_px = old_pixels[i : i + 4]
             if new_px != old_px:
                 pixels.extend(new_px)
+                old_selected.extend(old_px)
                 mask[i // 4] = True
 
-        return (bytes(pixels), mask)
+        return (bytes(pixels), bytes(old_selected), mask)
 
     @staticmethod
     def pack_pixels(pixels: bytes, mode: str) -> bytes:
@@ -216,15 +319,18 @@ class Frame:
         return bytes(packed)
         
     @staticmethod
-    def encode_pixels(pixels: bytes, mode: str) -> Tuple[bytes, PixelEncoding]:
+    def encode_pixels(pixels: bytes, unpacked_pixels: bytes, old_unpacked_pixels: bytes|None, mode: str) -> Tuple[bytes, PixelEncoding]:
         packed = pixels
         blk_size = {"rgb888": 3, "gray4": 1, "argb8888": 4}[mode]
-        rle_encoded = rle.compress(pixels, blk_size)
 
-        if len(rle_encoded) < len(packed):
-            return (rle_encoded, PixelEncoding.RLE)
-        else:
-            return (packed, PixelEncoding.RAW)
+        choices = {
+            (packed, PixelEncoding.RAW): 1.0,
+            (rle.compress(pixels, blk_size), PixelEncoding.RLE): 1.0
+        }
+        if mode in ["rgb888", "argb8888"] and old_unpacked_pixels is not None:
+            choices[(qoi_headerless_compress(unpacked_pixels, old_unpacked_pixels), PixelEncoding.QOI_LIKE)] = 1.0
+
+        return best_encoding(choices)
 
     @staticmethod
     def encode_mask(mask: list[bool]) -> Tuple[Tuple[bytes, int], MaskEncoding]:
@@ -336,13 +442,14 @@ class BSBAnimConverter:
                 raw_pixels = Frame.reduce_color(raw_pixels, meta["color_mode"])
 
                 must_be_keyframe = i in section_starts
-                pixels, mask = Frame.subtract(raw_pixels, None if must_be_keyframe else last_pixels)
+                pixels, old_selected_pixels, mask = Frame.subtract(raw_pixels, None if must_be_keyframe else last_pixels)
 
                 input_pixel_cnt += len(raw_pixels) // 4
                 kept_pixel_cnt += mask.count(True)
 
+                unpacked_pixels = pixels
                 pixels = Frame.pack_pixels(pixels, meta["color_mode"])
-                pixels, pixel_encoding = Frame.encode_pixels(pixels, meta["color_mode"])
+                pixels, pixel_encoding = Frame.encode_pixels(pixels, unpacked_pixels, old_selected_pixels, meta["color_mode"])
                 mask, mask_encoding = Frame.encode_mask(mask)
 
                 mask_size_sum += len(mask[0])
