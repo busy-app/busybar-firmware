@@ -105,6 +105,7 @@ FuriString* js_string_to_furi_string(jerry_value_t value) {
 }
 
 FuriString* js_get_exception_string(jerry_value_t exception) {
+    furi_check(jerry_value_is_exception(exception));
     jerry_value_t val = jerry_exception_value(exception, false);
     jerry_value_t str = jerry_value_to_string(val);
     FuriString* result = js_string_to_furi_string(str);

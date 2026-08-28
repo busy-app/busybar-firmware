@@ -77,8 +77,9 @@ typedef struct JsRunnerAppFetch {
 typedef enum JsRunnerAppCommandType {
     JsRunnerAppCommandTypeInvalid,
     JsRunnerAppCommandTypeAbort,
-    JsRunnerAppCommandTypeRun,
+    JsRunnerAppCommandTypeRunFile,
     JsRunnerAppCommandTypeQuit,
+    JsRunnerAppCommandTypeRunSnippet,
 
     JsRunnerAppCommandTypeMax,
 } JsRunnerAppCommandType;
@@ -86,7 +87,13 @@ typedef enum JsRunnerAppCommandType {
 typedef struct JsRunnerAppCommandRun {
     const char* path;
     JsRunnerContextHandle* context_handle;
-} JsRunnerAppCommandRun;
+} JsRunnerAppCommandRunFile;
+
+typedef struct JsRunnerAppCommandRunSnippet {
+    const char* code;
+    bool print_result;
+    JsRunnerContextHandle* context_handle;
+} JsRunnerAppCommandRunSnippet;
 
 typedef struct JsRunnerAppCommand {
     JsRunnerAppCommandType type;
@@ -94,7 +101,8 @@ typedef struct JsRunnerAppCommand {
     JsRunnerError* result;
 
     union {
-        JsRunnerAppCommandRun run;
+        JsRunnerAppCommandRunFile run_file;
+        JsRunnerAppCommandRunSnippet run_snippet;
     };
 } JsRunnerAppCommand;
 

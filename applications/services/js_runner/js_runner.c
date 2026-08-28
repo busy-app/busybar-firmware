@@ -104,13 +104,15 @@ typedef void (*CommandQueueHandler)(JsRunnerApp* app, JsRunnerAppCommand* cmd);
 static void send_comand_message(JsRunnerContextHandle* handle, const JsRunnerAppCommand* message);
 
 static void abort_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd);
-static void run_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd);
+static void run_file_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd);
+static void run_snippet_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd);
 static void quit_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd);
 
 static const CommandQueueHandler command_handlers[] = {
     [JsRunnerAppCommandTypeAbort] = abort_cmd_handler,
-    [JsRunnerAppCommandTypeRun] = run_cmd_handler,
+    [JsRunnerAppCommandTypeRunFile] = run_file_cmd_handler,
     [JsRunnerAppCommandTypeQuit] = quit_cmd_handler,
+    [JsRunnerAppCommandTypeRunSnippet] = run_snippet_cmd_handler,
 };
 static_assert(COUNT_OF(command_handlers) == JsRunnerAppCommandTypeMax);
 
@@ -454,12 +456,48 @@ JsRunnerRunResult js_runner_run(JsRunnerContextHandle* handle, const char* path)
         }
 
         JsRunnerAppCommand cmd = {
-            .type = JsRunnerAppCommandTypeRun,
+            .type = JsRunnerAppCommandTypeRunFile,
             .lock = api_lock_alloc_locked(),
             .result = &result,
-            .run =
+            .run_file =
                 {
                     .path = path,
+                    .context_handle = handle,
+                },
+        };
+
+        send_comand_message(handle, &cmd);
+        if(result != JsRunnerErrorNone) {
+            execution_handle_free(exec_handle);
+            exec_handle = NULL;
+        }
+    } while(false);
+
+    return (JsRunnerRunResult){
+        .error = result,
+        .handle = exec_handle,
+    };
+}
+
+JsRunnerRunResult
+    js_runner_run_snippet(JsRunnerContextHandle* handle, const char* code, bool print_result) {
+    JsRunnerError result = JsRunnerErrorNone;
+    JsRunnerExecutionHandle* exec_handle = NULL;
+    do {
+        exec_handle = execution_handle_alloc(handle);
+        if(!exec_handle) {
+            result = JsRunnerErrorResource;
+            break;
+        }
+
+        JsRunnerAppCommand cmd = {
+            .type = JsRunnerAppCommandTypeRunSnippet,
+            .lock = api_lock_alloc_locked(),
+            .result = &result,
+            .run_snippet =
+                {
+                    .code = code,
+                    .print_result = print_result,
                     .context_handle = handle,
                 },
         };
@@ -534,8 +572,8 @@ static void abort_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
     js_runner_app_stop_if_done(app);
 }
 
-static void run_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
-    furi_check(cmd->type == JsRunnerAppCommandTypeRun);
+static void run_file_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
+    furi_check(cmd->type == JsRunnerAppCommandTypeRunFile);
 
     if((furi_event_flag_get(app->is_idle) & JS_RUNNER_APP_FLAG_IDLE) == 0) {
         unlock_with_result(cmd, JsRunnerErrorResource);
@@ -546,9 +584,9 @@ static void run_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
     JsRunnerError ret = JsRunnerErrorNone;
     Storage* storage = furi_record_open(RECORD_STORAGE);
     File* f = storage_file_alloc(storage);
-    js_runner_app_set_root_path(app, cmd->run.path);
+    js_runner_app_set_root_path(app, cmd->run_file.path);
     do {
-        if(!storage_file_open(f, cmd->run.path, FSAM_READ, FSOM_OPEN_EXISTING)) {
+        if(!storage_file_open(f, cmd->run_file.path, FSAM_READ, FSOM_OPEN_EXISTING)) {
             ret = JsRunnerErrorCannotOpenFile;
             break;
         }
@@ -564,7 +602,7 @@ static void run_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
             break;
         }
 
-        FuriString* path_furi = furi_string_alloc_set_str(cmd->run.path);
+        FuriString* path_furi = furi_string_alloc_set_str(cmd->run_file.path);
         FuriString* filename_furi = furi_string_alloc();
         path_extract_filename(path_furi, filename_furi, false);
         jerry_value_t source_name = js_utf8_string(filename_furi);
@@ -616,6 +654,81 @@ static void run_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
     js_runner_app_set_root_path(app, NULL);
     storage_file_free(f);
     furi_record_close(RECORD_STORAGE);
+    if(!unlocked) {
+        unlock_with_result(cmd, ret);
+    }
+}
+
+static void console_print(
+    JsRunnerApp* app,
+    JsRunnerConsoleSeverity severity,
+    const char* message,
+    JsRunnerConsoleSeparator separator) {
+    if(app->console.callback) {
+        app->console.callback(
+            severity, message, strlen(message), separator, app->console.callback_context);
+    }
+}
+
+static void run_snippet_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
+    furi_check(cmd->type == JsRunnerAppCommandTypeRunSnippet);
+
+    if((furi_event_flag_get(app->is_idle) & JS_RUNNER_APP_FLAG_IDLE) == 0) {
+        unlock_with_result(cmd, JsRunnerErrorResource);
+        return;
+    }
+
+    bool unlocked = false;
+    JsRunnerError ret = JsRunnerErrorNone;
+    jerry_parse_options_t parse_options = {
+        .options = 0,
+    };
+    jerry_value_t parsed_script = jerry_parse(
+        (const jerry_char_t*)cmd->run_snippet.code, strlen(cmd->run_snippet.code), &parse_options);
+    do {
+        if(jerry_value_is_exception(parsed_script)) {
+            FuriString* error = js_get_exception_string(parsed_script);
+            console_print(
+                app,
+                JsRunnerConsoleSeverityError,
+                furi_string_get_cstr(error),
+                JsRunnerConsoleSeparatorNewline);
+            furi_string_free(error);
+            ret = JsRunnerErrorParseException;
+            break;
+        } else {
+            furi_event_flag_clear(app->is_idle, JS_RUNNER_APP_FLAG_IDLE);
+            unlock_with_result(cmd, JsRunnerErrorNone);
+            unlocked = true;
+
+            jerry_value_t result = jerry_run(parsed_script);
+            if(!jerry_value_is_exception(result)) {
+                jerry_value_t string = jerry_value_to_string(result);
+                jerry_value_free(result);
+                result = string;
+            }
+            if(jerry_value_is_exception(result)) {
+                FuriString* error = js_get_exception_string(result);
+                console_print(
+                    app,
+                    JsRunnerConsoleSeverityError,
+                    furi_string_get_cstr(error),
+                    JsRunnerConsoleSeparatorNewline);
+                furi_string_free(error);
+                app_terminate_from_app_thread(app);
+            } else if(cmd->run_snippet.print_result) {
+                char* str = js_string_to_c_string(result);
+
+                console_print(
+                    app, JsRunnerConsoleSeverityLog, str, JsRunnerConsoleSeparatorNewline);
+                free(str);
+            }
+            jerry_value_free(result);
+            js_run_jobs();
+            js_runner_app_stop_if_done(app);
+        }
+    } while(false);
+    jerry_value_free(parsed_script);
     if(!unlocked) {
         unlock_with_result(cmd, ret);
     }
