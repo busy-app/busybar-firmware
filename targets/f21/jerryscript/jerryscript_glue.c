@@ -36,7 +36,7 @@ void jerry_port_log(const char* message) {
 
 void jerry_port_fatal(jerry_fatal_code_t code) {
     FURI_LOG_E(TAG, "jerryscript fatal error %d", code);
-    furi_crash(code);
+    furi_crash("JerryScript fatal error");
 }
 
 double jerry_port_current_time(void) {
