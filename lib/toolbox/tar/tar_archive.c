@@ -336,6 +336,40 @@ int32_t tar_archive_get_entries_count(TarArchive* archive, bool no_special) {
     return data.counter;
 }
 
+typedef struct SizeData {
+    uint64_t total;
+    uint64_t limit;
+    bool exceeded;
+} SizeData;
+
+static int tar_archive_size_accumulator(mtar_t* tar, const mtar_header_t* header, void* param) {
+    UNUSED(tar);
+    furi_assert(param);
+    SizeData* data = param;
+    if(header->type == MTAR_TREG) {
+        data->total += header->size;
+        if(data->total > data->limit) {
+            data->exceeded = true;
+            return MTAR_EOVERFLOW;
+        }
+    }
+    return 0;
+}
+
+bool tar_archive_get_unpacked_size(TarArchive* archive, uint64_t limit, uint64_t* size) {
+    furi_check(archive);
+    SizeData data = {
+        .total = 0,
+        .limit = limit,
+        .exceeded = false,
+    };
+    const bool success =
+        (mtar_foreach(&archive->tar, tar_archive_size_accumulator, &data) == MTAR_ESUCCESS) &&
+        !data.exceeded;
+    if(size) *size = data.total;
+    return success;
+}
+
 bool tar_archive_get_read_progress(TarArchive* archive, int32_t* processed, int32_t* total) {
     furi_check(archive);
     if(mtar_access_mode(&archive->tar) != MTAR_READ) {

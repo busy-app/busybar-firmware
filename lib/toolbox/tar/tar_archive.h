@@ -107,6 +107,20 @@ bool tar_archive_add_dir(TarArchive* archive, const char* fs_full_path, const ch
  */
 int32_t tar_archive_get_entries_count(TarArchive* archive, bool no_special);
 
+/** Get total unpacked size of the regular files in the archive
+ *
+ * Walks the headers only, writing nothing to storage, so a decompression bomb
+ * can be rejected before it is extracted. Stops early once the running total
+ * passes @p limit.
+ *
+ * @param       archive Tar archive object. Must be opened in read mode
+ * @param       limit Give up once the running total exceeds this many bytes
+ * @param[out]  size Receives the total; may be NULL
+ *
+ * @return true if the whole archive was walked and the total is within limit
+ */
+bool tar_archive_get_unpacked_size(TarArchive* archive, uint64_t limit, uint64_t* size);
+
 /** Get read progress
  *
  * @param       archive Tar archive object. Must be opened in read mode
