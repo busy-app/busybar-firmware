@@ -9,6 +9,16 @@ env.Append(
 libenv = env.Clone(FW_LIB_NAME="cjson")
 libenv.ApplyLibFlags()
 
+libenv.AppendUnique(
+    CPPDEFINES=[
+        # Stock cJSON allows 1000 levels of nesting. parse_value() recurses per
+        # level, which overflows the 2K stacks our services run on (js_runner,
+        # js_app_launcher) long before the parser gives up. Nothing we parse is
+        # legitimately deeper than a handful of levels.
+        "CJSON_NESTING_LIMIT=24",
+    ],
+)
+
 sources = libenv.Glob("cjson/cJSON.c", source=True)
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
