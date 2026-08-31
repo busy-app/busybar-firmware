@@ -39,6 +39,13 @@ export const useTabStore = defineStore('tabs', () => {
       dataId: 'tab-draw-tool'
     },
     {
+      label: 'Apps',
+      icon: 'i-bi-grid',
+      value: 'apps',
+      dataId: 'tab-apps',
+      hidden: true
+    },
+    {
       label: 'Files',
       icon: 'i-bi-folder',
       value: 'files',
