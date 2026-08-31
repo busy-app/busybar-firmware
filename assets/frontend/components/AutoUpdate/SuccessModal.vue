@@ -3,14 +3,14 @@
     v-model:open="firmwareStore.autoUpdate.modals.success"
     data-id="modal-auto-update-success"
     title="Update completed"
-    :description="`Your BUSY Bar is now running the updated firmware${version ? ` (${version})` : ''}.`"
+    :description="`Your BUSY Bar is now running the latest firmware${version ? ` (${version})` : ''}.`"
     :images="{
       light: updateCompletedImage,
       dark: updateCompletedImageDark
     }"
     :primary-action-props="{
       label: 'Done',
-      onClick: () => { firmwareStore.autoUpdate.modals.success = false }
+      onClick: dismiss
     }"
   />
 </template>
@@ -22,4 +22,10 @@ import updateCompletedImageDark from '@/assets/images/update-completed-image-dar
 const firmwareStore = useFirmwareStore();
 const deviceStore = useDeviceStore();
 const version = computed(() => deviceStore.deviceStatus?.firmware?.version);
+
+function dismiss () {
+  firmwareStore.autoUpdate.modals.success = false;
+  firmwareStore.autoUpdate.stage = UpdateStage.IDLE;
+  firmwareStore.fileUpdate.stage = UpdateStage.IDLE;
+}
 </script>
