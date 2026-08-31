@@ -15,10 +15,7 @@
         />
       </div>
 
-      <USeparator
-        class="-mx-4 w-auto"
-        :ui="{ border: 'border-[var(--ui-border-opaque)]' }"
-      />
+      <USeparator class="-mx-4 w-auto" />
 
       <div class="flex items-center gap-2 w-full">
         <div class="flex flex-1 flex-col gap-2 items-start min-w-0">
