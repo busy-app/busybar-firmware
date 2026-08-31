@@ -145,25 +145,9 @@ async function shareLocation () {
     });
 
     const { latitude, longitude } = position.coords;
-    const city = await geolocationStore.findCityByCoords(latitude, longitude);
-
-    if (!city) {
-      toast.add({
-        title: 'Couldn\'t resolve your location',
-        description: 'No city matched your coordinates.',
-        icon: 'i-bi-alert',
-        color: 'error'
-      });
-      return;
-    }
 
     resetSearch();
-    await geolocationStore.setLocation({
-      mode: 'fixed',
-      lat: latitude,
-      lng: longitude,
-      name: cityLabel(city)
-    });
+    await geolocationStore.setFixedFromCoords(latitude, longitude);
   } catch {
     toast.add({
       title: 'Couldn\'t share location',
@@ -180,6 +164,7 @@ watch(searchTerm, query => {
   if (searchTimeout) {
     clearTimeout(searchTimeout);
   }
+
   searchTimeout = window.setTimeout(() => {
     searchTimeout = null;
     geolocationStore.findCities(query);

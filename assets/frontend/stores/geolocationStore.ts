@@ -4,9 +4,7 @@ export type GeolocationValue
   = | { mode: 'auto'; name?: string }
     | { mode: 'fixed'; lat: number; lng: number; name: string };
 
-const MIN_QUERY_LENGTH = 2;
-
-export function isValidLocation (value: GeolocationValue): boolean {
+export function isValidLocation (value: GeolocationValue) {
   if (value.mode === 'auto') {
     return true;
   }
@@ -15,17 +13,6 @@ export function isValidLocation (value: GeolocationValue): boolean {
     && value.lat >= -90 && value.lat <= 90
     && value.lng >= -180 && value.lng <= 180;
 }
-
-// TODO: geoip lives behind api.dev.busy.app, which requires a client certificate — the browser
-// cannot present one, so this call has to go through the bar. Blocked on a firmware endpoint.
-const MOCK_GEOIP_CITY: CitySuggestion = {
-  id: 'N60571493',
-  name: 'Belgrade',
-  state: 'Central Serbia',
-  country: 'Serbia',
-  lat: 44.8178131,
-  lng: 20.4568974
-};
 
 export const useGeolocationStore = defineStore('geolocation', () => {
   const location = ref<GeolocationValue>({ mode: 'auto' });
@@ -40,7 +27,6 @@ export const useGeolocationStore = defineStore('geolocation', () => {
 
   const label = computed(() => location.value.name ?? 'Auto');
 
-  /** Only the newest keystroke's results may land — earlier ones are aborted. */
   let searchController: AbortController | null = null;
 
   async function findCities (query: string) {
@@ -75,30 +61,43 @@ export const useGeolocationStore = defineStore('geolocation', () => {
     }
   }
 
-  /** MOCK: geoip lookup — the backend resolves by the IP of the incoming request. */
   async function resolveByIp () {
     loading.value.resolve = true;
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 400));
-      lastResolvedCity.value = MOCK_GEOIP_CITY;
-      return MOCK_GEOIP_CITY;
+      const city = await resolveByGeoIp();
+
+      if (city) {
+        lastResolvedCity.value = city;
+      }
+
+      return city;
+    } catch (error) {
+      console.warn('Geoip lookup failed', error);
+      return null;
     } finally {
       loading.value.resolve = false;
     }
   }
 
-  async function findCityByCoords (lat: number, lng: number) {
-    const city = await reverseGeocode(lat, lng);
+  async function setFixedFromCoords (lat: number, lng: number) {
+    let city: CitySuggestion = {
+      id: `${lat},${lng}`,
+      name: formatCoordinates(lat, lng),
+      lat,
+      lng
+    };
 
-    if (city) {
-      lastResolvedCity.value = city;
+    try {
+      city = await resolveByCoords(lat, lng) ?? city;
+    } catch (error) {
+      console.warn('Reverse geocoding failed, labelling by coordinates', error);
     }
 
-    return city;
+    lastResolvedCity.value = city;
+    return setFixedFromCity(city);
   }
 
-  /** TODO: persist to the device once the geolocation endpoint lands in busy-lib. */
   async function setLocation (value: GeolocationValue) {
     if (!isValidLocation(value)) {
       return false;
@@ -152,13 +151,12 @@ export const useGeolocationStore = defineStore('geolocation', () => {
     label,
     findCities,
     resolveByIp,
-    findCityByCoords,
+    setFixedFromCoords,
     setLocation,
     setFixedFromCity,
     refreshAutoLocation
   };
 }, {
-  // TODO: drop once the device stores the location itself.
   persist: {
     key: 'geolocationStore',
     storage: piniaPluginPersistedstate.localStorage(),
