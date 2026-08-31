@@ -154,6 +154,12 @@ typedef struct {
  *          file/directory must not have FSF_READ_ONLY flag
  *      @param path path to file/directory
  *      @return FS_Error error info
+ *
+ *  @var FS_Common_Api::rename
+ *      @brief Rename a file or directory on the same filesystem
+ *      @param old_path current path
+ *      @param new_path new path
+ *      @return FS_Error error info
  * 
  *  @var FS_Common_Api::mkdir
  *      @brief Create new directory
@@ -177,6 +183,7 @@ typedef struct {
 typedef struct {
     FS_Error (*const stat)(void* context, const char* path, FileInfo* fileinfo);
     FS_Error (*const remove)(void* context, const char* path);
+    FS_Error (*const rename)(void* context, const char* old_path, const char* new_path);
     FS_Error (*const mkdir)(void* context, const char* path);
     FS_Error (*const fs_info)(
         void* context,

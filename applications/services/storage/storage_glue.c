@@ -116,6 +116,27 @@ bool storage_path_already_open(FuriString* path, FS_AccessMode access_mode, Stor
     return open;
 }
 
+bool storage_dir_contains_open_file(FuriString* path, StorageData* storage_data) {
+    bool open = false;
+
+    FuriString* prefix = furi_string_alloc_set(path);
+    furi_string_cat_str(prefix, "/");
+
+    StorageFileList_it_t it;
+    for(StorageFileList_it(it, storage_data->files); !StorageFileList_end_p(it);
+        StorageFileList_next(it)) {
+        const StorageFile* storage_file = StorageFileList_cref(it);
+
+        if(furi_string_start_with(storage_file->path, prefix)) {
+            open = true;
+            break;
+        }
+    }
+
+    furi_string_free(prefix);
+    return open;
+}
+
 void storage_set_storage_file_data(const File* file, void* file_data, StorageData* storage) {
     StorageFile* storage_file_ref = storage_get_file(file, storage);
     furi_check(storage_file_ref != NULL);

@@ -517,6 +517,25 @@ FS_Error storage_common_rename(Storage* storage, const char* old_path, const cha
             break;
         }
 
+        S_API_PROLOGUE;
+        SAData data = {
+            .crename = {
+                .old_path = old_path,
+                .new_path = new_path,
+                .thread_id = furi_thread_get_current_id(),
+            }};
+
+        S_API_MESSAGE(StorageCommandCommonRename);
+        S_API_EPILOGUE;
+
+        error = S_RETURN_ERROR;
+        if(error != FSE_NOT_IMPLEMENTED) {
+            break;
+        }
+
+        // Fallback path only. The rename op clears an existing destination on
+        // the storage thread, after it knows the rename is allowed; clearing it
+        // here would destroy the target even when the rename goes on to fail.
         if(storage_file_exists(storage, new_path)) {
             storage_common_remove(storage, new_path);
         }

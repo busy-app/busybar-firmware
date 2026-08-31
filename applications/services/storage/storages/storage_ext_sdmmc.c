@@ -511,6 +511,18 @@ static FS_Error storage_ext_common_remove(void* ctx, const char* path) {
 #endif
 }
 
+static FS_Error storage_ext_common_rename(void* ctx, const char* old_path, const char* new_path) {
+    UNUSED(ctx);
+#ifdef FATFS_READ_ONLY
+    UNUSED(old_path);
+    UNUSED(new_path);
+    return FSE_NOT_READY;
+#else
+    SDError result = f_rename(old_path, new_path);
+    return storage_ext_parse_error(result);
+#endif
+}
+
 static FS_Error storage_ext_common_mkdir(void* ctx, const char* path) {
     UNUSED(ctx);
 #ifdef FATFS_READ_ONLY
@@ -606,6 +618,7 @@ static const FS_Api fs_api = {
             .stat = storage_ext_common_stat,
             .mkdir = storage_ext_common_mkdir,
             .remove = storage_ext_common_remove,
+            .rename = storage_ext_common_rename,
             .fs_info = storage_ext_common_fs_info,
             .equivalent_path = storage_ext_common_equivalent_path,
         },

@@ -428,6 +428,72 @@ static FS_Error storage_process_common_remove(Storage* app, FuriString* path) {
     return ret;
 }
 
+static FS_Error
+    storage_process_common_rename(Storage* app, FuriString* old_path, FuriString* new_path) {
+    FS_Error ret;
+
+    do {
+        const StorageType old_type = storage_get_type_by_path(old_path);
+        const StorageType new_type = storage_get_type_by_path(new_path);
+        if(old_type != new_type) {
+            ret = FSE_NOT_IMPLEMENTED;
+            break;
+        }
+
+        StorageData* storage;
+        ret = storage_get_data(app, old_type, &storage);
+        if(ret != FSE_OK) break;
+
+        // Backends are free not to implement rename; the caller falls back to
+        // copy + delete on FSE_NOT_IMPLEMENTED.
+        if(!storage->fs_api->common.rename) {
+            ret = FSE_NOT_IMPLEMENTED;
+            break;
+        }
+
+        // FatFs is built with _FS_LOCK 0, so it will happily rename a directory
+        // with open files inside it, leaving every one of them recorded under a
+        // path that no longer exists.
+        if(storage_path_already_open(old_path, FSAM_ANY, storage) ||
+           storage_path_already_open(new_path, FSAM_ANY, storage) ||
+           storage_dir_contains_open_file(old_path, storage) ||
+           storage_dir_contains_open_file(new_path, storage)) {
+            ret = FSE_ALREADY_OPEN;
+            break;
+        }
+
+        if(storage_is_read_only(storage)) {
+            ret = FSE_DENIED;
+            break;
+        }
+
+        FuriString* old_storage_path =
+            furi_string_alloc_set(cstr_storage_path(app, old_type, old_path));
+        FuriString* new_storage_path =
+            furi_string_alloc_set(cstr_storage_path(app, new_type, new_path));
+
+        const char* old_cstr = furi_string_get_cstr(old_storage_path);
+        const char* new_cstr = furi_string_get_cstr(new_storage_path);
+
+        // f_rename refuses an existing destination, so clear it — but only here,
+        // where the rename is already known to be permitted. Clearing it in the
+        // caller destroyed the target even when the rename then failed.
+        FileInfo new_info;
+        if((storage->fs_api->common.stat(storage, new_cstr, &new_info) == FSE_OK) &&
+           !file_info_is_dir(&new_info)) {
+            storage->fs_api->common.remove(storage, new_cstr);
+        }
+
+        storage_data_timestamp(storage);
+        FS_CALL(storage, common.rename(storage, old_cstr, new_cstr));
+
+        furi_string_free(new_storage_path);
+        furi_string_free(old_storage_path);
+    } while(false);
+
+    return ret;
+}
+
 static FS_Error storage_process_common_mkdir(Storage* app, FuriString* path) {
     FS_Error ret;
 
@@ -804,6 +870,18 @@ void storage_process_message_internal(Storage* app, StorageMessage* message) {
         storage_process_alias(app, app->path_aliased, message->data->path.thread_id, false);
         message->return_data->error_value = storage_process_common_remove(app, app->path_aliased);
         break;
+    case StorageCommandCommonRename: {
+        FuriString* old_path = furi_string_alloc_set(message->data->crename.old_path);
+        FuriString* new_path = furi_string_alloc_set(message->data->crename.new_path);
+        storage_process_alias(app, old_path, message->data->crename.thread_id, false);
+        // true, matching open-for-write: otherwise renaming into an app's data
+        // directory fails whenever that directory has not been created yet.
+        storage_process_alias(app, new_path, message->data->crename.thread_id, true);
+        message->return_data->error_value = storage_process_common_rename(app, old_path, new_path);
+        furi_string_free(new_path);
+        furi_string_free(old_path);
+        break;
+    }
     case StorageCommandCommonMkDir:
         furi_string_set(app->path_aliased, message->data->path.path);
         storage_process_alias(app, app->path_aliased, message->data->path.thread_id, true);

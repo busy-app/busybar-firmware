@@ -80,6 +80,12 @@ typedef struct {
 } SADataCEquivPath;
 
 typedef struct {
+    const char* old_path;
+    const char* new_path;
+    FuriThreadId thread_id;
+} SADataCRename;
+
+typedef struct {
     uint32_t id;
 } SADataError;
 
@@ -116,6 +122,7 @@ typedef union {
     SADataCFSInfo cfsinfo;
     SADataCResolvePath cresolvepath;
     SADataCEquivPath cequivpath;
+    SADataCRename crename;
 
     SADataError error;
 
@@ -153,6 +160,7 @@ typedef enum {
     StorageCommandCommonTimestamp,
     StorageCommandCommonStat,
     StorageCommandCommonRemove,
+    StorageCommandCommonRename,
     StorageCommandCommonMkDir,
     StorageCommandCommonFSInfo,
     StorageCommandSDFormat,

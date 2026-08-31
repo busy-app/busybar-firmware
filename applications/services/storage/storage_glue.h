@@ -71,6 +71,18 @@ bool storage_path_already_open(
     FS_AccessMode access_mode,
     StorageData* storage_data);
 
+/** Check whether any open file sits inside the given directory.
+ *
+ * Renaming a directory out from under an open file leaves the bookkeeping in
+ * @c storage_data->files pointing at a path that no longer exists.
+ *
+ * @param      path          directory path, without a trailing slash
+ * @param      storage_data  storage to inspect
+ *
+ * @return true if at least one open file is below @p path
+ */
+bool storage_dir_contains_open_file(FuriString* path, StorageData* storage_data);
+
 void storage_set_storage_file_data(const File* file, void* file_data, StorageData* storage);
 void* storage_get_storage_file_data(const File* file, StorageData* storage);
 
