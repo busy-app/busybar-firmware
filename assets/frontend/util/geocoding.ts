@@ -1,8 +1,9 @@
 const PHOTON_URL = 'https://photon.komoot.io';
 const REQUEST_TIMEOUT_MS = 8000;
+const SEARCH_LIMIT = 8;
+const MAX_QUERY_LENGTH = 100;
 
 export const MIN_QUERY_LENGTH = 2;
-export const MAX_QUERY_LENGTH = 100;
 
 export interface CitySuggestion {
   id: string;
@@ -12,20 +13,6 @@ export interface CitySuggestion {
   lat: number;
   lng: number;
   timezone?: string;
-}
-
-interface LocationSearchResult {
-  name: string;
-  country: string | null;
-  country_code: string | null;
-  admin1: string | null;
-  latitude: number;
-  longitude: number;
-  timezone: string;
-}
-
-interface LocationsResponse {
-  results: LocationSearchResult[];
 }
 
 interface ResolvedLocation {
@@ -43,11 +30,14 @@ interface ForecastResponse {
 
 interface PhotonFeature {
   properties: {
+    osm_id?: number;
+    osm_type?: string;
     name?: string;
     city?: string;
     state?: string;
     country?: string;
   };
+  geometry: { coordinates: [number, number] };
 }
 
 interface PhotonResponse {
@@ -58,15 +48,22 @@ function getApiUrl () {
   return useRuntimeConfig().public.apiUrl;
 }
 
-function toSuggestion (result: LocationSearchResult) {
+function toSuggestion (feature: PhotonFeature) {
+  const { properties, geometry } = feature;
+
+  if (!properties.name) {
+    return null;
+  }
+
+  const [lng, lat] = geometry.coordinates;
+
   return {
-    id: `${result.latitude},${result.longitude}`,
-    name: result.name,
-    state: result.admin1 ?? undefined,
-    country: result.country ?? undefined,
-    lat: result.latitude,
-    lng: result.longitude,
-    timezone: result.timezone
+    id: `${properties.osm_type ?? 'X'}${properties.osm_id ?? properties.name}`,
+    name: properties.name,
+    state: properties.state,
+    country: properties.country,
+    lat,
+    lng
   };
 }
 
@@ -81,17 +78,38 @@ export function cityLabel (city: CitySuggestion) {
 }
 
 export async function searchCities (query: string, signal?: AbortSignal) {
-  const q = query.slice(0, MAX_QUERY_LENGTH);
-
-  const response = await $fetch<LocationsResponse>('/weather/v1/locations', {
-    baseURL: getApiUrl(),
-    query: { query: q },
+  const response = await $fetch<PhotonResponse>('/api', {
+    baseURL: PHOTON_URL,
+    query: {
+      q: query.slice(0, MAX_QUERY_LENGTH),
+      limit: SEARCH_LIMIT,
+      lang: 'en',
+      layer: 'city'
+    },
     timeout: REQUEST_TIMEOUT_MS,
     retry: false,
     signal
   });
 
-  return response.results.map(toSuggestion);
+  const seen = new Set<string>();
+
+  return response.features.reduce<CitySuggestion[]>((cities, feature) => {
+    const city = toSuggestion(feature);
+
+    if (!city) {
+      return cities;
+    }
+
+    const key = [city.name, city.state, city.country].join('|');
+
+    if (seen.has(key)) {
+      return cities;
+    }
+
+    seen.add(key);
+    cities.push(city);
+    return cities;
+  }, []);
 }
 
 export async function resolveByCoords (lat: number, lng: number, signal?: AbortSignal) {
@@ -124,6 +142,7 @@ export async function resolveByGeoIp (signal?: AbortSignal) {
   const response = await $fetch<ForecastResponse>('/weather/v1/forecast', {
     baseURL: getApiUrl(),
     timeout: REQUEST_TIMEOUT_MS,
+    retry: false,
     signal
   });
 
