@@ -3,7 +3,7 @@ App(
     name="BrightnessControl",
     apptype=FlipperAppType.SERVICE,
     entry_point="brightness_control_srv",
-    stack_size=1 * 1024,
+    stack_size=1.5 * 1024,
     targets=["f20", "f21", "f22"],
     order=95,
     requires=["storage"],

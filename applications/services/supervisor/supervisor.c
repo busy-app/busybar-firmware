@@ -516,6 +516,7 @@ static void supervisor_handle_intercom_status(Supervisor* instance, IntercomStat
 #ifdef SRV_LOG_STORAGE
     LogStorage* log_storage = furi_record_open(RECORD_LOG_STORAGE);
     log_storage_dump(log_storage, SUPERVISOR_FAILURE_LOG_DUMP_PATH);
+    log_storage_suspend_remote(log_storage);
     furi_record_close(RECORD_LOG_STORAGE);
 #endif
 

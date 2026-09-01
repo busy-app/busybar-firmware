@@ -4,6 +4,7 @@ import http.server
 import json
 import queue
 import socketserver
+import ssl
 import threading
 from urllib.parse import parse_qs, urlsplit
 
@@ -65,12 +66,19 @@ class FetchRequestHandler(http.server.BaseHTTPRequestHandler):
         content_length = int(self.headers.get("Content-Length", "0"))
         body = self.rfile.read(content_length) if content_length else b""
         headers = {name.lower(): value for name, value in self.headers.items()}
+        peer_certificate = None
+        tls_version = None
+        if isinstance(self.connection, ssl.SSLSocket):
+            peer_certificate = self.connection.getpeercert(binary_form=True)
+            tls_version = self.connection.version()
         self.server.requests.put(
             {
                 "method": self.command,
                 "path": self.path,
                 "body": body,
                 "headers": headers,
+                "peer_certificate": peer_certificate,
+                "tls_version": tls_version,
             }
         )
 

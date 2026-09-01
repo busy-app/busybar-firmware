@@ -1,7 +1,3 @@
-/**
- * @brief Device Name service internal header
- */
-
 #pragma once
 
 #ifdef __cplusplus
@@ -14,37 +10,27 @@ extern "C" {
 #include <mqtt/mqtt.h>
 #include <toolbox/api_lock.h>
 
-#include "settings/device_name_settings.h"
-
 #define TAG "DeviceName"
 
 struct DeviceName {
     FuriEventLoop* event_loop;
     FuriMessageQueue* queue;
-    FuriPubSub* pubsub;
-    DeviceNameSettings settings;
+    FuriState* state;
     Mqtt* mqtt;
-    FuriPubSub* mqtt_events_pubsub;
 };
 
 typedef enum {
-    DeviceNameMessageTypeGetName,
     DeviceNameMessageTypeSetName,
     DeviceNameMessageTypeMqttPublish,
     DeviceNameMessageTypeMax,
 } DeviceNameMessageType;
 
 typedef struct {
-    FuriString* name;
-} DeviceNameMessageGetName;
-
-typedef struct {
-    const FuriString* name;
+    const char* name;
     DeviceNameError* error;
 } DeviceNameMessageSetName;
 
 typedef union {
-    DeviceNameMessageGetName get_name;
     DeviceNameMessageSetName set_name;
 } DeviceNameMessageData;
 

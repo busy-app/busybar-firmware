@@ -21,9 +21,9 @@ import requests
 
 from clients.api import SmartHomeAPI, SystemAPI, WifiAPI
 from clients.ha_matter import HAMatterClient
-from integration.frontend.wifi.test_api_wifi import connect_to_test_network_or_fail
 from integration.matter.helpers import establish_idle_lamp_off
 from utils.wait import wait_for
+from utils.wifi_helpers import connect_to_test_network_or_fail
 
 HA_URL = os.getenv("HA_URL", "")
 HA_TOKEN = os.getenv("HA_TOKEN", "")

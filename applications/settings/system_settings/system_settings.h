@@ -25,6 +25,7 @@ extern "C" {
 
 typedef enum {
     AppEventAboutToExit,
+    AppEventPowerUsbConnectionEvent,
     AppEventSceneEventsStart,
 } AppEvent;
 

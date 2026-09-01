@@ -47,7 +47,7 @@ export const useStateStreamStore = defineStore('stateStream', () => {
   const showResourceLimitErrorBanner = ref(false);
 
   const stream = shallowRef(new LocalStateStream(
-    { addr: barUrl, token: apiStore.apiKey || '' },
+    { addr: barUrl, HTTPAccessPassword: apiStore.apiKey || '' },
     {
       timeout: Number(configStore.get('stateStreamTimeout')),
       dataTimeout: Number(configStore.get('stateStreamDataTimeout')),
