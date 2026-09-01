@@ -10,10 +10,10 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { basename, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { fontsDir as binFontsDir } from './paths.mjs'
 
-const root = fileURLToPath(new URL('..', import.meta.url))
 // Source TTFs are the firmware's own, read in place.
-const fontsDir = resolve(root, '../assets/shared/fonts/ttf')
+const fontsDir = resolve(binFontsDir, 'ttf')
 
 // ── TTF parsing ────────────────────────────────────────────────────────────
 

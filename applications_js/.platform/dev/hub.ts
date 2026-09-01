@@ -1,4 +1,4 @@
-// Dev hub: finds every src/apps/<name>/main.ts and runs/stops it.
+// Dev hub: finds every <app>/main.ts at the project root and runs/stops it.
 // App contract: `export default function run()`. Stop kills the timers, rAF and requests the app started, and clears its screen.
 
 import { device } from '@shared/device'
@@ -8,22 +8,22 @@ import { installFakeTime, isActive as fakeTimeActive, setFakeTime } from './fake
 
 type AppModule = { default: () => void }
 
-const modules = import.meta.glob<AppModule>('/src/apps/*/main.ts')
+const modules = import.meta.glob<AppModule>('/*/main.ts')
 
 // `id` is the name the app draws under on the device.
 const MANIFESTS = import.meta.glob<{ id: string; name?: string }>(
-  '/src/apps/*/appmeta/manifest.json',
+  '/*/appmeta/manifest.json',
   { eager: true, import: 'default' },
 )
 
 const apps = Object.keys(modules)
   .map((path) => {
-    const folder = path.match(/\/src\/apps\/([^/]+)\/main\.ts$/)?.[1] ?? path
+    const folder = path.match(/^\/([^/]+)\/main\.ts$/)?.[1] ?? path
     return {
       path,
       name: folder,
       // Without a manifest the app still runs, but may not get cleared.
-      appId: MANIFESTS[`/src/apps/${folder}/appmeta/manifest.json`]?.id ?? folder,
+      appId: MANIFESTS[`/${folder}/appmeta/manifest.json`]?.id ?? folder,
     }
   })
   .sort((a, b) => a.name.localeCompare(b.name))
@@ -222,7 +222,7 @@ window.addEventListener('unhandledrejection', (event) => {
 function render(): void {
   list.innerHTML = ''
   if (apps.length === 0) {
-    list.textContent = 'No apps found (src/apps/<name>/main.ts).'
+    list.textContent = 'No apps found (<name>/main.ts).'
     return
   }
   for (const app of apps) {

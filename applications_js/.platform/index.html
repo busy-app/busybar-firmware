@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BUSY Apps — dev</title>
+  </head>
+  <body>
+    <!-- Dev hub: app list and run buttons. Apps themselves (<name>/main.ts at the project root) are plain TS and never touch the DOM — they draw on the device over HTTP via busy-lib. Not part of the build. -->
+    <main id="hub"></main>
+    <script type="module" src="/.platform/dev/hub.ts"></script>
+  </body>
+</html>

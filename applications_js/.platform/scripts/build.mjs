@@ -6,7 +6,7 @@
 //   ├── scripts/main.js            # fixed entry point, plus sibling modules
 //   ├── images/ animations/ sounds/ resources/
 //
-// Resources in src/apps/<app>/{images,animations,sounds}/ are copied as-is; anything else is sorted by file type.
+// Resources in <app>/{images,animations,sounds}/ are copied as-is; anything else is sorted by file type.
 
 import { execFileSync } from 'node:child_process'
 import {
@@ -16,32 +16,11 @@ import {
   readdirSync,
   readFileSync,
   rmSync,
-  statSync,
   writeFileSync,
 } from 'node:fs'
 import { resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { appsDir, discoverApps, outRoot, platform, root } from './paths.mjs'
 import { classify, KNOWN_DIRS } from './resources.mjs'
-
-const root = fileURLToPath(new URL('..', import.meta.url))
-const appsDir = resolve(root, 'src/apps')
-const outRoot = resolve(root, '../assets/applications_js')
-
-/** App entry point: main.ts or main.js. Returns the path, or null. */
-function findEntry(dir) {
-  for (const name of ['main.ts', 'main.js']) {
-    const path = resolve(dir, name)
-    if (existsSync(path)) return path
-  }
-  return null
-}
-
-function discoverApps() {
-  return readdirSync(appsDir).filter((name) => {
-    const dir = resolve(appsDir, name)
-    return statSync(dir).isDirectory() && findEntry(dir) !== null
-  })
-}
 
 /** Validates the manifest against the spec; throws on violation. */
 function validateManifest(path, app) {
@@ -130,8 +109,9 @@ for (const app of apps) {
   // vite only empties scripts/.
   rmSync(outDir, { recursive: true, force: true })
 
-  execFileSync('pnpm', ['exec', 'vite', 'build'], {
+  execFileSync('pnpm', ['exec', 'vite', 'build', '--config', resolve(platform, 'vite.config.ts')], {
     stdio: 'inherit',
+    cwd: root,
     env: {
       ...process.env,
       APP: app,

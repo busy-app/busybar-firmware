@@ -1,4 +1,4 @@
-// Glyph map generator: assets/shared/fonts/*.font  →  src/shared/fontMaps/<font>.json
+// Glyph map generator: assets/shared/fonts/*.font  →  .platform/shared/fontMaps/<font>.json
 // Run by hand when fonts change; the result is committed.
 // Usage:
 //   node scripts/build-font-maps.mjs           # generate
@@ -6,13 +6,8 @@
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { readBinFont } from './binfont.mjs'
-
-const root = fileURLToPath(new URL('..', import.meta.url))
-// The firmware's own fonts, read in place.
-const fontsDir = resolve(root, '../assets/shared/fonts')
-const outDir = resolve(root, 'src/shared/fontMaps')
+import { fontsDir, mapsDir as outDir, root } from './paths.mjs'
 
 /**
  * DisplayDraw font names → firmware files. Source: api_display.c (font_names/font_paths) + font_registry/fonts.h. Fonts unreachable through the API are omitted.

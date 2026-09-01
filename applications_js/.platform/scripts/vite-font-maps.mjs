@@ -6,10 +6,7 @@
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { relative, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
-
-const root = fileURLToPath(new URL('..', import.meta.url))
-const mapsDir = resolve(root, 'src/shared/fontMaps')
+import { mapsDir, root } from './paths.mjs'
 
 const VIRTUAL_ID = 'virtual:font-maps'
 const RESOLVED_ID = '\0' + VIRTUAL_ID
@@ -59,10 +56,8 @@ export function fontMaps() {
         else if (SOURCE_FILE.test(entry.name)) scan(readFileSync(path, 'utf8'), path, found, dynamic)
       }
     }
-    for (const dir of ['src/apps']) {
-      const path = resolve(root, dir)
-      if (existsSync(path)) walk(path)
-    }
+    // Apps sit at the root; walk() skips node_modules and dot-dirs (.platform included).
+    walk(root)
   }
 
   return {
@@ -71,7 +66,7 @@ export function fontMaps() {
     buildStart() {
       known = available()
       if (known.size === 0) {
-        this.error('font-maps: no maps in src/shared/fontMaps — run pnpm fonts:build')
+        this.error('font-maps: no maps in .platform/shared/fontMaps — run pnpm fonts:build')
       }
       scanSources()
 

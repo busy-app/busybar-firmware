@@ -4,13 +4,13 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "typecheck": "tsc -b",
-    "fonts:build": "node scripts/build-font-maps.mjs",
-    "fonts:check": "node scripts/build-font-maps.mjs --check",
-    "build": "tsc -b && node scripts/build.mjs",
-    "build:app": "node scripts/build.mjs",
-    "preview": "vite preview"
+    "dev": "vite --config .platform/vite.config.ts",
+    "typecheck": "tsc -b .platform",
+    "fonts:build": "node .platform/scripts/build-font-maps.mjs",
+    "fonts:check": "node .platform/scripts/build-font-maps.mjs --check",
+    "build": "tsc -b .platform && node .platform/scripts/build.mjs",
+    "build:app": "node .platform/scripts/build.mjs",
+    "preview": "vite preview --config .platform/vite.config.ts"
   },
   "devDependencies": {
     "@types/node": "^26.1.1",

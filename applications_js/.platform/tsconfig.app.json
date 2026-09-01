@@ -18,7 +18,7 @@
 
     /* Paths */
     "paths": {
-      "@shared/*": ["./src/shared/*"]
+      "@shared/*": ["./shared/*"]
     },
 
     /* Linting */
@@ -28,6 +28,7 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "dev"],
-  "exclude": ["src/weather"]
+  /* Apps live at the project root, one folder up; shared code and the dev hub live here. */
+  "include": ["./shared", "./dev", "./env.d.ts", "../*/**/*.ts", "../*/**/*.json"],
+  "exclude": ["../node_modules"]
 }

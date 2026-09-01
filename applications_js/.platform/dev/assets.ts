@@ -3,14 +3,21 @@
 import { device } from '@shared/device'
 
 // Non-source files of every app; only the running app's are fetched.
+// Apps sit at the project root; .platform and node_modules are not apps.
 const RESOURCES = import.meta.glob<string>(
-  ['/src/apps/*/**/*', '!/src/apps/*/**/*.{ts,tsx,js,mjs,cjs,jsx}', '!/src/apps/*/appmeta/**'],
+  [
+    '/*/**/*',
+    '!/*/**/*.{ts,tsx,js,mjs,cjs,jsx}',
+    '!/*/appmeta/**',
+    '!/.platform/**',
+    '!/node_modules/**',
+  ],
   { query: '?url', import: 'default' },
 )
 
 /** App files: source path → URL loader. */
 function resourcesOf(app: string): [string, () => Promise<string>][] {
-  const prefix = `/src/apps/${app}/`
+  const prefix = `/${app}/`
   return Object.entries(RESOURCES).filter(([path]) => path.startsWith(prefix))
 }
 

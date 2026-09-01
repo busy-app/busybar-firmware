@@ -30,14 +30,14 @@ export interface Descriptor {
 type Values = Record<string, unknown>
 
 // Descriptors of all apps; eager, they're tiny.
-const DESCRIPTORS = import.meta.glob<Descriptor>('/src/apps/*/appmeta/settings.json', {
+const DESCRIPTORS = import.meta.glob<Descriptor>('/*/appmeta/settings.json', {
   eager: true,
   import: 'default',
 })
 
 /** The app's settings descriptor, if it has one. */
 export function descriptorOf(app: string): Descriptor | null {
-  return DESCRIPTORS[`/src/apps/${app}/appmeta/settings.json`] ?? null
+  return DESCRIPTORS[`/${app}/appmeta/settings.json`] ?? null
 }
 
 /** All descriptor fields, flattened across sections. */

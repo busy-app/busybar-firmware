@@ -1,34 +1,9 @@
-import { readdirSync, statSync } from 'node:fs'
 import { basename, extname, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { defineConfig, type Plugin } from 'vite'
 // @ts-expect-error — untyped .mjs, build-only plugin.
 import { fontMaps } from './scripts/vite-font-maps.mjs'
-
-const root = fileURLToPath(new URL('.', import.meta.url))
-const appsDir = resolve(root, 'src/apps')
-const outRoot = resolve(root, '../assets/applications_js')
-
-/** App entry point: main.ts or main.js. Returns the path, or null. */
-export function findEntry(dir: string): string | null {
-  for (const name of ['main.ts', 'main.js']) {
-    const path = resolve(dir, name)
-    try {
-      if (statSync(path).isFile()) return path
-    } catch {
-      // no such file — try the next extension
-    }
-  }
-  return null
-}
-
-export function discoverApps(): string[] {
-  return readdirSync(appsDir).filter((name) => {
-    const dir = resolve(appsDir, name)
-    if (!statSync(dir).isDirectory()) return false
-    return findEntry(dir) !== null
-  })
-}
+// @ts-expect-error — untyped .mjs, shared with the build scripts.
+import { appsDir, findEntry, outRoot, root, sharedDir } from './scripts/paths.mjs'
 
 // Set in build mode only; unset in dev, where the hub is served.
 const app = process.env.APP
@@ -61,12 +36,14 @@ export default defineConfig(({ command }) => {
   if (command === 'serve') {
     return {
       root,
+      // The hub page lives in .platform/; the root holds apps only.
+      server: { open: '/.platform/index.html' },
       // .anim files are binary device assets, served as URLs.
       assetsInclude: ['**/*.anim'],
       plugins: [fontMaps()],
       // Keeps the ?v= hash stable across src edits.
       optimizeDeps: { include: ['@busy-app/busy-lib'] },
-      resolve: { alias: { '@shared': resolve(root, 'src/shared') } },
+      resolve: { alias: { '@shared': sharedDir } },
     }
   }
 
@@ -118,6 +95,6 @@ export default defineConfig(({ command }) => {
         },
       },
     },
-    resolve: { alias: { '@shared': resolve(root, 'src/shared') } },
+    resolve: { alias: { '@shared': sharedDir } },
   }
 })
