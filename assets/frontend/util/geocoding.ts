@@ -87,6 +87,7 @@ export async function searchCities (query: string, signal?: AbortSignal) {
     baseURL: getApiUrl(),
     query: { query: q },
     timeout: REQUEST_TIMEOUT_MS,
+    retry: false,
     signal
   });
 
