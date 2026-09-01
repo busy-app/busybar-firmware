@@ -39,6 +39,11 @@ static const TelemetryEventInfo telemetry_event_info[TelemetryEventMax] = {
 
 static_assert(COUNT_OF(telemetry_event_info) == TelemetryEventMax);
 
+const char* telemetry_event_type_name(TelemetryEventType type) {
+    furi_check(type < TelemetryEventMax);
+    return telemetry_event_info[type].name;
+}
+
 // ===== Ring buffer =====
 
 static cJSON* telemetry_ring_pop(Telemetry* instance) {
@@ -55,6 +60,7 @@ static void telemetry_ring_push(Telemetry* instance, cJSON* event) {
         // drop the oldest event
         FURI_LOG_W(TAG, "Telemetry ring buffer full, dropping oldest event");
         cJSON_Delete(telemetry_ring_pop(instance));
+        instance->events_dropped++;
     }
 
     const size_t index = (instance->events_head + instance->events_count) % TELEMETRY_RING_CAPACITY;
@@ -210,6 +216,9 @@ static void telemetry_flush(Telemetry* instance, bool is_push) {
             instance->mqtt, TELEMETRY_MQTT_QOS, TELEMETRY_MQTT_TOPIC, json, strlen(json));
         if(!ok) {
             FURI_LOG_W(TAG, "Failed to publish telemetry batch");
+        } else {
+            instance->batches_sent++;
+            instance->events_sent += cJSON_GetArraySize(events);
         }
         free(json);
     }
@@ -221,6 +230,7 @@ static void telemetry_flush(Telemetry* instance, bool is_push) {
 static void
     telemetry_enqueue(Telemetry* instance, TelemetryEventType type, cJSON* data, bool auto_flush) {
     if(!instance->is_enabled) {
+        instance->events_dropped++;
         if(data) {
             cJSON_Delete(data);
         }
@@ -231,6 +241,7 @@ static void
 
     if(!instance->is_connected && info->priority == TelemetryPriorityLow) {
         // p0 events are droppable when offline
+        instance->events_dropped++;
         if(data) {
             cJSON_Delete(data);
         }
@@ -257,6 +268,8 @@ static void
     telemetry_handle_report_event(Telemetry* instance, const TelemetryApiMessage* message) {
     const TelemetryApiMessageReportEvent* report = &message->data.report_event;
     furi_assert(report->type < TelemetryEventMax);
+
+    instance->events_by_type[report->type]++;
 
     telemetry_enqueue(instance, report->type, report->data, true);
 }
@@ -326,6 +339,19 @@ static void telemetry_handle_set_enabled(Telemetry* instance, bool enabled) {
     }
 }
 
+static void telemetry_handle_get_stats(Telemetry* instance, const TelemetryApiMessage* message) {
+    TelemetryStats* stats = message->data.get_stats.stats;
+    furi_assert(stats);
+
+    stats->is_enabled = instance->is_enabled;
+    stats->is_connected = instance->is_connected;
+    stats->buffered_events = instance->events_count;
+    stats->batches_sent = instance->batches_sent;
+    stats->events_sent = instance->events_sent;
+    stats->events_dropped = instance->events_dropped;
+    memcpy(stats->events_by_type, instance->events_by_type, sizeof(stats->events_by_type));
+}
+
 // ===== Event loop =====
 
 static void telemetry_flush_timer_callback(void* context) {
@@ -358,12 +384,19 @@ static void telemetry_message_queue_callback(FuriEventLoopObject* object, void* 
         case TelemetryApiMessageTypeSetEnabled:
             telemetry_handle_set_enabled(instance, message.data.is_enabled);
             break;
+        case TelemetryApiMessageTypeGetStats:
+            telemetry_handle_get_stats(instance, &message);
+            break;
         case TelemetryApiMessageTypeFlush:
             telemetry_flush(instance, false);
             break;
         default:
             furi_crash("Unknown telemetry API message type");
             break;
+        }
+
+        if(message.lock) {
+            api_lock_unlock(message.lock);
         }
     }
 }
@@ -386,6 +419,7 @@ void telemetry_report_event(Telemetry* instance, TelemetryEventType type, cJSON*
     const FuriStatus status = furi_message_queue_put(instance->api_queue, &message, 0);
     if(status != FuriStatusOk) {
         FURI_LOG_W(TAG, "Failed to enqueue telemetry event %d", type);
+        atomic_fetch_add(&instance->events_dropped, 1);
         if(data) {
             cJSON_Delete(data);
         }
@@ -408,6 +442,24 @@ void telemetry_set_enabled(Telemetry* instance, bool enabled) {
     // Blocking: the opt-out change must always be applied.
     furi_check(
         furi_message_queue_put(instance->api_queue, &message, FuriWaitForever) == FuriStatusOk);
+}
+
+void telemetry_get_stats(Telemetry* instance, TelemetryStats* stats) {
+    furi_check(instance);
+    furi_check(stats);
+
+    TelemetryApiMessage message = {
+        .type = TelemetryApiMessageTypeGetStats,
+        .data.get_stats =
+            {
+                .stats = stats,
+            },
+    };
+    message.lock = api_lock_alloc_locked();
+
+    furi_check(
+        furi_message_queue_put(instance->api_queue, &message, FuriWaitForever) == FuriStatusOk);
+    api_lock_wait_unlock_and_free(message.lock);
 }
 
 // ===== Startup =====

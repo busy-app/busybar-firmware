@@ -11,6 +11,7 @@
 
 #include <cjson/cJSON.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -75,6 +76,36 @@ typedef enum {
  * @param[in] data event payload (the "d" object), may be NULL
  */
 void telemetry_report_event(Telemetry* instance, TelemetryEventType type, cJSON* data);
+
+/**
+ * @brief Telemetry service statistics snapshot (debug/status reporting).
+ */
+typedef struct {
+    bool is_enabled; /**< Whether collection is enabled */
+    bool is_connected; /**< Whether the device MQTT connection is up */
+    uint32_t buffered_events; /**< Events currently buffered, awaiting flush */
+    uint32_t batches_sent; /**< Batch messages published to the backend */
+    uint32_t events_sent; /**< Events published to the backend */
+    uint32_t events_dropped; /**< Events dropped (disabled, offline p0, queue/ring full) */
+    uint32_t events_by_type[TelemetryEventMax]; /**< Events enqueued per type */
+} TelemetryStats;
+
+/**
+ * @brief Query telemetry service statistics.
+ *
+ * Blocking call; safe to use from any thread.
+ *
+ * @param[in] instance telemetry service instance
+ * @param[out] stats pre-allocated structure to fill
+ */
+void telemetry_get_stats(Telemetry* instance, TelemetryStats* stats);
+
+/**
+ * @brief Get the wire name of a telemetry event type (as used in the "t" field).
+ * @param[in] type event type
+ * @returns event type name string
+ */
+const char* telemetry_event_type_name(TelemetryEventType type);
 
 /**
  * @brief Check whether telemetry collection is enabled (user opt-out).
