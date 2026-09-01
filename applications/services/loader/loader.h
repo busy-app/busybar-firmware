@@ -74,6 +74,14 @@ typedef enum {
 typedef struct {
     LoaderEventType type;
     size_t priority;
+    /**
+     * @brief App ID of the application the event refers to.
+     *
+     * Set for @c LoaderEventTypeApplicationBeforeLoad and @c LoaderEventTypeApplicationStopped.
+     * NULL for @c LoaderEventTypePriorityChanged and @c LoaderEventTypeApplicationLoadFailed.
+     * The pointer is valid only within the event delivery callback.
+     */
+    const char* appid;
 } LoaderEvent;
 
 /**
