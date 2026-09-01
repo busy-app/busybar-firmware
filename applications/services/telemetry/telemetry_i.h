@@ -7,6 +7,8 @@
 #include <cjson/cJSON.h>
 #include <stdatomic.h>
 
+#include <toolbox/api_lock.h>
+
 #include <mqtt/mqtt.h>
 #include <loader/loader.h>
 #include <busy_timer/busy_timer.h>
@@ -34,6 +36,7 @@ typedef enum {
     TelemetryApiMessageTypePowerEvent,
     TelemetryApiMessageTypeAudioEvent,
     TelemetryApiMessageTypeSetEnabled,
+    TelemetryApiMessageTypeGetStats,
     TelemetryApiMessageTypeFlush,
     TelemetryApiMessageTypeMax,
 } TelemetryApiMessageType;
@@ -43,8 +46,13 @@ typedef struct {
     cJSON* data;
 } TelemetryApiMessageReportEvent;
 
+typedef struct {
+    TelemetryStats* stats;
+} TelemetryApiMessageGetStats;
+
 typedef union {
     TelemetryApiMessageReportEvent report_event;
+    TelemetryApiMessageGetStats get_stats;
     MqttStatus mqtt_status;
     bool is_enabled;
 } TelemetryApiMessageData;
@@ -52,6 +60,7 @@ typedef union {
 typedef struct {
     TelemetryApiMessageType type;
     TelemetryApiMessageData data;
+    FuriApiLock lock;
 } TelemetryApiMessage;
 
 struct Telemetry {
@@ -71,6 +80,13 @@ struct Telemetry {
     bool has_offline_start;
     time_t last_push_ms;
     bool is_enabled;
+
+    // statistics (events_by_type & aggregates touched on the service thread;
+    // events_dropped is atomic — incremented from foreign threads on queue-full)
+    uint32_t events_by_type[TelemetryEventMax];
+    uint32_t batches_sent;
+    uint32_t events_sent;
+    _Atomic uint32_t events_dropped;
 
     // collector handles & state
     Loader* loader;
