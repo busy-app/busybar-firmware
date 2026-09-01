@@ -64,6 +64,7 @@ App(
         "api_tokens",
         "js_runner",
         "ca_storage",
+        "telemetry",
     ],
     targets=["f20", "f21", "f22"],
 )

@@ -23,6 +23,27 @@ typedef enum {
     BusyTimerStateMax,
 } BusyTimerState;
 
+/**
+ * @brief Source of a timer session start.
+ */
+typedef enum {
+    BusyTimerSessionSourceUnknown = 0, /**< Session restored from saved state at boot (or not tracked) */
+    BusyTimerSessionSourceDevice, /**< Started from the device UI */
+    BusyTimerSessionSourceHttpApi, /**< Started via the HTTP API (local web / companions) */
+    BusyTimerSessionSourceIntegrationMatter, /**< Started via the Matter integration */
+    BusyTimerSessionSourceIntegrationMqtt, /**< Started via an MQTT snapshot from the cloud/companion */
+    BusyTimerSessionSourceMax, /**< Special value, internal use */
+} BusyTimerSessionSource;
+
+/**
+ * @brief Outcome of a finished timer session.
+ */
+typedef enum {
+    BusyTimerSessionOutcomeCompleted = 0, /**< Timer ran to its natural end */
+    BusyTimerSessionOutcomeStopped, /**< Timer was stopped manually */
+    BusyTimerSessionOutcomeMax, /**< Special value, internal use */
+} BusyTimerSessionOutcome;
+
 typedef enum {
     BusyTimerEventTypeTick,
     BusyTimerEventTypeModeChanged,
@@ -31,6 +52,8 @@ typedef enum {
     BusyTimerEventTypePaused,
     BusyTimerEventTypeProfileChanged,
     BusyTimerEventTypeSnapshotCreated,
+    BusyTimerEventTypeSessionStarted,
+    BusyTimerEventTypeSessionEnded,
     BusyTimerEventTypeMax,
 } BusyTimerEventType;
 
@@ -65,6 +88,21 @@ typedef struct {
 } BusyTimerEventSnapshotCreated;
 
 typedef struct {
+    BusyTimerSessionSource source;
+    BusyTimerProfileId profile_id;
+    BusyAppConfig app_config;
+    BusyTimerConfig timer_config;
+    bool is_demo_mode_enabled;
+} BusyTimerEventSessionStarted;
+
+typedef struct {
+    BusyTimerSessionOutcome outcome;
+    BusyTimerSessionSource source;
+    uint32_t time_elapsed_s;
+    uint32_t current_interval_index;
+} BusyTimerEventSessionEnded;
+
+typedef struct {
     BusyTimerEventType type;
     union {
         BusyTimerEventTick tick;
@@ -74,6 +112,8 @@ typedef struct {
         BusyTimerEventPaused paused;
         BusyTimerEventProfileChanged profile_changed;
         BusyTimerEventSnapshotCreated snapshot_created;
+        BusyTimerEventSessionStarted session_started;
+        BusyTimerEventSessionEnded session_ended;
     };
 } BusyTimerEvent;
 
@@ -81,6 +121,8 @@ typedef struct {
     BusyTimerState state;
     BusyTimerConfig config;
     uint32_t current_interval_idx;
+    uint32_t time_elapsed_s;
+    BusyTimerSessionSource session_source;
 } BusyTimerRunInfo;
 
 typedef struct {
@@ -91,7 +133,7 @@ typedef struct {
 
 FuriPubSub* busy_timer_get_pubsub(const BusyTimer* instance);
 
-void busy_timer_start(BusyTimer* instance, BusyTimerProfileId profile_id);
+void busy_timer_start(BusyTimer* instance, BusyTimerProfileId profile_id, BusyTimerSessionSource source);
 
 void busy_timer_stop(BusyTimer* instance);
 
@@ -107,7 +149,10 @@ void busy_timer_get_run_info(const BusyTimer* instance, BusyTimerRunInfo* run_in
 
 void busy_timer_get_snapshot(BusyTimer* instance, BusyTimerSnapshot* snapshot);
 
-void busy_timer_set_snapshot(BusyTimer* instance, const BusyTimerSnapshot* snapshot);
+void busy_timer_set_snapshot(
+    BusyTimer* instance,
+    const BusyTimerSnapshot* snapshot,
+    BusyTimerSessionSource source);
 
 const char* busy_timer_get_profile_name(BusyTimerProfileId profile_id);
 

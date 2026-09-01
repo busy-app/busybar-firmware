@@ -14,6 +14,8 @@ typedef enum {
 
     SceneIdDebug,
 
+    SceneIdTelemetry,
+
     SceneIdFactoryResetConfirm,
     SceneIdFactoryReset,
     SceneIdLowBattery,

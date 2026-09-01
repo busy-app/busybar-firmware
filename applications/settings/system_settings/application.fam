@@ -3,7 +3,7 @@ App(
     name="System Settings",
     apptype=FlipperAppType.SETTINGS,
     entry_point="system_settings_entry",
-    requires=["gui", "front_display", "back_display"],
+    requires=["gui", "front_display", "back_display", "telemetry"],
     stack_size=4 * 1024,
     order=70,
     targets=["f20", "f21", "f22"],
