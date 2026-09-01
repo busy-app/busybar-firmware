@@ -43,6 +43,14 @@ void js_app_registry_list_apps(JsAppRegistryListCallback callback, void* context
  */
 JsApp* js_app_registry_get_app(const char* app_id);
 
+/**
+ * @brief Remove an installed JavaScript application and its saved settings.
+ *
+ * @param[in] app_id zero-terminated application identifier
+ * @returns @c true when the application was removed, @c false otherwise
+ */
+bool js_app_registry_remove_app(const char* app_id);
+
 #ifdef __cplusplus
 }
 #endif

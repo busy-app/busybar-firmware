@@ -1,4 +1,5 @@
 #include "js_app_registry.h"
+#include "js_app_settings.h"
 
 #include <core/log.h>
 #include <core/check.h>
@@ -61,6 +62,7 @@ void js_app_registry_list_apps(JsAppRegistryListCallback callback, void* context
 
 JsApp* js_app_registry_get_app(const char* app_id) {
     furi_check(app_id);
+    if(!js_app_id_is_valid(app_id)) return NULL;
 
     FuriString* app_path = furi_string_alloc();
     path_concat(JS_APPS_PATH, app_id, app_path);
@@ -74,4 +76,21 @@ JsApp* js_app_registry_get_app(const char* app_id) {
 
     furi_string_free(app_path);
     return js_app;
+}
+
+bool js_app_registry_remove_app(const char* app_id) {
+    furi_check(app_id);
+    if(!js_app_id_is_valid(app_id)) return false;
+
+    FuriString* app_path = furi_string_alloc();
+    path_concat(JS_APPS_PATH, app_id, app_path);
+
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+    const bool success = storage_simply_remove_recursive(storage, furi_string_get_cstr(app_path));
+    furi_record_close(RECORD_STORAGE);
+
+    const bool settings_removed = success && js_app_settings_remove(app_id);
+
+    furi_string_free(app_path);
+    return success && settings_removed;
 }

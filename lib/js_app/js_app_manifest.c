@@ -153,6 +153,7 @@ static bool
 
 JsAppManifest* js_app_manifest_alloc(void) {
     JsAppManifest* instance = malloc(sizeof(JsAppManifest));
+    instance->parsed_json = NULL;
     return instance;
 }
 
@@ -166,6 +167,8 @@ void js_app_manifest_free(JsAppManifest* instance) {
 bool js_app_manifest_load_from_file(JsAppManifest* instance, const char* file_path) {
     furi_check(instance);
     furi_check(file_path);
+
+    js_app_manifest_reset(instance);
 
     bool success = false;
 

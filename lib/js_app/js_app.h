@@ -70,6 +70,7 @@ typedef struct {
  */
 typedef struct {
     const char* entry; /**< Path to the entry JS script file (`main.js`) */
+    const char* settings; /**< Path to `settings.json`, or NULL when the app has no settings */
     JsAppIconPath icon; /**< Application icon paths descriptor */
 } JsAppPathInfo;
 
@@ -83,6 +84,17 @@ typedef struct {
     JsAppManifestInfo manifest; /**< JS application manifest contents */
     JsAppPathInfo path; /**< JS application paths descriptor */
 } JsAppInfo;
+
+/**
+ * @brief Validate a JavaScript application identifier.
+ *
+ * Valid identifiers contain 1 to 32 ASCII letters, digits, dots,
+ * underscores, or hyphens. The special path names `.` and `..` are rejected.
+ *
+ * @param[in] app_id zero-terminated application identifier
+ * @returns @c true when the identifier is valid, @c false otherwise
+ */
+bool js_app_id_is_valid(const char* app_id);
 
 /**
  * @brief Create a JsApp instance.
