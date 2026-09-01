@@ -1,4 +1,4 @@
-#include "anim_file_mask.h"
+#include <anim_file_i_struct.h>
 #include <toolbox/bit_q.h>
 
 #define SHORT_RUN_BITS  3

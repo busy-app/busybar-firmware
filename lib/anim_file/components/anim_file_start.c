@@ -1,4 +1,4 @@
-#include <anim_file_i.h>
+#include <anim_file_i_struct.h>
 
 static void anim_file_start_set_requested(AnimFile* anim, const AnimFileRange* requested) {
     furi_assert(anim);

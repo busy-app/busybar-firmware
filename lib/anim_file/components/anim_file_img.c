@@ -1,4 +1,4 @@
-#include <anim_file_i.h>
+#include <anim_file_i_struct.h>
 
 #include <toolbox/rle_encode.h>
 #include <toolbox/dsp.h>

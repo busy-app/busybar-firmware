@@ -1,4 +1,4 @@
-#include <anim_file_i.h>
+#include <anim_file_i_struct.h>
 
 /**
  * @brief Loads and renders the frame at the specified file offset.

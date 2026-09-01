@@ -11,6 +11,10 @@
 extern "C" {
 #endif
 
+typedef struct {
+    uint8_t* mask_buffer;
+} AnimFileMask;
+
 uint8_t* anim_file_mask_buffer(AnimFile* anim_file);
 
 void anim_file_mask_init(AnimFile* anim);

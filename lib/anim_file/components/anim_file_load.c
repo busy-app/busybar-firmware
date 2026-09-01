@@ -1,4 +1,4 @@
-#include <anim_file_i.h>
+#include <anim_file_i_struct.h>
 
 bool anim_file_load_header(AnimFileHeader* header, File* file) {
     furi_assert(header);

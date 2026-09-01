@@ -19,7 +19,7 @@ extern "C" {
 #define TAG "AnimFile"
 
 // Debugging flags
-#define ANIM_FILE_DETAILED_ERRORS
+// #define ANIM_FILE_DETAILED_ERRORS
 // #define ANIM_FILE_SHOW_MASK_INSTEAD_OF_IMAGE
 // #define ANIM_FILE_PROFILE_PERFORMANCE
 // #define ANIM_FILE_SHOW_PIPELINE
@@ -53,32 +53,6 @@ typedef struct {
     size_t start_offset;
     AnimFilePlayFlag flags;
 } AnimFileRange;
-
-#include "components/anim_file_img.h"
-#include "components/anim_file_load.h"
-#include "components/anim_file_seq.h"
-#include "components/anim_file_start.h"
-#include "components/anim_file_mask.h"
-
-// TODO: move to `anim_file_mask.h`. doesn't compile though for some reason.
-typedef struct {
-    uint8_t* mask_buffer;
-} AnimFileMask;
-
-struct AnimFile {
-    File* file;
-    AnimFileMeta meta;
-
-    // Components should not touch other components' state directly.
-    AnimFileImg img;
-    AnimFileSeq seq;
-    AnimFileStart start;
-    AnimFileMask mask;
-
-#ifdef ANIM_FILE_PROFILE_PERFORMANCE
-    Profiler* profiler;
-#endif
-};
 
 #ifdef __cplusplus
 }

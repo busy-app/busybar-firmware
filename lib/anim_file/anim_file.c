@@ -2,7 +2,7 @@
  * @brief Public API for `AnimFile`
  */
 
-#include "anim_file_i.h"
+#include "anim_file_i_struct.h"
 
 AnimFile* FURI_WARN_UNUSED anim_file_alloc(Storage* storage, const char* path) {
     furi_check(storage);
