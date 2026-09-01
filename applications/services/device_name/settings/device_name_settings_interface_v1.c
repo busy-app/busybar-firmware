@@ -13,7 +13,7 @@ static bool device_name_settings_v1_name_is_valid_cb(
 static const SettingProviderStringInterface device_name_settings_v1_name_interface = {
     .default_value = DEVICE_NAME_DEFAULT,
     .is_valid_callback = device_name_settings_v1_name_is_valid_cb,
-    .max_size = DEVICE_NAME_MAX_LENGTH + 1,
+    .max_size = DEVICE_NAME_MAX_SIZE,
 };
 
 const SettingProviderSetting device_name_settings_v1[] = {

@@ -23,6 +23,11 @@ from utils.fetch_mtls_server import FetchMTLSServer
 from utils.js_test_runner import run_js_case
 from utils.mtls_certificates import generate_ca, generate_intermediate, generate_leaf
 from utils.wait import wait_for
+from utils.wifi_helpers import (
+    wait_for_wifi_link_stable,
+    wifi_connect_was_already_satisfied,
+    wifi_connection_is_active,
+)
 
 
 JS_CLI_LOCAL_STORAGE_PATH = "/ext/apps_data/jsrunner/app.busy.cli.localstorage.json"
@@ -370,37 +375,48 @@ def http_server(persistent_cli_connection):
 @pytest.fixture
 def device_wifi_ready(wifi_api: WifiAPI):
     """Ensure the device has a connected Wi-Fi interface and usable IP."""
-
-    def wifi_is_ready(status):
-        ip_config = status.ip_config
-        address = ip_config.address if ip_config else None
-        has_usable_address = address is not None and (
-            address.split("/", 1)[0] not in ("", "0.0.0.0")
-        )
-        return status.state == "connected" and has_usable_address
-
     with allure.step("Ensure the device is connected to Wi-Fi"):
         initial_status = wifi_api.get_status()
-        if not wifi_is_ready(initial_status):
+        if initial_status.state == "unknown":
+            try:
+                initial_status = wait_for(
+                    "Wi-Fi service to leave the unknown state",
+                    wifi_api.get_status,
+                    lambda status: status.state != "unknown",
+                    timeout=10,
+                    interval=0.5,
+                )
+            except AssertionError as error:
+                pytest.fail(f"Wi-Fi service did not initialize: {error}")
+
+        if not wifi_connection_is_active(initial_status):
             if not WIFI_SSID:
                 pytest.skip(
                     "Device Wi-Fi is not ready and WIFI_SSID is not "
                     f"configured; initial status={initial_status!r}"
                 )
             response = wifi_api.connect_to_test_network(timeout=30)
-            if response.status_code != 200:
+            if response.status_code != 200 and not (
+                wifi_connect_was_already_satisfied(
+                    response.status_code,
+                    response.text,
+                )
+            ):
                 pytest.skip(
                     f"Device could not connect to Wi-Fi {WIFI_SSID!r}: "
                     f"HTTP {response.status_code}, {response.text[:200]!r}"
                 )
+            if response.status_code != 200:
+                allure.attach(
+                    response.text,
+                    name="Wi-Fi connect race accepted",
+                    attachment_type=allure.attachment_type.TEXT,
+                )
 
         try:
-            ready_status = wait_for(
-                "device Wi-Fi to be connected with a usable IP address",
-                wifi_api.get_status,
-                wifi_is_ready,
+            ready_status = wait_for_wifi_link_stable(
+                wifi_api,
                 timeout=45,
-                interval=1,
             )
         except AssertionError as error:
             pytest.skip(f"Device Wi-Fi did not become ready: {error}")
