@@ -188,7 +188,7 @@ static void telemetry_busy_timer_pubsub_callback(const void* message, void* cont
             d, "profile", busy_timer_get_profile_name(profile_changed->profile_id));
         cJSON_AddStringToObject(d, "theme", profile_changed->profile.app_config.theme_name);
 
-        telemetry_report_event(instance, TelemetryEventSettingTheme, d);
+        telemetry_report_event(instance, TelemetryEventTimerTheme, d);
         break;
     }
     default:

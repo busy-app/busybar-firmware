@@ -49,10 +49,10 @@ typedef enum {
     TelemetryEventFwUpdate, /**< Firmware update completed (p2) */
     TelemetryEventTimerSessionStart, /**< Busy timer session started (p1) */
     TelemetryEventTimerSessionEnd, /**< Busy timer session ended / interrupted (p2) */
+    TelemetryEventTimerTheme, /**< BUSY/CUSTOM timer theme changed (p0) */
     TelemetryEventAppStart, /**< Application started (p1) */
     TelemetryEventAppStop, /**< Application stopped (p1) */
     TelemetryEventSettingBrightness, /**< Display brightness changed (p0) */
-    TelemetryEventSettingTheme, /**< BUSY/CUSTOM theme changed (p0) */
     TelemetryEventSettingVolume, /**< Audio volume changed (p0) */
     TelemetryEventInputSwitch, /**< Mode switch position changed (p0) */
     TelemetryEventPowerTransition, /**< Charging / USB power state changed (p1) */

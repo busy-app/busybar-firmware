@@ -23,10 +23,10 @@ static const TelemetryEventInfo telemetry_event_info[TelemetryEventMax] = {
     [TelemetryEventFwUpdate] = {"fw.update", TelemetryPriorityPush},
     [TelemetryEventTimerSessionStart] = {"timer.session.start", TelemetryPriorityBatch},
     [TelemetryEventTimerSessionEnd] = {"timer.session.end", TelemetryPriorityPush},
+    [TelemetryEventTimerTheme] = {"timer.theme", TelemetryPriorityLow},
     [TelemetryEventAppStart] = {"app.start", TelemetryPriorityBatch},
     [TelemetryEventAppStop] = {"app.stop", TelemetryPriorityBatch},
     [TelemetryEventSettingBrightness] = {"setting.brightness", TelemetryPriorityLow},
-    [TelemetryEventSettingTheme] = {"setting.theme", TelemetryPriorityLow},
     [TelemetryEventSettingVolume] = {"setting.volume", TelemetryPriorityLow},
     [TelemetryEventInputSwitch] = {"input.switch", TelemetryPriorityLow},
     [TelemetryEventPowerTransition] = {"power.transition", TelemetryPriorityBatch},
@@ -229,6 +229,9 @@ static void telemetry_flush(Telemetry* instance, bool is_push) {
 
 static void
     telemetry_enqueue(Telemetry* instance, TelemetryEventType type, cJSON* data, bool auto_flush) {
+    furi_assert(type < TelemetryEventMax);
+    instance->events_by_type[type]++;
+
     if(!instance->is_enabled) {
         instance->events_dropped++;
         if(data) {
@@ -268,8 +271,6 @@ static void
     telemetry_handle_report_event(Telemetry* instance, const TelemetryApiMessage* message) {
     const TelemetryApiMessageReportEvent* report = &message->data.report_event;
     furi_assert(report->type < TelemetryEventMax);
-
-    instance->events_by_type[report->type]++;
 
     telemetry_enqueue(instance, report->type, report->data, true);
 }
