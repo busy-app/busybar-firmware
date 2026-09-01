@@ -112,9 +112,9 @@ static void telemetry_loader_pubsub_callback(const void* message, void* context)
         cJSON* d = cJSON_CreateObject();
         cJSON_AddStringToObject(d, "app", event->appid);
 
-        const TelemetryEventType type =
-            (event->type == LoaderEventTypeApplicationBeforeLoad) ? TelemetryEventAppStart :
-                                                                    TelemetryEventAppStop;
+        const TelemetryEventType type = (event->type == LoaderEventTypeApplicationBeforeLoad) ?
+                                            TelemetryEventAppStart :
+                                            TelemetryEventAppStop;
         telemetry_report_event(instance, type, d);
         break;
     }
@@ -148,16 +148,12 @@ static void telemetry_busy_timer_pubsub_callback(const void* message, void* cont
 
         switch(started->timer_config.mode) {
         case BusyTimerModeSimple:
-            cJSON_AddNumberToObject(
-                d, "duration_ms", started->timer_config.simple.total_time_ms);
+            cJSON_AddNumberToObject(d, "duration_ms", started->timer_config.simple.total_time_ms);
             break;
         case BusyTimerModeInterval:
-            cJSON_AddNumberToObject(
-                d, "work_ms", started->timer_config.interval.work_time_ms);
-            cJSON_AddNumberToObject(
-                d, "rest_ms", started->timer_config.interval.rest_time_ms);
-            cJSON_AddNumberToObject(
-                d, "cycles", started->timer_config.interval.cycles_count);
+            cJSON_AddNumberToObject(d, "work_ms", started->timer_config.interval.work_time_ms);
+            cJSON_AddNumberToObject(d, "rest_ms", started->timer_config.interval.rest_time_ms);
+            cJSON_AddNumberToObject(d, "cycles", started->timer_config.interval.cycles_count);
             cJSON_AddBoolToObject(
                 d, "autostart", started->timer_config.interval.is_autostart_enabled);
             break;
@@ -239,9 +235,7 @@ static void telemetry_brightness_state_callback(const void* item, void* context)
     cJSON* d = cJSON_CreateObject();
     cJSON_AddNumberToObject(d, "value", state->effective_brightness);
     cJSON_AddStringToObject(
-        d,
-        "mode",
-        state->mode == BrightnessControlBrightnessModeAuto ? "auto" : "manual");
+        d, "mode", state->mode == BrightnessControlBrightnessModeAuto ? "auto" : "manual");
 
     telemetry_report_event(instance, TelemetryEventSettingBrightness, d);
 }
@@ -304,8 +298,7 @@ static void telemetry_updater_state_callback(const void* item, void* context) {
     const Version* version = version_get();
 
     cJSON* d = cJSON_CreateObject();
-    cJSON_AddStringToObject(
-        d, "from_version", version ? version_get_version(version) : "");
+    cJSON_AddStringToObject(d, "from_version", version ? version_get_version(version) : "");
     cJSON_AddStringToObject(
         d, "outcome", state->status == UpdaterStatusOk ? "success" : "failure");
 

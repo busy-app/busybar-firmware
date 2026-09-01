@@ -63,7 +63,8 @@ static void telemetry_ring_push(Telemetry* instance, cJSON* event) {
         instance->events_dropped++;
     }
 
-    const size_t index = (instance->events_head + instance->events_count) % TELEMETRY_RING_CAPACITY;
+    const size_t index =
+        (instance->events_head + instance->events_count) % TELEMETRY_RING_CAPACITY;
     instance->events[index] = event;
     instance->events_count++;
 }
@@ -276,8 +277,8 @@ static void
 }
 
 static void telemetry_handle_mqtt_status(Telemetry* instance, MqttStatus status) {
-    const bool connected =
-        (status == MqttStatusConnectedLinked) || (status == MqttStatusConnectedNotLinked);
+    const bool connected = (status == MqttStatusConnectedLinked) ||
+                           (status == MqttStatusConnectedNotLinked);
 
     if(connected && !instance->is_connected) {
         // (re)connected: report the offline duration, then flush the backlog
@@ -477,7 +478,8 @@ static void telemetry_report_device_boot(Telemetry* instance) {
         cJSON_AddStringToObject(
             d, "fw_branch", version_get_gitbranch(version) ? version_get_gitbranch(version) : "");
         cJSON_AddStringToObject(
-            d, "fw_build_date",
+            d,
+            "fw_build_date",
             version_get_builddate(version) ? version_get_builddate(version) : "");
         cJSON_AddNumberToObject(d, "fw_target", version_get_target(version));
         cJSON_AddBoolToObject(d, "fw_dirty", version_get_dirty_flag(version));
@@ -535,7 +537,8 @@ static Telemetry* telemetry_alloc(void) {
         telemetry_flush_timer_callback,
         FuriEventLoopTimerTypePeriodic,
         instance);
-    furi_event_loop_timer_start(instance->flush_timer, furi_ms_to_ticks(TELEMETRY_FLUSH_INTERVAL_MS));
+    furi_event_loop_timer_start(
+        instance->flush_timer, furi_ms_to_ticks(TELEMETRY_FLUSH_INTERVAL_MS));
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
@@ -548,8 +551,8 @@ static Telemetry* telemetry_alloc(void) {
 
     // Seed connectivity from the current MQTT status (pubsub delivers no initial value).
     const MqttStatus status = mqtt_get_status(instance->mqtt);
-    instance->is_connected =
-        (status == MqttStatusConnectedLinked) || (status == MqttStatusConnectedNotLinked);
+    instance->is_connected = (status == MqttStatusConnectedLinked) ||
+                             (status == MqttStatusConnectedNotLinked);
 
     furi_record_create(RECORD_TELEMETRY, instance);
 

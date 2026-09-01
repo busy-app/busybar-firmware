@@ -382,7 +382,8 @@ static void mqtt_publish_api_message_handler(Mqtt* instance, const MqttApiMessag
         publish->props_count);
 }
 
-static void mqtt_publish_device_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
+static void
+    mqtt_publish_device_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
     furi_assert(instance);
     furi_assert(data);
 
