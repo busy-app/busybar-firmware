@@ -112,14 +112,6 @@ AnimFileBuffer* anim_file_img_initial_buffer(AnimFile* anim) {
     return &img->buffer_a;
 }
 
-static size_t anim_file_img_qoi_hash(uint32_t pixel) {
-    size_t a = (pixel >> 24) & 0xff;
-    size_t r = (pixel >> 16) & 0xff;
-    size_t g = (pixel >> 8) & 0xff;
-    size_t b = pixel & 0xff;
-    return ((r * 3) + (g * 5) + (b * 7) + (a * 11)) % 64;
-}
-
 static bool anim_file_img_step_decode_qoi(
     AnimFile* anim,
     AnimFileBuffer* destination,
@@ -129,24 +121,29 @@ static bool anim_file_img_step_decode_qoi(
     furi_assert(source->content == AnimFileBufferContentFromFile);
     furi_assert(destination);
 
-    // order when viewed as bytes: B, G, R, A
-    // order of bytes in word: A, R, G, B
-
     uint32_t hash_lut[64];
-    uint32_t last_px = 0xff'00'00'00;
     memset(hash_lut, 0, sizeof(hash_lut));
+    uint32_t last_px = 0xff'00'00'00;
 
     size_t max_pixels = destination->max_bytes / ANIM_FILE_OUT_BYTES_PER_PIXEL;
     size_t dest_pixels = 0;
     uint32_t* dest_buf = (uint32_t*)destination->data;
 
+    inline size_t pixel_hash(uint32_t pixel) {
+        size_t a = (pixel >> 24) & 0xff;
+        size_t r = (pixel >> 16) & 0xff;
+        size_t g = (pixel >> 8) & 0xff;
+        size_t b = pixel & 0xff;
+        return ((r * 3) + (g * 5) + (b * 7) + (a * 11)) % 64;
+    }
+
     inline void output_pixel(uint32_t pixel) {
-        hash_lut[anim_file_img_qoi_hash(pixel)] = pixel;
+        hash_lut[pixel_hash(pixel)] = pixel;
         last_px = pixel;
         dest_buf[dest_pixels++] = pixel;
     }
 
-    inline uint8_t add_wrap(uint8_t old, int8_t diff) {
+    inline uint8_t wrapping_add8(uint8_t old, int8_t diff) {
         return (uint8_t)(((int)old + (int)diff) & 0xff);
     }
 
@@ -189,8 +186,8 @@ static bool anim_file_img_step_decode_qoi(
             int8_t db = ((int)tag_payload & 0x3) - 2;
             uint8_t* last_ch = (uint8_t*)&last_px;
             output_pixel(
-                (last_ch[3] << 24) | (add_wrap(last_ch[2], dr) << 16) |
-                (add_wrap(last_ch[1], dg) << 8) | add_wrap(last_ch[0], db));
+                (last_ch[3] << 24) | (wrapping_add8(last_ch[2], dr) << 16) |
+                (wrapping_add8(last_ch[1], dg) << 8) | wrapping_add8(last_ch[0], db));
 
         } else if(short_tag == ANIM_FILE_QOI_SHORT_OP_LUMA) {
             if(remaining_bytes < 1) {
@@ -202,8 +199,8 @@ static bool anim_file_img_step_decode_qoi(
             int8_t db = ((int)payload[0] & 0xf) - 8 + dg;
             uint8_t* last_ch = (uint8_t*)&last_px;
             output_pixel(
-                (last_ch[3] << 24) | (add_wrap(last_ch[2], dr) << 16) |
-                (add_wrap(last_ch[1], dg) << 8) | add_wrap(last_ch[0], db));
+                (last_ch[3] << 24) | (wrapping_add8(last_ch[2], dr) << 16) |
+                (wrapping_add8(last_ch[1], dg) << 8) | wrapping_add8(last_ch[0], db));
             additional_bytes_used = 1;
 
         } else if(short_tag == ANIM_FILE_QOI_SHORT_OP_RUN) {

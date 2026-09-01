@@ -1,38 +1,6 @@
 /**
  * @brief Structures describing the file format
  * 
- * Terminology:
- *   - Display Frame: an image that's displayed on the screen for one frame time
- *   - File Frame: one encoded frame. One file frame might be shown for several
- *     consecutive display frames.
- *   - Section: User-selectable named range of display frame indices.
- *   - Chunk: part of the file. There's a Sections chunk and a Frames chunk.
- * 
- * Visualized buffer types and conversion pipeline:
- * 
- * +---------+  anim_file_img_decode   +--------+   anim_file_img_unpack 
- * | Encoded | ----------------------> | Packed | -----------------------\
- * +---------+                         +--------+                        |
- *  Maybe RLE                      Maybe non-ARGB8888                    |
- *                                                                       |
- * /---------------------------------------------------------------------/
- * |
- * |     +-------+  anim_file_img_cut_part   +--------+  given to application
- * \---> | Sheet | ------------------------> | Cutout | ---------------------->
- *       +-------+                           +--------+
- *      Maybe bigger
- *      than target
- * 
- * Buffer types:
- *   - Cutout buffer: Just the rectangular cutout that the application needs.
- *   - Sheet buffer: Plain Bgra8888 buffer that LVGL accepts directly, but may
- *     be larger, while the application needs just a rectangular part of the
- *     entire picture.
- *   - Packed buffer: Color format other than Bgra8888 (Bgr888 or Gray4). Has to
- *     be converted into Bgra8888 (unpacked).
- *   - Encoded buffer: Either RLE-encoded or plain packed buffer. RLE has to be
- *     decoded into a Packed buffer.
- * 
  * Visualized file layout:
  * 
  * +----------------+
@@ -48,9 +16,13 @@
  * +----------------+-----------------+---------------------+
  * |     Frames     |    File Frame   | AnimFileFrameHeader |
  * |     chunk      |                 +---------------------+
- * |                |                 | Encoded frame data  |
+ * |                |                 | Encoded mask data   |
+ * |                |                 +---------------------+
+ * |                |                 | Encoded pixel data  |
  * |                +-----------------+---------------------+
  * |                |    File Frame   | AnimFileFrameHeader |
+ * |                |                 +---------------------+
+ * |                |                 | Encoded mask data   |
  * |                |                 +---------------------+
  * |                |                 | Encoded frame data  |
  * |                +-----------------+---------------------+
@@ -58,11 +30,10 @@
  * |                +-----------------+---------------------+
  * |                |    File Frame   | AnimFileFrameHeader |
  * |                |                 +---------------------+
+ * |                |                 | Encoded mask data   |
+ * |                |                 +---------------------+
  * |                |                 | Encoded frame data  |
  * +----------------+-----------------+---------------------+
- * 
- * There must always be a section named "default", covering the entire range of
- * Display Frames.
  * 
  * All integers are little-endian.
  */
