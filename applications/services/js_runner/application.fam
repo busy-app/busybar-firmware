@@ -17,6 +17,8 @@ App(
         "js_headers.c",
         "js_request.c",
         "js_local_storage.c",
+        "js_settings.c",
+        "js_input.c",
         "js_util.c",
     ],
 )

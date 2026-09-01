@@ -3,6 +3,10 @@
 #include "js_interval.h"
 #include "js_console.h"
 #include "js_local_storage.h"
+#include "js_settings.h"
+#include "js_input.h"
+
+#include <js_app/js_app_installer.h>
 
 #define TAG "JsRunner"
 
@@ -59,8 +63,16 @@ static bool has_active_interval(JsRunnerAppInterval* instance) {
     return !IntervalDict_empty_p(instance->intervals);
 }
 
+static bool has_active_input(JsRunnerAppInput* instance) {
+    for(size_t i = 0; i < JsInputControlMax; i++) {
+        if(instance->handler_registered[i]) return true;
+    }
+    return false;
+}
+
 static bool app_has_background_tasks(JsRunnerApp* app) {
-    return has_active_interval(&app->interval) || has_active_fetch(&app->fetch);
+    return has_active_interval(&app->interval) || has_active_fetch(&app->fetch) ||
+           has_active_input(&app->input);
 }
 
 void js_runner_app_stop_if_done(JsRunnerApp* app) {
@@ -165,6 +177,7 @@ static void js_runner_app_init(
     js_runner_app_console_init(&app->console, console_out_cb, console_cb_context);
     js_runner_app_interval_init(&app->interval);
     js_runner_app_fetch_init(&app->fetch);
+    js_runner_app_input_init(app);
     furi_event_loop_subscribe_message_queue(
         app->event_loop,
         app->fetch.event_queue,
@@ -184,6 +197,7 @@ static void js_runner_app_deinit(JsRunnerApp* app) {
     furi_event_loop_unsubscribe(app->event_loop, app->command_queue);
     furi_message_queue_free(app->command_queue);
     furi_event_loop_unsubscribe(app->event_loop, app->fetch.event_queue);
+    js_runner_app_input_deinit(app);
     furi_event_loop_free(app->event_loop);
     furi_string_free(app->root_path);
     js_runner_app_interval_deinit(&app->interval);
@@ -328,6 +342,8 @@ JsRunnerError js_runner_run(
         js_setup_interval_methods();
         js_setup_fetch();
         js_setup_local_storage();
+        js_setup_settings();
+        js_setup_input();
 
         FuriString* path_furi = furi_string_alloc_set_str(path);
         FuriString* filename_furi = furi_string_alloc();
@@ -407,6 +423,15 @@ static void abort_intervals(JsRunnerApp* app) {
     }
 }
 
+static void abort_input(JsRunnerApp* app) {
+    for(size_t i = 0; i < JsInputControlMax; i++) {
+        if(app->input.handler_registered[i]) {
+            jerry_value_free(app->input.handlers[i]);
+            app->input.handler_registered[i] = false;
+        }
+    }
+}
+
 static void abort_cmd_handler(JsRunnerApp* app, JsRunnerAppCommandType cmd) {
     furi_check(cmd == JsRunnerAppCommandTypeAbort);
     app_terminate_from_app_thread(app);
@@ -417,6 +442,7 @@ static void app_terminate_from_app_thread(JsRunnerApp* app) {
     app->should_terminate = true;
     abort_fetches(&app->fetch);
     abort_intervals(app);
+    abort_input(app);
 }
 
 static void app_terminate_from_another_thread(JsRunnerApp* app) {
@@ -452,6 +478,10 @@ int32_t js_runner_srv(void* p) {
     UNUSED(p);
 
     FURI_LOG_I(TAG, "Service starting...");
+
+    // Before anything can list or launch an app, put back anything an install
+    // that lost power left half-moved.
+    js_app_installer_recover();
 
     JsRunner* instance = js_runner_alloc();
     furi_event_loop_run(instance->event_loop);

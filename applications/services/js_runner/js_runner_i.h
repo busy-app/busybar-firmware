@@ -31,6 +31,7 @@
 
 #define MIN_INTERVAL_DELAY_MS 10.0f
 #define MAX_FETCH_MESSAGES    32
+#define MAX_INPUT_MESSAGES    16
 #define MAX_COMMAND_MESSAGES  4
 
 #define PTR_HASH(p) ((size_t)(p))
@@ -69,6 +70,21 @@ typedef struct JsRunnerAppFetch {
     FuriMessageQueue* event_queue;
 } JsRunnerAppFetch;
 
+typedef enum JsInputControl {
+    JsInputControlDial,
+    JsInputControlStartPause,
+    JsInputControlOk,
+    JsInputControlMax,
+} JsInputControl;
+
+typedef struct JsRunnerAppInput {
+    FuriMessageQueue* event_queue;
+    FuriPubSub* events;
+    FuriPubSubSubscription* subscription;
+    jerry_value_t handlers[JsInputControlMax];
+    bool handler_registered[JsInputControlMax];
+} JsRunnerAppInput;
+
 typedef enum JsRunnerAppCommandType {
     JsRunnerAppCommandTypeInvalid,
     JsRunnerAppCommandTypeAbort,
@@ -90,6 +106,7 @@ typedef struct JsRunnerApp {
     JsRunnerAppConsole console;
     JsRunnerAppInterval interval;
     JsRunnerAppFetch fetch;
+    JsRunnerAppInput input;
 } JsRunnerApp;
 
 typedef struct JsRunner {
@@ -115,6 +132,10 @@ extern JsRunnerStaticContext js_runner_static_context;
 
 void js_runner_app_stop_if_done(JsRunnerApp* app);
 void js_run_jobs(void);
+
+/** @brief Report an uncaught exception from a callback to the log and to the
+ * app console, so the script author actually sees it. */
+void js_report_uncaught_exception(JsRunnerApp* app, jerry_value_t exception);
 
 /** @brief Allocate Jerryscript context for current thread. This function is used by jerryscript glue.
  *

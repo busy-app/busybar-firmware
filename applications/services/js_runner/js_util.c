@@ -8,6 +8,45 @@ void js_log_exception(const char* tag, const char* msg, jerry_value_t exception)
     furi_string_free(exception_string);
 }
 
+void js_report_uncaught_exception(JsRunnerApp* app, jerry_value_t exception) {
+    static const char uncaught_prefix[] = "Uncaught:";
+    static const char uncaught_generic[] = "Uncaught exception";
+
+    FuriString* exception_string = js_get_exception_string(exception);
+
+    if(exception_string) {
+        FURI_LOG_E(TAG, "%s %s", uncaught_prefix, furi_string_get_cstr(exception_string));
+    } else {
+        FURI_LOG_E(TAG, "%s", uncaught_generic);
+    }
+
+    if(app->console.callback) {
+        if(exception_string) {
+            app->console.callback(
+                JsRunnerConsoleSeverityError,
+                uncaught_prefix,
+                strlen(uncaught_prefix),
+                JsRunnerConsoleSeparatorSpace,
+                app->console.callback_context);
+            app->console.callback(
+                JsRunnerConsoleSeverityError,
+                furi_string_get_cstr(exception_string),
+                furi_string_size(exception_string),
+                JsRunnerConsoleSeparatorNewline,
+                app->console.callback_context);
+        } else {
+            app->console.callback(
+                JsRunnerConsoleSeverityError,
+                uncaught_generic,
+                strlen(uncaught_generic),
+                JsRunnerConsoleSeparatorNewline,
+                app->console.callback_context);
+        }
+    }
+
+    if(exception_string) furi_string_free(exception_string);
+}
+
 void js_check_and_free(jerry_value_t val) {
     if(jerry_value_is_exception(val)) {
         js_log_exception(TAG, "check-and-free", val);
