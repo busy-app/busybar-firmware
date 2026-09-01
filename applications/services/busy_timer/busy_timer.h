@@ -27,7 +27,8 @@ typedef enum {
  * @brief Source of a timer session start.
  */
 typedef enum {
-    BusyTimerSessionSourceUnknown = 0, /**< Session restored from saved state at boot (or not tracked) */
+    BusyTimerSessionSourceUnknown =
+        0, /**< Session restored from saved state at boot (or not tracked) */
     BusyTimerSessionSourceDevice, /**< Started from the device UI */
     BusyTimerSessionSourceHttpApi, /**< Started via the HTTP API (local web / companions) */
     BusyTimerSessionSourceIntegrationMatter, /**< Started via the Matter integration */
@@ -133,7 +134,10 @@ typedef struct {
 
 FuriPubSub* busy_timer_get_pubsub(const BusyTimer* instance);
 
-void busy_timer_start(BusyTimer* instance, BusyTimerProfileId profile_id, BusyTimerSessionSource source);
+void busy_timer_start(
+    BusyTimer* instance,
+    BusyTimerProfileId profile_id,
+    BusyTimerSessionSource source);
 
 void busy_timer_stop(BusyTimer* instance);
 

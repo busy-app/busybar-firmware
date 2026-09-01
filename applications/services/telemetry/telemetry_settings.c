@@ -37,8 +37,8 @@ static_assert(COUNT_OF(telemetry_settings_v1) == TelemetrySettingsV1IdxMax);
 void telemetry_settings_load(TelemetrySettings* settings) {
     furi_assert(settings);
 
-    SettingProvider* provider = setting_provider_alloc(
-        TELEMETRY_SETTINGS_FILE_PATH, TELEMETRY_SETTINGS_VERSION, NULL, 0);
+    SettingProvider* provider =
+        setting_provider_alloc(TELEMETRY_SETTINGS_FILE_PATH, TELEMETRY_SETTINGS_VERSION, NULL, 0);
     setting_provider_load(provider, &telemetry_settings_v1_root, settings);
     setting_provider_free(provider);
 }
@@ -46,8 +46,8 @@ void telemetry_settings_load(TelemetrySettings* settings) {
 void telemetry_settings_save(const TelemetrySettings* settings) {
     furi_assert(settings);
 
-    SettingProvider* provider = setting_provider_alloc(
-        TELEMETRY_SETTINGS_FILE_PATH, TELEMETRY_SETTINGS_VERSION, NULL, 0);
+    SettingProvider* provider =
+        setting_provider_alloc(TELEMETRY_SETTINGS_FILE_PATH, TELEMETRY_SETTINGS_VERSION, NULL, 0);
     setting_provider_save(provider, &telemetry_settings_v1_root, settings);
     setting_provider_free(provider);
 }

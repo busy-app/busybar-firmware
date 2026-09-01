@@ -65,8 +65,8 @@ static void system_settings_scene_telemetry_on_enter(void* context) {
         scene_manager_get_scene_data(instance->scene_manager, SceneIdTelemetry);
 
     Telemetry* telemetry = furi_record_open(RECORD_TELEMETRY);
-    data->telemetry_enabled =
-        telemetry_is_enabled(telemetry) ? TelemetryStateOn : TelemetryStateOff;
+    data->telemetry_enabled = telemetry_is_enabled(telemetry) ? TelemetryStateOn :
+                                                                TelemetryStateOff;
     furi_record_close(RECORD_TELEMETRY);
 
     with_gui(instance->gui, {
