@@ -90,6 +90,17 @@ Color color_hexa_to_rgb(uint32_t hexa) {
     return rgb;
 }
 
+bool color_parse_hex_string(const char* hex, Color* color_out) {
+    if(strlen(hex) != strlen("#RRGGBB")) return false;
+    hex++;
+
+    uint32_t hex_int;
+    if(strint_to_uint32(hex, NULL, &hex_int, 16) != StrintParseNoError) return false;
+
+    *color_out = color_hex_to_rgb(hex_int);
+    return true;
+}
+
 bool color_parse_hexa_string(const char* hexa, Color* color_out) {
     if(strlen(hexa) != strlen("#RRGGBBAA")) return false;
     hexa++;
