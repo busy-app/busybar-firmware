@@ -10,11 +10,19 @@
 #include <lwip/netif.h>
 
 #include <intercom/intercom.h>
+#include <device_name/device_name.h>
 
 #define TAG "WifiSrv"
 
 typedef enum {
-    WifiEventRequest = 1UL << 0,
+    WifiEventTypeDeviceNameInfo,
+} WifiEventType;
+
+typedef struct {
+    WifiEventType type;
+    union {
+        DeviceNameInfo device_name_info;
+    };
 } WifiEvent;
 
 typedef struct {
@@ -34,6 +42,7 @@ typedef struct {
 
 typedef struct {
     WifiRequestType request_type;
+    bool is_priority;
     WifiStatus* status;
     union {
         WifiConnectMessage connect_message;
@@ -45,37 +54,38 @@ typedef struct {
 
 struct Wifi {
     FuriEventLoop* event_loop;
+    FuriMessageQueue* api_queue;
+    FuriMessageQueue* event_queue;
+    FuriMessageQueue* priority_queue;
     FuriMessageQueue* response_queue;
-    FuriMessageQueue* override_queue;
-    FuriSemaphore* api_semaphore;
     FuriSemaphore* dhcp_semaphore;
     FuriState* state;
     Intercom* intercom;
     IntercomChannel* intercom_ch_control;
     IntercomChannel* intercom_ch_data;
-    FuriString* dhcp_hostname;
+    FuriString* hostname;
     struct netif netif;
     WifiMessage api_message;
     WifiRequest request;
+    bool is_processing;
 };
 
+// Deferred actions
+void wifi_pending_request_callback(void* context);
+
 // API management
-bool wifi_api_is_locked(Wifi* instance);
-
-bool wifi_api_try_lock(Wifi* instance);
-
 void wifi_api_unlock(Wifi* instance, WifiStatus status);
-
-void wifi_api_unlock_pending_request(Wifi* instance, WifiStatus status);
 
 // Internal nonblocking API calls
 void wifi_schedule_init_request(Wifi* instance);
+
+void wifi_schedule_deinit_request(Wifi* instance);
 
 void wifi_schedule_connect_request(Wifi* instance, const WifiSettings* settings);
 
 void wifi_schedule_disconnect_request(Wifi* instance);
 
-void wifi_schedule_deinit_request(Wifi* instance);
+void wifi_send_device_name_info_event(Wifi* instance, const DeviceNameInfo* device_name_state);
 
 // Network management
 void wifi_net_init(Wifi* instance, const uint8_t* hw_addr);
@@ -85,6 +95,8 @@ bool wifi_net_up(Wifi* instance, const WifiIpConfig* ip_config);
 void wifi_net_down(Wifi* instance);
 
 void wifi_net_get_ip_config(Wifi* instance, WifiIpConfig* ip_config);
+
+void wifi_net_set_hostname(Wifi* instance, const char* hostname);
 
 // Power management
 void wifi_power_init(Wifi* instance);

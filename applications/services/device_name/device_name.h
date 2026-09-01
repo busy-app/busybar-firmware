@@ -12,7 +12,8 @@
  */
 #pragma once
 
-#include <furi.h>
+#include <core/string.h>
+#include <core/state.h>
 
 #include "device_name_common.h"
 
@@ -20,6 +21,9 @@
 extern "C" {
 #endif
 
+/**
+ * @brief The string key for DeviceName instance access.
+ */
 #define RECORD_DEVICE_NAME "device_name"
 
 /**
@@ -28,6 +32,13 @@ extern "C" {
  * Get the instance pointer by calling `furi_record_open(RECORD_DEVICE_NAME);`
  */
 typedef struct DeviceName DeviceName;
+
+/**
+ * @brief DeviceName information structure.
+ */
+typedef struct {
+    char name[DEVICE_NAME_MAX_SIZE]; /**< Current device name */
+} DeviceNameInfo;
 
 /**
  * @brief Validation status returned by device_name_set().
@@ -41,24 +52,6 @@ typedef enum {
     DeviceNameErrorSaveFailed, /**< Failed to save new name */
     DeviceNameErrorMax, /**< Special value, internal use */
 } DeviceNameError;
-
-/**
- * @brief Device name event type (published via FuriPubSub on rename)
- */
-typedef enum {
-    DeviceNameEventTypeNameChanged,
-} DeviceNameEventType;
-
-typedef struct {
-    const char* name;
-} DeviceNameEventNameChanged;
-
-typedef struct {
-    DeviceNameEventType type;
-    union {
-        DeviceNameEventNameChanged name_changed;
-    };
-} DeviceNameEvent;
 
 /**
  * @brief Get current device name
@@ -78,18 +71,17 @@ void device_name_get(DeviceName* instance, FuriString* name);
  * @param[in] name New device name to set
  * @return DeviceNameErrorNone on success, error otherwise
  */
-DeviceNameError device_name_set(DeviceName* instance, const FuriString* name);
+DeviceNameError device_name_set(DeviceName* instance, const char* name);
 
 /**
- * @brief Get PubSub instance which indicates that name was changed
-
- * Use furi_pubsub_subscribe() to subscribe to the Device Name service events.
- * The delivered events will be of type DeviceNameEvent.
+ * @brief Get the DeviceName state object.
+ *
+ * The return value will be of @ref DeviceNameInfo underlying type.
  *
  * @param[in] instance Device name service instance
- * @returns pubsub instance available for subscription
+ * @returns pointer to the state object
  */
-FuriPubSub* device_name_get_pubsub(DeviceName* instance);
+FuriState* device_name_get_state(const DeviceName* instance);
 
 #ifdef __cplusplus
 }

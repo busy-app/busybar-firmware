@@ -121,8 +121,6 @@ void wifi_net_init(Wifi* instance, const uint8_t* hw_addr) {
     netif->hwaddr_len = ETH_HWADDR_LEN;
     memcpy(netif->hwaddr, hw_addr, ETH_HWADDR_LEN);
 
-    netif->hostname = furi_string_get_cstr(instance->dhcp_hostname);
-
     UNLOCK_TCPIP_CORE();
 
     instance->intercom_ch_data = intercom_channel_open(
@@ -194,6 +192,8 @@ void wifi_net_down(Wifi* instance) {
 void wifi_net_get_ip_config(Wifi* instance, WifiIpConfig* ip_config) {
     const struct netif* netif = &instance->netif;
 
+    LOCK_TCPIP_CORE();
+
     ip_config->type = WifiIpTypeV4;
     ip_config->mgmt = dhcp_supplied_address(netif) ? WifiIpManagementDynamic :
                                                      WifiIpManagementStatic;
@@ -203,4 +203,24 @@ void wifi_net_get_ip_config(Wifi* instance, WifiIpConfig* ip_config) {
     ip4->mask.value = netif->netmask.addr;
     ip4->gateway.value = netif->gw.addr;
     ip4->dns.value = dns_getserver(DNS_PRIMARY_SERVER_INDEX)->addr;
+
+    UNLOCK_TCPIP_CORE();
+}
+
+void wifi_net_set_hostname(Wifi* instance, const char* hostname) {
+    struct netif* netif = &instance->netif;
+
+    LOCK_TCPIP_CORE();
+
+    if(strncmp(hostname, DEVICE_NAME_DEFAULT, DEVICE_NAME_MAX_LENGTH) == 0) {
+        furi_string_set(instance->hostname, DEVICE_NAME_DEFAULT);
+    } else {
+        furi_string_printf(instance->hostname, "%s %s", DEVICE_NAME_DEFAULT, hostname);
+    }
+
+    netif->hostname = furi_string_get_cstr(instance->hostname);
+    // Retransmit new DHCP hostname (if applicable)
+    dhcp_network_changed_link_up(netif);
+
+    UNLOCK_TCPIP_CORE();
 }
