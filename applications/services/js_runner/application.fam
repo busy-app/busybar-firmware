@@ -16,6 +16,7 @@ App(
         "js_fetch_body_methods.c",
         "js_headers.c",
         "js_request.c",
+        "js_local_storage.c",
         "js_util.c",
     ],
 )

@@ -181,3 +181,22 @@ jerry_value_t js_rejected_promise_from_exception(jerry_value_t exception) {
     jerry_value_free(exception);
     return ret;
 }
+
+jerry_value_t js_utf8_string(const FuriString* s) {
+    return jerry_string(
+        (const jerry_char_t*)furi_string_get_cstr(s), furi_string_size(s), JERRY_ENCODING_UTF8);
+}
+
+bool js_value_to_integer(jerry_value_t value, int* result) {
+    jerry_value_t num = jerry_value_to_number(value);
+    bool ok = false;
+    if(jerry_value_is_number(num)) {
+        double d = jerry_value_as_number(num);
+        if(isfinite(d) && d < (double)INT_MAX && d > (double)INT_MIN) {
+            *result = (int)d;
+            ok = true;
+        }
+    }
+    jerry_value_free(num);
+    return ok;
+}

@@ -3,6 +3,8 @@
 #include <storage/storage.h>
 #include <string.h>
 
+#define APP_ID "app.busy.js_test"
+
 #define SCRIPT_FILE UNIT_TESTS_PATH("test.js")
 
 #define MODULE1_FILE UNIT_TESTS_PATH("mod1.js")
@@ -63,11 +65,63 @@ MU_TEST(js_tests_console) {
     char buf[64] = {0};
 
     mu_assert_int_eq(
-        JsRunnerErrorNone, js_runner_run(js_runner, SCRIPT_FILE, 4096, js_console_cb, buf));
+        JsRunnerErrorNone,
+        js_runner_run(js_runner, APP_ID, SCRIPT_FILE, 4096, js_console_cb, buf));
 
     mu_assert_string_eq("flipppper\n", buf);
 
     furi_record_close(RECORD_JS_RUNNER);
+}
+
+MU_TEST(js_tests_local_storage) {
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+    mu_check(create_file(
+        storage,
+        SCRIPT_FILE,
+        "localStorage.clear();"
+        "localStorage.setItem('hello', 'world');"
+        "localStorage.setItem('storage', 'test');"
+        "let ok = true;"
+        "ok = ok && localStorage.length === 2;"
+        "ok = ok && localStorage.getItem('hello') === 'world';"
+        "ok = ok && localStorage.getItem('storage') === 'test';"
+        "ok = ok && localStorage.key(0) !== null;"
+        "ok = ok && localStorage.key(1) !== null;"
+        "ok = ok && localStorage.key(2) === null;"
+        "if(ok) { console.log('OK'); }"));
+
+    JsRunner* js_runner = furi_record_open(RECORD_JS_RUNNER);
+    char buf[64] = {0};
+
+    mu_assert_int_eq(
+        JsRunnerErrorNone,
+        js_runner_run(js_runner, APP_ID, SCRIPT_FILE, 4096, js_console_cb, buf));
+
+    mu_assert_string_eq("OK\n", buf);
+
+    buf[0] = 0;
+
+    mu_check(create_file(
+        storage,
+        SCRIPT_FILE,
+        "let ok = true;"
+        "ok = ok && localStorage.length === 2;"
+        "ok = ok && localStorage.getItem('hello') === 'world';"
+        "ok = ok && localStorage.getItem('storage') === 'test';"
+        "localStorage.removeItem('storage');"
+        "ok = ok && localStorage.length === 1;"
+        "ok = ok && localStorage.getItem('hello') === 'world';"
+        "ok = ok && localStorage.getItem('storage') === null;"
+        "if(ok) { console.log('OK'); }"));
+
+    mu_assert_int_eq(
+        JsRunnerErrorNone,
+        js_runner_run(js_runner, APP_ID, SCRIPT_FILE, 4096, js_console_cb, buf));
+
+    mu_assert_string_eq("OK\n", buf);
+
+    furi_record_close(RECORD_JS_RUNNER);
+    furi_record_close(RECORD_STORAGE);
 }
 
 MU_TEST(js_tests_modules) {
@@ -83,7 +137,8 @@ MU_TEST(js_tests_modules) {
     char buf[64] = {0};
 
     mu_assert_int_eq(
-        JsRunnerErrorNone, js_runner_run(js_runner, MODULE1_FILE, 4096, js_console_cb, buf));
+        JsRunnerErrorNone,
+        js_runner_run(js_runner, APP_ID, MODULE1_FILE, 4096, js_console_cb, buf));
 
     mu_assert_string_eq("module\nflipper\n", buf);
 
@@ -108,7 +163,7 @@ static void interval_test_js_console_cb(
 static int32_t set_interval_thread_cb(void* context) {
     JsRunner* js_runner = furi_record_open(RECORD_JS_RUNNER);
     JsRunnerError error =
-        js_runner_run(js_runner, SCRIPT_FILE, 4096, interval_test_js_console_cb, context);
+        js_runner_run(js_runner, APP_ID, SCRIPT_FILE, 4096, interval_test_js_console_cb, context);
     furi_record_close(RECORD_JS_RUNNER);
     FURI_LOG_D("JsTest", "run returned %d", error);
     return error;
@@ -179,6 +234,7 @@ MU_TEST_SUITE(js_test_suite) {
     MU_RUN_TEST(js_tests_console);
     MU_RUN_TEST(js_tests_modules);
     MU_RUN_TEST(js_tests_set_interval);
+    MU_RUN_TEST(js_tests_local_storage);
 }
 
 int run_minunit_js_test(void) {

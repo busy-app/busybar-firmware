@@ -103,7 +103,7 @@
 #define LWIP_MIB2_CALLBACKS                    0
 #define LWIP_MULTICAST_TX_OPTIONS              ((LWIP_IGMP || LWIP_IPV6_MLD) && (LWIP_UDP || LWIP_RAW))
 #define LWIP_IGMP                              1
-#define LWIP_DNS                               0
+#define LWIP_DNS                               1
 #define DNS_TABLE_SIZE                         16
 #define DNS_MAX_NAME_LENGTH                    256
 #define DNS_MAX_SERVERS                        4

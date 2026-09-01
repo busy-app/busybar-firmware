@@ -164,7 +164,8 @@
         "cli",
         "upload_resources",
         "u5_updater",
-        "provisioning"
+        "provisioning",
+        "update_cacert"
     ],
     "extra_target_meta": {
         "debug_tags": [

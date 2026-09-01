@@ -4,17 +4,38 @@
 
 #define TAG "LightSensorTest"
 
+#define LIGHT_SENSOR_TEST_QUEUE_TIMEOUT_TICK (10)
+
 static void light_sensor_test_app_update(LightSensorTestApp* instance) {
+    const LightSensorState* light_sensor_state = &instance->light_sensor_state;
+
     with_gui(instance->gui, {
         // Back screen
         label_set_text_fmt(instance->label_light_raw_600nm, "600nm: %d", instance->raw_600nm);
         label_set_text_fmt(instance->label_light_raw_840nm, "840nm: %d", instance->raw_840nm);
         label_set_text_fmt(
-            instance->label_lux_instant, "Lux instant: %.2f", instance->lux_instant);
-        label_set_text_fmt(instance->label_lux_mean, "Lux mean: %.2f", instance->lux_mean);
+            instance->label_lux_instant, "Lux instant: %.2f", light_sensor_state->lux.instant);
         label_set_text_fmt(
-            instance->label_light_level, "Light level: %d", instance->light_level.val);
+            instance->label_lux_mean, "Lux mean: %.2f", light_sensor_state->lux.mean);
+        label_set_text_fmt(
+            instance->label_light_level, "Light level: %hhu", light_sensor_state->level.val);
     });
+}
+
+static bool light_sensor_test_app_send_event(
+    LightSensorTestApp* instance,
+    const LightSensorTestAppEvent* event) {
+    bool success = true;
+
+    const FuriStatus status =
+        furi_message_queue_put(instance->event_queue, event, LIGHT_SENSOR_TEST_QUEUE_TIMEOUT_TICK);
+
+    if(status != FuriStatusOk) {
+        furi_check(status == FuriStatusErrorTimeout);
+        success = false;
+    }
+
+    return success;
 }
 
 static bool ligh_sensor_test_app_input_callback(const InputEvent* event, void* context) {
@@ -30,9 +51,10 @@ static bool ligh_sensor_test_app_input_callback(const InputEvent* event, void* c
         const LightSensorTestAppEvent app_event = {
             .type = LightSensorTestAppEventExit,
         };
-        furi_check(
-            furi_message_queue_put(instance->event_queue, &app_event, FuriWaitForever) ==
-            FuriStatusOk);
+
+        if(!light_sensor_test_app_send_event(instance, &app_event)) {
+            FURI_LOG_W(TAG, "Input event dropped");
+        }
     }
 
     return consumed;
@@ -47,7 +69,7 @@ static void
     furi_check(furi_message_queue_get(instance->event_queue, &event, 0) == FuriStatusOk);
 
     if(event.type == LightSensorTestAppEventLightLevelUpdate) {
-        instance->light_level = event.light_level;
+        instance->light_sensor_state = event.lighth_sensor_state;
         light_sensor_test_app_update(instance);
     } else if(event.type == LightSensorTestAppEventExit) {
         furi_event_loop_stop(instance->event_loop);
@@ -55,10 +77,9 @@ static void
 }
 
 static void light_sensor_test_app_get_measurements(LightSensorTestApp* instance) {
-    instance->lux_instant = light_sensor_get_lux_instant();
-    instance->lux_mean = light_sensor_get_lux();
-    light_sensor_get_raw_data(LightSensorLightWavelength600nm, &instance->raw_600nm);
-    light_sensor_get_raw_data(LightSensorLightWavelength840nm, &instance->raw_840nm);
+    LightSensor* light_sensor = instance->light_sensor;
+    light_sensor_get_raw_data(light_sensor, LightSensorLightWavelength600nm, &instance->raw_600nm);
+    light_sensor_get_raw_data(light_sensor, LightSensorLightWavelength840nm, &instance->raw_840nm);
 }
 
 static void light_sensor_test_app_timer_callback(void* context) {
@@ -68,20 +89,21 @@ static void light_sensor_test_app_timer_callback(void* context) {
     light_sensor_test_app_update(instance);
 }
 
-static void light_sensor_test_app_light_sensor_callback(const void* message, void* context) {
-    furi_assert(message);
+static void light_sensor_test_app_light_sensor_callback(const void* item, void* context) {
+    furi_assert(item);
     furi_assert(context);
 
     LightSensorTestApp* instance = context;
-    const LightSensorEvent* event = message;
-    LightSensorTestAppEvent app_event = {
+    const LightSensorState* light_sensor_state = item;
+
+    const LightSensorTestAppEvent app_event = {
         .type = LightSensorTestAppEventLightLevelUpdate,
-        .light_level = event->light_level,
+        .lighth_sensor_state = *light_sensor_state,
     };
 
-    furi_check(
-        furi_message_queue_put(instance->event_queue, &app_event, FuriWaitForever) ==
-        FuriStatusOk);
+    if(!light_sensor_test_app_send_event(instance, &app_event)) {
+        FURI_LOG_W(TAG, "Light sensor event dropped");
+    }
 }
 
 static LightSensorTestApp* light_sensor_test_app_alloc(void) {
@@ -101,12 +123,11 @@ static LightSensorTestApp* light_sensor_test_app_alloc(void) {
         FuriEventLoopTimerTypePeriodic,
         instance);
 
-    // Not optimal for this app, just for testing pubsub events from service
-    instance->light_sensor_events = furi_record_open(RECORD_LIGHT_SENSOR_EVENTS);
-    // To check light level changes in pubsub, receive further light level value from events
-    instance->light_level = light_sensor_get_light_level();
-    instance->light_sensor_subscription = furi_pubsub_subscribe(
-        instance->light_sensor_events, light_sensor_test_app_light_sensor_callback, instance);
+    instance->light_sensor = furi_record_open(RECORD_LIGHT_SENSOR);
+    instance->light_sensor_events = furi_state_subscribe(
+        light_sensor_get_state(instance->light_sensor),
+        light_sensor_test_app_light_sensor_callback,
+        instance);
 
     instance->gui = furi_record_open(RECORD_GUI);
 
@@ -149,8 +170,8 @@ static void light_sensor_test_app_free(LightSensorTestApp* instance) {
 
     furi_record_close(RECORD_GUI);
 
-    furi_pubsub_unsubscribe(instance->light_sensor_events, instance->light_sensor_subscription);
-    furi_record_close(RECORD_LIGHT_SENSOR_EVENTS);
+    furi_state_unsubscribe(instance->light_sensor_events);
+    furi_record_close(RECORD_LIGHT_SENSOR);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
     furi_message_queue_free(instance->event_queue);
