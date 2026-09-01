@@ -14,6 +14,7 @@ void anim_file_img_init(AnimFile* anim, uint8_t* cutout_buffer, size_t width, si
 
     if(!img->buffer_a.data) {
         furi_assert(!img->buffer_b.data);
+        furi_assert(!img->buffer_persistent.data);
         size_t pixels = (file_hdr->width + ANIM_FILE_BUFFER_MARGIN) *
                         (file_hdr->height + ANIM_FILE_BUFFER_MARGIN);
         size_t bytes = pixels * ANIM_FILE_OUT_BYTES_PER_PIXEL;
@@ -46,6 +47,7 @@ void anim_file_img_init(AnimFile* anim, uint8_t* cutout_buffer, size_t width, si
         .filled_bytes = 0,
         .content = AnimFileBufferContentUninitialized,
     };
+    img->force_cut_operation = true;
 
     anim_file_img_set_cutout(anim, 0, 0);
 }
@@ -94,6 +96,7 @@ static bool anim_file_img_cutout_operation_requested(AnimFile* anim) {
     AnimFileImg* img = &anim->img;
     AnimFileInfo* info = &anim->meta.info;
 
+    if(img->force_cut_operation) return true;
     if(!dsp_2d_kernel_is_identity(ANIM_FILE_IMG_KERNEL_SZ, img->cutout_kernel)) return true;
     if(img->cutout_w != info->width) return true;
     if(img->cutout_h != info->height) return true;
@@ -160,8 +163,6 @@ static bool anim_file_img_step_decode_qoi(
         uint8_t tag_payload = tag & ~ANIM_FILE_QOI_SHORT_TAG_MASK;
         uint8_t* payload = &source->data[i + 1];
 
-        // FURI_LOG_D(TAG, "%p  i=%zu  tag=%hhu %08b", anim, i, tag, tag);
-
         if(tag == ANIM_FILE_QOI_OP_RGB) {
             if(remaining_bytes < 3) {
                 ANIM_FILE_ERR("QOI_OP_RGB source overrun");
@@ -180,7 +181,6 @@ static bool anim_file_img_step_decode_qoi(
             additional_bytes_used = 4;
 
         } else if(short_tag == ANIM_FILE_QOI_SHORT_OP_INDEX) {
-            // FURI_LOG_D(TAG, "%p  i=%hhu  val=%08lx", anim, tag_payload, hash_lut[tag_payload]);
             output_pixel(hash_lut[tag_payload]);
 
         } else if(short_tag == ANIM_FILE_QOI_SHORT_OP_DIFF) {
@@ -200,9 +200,7 @@ static bool anim_file_img_step_decode_qoi(
             int8_t dg = ((int)tag_payload & 0x3f) - 32;
             int8_t dr = (((int)payload[0] >> 4) & 0xf) - 8 + dg;
             int8_t db = ((int)payload[0] & 0xf) - 8 + dg;
-            // FURI_LOG_D(TAG, "%p  g=%d  r=%d  b=%d", anim, (int)dg, (int)dr, (int)db);
             uint8_t* last_ch = (uint8_t*)&last_px;
-            // FURI_LOG_D(TAG, "%p  last=%08lx  new=%08x", anim, last_px, (last_ch[3] << 24) | (add_wrap(last_ch[2], dr) << 16) | (add_wrap(last_ch[1], dg) << 8) | add_wrap(last_ch[0], db));
             output_pixel(
                 (last_ch[3] << 24) | (add_wrap(last_ch[2], dr) << 16) |
                 (add_wrap(last_ch[1], dg) << 8) | add_wrap(last_ch[0], db));
@@ -331,11 +329,17 @@ static AnimFileBuffer* anim_file_img_step_disperse(
     furi_assert(source->content == AnimFileBufferContentFullColor);
     AnimFileImg* img = &anim->img;
 
-    AnimFileBuffer* destination = &img->buffer_persistent;
+    bool cutout_requested = anim_file_img_cutout_operation_requested(anim);
+    bool margin_needed = cutout_requested;
+
+    AnimFileBuffer* destination = cutout_requested ? &img->buffer_persistent : &img->buffer_cutout;
 
     size_t half_margin = ANIM_FILE_BUFFER_MARGIN / 2;
     size_t w_with_margin = anim->meta.info.width + ANIM_FILE_BUFFER_MARGIN;
     size_t h_with_margin = anim->meta.info.height + ANIM_FILE_BUFFER_MARGIN;
+
+    size_t effective_w = margin_needed ? w_with_margin : anim->meta.info.width;
+    size_t effective_h = margin_needed ? h_with_margin : anim->meta.info.height;
 
     uint32_t* src_pixel = (uint32_t*)&source->data[0];
     size_t src_pixels_left = source->filled_bytes / ANIM_FILE_OUT_BYTES_PER_PIXEL;
@@ -350,11 +354,13 @@ static AnimFileBuffer* anim_file_img_step_disperse(
     void place_pixels(AnimFileMaskPixelRange range, void* context) {
         UNUSED(context);
 
-        range.y += half_margin;
-        range.x_start += half_margin;
-        range.x_end += half_margin;
+        if(margin_needed) {
+            range.y += half_margin;
+            range.x_start += half_margin;
+            range.x_end += half_margin;
+        }
 
-        size_t start_idx = (range.y * w_with_margin) + range.x_start;
+        size_t start_idx = (range.y * effective_w) + range.x_start;
         uint32_t* dst_start = (uint32_t*)(destination->data + (start_idx * sizeof(uint32_t)));
 
         size_t wanted_pixel_cnt = range.x_end - range.x_start;
@@ -384,8 +390,9 @@ static AnimFileBuffer* anim_file_img_step_disperse(
         return NULL;
     }
 
-    destination->content = AnimFileBufferContentDispersed;
-    destination->filled_bytes = w_with_margin * h_with_margin * ANIM_FILE_OUT_BYTES_PER_PIXEL;
+    destination->content = cutout_requested ? AnimFileBufferContentDispersed :
+                                              AnimFileBufferContentCut;
+    destination->filled_bytes = effective_w * effective_h * ANIM_FILE_OUT_BYTES_PER_PIXEL;
     return destination;
 }
 
@@ -396,6 +403,12 @@ static AnimFileBuffer* anim_file_img_step_cut(
     furi_assert(anim);
     furi_assert(frame_hdr);
     furi_assert(source);
+
+    if(!anim_file_img_cutout_operation_requested(anim)) {
+        furi_assert(source->content == AnimFileBufferContentCut);
+        return source;
+    }
+
     furi_assert(source->content == AnimFileBufferContentDispersed);
     AnimFileImg* img = &anim->img;
 
@@ -409,36 +422,27 @@ static AnimFileBuffer* anim_file_img_step_cut(
     furi_assert(
         source->filled_bytes == w_with_margin * h_with_margin * ANIM_FILE_OUT_BYTES_PER_PIXEL);
 
-    if(anim_file_img_cutout_operation_requested(anim)) {
-        dsp_2d_kernel_apply(
-            ANIM_FILE_IMG_KERNEL_SZ,
-            (const float*)img->cutout_kernel,
-            (DspImageBuffer){
-                .first_pixel = (uint8_t*)&((uint32_t*)source->data)[w_with_margin + half_margin],
-                .width = info->width,
-                .stride = w_with_margin,
-                .height = info->height,
-                .channels = ANIM_FILE_OUT_BYTES_PER_PIXEL,
-            },
-            (DspImageBuffer){
-                .first_pixel = destination->data,
-                .width = img->cutout_w,
-                .stride = img->cutout_w,
-                .height = img->cutout_h,
-                .channels = ANIM_FILE_OUT_BYTES_PER_PIXEL,
-            },
-            img->cutout_x,
-            img->cutout_y);
+    dsp_2d_kernel_apply(
+        ANIM_FILE_IMG_KERNEL_SZ,
+        (const float*)img->cutout_kernel,
+        (DspImageBuffer){
+            .first_pixel = (uint8_t*)&((uint32_t*)source->data)[w_with_margin + half_margin],
+            .width = info->width,
+            .stride = w_with_margin,
+            .height = info->height,
+            .channels = ANIM_FILE_OUT_BYTES_PER_PIXEL,
+        },
+        (DspImageBuffer){
+            .first_pixel = destination->data,
+            .width = img->cutout_w,
+            .stride = img->cutout_w,
+            .height = img->cutout_h,
+            .channels = ANIM_FILE_OUT_BYTES_PER_PIXEL,
+        },
+        img->cutout_x,
+        img->cutout_y);
 
-    } else {
-        for(size_t y = 0; y < info->height; y++) {
-            uint32_t* src =
-                (uint32_t*)source->data + ((y + half_margin) * w_with_margin) + half_margin;
-            uint32_t* dst = (uint32_t*)destination->data + (y * info->width);
-            memcpy(dst, src, info->width * sizeof(uint32_t));
-        }
-    }
-
+    img->force_cut_operation = false;
     destination->content = AnimFileBufferContentCut;
     destination->filled_bytes = info->width * info->height * ANIM_FILE_OUT_BYTES_PER_PIXEL;
     return destination;
@@ -478,6 +482,9 @@ bool anim_file_img_full_decode(AnimFile* anim, const AnimFileFrameHeader* frame_
     };
 
     AnimFileBuffer* buffer = anim_file_img_initial_buffer(anim);
+#ifdef ANIM_FILE_SHOW_PIPELINE
+    FuriString* pipeline = furi_string_alloc();
+#endif
 
     for(size_t i = 0; i < COUNT_OF(steps); i++) {
         const AnimFileImgPipelineStep* step = &steps[i];
@@ -486,7 +493,18 @@ bool anim_file_img_full_decode(AnimFile* anim, const AnimFileFrameHeader* frame_
         profiler_start(anim->profiler, step->name);
 #endif
 
+        AnimFileBuffer* input_buffer = buffer;
         buffer = step->perform(anim, frame_hdr, buffer);
+
+#ifdef ANIM_FILE_SHOW_PIPELINE
+        if(buffer == input_buffer) {
+            furi_string_cat_printf(pipeline, "[-%s-] -> ", step->name);
+        } else {
+            furi_string_cat_printf(pipeline, "%s -> ", step->name);
+        }
+#else
+        UNUSED(input_buffer);
+#endif
 
 #ifdef ANIM_FILE_PROFILE_PERFORMANCE
         profiler_stop(anim->profiler, step->name);
@@ -494,6 +512,11 @@ bool anim_file_img_full_decode(AnimFile* anim, const AnimFileFrameHeader* frame_
 
         if(!buffer) return false;
     }
+
+#ifdef ANIM_FILE_SHOW_PIPELINE
+    FURI_LOG_D(TAG, "%s", furi_string_get_cstr(pipeline));
+    furi_string_free(pipeline);
+#endif
 
     furi_assert(buffer == &img->buffer_cutout);
     furi_assert(buffer->content == AnimFileBufferContentCut);
