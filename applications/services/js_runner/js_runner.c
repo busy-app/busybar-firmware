@@ -250,6 +250,19 @@ static void js_runner_app_set_root_path(JsRunnerApp* app, const char* script_pat
     }
 }
 
+void js_runner_byte_array_destructor(void* object, void* user_p) {
+    UNUSED(object);
+    JsRunnerByteArrayDestructor* destructor = user_p;
+    ByteArray_clear(*destructor->byte_array);
+    free(destructor->byte_array);
+    free(destructor);
+}
+
+void js_runner_heap_destructor(void* object, void* user_p) {
+    UNUSED(user_p);
+    free(object);
+}
+
 static void arraybuffer_free_callback(
     jerry_arraybuffer_type_t buffer_type,
     uint8_t* buffer_p,
@@ -261,11 +274,8 @@ static void arraybuffer_free_callback(
     UNUSED(user_p);
     JS_TRACE("free arraybuffer");
     if(arraybuffer_user_p) {
-        ByteArray_t* array = arraybuffer_user_p;
-        ByteArray_clear(*array);
-        free(array);
-    } else {
-        free(buffer_p);
+        JsRunnerExternalDataDestructor destructor = user_p;
+        destructor(buffer_p, arraybuffer_user_p);
     }
 }
 
@@ -274,11 +284,8 @@ static void
     UNUSED(string_size);
     JS_TRACE("free external string");
     if(user_p) {
-        ByteArray_t* array = user_p;
-        ByteArray_clear(*array);
-        free(array);
-    } else {
-        free(string_p);
+        JsRunnerExternalDataDestructor destructor = user_p;
+        destructor(string_p, user_p);
     }
 }
 

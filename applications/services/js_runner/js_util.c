@@ -201,3 +201,11 @@ bool js_value_to_integer(jerry_value_t value, int* result) {
     jerry_value_free(num);
     return ok;
 }
+
+jerry_value_t js_arraybuffer_from_byte_array(ByteArray_t* array) {
+    size_t size = ByteArray_size(*array);
+    JsRunnerByteArrayDestructor* destructor = malloc(sizeof(JsRunnerByteArrayDestructor));
+    destructor->destructor = js_runner_byte_array_destructor;
+    destructor->byte_array = array;
+    return jerry_arraybuffer_external(ByteArray_get(*array, 0), size, destructor);
+}
