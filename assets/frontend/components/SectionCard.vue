@@ -126,7 +126,7 @@ const resolvedUi = computed<Required<SectionCardCustomUi>>(() => ({
   actionsWrapper: mergeUiClass(DEFAULT_UI.actionsWrapper, props.ui?.actionsWrapper)
 }));
 
-const headerExists = !!(props.title || props.subtitle || props.icon || !isEmptySlot('subtitle') || !isEmptySlot('leading-actions') || !isEmptySlot('actions'));
+const headerExists = computed(() => !!(props.title || props.subtitle || props.icon || !isEmptySlot('subtitle') || !isEmptySlot('leading-actions') || !isEmptySlot('actions')));
 const bodyExists = computed(() => isEmptySlot('default') === false || isEmptySlot('raw-body') === false);
 
 function mergeUiClass (defaultClass: string, overrideClass?: string): string {
@@ -138,6 +138,17 @@ function isEmptySlot (slotName: string): boolean {
     return true;
   }
   const slot = slots[slotName]?.();
-  return !(slot && slot.length && slot.some(vnode => vnode.children && vnode.children !== 'v-if' && vnode.children.length));
+  return !(slot && slot.length && slot.some(vnode => {
+    if (vnode.children === 'v-if') {
+      return false;
+    }
+    if (typeof vnode.type === 'object' || typeof vnode.type === 'function') {
+      return true;
+    }
+    if (typeof vnode.children === 'string') {
+      return vnode.children.length > 0;
+    }
+    return Array.isArray(vnode.children) && vnode.children.length > 0;
+  }));
 }
 </script>
