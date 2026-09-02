@@ -119,14 +119,9 @@ const loading = ref({
 const updatePollingInterval = ref<NodeJS.Timeout | null>(null);
 watch(() => firmwareStore.fileUpdate.stage, newStage => {
   if (newStage !== UpdateStage.UPDATING) {
-    if (newStage === UpdateStage.SUCCESS) {
-      if (updatePollingInterval.value) {
-        clearInterval(updatePollingInterval.value);
-
-        localStorage.setItem('successfulUpdate', 'true');
-        window.location.reload();
-      }
-      return;
+    if (updatePollingInterval.value) {
+      clearInterval(updatePollingInterval.value);
+      updatePollingInterval.value = null;
     }
     return;
   }
