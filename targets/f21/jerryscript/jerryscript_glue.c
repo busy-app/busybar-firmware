@@ -85,6 +85,7 @@ static FuriString* get_normalized_root_path(const char* file_name_p) {
         furi_string_free(abs_path);
         return abs_path_norm;
     } else {
+        furi_string_free(abs_path);
         return NULL;
     }
 }

@@ -30,6 +30,7 @@ static void js_app_launcher_scene_run_console_out_callback(
 }
 
 static int32_t js_app_laucher_scene_run_thread_callback(void* arg) {
+    // TODO remove this thread and use new JS Runner execution flow
     furi_assert(arg);
     JsAppLauncherSceneRun* data = arg;
 

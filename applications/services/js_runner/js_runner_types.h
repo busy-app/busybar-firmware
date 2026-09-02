@@ -86,7 +86,7 @@ typedef struct JsRunnerApp {
     void* jrs_context;
     FuriString* root_path;
 
-    FuriEventFlag* is_idle; ///< This flag is set if a script is being run
+    FuriEventFlag* is_idle; ///< This flag is set if no script is being run
 
     FuriEventLoop* event_loop;
     _Atomic bool should_terminate; ///< Flag to terminate JS busy loops

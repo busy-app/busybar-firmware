@@ -76,7 +76,7 @@ JsRunnerContextInitResult js_runner_context_alloc(
 
 /** @brief Free a Javascript execution context.
  *
- * @param handle context handle to be freeed.
+ * @param handle context handle to be freed.
  */
 void js_runner_context_free(JsRunnerContextHandle* handle);
 
@@ -113,10 +113,9 @@ JsRunnerError js_runner_join(JsRunnerExecutionHandle* handle, uint32_t timeout);
 
 /** @brief Forcefully terminate a running JS application. The handle must be joined afterwards.
  *
- * @param handle context handle of the running script.
- * @return true on success, false on failure (nothing is running in the context given).
+ * @param handle execution handle of the running script.
  */
-bool js_runner_abort(JsRunnerExecutionHandle* handle);
+void js_runner_abort(JsRunnerExecutionHandle* handle);
 
 /** @brief Forcefully terminate all running JS applications.
  *

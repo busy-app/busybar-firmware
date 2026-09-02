@@ -528,6 +528,7 @@ JsRunnerError js_runner_join(JsRunnerExecutionHandle* handle, uint32_t timeout) 
 
     JsRunnerError result = JsRunnerErrorNone;
     if(wait_result == JS_RUNNER_APP_FLAG_IDLE) {
+        handle->app->should_terminate = false;
         atomic_flag_clear(&handle->app->is_execution_handle_taken);
         free(handle);
     } else if((FuriStatus)wait_result == FuriStatusErrorTimeout) {
@@ -709,7 +710,7 @@ static void run_snippet_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
             unlocked = true;
 
             jerry_value_t result = jerry_run(parsed_script);
-            if(!jerry_value_is_exception(result)) {
+            if(cmd->run_snippet.print_result && !jerry_value_is_exception(result)) {
                 jerry_value_t string = jerry_value_to_string(result);
                 jerry_value_free(result);
                 result = string;
@@ -773,14 +774,13 @@ static void send_comand_message(JsRunnerContextHandle* handle, const JsRunnerApp
     }
 }
 
-bool js_runner_abort(JsRunnerExecutionHandle* handle) {
-    UNUSED(handle);
-    if(!js_runner_static_context.app) {
-        return false;
-    }
+void js_runner_abort(JsRunnerExecutionHandle* handle) {
+    // Only single execution handle is available at a time: just checking if user owns it
+    furi_check(handle);
+    furi_check(handle->context_handle);
+
     JsRunnerApp* app = js_runner_static_context.app;
     app_terminate_from_another_thread(app);
-    return true;
 }
 
 void js_runner_abort_all(JsRunner* instance) {
