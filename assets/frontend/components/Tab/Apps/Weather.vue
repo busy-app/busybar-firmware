@@ -2,18 +2,11 @@
   <SectionCard
     data-id="apps-section-weather"
     title="Weather"
-    :ui="{ title: 'font-medium' }"
+    :ui="{ title: 'font-medium', titleWrapper: 'gap-2' }"
   >
     <template #leading-actions>
-      <UButton
+      <SectionBackButton
         data-id="apps-section-weather-back-button"
-        icon="i-bi-arrow-back"
-        variant="ghost"
-        color="neutral"
-        square
-        :ui="{
-          base: 'p-2.5 rounded-full'
-        }"
         @click="emit('back')"
       />
     </template>

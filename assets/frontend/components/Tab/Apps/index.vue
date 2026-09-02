@@ -1,34 +1,32 @@
 <template>
-  <TabAppsWeather
-    v-if="openApp === 'weather'"
+  <component
+    :is="currentApp.component"
+    v-if="currentApp"
     @back="openApp = undefined"
   />
   <TabAppsYourApps v-else>
     <TabAppsAppCard
-      v-for="app in apps"
+      v-for="app in APPS"
       :key="app.id"
       :data-id="`apps-section-app-${app.id}`"
       :title="app.title"
       :icon="app.icon"
-      @click="onAppClick(app.id)"
+      @click="openApp = app.id"
     />
   </TabAppsYourApps>
 </template>
 
 <script setup lang="ts">
+import { TabAppsWeather } from '#components';
 import weatherIcon from '@/assets/icons/apps/weather.svg?url';
 
-const apps = [
-  { id: 'weather', title: 'Weather', icon: weatherIcon }
+const APPS = [
+  { id: 'weather', title: 'Weather', icon: weatherIcon, component: TabAppsWeather }
 ] as const;
 
-type AppId = typeof apps[number]['id'];
+type AppId = typeof APPS[number]['id'];
 
-const openApp = ref<Extract<AppId, 'weather'>>();
+const openApp = ref<AppId>();
 
-function onAppClick (id: AppId) {
-  if (id === 'weather') {
-    openApp.value = 'weather';
-  }
-}
+const currentApp = computed(() => APPS.find(app => app.id === openApp.value));
 </script>

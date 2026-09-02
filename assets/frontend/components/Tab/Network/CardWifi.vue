@@ -9,15 +9,8 @@
       v-if="!connected && showNetworksList"
       #leading-actions
     >
-      <UButton
+      <SectionBackButton
         data-id="network-section-wifi-back-button"
-        icon="i-bi-arrow-back"
-        variant="ghost"
-        color="neutral"
-        square
-        :ui="{
-          base: 'p-3 rounded-full'
-        }"
         @click="handleReturnFromNetworksList"
       />
     </template>
