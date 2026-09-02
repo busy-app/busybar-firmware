@@ -63,6 +63,8 @@ API_ENDPOINTS = [
     ("/api/storage/rename", "POST"),
     ("/api/storage/status", "GET"),
     ("/api/storage/write", "POST"),
+    ("/api/telemetry", "GET"),
+    ("/api/telemetry", "PUT"),
     ("/api/time", "GET"),
     ("/api/time/timestamp", "POST"),
     ("/api/time/timezone", "GET"),
