@@ -13,7 +13,7 @@
 #include <m-array.h>
 #include <toolbox/m_cstr_dup.h>
 
-ARRAY_DEF(JsAppIdArray, const char*, M_CSTR_DUP_OPLIST)
+ARRAY_DEF(JsAppStrArray, const char*, M_CSTR_DUP_OPLIST)
 
 typedef enum {
     SceneCustomEventMenuItemClicked = AppsMenuCustomEventSceneEventsStart,
@@ -22,17 +22,19 @@ typedef enum {
 typedef struct {
     Menu* front_menu;
     Menu* back_menu;
-    JsAppIdArray_t js_app_ids;
+
+    /* Parallel arrays, one element per listed JS app, filled by the registry
+     * walk and consumed when the menu items are built. Kept apart from the
+     * menu because the walk hits the SD card and must not run under the GUI
+     * lock. */
+    JsAppStrArray_t js_app_ids;
+    JsAppStrArray_t js_app_names;
+    JsAppStrArray_t js_app_icons_front;
+    JsAppStrArray_t js_app_icons_back;
 
     uint32_t next_item_idx;
     _Atomic uint32_t menu_idx;
-    bool is_js_apps_enabled;
 } AppsMenuSceneMain;
-
-typedef struct {
-    AppsMenu* instance;
-    AppsMenuSceneMain* data;
-} AppsMenuSceneMainContext;
 
 static void apps_scene_setup_menu_callback(uint32_t index, void* context) {
     furi_assert(context);
@@ -47,9 +49,7 @@ static void apps_scene_setup_menu_callback(uint32_t index, void* context) {
 }
 
 static void apps_menu_scene_main_list_native_apps(AppsMenu* instance, AppsMenuSceneMain* data) {
-    const uint32_t end_idx = data->is_js_apps_enabled ? AppsMenuEntryIdxComingSoon :
-                                                        AppsMenuEntryIdxMax;
-    for(uint32_t i = 0; i < end_idx; ++i) {
+    for(uint32_t i = 0; i < AppsMenuEntryIdxComingSoon; ++i) {
         const AppsMenuEntry* const entry = apps_list_get_item(i);
 
         menu_add_item(
@@ -80,38 +80,45 @@ static void app_menu_scene_main_js_app_list_callback(const JsAppInfo* info, void
         return;
     }
 
-    const AppsMenuSceneMainContext* ctx = context;
-
-    AppsMenu* instance = ctx->instance;
-    AppsMenuSceneMain* data = ctx->data;
-
-    const char* app_name = manifest_info->name;
+    AppsMenuSceneMain* data = context;
     const JsAppPathInfo* paths = &info->path;
 
-    menu_add_item(
-        data->front_menu,
-        app_name,
-        NULL,
-        paths->icon.front,
-        data->next_item_idx,
-        apps_scene_setup_menu_callback,
-        instance);
+    // info is only valid inside this callback, so everything needed later is
+    // copied here.
+    JsAppStrArray_push_back(data->js_app_ids, manifest_info->id);
+    JsAppStrArray_push_back(data->js_app_names, manifest_info->name);
+    JsAppStrArray_push_back(data->js_app_icons_front, paths->icon.front);
+    JsAppStrArray_push_back(data->js_app_icons_back, paths->icon.back);
+}
 
-    menu_add_item(
-        data->back_menu, app_name, NULL, paths->icon.back, data->next_item_idx, NULL, NULL);
-
-    JsAppIdArray_push_back(data->js_app_ids, manifest_info->id);
-
-    ++data->next_item_idx;
+static void apps_menu_scene_main_collect_js_apps(AppsMenuSceneMain* data) {
+    js_app_registry_list_apps(app_menu_scene_main_js_app_list_callback, data);
 }
 
 static void apps_menu_scene_main_list_js_apps(AppsMenu* instance, AppsMenuSceneMain* data) {
-    AppsMenuSceneMainContext ctx = {
-        .instance = instance,
-        .data = data,
-    };
+    for(size_t i = 0; i < JsAppStrArray_size(data->js_app_ids); ++i) {
+        const char* app_name = *JsAppStrArray_cget(data->js_app_names, i);
 
-    js_app_registry_list_apps(app_menu_scene_main_js_app_list_callback, &ctx);
+        menu_add_item(
+            data->front_menu,
+            app_name,
+            NULL,
+            *JsAppStrArray_cget(data->js_app_icons_front, i),
+            data->next_item_idx,
+            apps_scene_setup_menu_callback,
+            instance);
+
+        menu_add_item(
+            data->back_menu,
+            app_name,
+            NULL,
+            *JsAppStrArray_cget(data->js_app_icons_back, i),
+            data->next_item_idx,
+            NULL,
+            NULL);
+
+        ++data->next_item_idx;
+    }
 }
 
 static void apps_menu_scene_main_start_selected_app(AppsMenu* instance) {
@@ -125,7 +132,7 @@ static void apps_menu_scene_main_start_selected_app(AppsMenu* instance) {
         app_id = entry->id;
     } else {
         const uint32_t array_idx = data->menu_idx - AppsMenuEntryIdxMax;
-        app_id = *JsAppIdArray_cget(data->js_app_ids, array_idx);
+        app_id = *JsAppStrArray_cget(data->js_app_ids, array_idx);
     }
 
     if(app_id != NULL) {
@@ -143,18 +150,22 @@ static void apps_menu_scene_main_on_enter(void* context) {
     AppsMenuSceneMain* data =
         scene_manager_get_scene_data(instance->scene_manager, AppsMenuSceneIdMain);
 
-    data->is_js_apps_enabled = apps_menu_is_js_apps_enabled();
+    JsAppStrArray_init(data->js_app_ids);
+    JsAppStrArray_init(data->js_app_names);
+    JsAppStrArray_init(data->js_app_icons_front);
+    JsAppStrArray_init(data->js_app_icons_back);
+
+    // Walks /ext/user_assets and parses a manifest per app. Done before taking
+    // the GUI lock: holding it across SD reads freezes both displays and all
+    // input for every app on the device.
+    apps_menu_scene_main_collect_js_apps(data);
 
     with_gui(instance->gui, {
         data->front_menu = menu_alloc(instance->front_scene_window);
         data->back_menu = menu_alloc(instance->back_scene_window);
 
         apps_menu_scene_main_list_native_apps(instance, data);
-
-        if(data->is_js_apps_enabled) {
-            JsAppIdArray_init(data->js_app_ids);
-            apps_menu_scene_main_list_js_apps(instance, data);
-        }
+        apps_menu_scene_main_list_js_apps(instance, data);
 
         widget_set_scrollbar_enabled(menu_get_base(data->front_menu), true);
         widget_set_scrollbar_enabled(menu_get_base(data->back_menu), true);
@@ -174,9 +185,10 @@ static void apps_menu_scene_main_on_exit(void* context) {
         menu_free(data->back_menu);
     });
 
-    if(data->is_js_apps_enabled) {
-        JsAppIdArray_clear(data->js_app_ids);
-    }
+    JsAppStrArray_clear(data->js_app_ids);
+    JsAppStrArray_clear(data->js_app_names);
+    JsAppStrArray_clear(data->js_app_icons_front);
+    JsAppStrArray_clear(data->js_app_icons_back);
 }
 
 static bool apps_menu_scene_main_on_event(const SceneManagerEvent* event, void* context) {

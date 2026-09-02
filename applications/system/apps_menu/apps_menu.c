@@ -14,8 +14,6 @@
 #define APPS_MENU_ARG_SKIP_MENU   "-s"
 #define APPS_MENU_ACTIVE_APP_NONE ""
 
-#define APPS_MENU_JS_APPS_ENABLE_FLAG_PATH APP_DATA_PATH("js_apps_enabled")
-
 static bool apps_menu_thread_signal_callback(uint32_t signal, void* arg, void* context) {
     UNUSED(arg);
 
@@ -223,18 +221,20 @@ bool apps_menu_start_application(const char* app_id, bool is_skip_menu) {
 
     const char* id;
     const char* args;
+    FuriString* js_args = NULL;
 
     if(apps_list_contains(app_id)) {
         id = app_id;
         args = is_skip_menu ? APPS_MENU_ARG_SKIP_MENU : NULL;
 
-    } else if(apps_menu_is_js_apps_enabled()) {
-        id = JS_APP_LAUNCHER_APP_ID;
-        args = app_id;
-
     } else {
-        id = NULL;
-        args = NULL;
+        id = JS_APP_LAUNCHER_APP_ID;
+        if(is_skip_menu) {
+            js_args = furi_string_alloc_printf("%s %s", APPS_MENU_ARG_SKIP_MENU, app_id);
+            args = furi_string_get_cstr(js_args);
+        } else {
+            args = app_id;
+        }
     }
 
     if(id != NULL) {
@@ -247,24 +247,9 @@ bool apps_menu_start_application(const char* app_id, bool is_skip_menu) {
         furi_record_close(RECORD_DESKTOP);
     }
 
+    if(js_args) furi_string_free(js_args);
+
     return success;
-}
-
-bool apps_menu_is_js_apps_enabled(void) {
-    bool is_enabled = false;
-
-    Storage* storage = furi_record_open(RECORD_STORAGE);
-
-    FileInfo file_info;
-    if(storage_common_stat(storage, APPS_MENU_JS_APPS_ENABLE_FLAG_PATH, &file_info) == FSE_OK) {
-        if((file_info.flags & FSF_DIRECTORY) == 0) {
-            is_enabled = true;
-        }
-    }
-
-    furi_record_close(RECORD_STORAGE);
-
-    return is_enabled;
 }
 
 bool apps_menu_start(AppsMenuMode mode) {

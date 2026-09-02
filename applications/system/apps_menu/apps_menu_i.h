@@ -1,5 +1,7 @@
 #pragma once
 
+#include "apps_menu.h"
+
 #include <furi.h>
 
 #include <desktop/desktop.h>
@@ -41,9 +43,4 @@ static_assert(sizeof(AppsMenuCustomEvent) == sizeof(uint32_t));
 
 void apps_menu_send_custom_event(AppsMenu* app, AppsMenuCustomEvent event);
 
-bool apps_menu_start_application(const char* app_id, bool is_skip_menu);
-
 void apps_menu_set_active_application(AppsMenuSettings* settings, const char* app_id);
-
-// TODO: Remove this when JS apps support is fully functional
-bool apps_menu_is_js_apps_enabled(void);

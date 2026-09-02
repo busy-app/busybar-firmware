@@ -26,6 +26,15 @@ typedef enum {
  */
 bool apps_menu_start(AppsMenuMode mode);
 
+/**
+ * @brief Start a native or JavaScript application.
+ *
+ * @param[in] app_id application identifier
+ * @param[in] is_skip_menu start immediately instead of showing an app submenu
+ * @returns @c true when the start request was queued, @c false otherwise
+ */
+bool apps_menu_start_application(const char* app_id, bool is_skip_menu);
+
 #ifdef __cplusplus
 }
 #endif

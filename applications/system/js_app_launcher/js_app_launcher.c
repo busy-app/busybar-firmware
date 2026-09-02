@@ -12,6 +12,8 @@
 
 #define NAV_BAR_HEIGHT (14)
 
+#define JS_APP_LAUNCHER_ARG_SKIP_MENU "-s "
+
 static bool js_app_launcher_gui_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
@@ -70,8 +72,16 @@ static void js_app_launcher_set_navbar_text(const JsAppLauncher* instance) {
     }
 }
 
-static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
+static JsAppLauncher* js_app_launcher_alloc(const char* args) {
     JsAppLauncher* instance = malloc(sizeof(JsAppLauncher));
+
+    bool is_skip_menu = false;
+    const char* app_id = args ? args : "";
+    if(strncmp(app_id, JS_APP_LAUNCHER_ARG_SKIP_MENU, strlen(JS_APP_LAUNCHER_ARG_SKIP_MENU)) ==
+       0) {
+        is_skip_menu = true;
+        app_id += strlen(JS_APP_LAUNCHER_ARG_SKIP_MENU);
+    }
 
     instance->event_loop = furi_event_loop_alloc();
     instance->input_queue = furi_message_queue_alloc(INPUT_QUEUE_SIZE, sizeof(InputEvent));
@@ -80,6 +90,7 @@ static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
         scene_manager_alloc(js_app_launcher_scenes, JsAppLauncherSceneIdMax, instance);
     instance->gui = furi_record_open(RECORD_GUI);
     instance->js_app = js_app_registry_get_app(app_id);
+    instance->is_skip_menu = is_skip_menu;
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -119,7 +130,9 @@ static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
         instance);
 
     if(instance->js_app) {
-        scene_manager_next_scene(instance->scene_manager, JsAppLauncherSceneIdStart);
+        scene_manager_next_scene(
+            instance->scene_manager,
+            is_skip_menu ? JsAppLauncherSceneIdRun : JsAppLauncherSceneIdStart);
     } else {
         instance->error = JsAppLauncherErrorLoadFailed;
         scene_manager_next_scene(instance->scene_manager, JsAppLauncherSceneIdError);

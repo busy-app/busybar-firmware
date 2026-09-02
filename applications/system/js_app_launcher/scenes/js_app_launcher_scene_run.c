@@ -1,7 +1,10 @@
 #include "../js_app_launcher_i.h"
 #include "js_app_launcher_scenes.h"
 
-#define JS_THREAD_STACK_SIZE (3 * 1024)
+#include <apps_menu/apps_menu.h>
+
+#define JS_THREAD_STACK_SIZE   (3 * 1024)
+#define JS_THREAD_STOP_WARN_MS (2000)
 
 typedef struct {
     FuriThread* js_thread;
@@ -73,6 +76,12 @@ static void js_app_launcher_scene_run_on_enter(void* context) {
     JsAppLauncherSceneRun* data =
         scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdRun);
 
+    // Scene data comes from malloc without being cleared. The failure path
+    // below leaves the scene immediately, which runs on_exit against whatever
+    // was in that memory — and with -s, Run is the first scene entered, so
+    // there is no earlier pass to have set it.
+    memset(data, 0, sizeof(*data));
+
     data->js_runner = furi_record_open(RECORD_JS_RUNNER);
 
     if(js_app_get_info(instance->js_app, &data->js_info)) {
@@ -106,15 +115,40 @@ static void js_app_launcher_scene_run_on_exit(void* context) {
         // Not checking the return value of js_runner_abort
         // because it is completely ambiguous here.
         js_runner_abort(data->js_runner, js_thread);
-        // Assuming this will not block forever during normal operation.
-        // The script should have stopped at this point either due to
-        // its internal logic or due to the above abort request.
+
+        // A runaway script is caught by the VM halt handler, so this normally
+        // returns at once. A script parked in a slow native call can take
+        // longer, and this join blocks the launcher's event loop while it does
+        // — name the culprit in the log rather than just appearing to hang.
+        const uint32_t deadline = furi_get_tick() + furi_ms_to_ticks(JS_THREAD_STOP_WARN_MS);
+        while((furi_thread_get_state(js_thread) != FuriThreadStateStopped) &&
+              (furi_get_tick() < deadline)) {
+            furi_delay_ms(10);
+        }
+        if(furi_thread_get_state(js_thread) != FuriThreadStateStopped) {
+            FURI_LOG_W(
+                TAG,
+                "Script '%s' has not stopped after %ums, waiting",
+                data->js_info.manifest.name,
+                JS_THREAD_STOP_WARN_MS);
+        }
+
         furi_thread_join(js_thread);
         furi_thread_free(js_thread);
         data->js_thread = NULL;
     }
 
     furi_record_close(RECORD_JS_RUNNER);
+}
+
+static void js_app_launcher_scene_run_close(JsAppLauncher* instance) {
+    if(instance->is_skip_menu) {
+        if(!apps_menu_start(AppsMenuModeShowMenu)) {
+            FURI_LOG_E(TAG, "Failed to return to apps menu");
+        }
+    } else {
+        scene_manager_previous_scene(instance->scene_manager);
+    }
 }
 
 static bool js_app_launcher_scene_run_on_event(const SceneManagerEvent* event, void* context) {
@@ -130,7 +164,7 @@ static bool js_app_launcher_scene_run_on_event(const SceneManagerEvent* event, v
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == JsAppLauncherCustomEventScriptFinished) {
             if(data->js_error == JsRunnerErrorNone) {
-                scene_manager_previous_scene(instance->scene_manager);
+                js_app_launcher_scene_run_close(instance);
             } else {
                 instance->error = js_app_launcher_translate_from_js_runner_error(data->js_error);
                 scene_manager_next_scene(instance->scene_manager, JsAppLauncherSceneIdError);
@@ -139,7 +173,7 @@ static bool js_app_launcher_scene_run_on_event(const SceneManagerEvent* event, v
 
         consumed = true;
     } else if(event->type == SceneManagerEventTypeBack) {
-        // TODO: Special Back key treatment?
+        js_app_launcher_scene_run_close(instance);
         consumed = true;
     }
 
