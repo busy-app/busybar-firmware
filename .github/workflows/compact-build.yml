@@ -41,6 +41,25 @@ jobs:
           fetch-depth: 2
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: "Authenticate git for the job"
+        run: |
+          set -euo pipefail
+          # Reproduce actions/checkout's credential mechanism for every git
+          # operation in this job (build-artifacts' submodule update and fbt's
+          # own recursive init): an Authorization extraheader applied via the
+          # global git config. This escapes GitHub's throttling of
+          # unauthenticated clone traffic from the shared self-hosted runner
+          # egress (HTTP 401/400 in waves). base64 must stay single-line: GNU
+          # base64 wraps at 76 cols, which would embed newlines in the header
+          # and make the server reset the connection.
+          if [[ -n "${GH_TOKEN:-}" ]]; then
+            CFG="${RUNNER_TEMP}/git-credentials.config"
+            AUTH="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 | tr -d '\n')"
+            git config --file "$CFG" http.https://github.com/.extraheader "$AUTH"
+            chmod 600 "$CFG"
+            echo "GIT_CONFIG_GLOBAL=${CFG}" >> "${GITHUB_ENV}"
+          fi
+
       - name: "Build firmware artifacts"
         id: build-fw
         uses: ./.github/actions/build-artifacts
