@@ -104,7 +104,7 @@ JsRunnerRunResult
  *
  * This function blocks until the script terminates. To forcefully terminate the script use js_runner_abort().
  *
- * @param handle execution handle previously created by js_runner_run or TODO.
+ * @param handle execution handle previously created by js_runner_run or js_runner_run_snippet.
  * @param timeout operation timeout in ticks.
  *
  * @return operation result (JsRunnerErrorTimeout or JsRunnerErrorNone).

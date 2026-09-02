@@ -5,6 +5,7 @@
 #include <cli/cli_ansi.h>
 #include <js_runner/js_runner.h>
 #include <argparse.h>
+#include <toolbox/get_line.h>
 
 typedef struct JsCliParams {
     FuriString* script_path;
@@ -15,6 +16,8 @@ typedef struct JsCliParams {
 
 #define CLI_APP_ID        "app.busy.cli"
 #define CLI_APP_HEAP_SIZE 64 * 1024
+
+#define MAX_REPL_LINE_LENGTH 200
 
 #define REPL_PROMPT "JS>: "
 
@@ -109,22 +112,33 @@ static void run_repl(const FuriString* app_id, PipeSide* pipe) {
         printf(REPL_PROMPT);
         fflush(stdout);
         while(true) {
-            char buf[64]; // TODO longer strings
+            GetLineResult line = get_line(MAX_REPL_LINE_LENGTH);
 
-            if(!fgets(buf, sizeof(buf), stdin) || strcmp(buf, "exit\n") == 0 ||
-               strcmp(buf, "exit\r\n") == 0) {
+            if(line.error == GetLineErrorEOF) {
                 break;
-            } else {
-                size_t len = strlen(buf);
-                if(len <= 1 || buf[len - 1] != '\n') {
-                    continue;
-                }
-                JsRunnerRunResult run_result = js_runner_run_snippet(handle, buf, true);
-                if(run_result.error != JsRunnerErrorNone) {
-                    printf("Error: %s\r\n", js_runner_get_error_message(run_result.error));
+            } else if(line.error == GetLineErrorTooLong) {
+                printf("Too long\r\n");
+            } else if(line.error == GetLineErrorNone) {
+                bool stop = false;
+                if(furi_string_cmp(line.line, "exit\n") == 0 ||
+                   furi_string_cmp(line.line, "exit\r\n") == 0) {
+                    stop = true;
                 } else {
-                    JsRunnerError join_result = js_runner_join(run_result.handle, FuriWaitForever);
-                    furi_check(join_result == JsRunnerErrorNone);
+                    if(furi_string_size(line.line) > 1) {
+                        JsRunnerRunResult run_result =
+                            js_runner_run_snippet(handle, furi_string_get_cstr(line.line), true);
+                        if(run_result.error != JsRunnerErrorNone) {
+                            printf("Error: %s\r\n", js_runner_get_error_message(run_result.error));
+                        } else {
+                            JsRunnerError join_result =
+                                js_runner_join(run_result.handle, FuriWaitForever);
+                            furi_check(join_result == JsRunnerErrorNone);
+                        }
+                    }
+                }
+                furi_string_free(line.line);
+                if(stop) {
+                    break;
                 }
             }
             printf(REPL_PROMPT);
