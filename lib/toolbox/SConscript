@@ -49,6 +49,7 @@ sources = [
     "strint.c",
     "timers.c",
     "tls_config.c",
+    "url.c",
     "value_index.c",
     "http_headers.c",
     "get_line.c",
