@@ -4,15 +4,15 @@
 
 #define TAG "JsUrl"
 
-static const char* const js_url_part_keys[UrlPartMax] = {
-    [UrlPartHref] = "href",
-    [UrlPartOrigin] = "origin",
-    [UrlPartProtocol] = "protocol",
-    [UrlPartHost] = "host",
-    [UrlPartHostname] = "hostname",
-    [UrlPartPort] = "port",
-    [UrlPartPathname] = "pathname",
-    [UrlPartSearch] = "search",
+static const char* const js_url_part_keys[UrlPartIdMax] = {
+    [UrlPartIdHref] = "href",
+    [UrlPartIdOrigin] = "origin",
+    [UrlPartIdProtocol] = "protocol",
+    [UrlPartIdHost] = "host",
+    [UrlPartIdHostname] = "hostname",
+    [UrlPartIdPort] = "port",
+    [UrlPartIdPathname] = "pathname",
+    [UrlPartIdSearch] = "search",
 };
 
 static void url_free_cb(void* native_p, jerry_object_native_info_t* info_p) {

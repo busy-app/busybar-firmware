@@ -5,7 +5,7 @@
 
 struct Url {
     FuriString* source;
-    StringSlice slices[UrlPartMax];
+    StringSlice parts[UrlPartIdMax];
 };
 
 typedef enum {
@@ -18,14 +18,15 @@ typedef enum {
 } UrlParseStepIdx;
 
 typedef struct {
-    UrlPart part;
+    UrlPartId part_id;
     bool is_required;
-    uint8_t walk_back;
+    bool is_include_delim;
     const char* delim;
+    const UrlParseStepIdx* next_step_idxs;
 } UrlParseStep;
 
 typedef struct {
-    UrlPart part;
+    UrlPartId part_id;
     uint8_t subparts_count;
     const UrlParseStepIdx* subparts;
 } UrlCompoundPart;
@@ -34,34 +35,54 @@ typedef struct {
 
 static const UrlParseStep url_parse_steps[] = {
     [UrlParseStepIdxProtocol] = {
-        .part = UrlPartProtocol,
+        .part_id = UrlPartIdProtocol,
         .is_required = true,
-        .delim = "//",
+        .delim = NULL,
+        .next_step_idxs = (const UrlParseStepIdx[]) {
+            UrlParseStepIdxHostname,
+            UrlParseStepIdxMax,
+        },
     },
     [UrlParseStepIdxHostname] = {
-        .part = UrlPartHostname,
+        .part_id = UrlPartIdHostname,
         .is_required = true,
-        .delim = ":",
+        .delim = "//",
+        .next_step_idxs = (const UrlParseStepIdx[]) {
+            UrlParseStepIdxPort,
+            UrlParseStepIdxPathname,
+            UrlParseStepIdxMax,
+        },
     },
     [UrlParseStepIdxPort] = {
-        .part = UrlPartPort,
-        .delim = "/",
+        .part_id = UrlPartIdPort,
+        .delim = ":",
+        .next_step_idxs = (const UrlParseStepIdx[]) {
+            UrlParseStepIdxPathname,
+            UrlParseStepIdxMax,
+        },
     },
     [UrlParseStepIdxPathname] = {
-        .part = UrlPartPathname,
-        .walk_back = 1,
-        .delim = "?",
+        .part_id = UrlPartIdPathname,
+        .is_include_delim = true,
+        .delim = "/",
+        .next_step_idxs = (const UrlParseStepIdx[]) {
+            UrlParseStepIdxSearch,
+            UrlParseStepIdxMax,
+        },
     },
     [UrlParseStepIdxSearch] = {
-        .part = UrlPartSearch,
-        .walk_back = 1,
-        .delim = "",
+        .part_id = UrlPartIdSearch,
+        .is_include_delim = true,
+        .delim = "?",
+        .next_step_idxs = (const UrlParseStepIdx[]) {
+            UrlParseStepIdxMax,
+        },
     },
 };
 
 static const UrlCompoundPart url_compound_parts[] = {
     {
-        .part = UrlPartHref,
+        .part_id = UrlPartIdHref,
         .subparts_count = 5,
         .subparts = (const UrlParseStepIdx[5]) {
             UrlParseStepIdxProtocol,
@@ -72,7 +93,7 @@ static const UrlCompoundPart url_compound_parts[] = {
         },
     },
     {
-        .part = UrlPartOrigin,
+        .part_id = UrlPartIdOrigin,
         .subparts_count = 3,
         .subparts = (const UrlParseStepIdx[3]) {
             UrlParseStepIdxProtocol,
@@ -81,7 +102,7 @@ static const UrlCompoundPart url_compound_parts[] = {
         },
     },
     {
-        .part = UrlPartHost,
+        .part_id = UrlPartIdHost,
         .subparts_count = 2,
         .subparts = (const UrlParseStepIdx[2]) {
             UrlParseStepIdxHostname,
@@ -106,8 +127,8 @@ void url_free(Url* instance) {
 }
 
 static void url_reset(Url* instance) {
-    for(uint32_t i = 0; i < COUNT_OF(instance->slices); ++i) {
-        instance->slices[i] = (const StringSlice){
+    for(uint32_t i = 0; i < COUNT_OF(instance->parts); ++i) {
+        instance->parts[i] = (const StringSlice){
             .first_char = "",
             .length = 0,
         };
@@ -119,11 +140,11 @@ static void url_calc_compound_parts(Url* instance) {
         const UrlCompoundPart* cp = &url_compound_parts[i];
         const uint8_t subparts_count = cp->subparts_count;
 
-        StringSlice* slice = &instance->slices[cp->part];
+        StringSlice* slice = &instance->parts[cp->part_id];
 
         for(uint32_t j = 0; j < subparts_count; ++j) {
             const UrlParseStep* subpart = &url_parse_steps[cp->subparts[j]];
-            const StringSlice* subpart_slice = &instance->slices[subpart->part];
+            const StringSlice* subpart_slice = &instance->parts[subpart->part_id];
 
             if(subpart_slice->length == 0) {
                 continue;
@@ -156,41 +177,61 @@ bool url_parse(Url* instance, const char* source_str) {
 
     size_t offset = 0;
 
-    for(uint32_t i = 0; i < COUNT_OF(url_parse_steps); ++i) {
-        const UrlParseStep* step = &url_parse_steps[i];
+    for(UrlParseStepIdx step_idx = UrlParseStepIdxProtocol; step_idx != UrlParseStepIdxMax;) {
+        const UrlParseStep* step = &url_parse_steps[step_idx];
+        const UrlParseStepIdx* next_step_idxs = step->next_step_idxs;
 
-        const char* delim = step->delim;
-        const size_t delim_len = strlen(delim);
+        StringSlice* part = &instance->parts[step->part_id];
 
-        const size_t part_idx = delim_len ? furi_string_search(source, delim, offset) : source_len;
-        if(part_idx == FURI_STRING_FAILURE) {
+        for(uint32_t i = 0;; ++i) {
+            const UrlParseStepIdx next_step_idx = next_step_idxs[i];
+            step_idx = next_step_idx;
+
+            size_t part_idx, next_delim_len;
+
+            if(next_step_idx != UrlParseStepIdxMax) {
+                const UrlParseStep* next_step = &url_parse_steps[next_step_idx];
+                const char* next_delim = next_step->delim;
+
+                part_idx = furi_string_search(source, next_delim, offset);
+                if(part_idx == FURI_STRING_FAILURE) {
+                    continue;
+                }
+
+                next_delim_len = strlen(next_delim);
+
+            } else {
+                part_idx = source_len;
+                next_delim_len = 0;
+            }
+
+            part->first_char = furi_string_get_cstr(source) + offset;
+            part->length = part_idx - offset;
+
+            offset = part_idx + next_delim_len;
             break;
         }
 
-        const uint8_t walk_back = step->walk_back;
-        if(offset < walk_back) {
-            break;
+        if(step->is_include_delim) {
+            const uint8_t delim_len = strlen(step->delim);
+            part->first_char -= delim_len;
+            part->length += delim_len;
         }
-
-        StringSlice* part_slice = &instance->slices[step->part];
-        part_slice->first_char = furi_string_get_cstr(source) + offset - walk_back;
-        part_slice->length = part_idx + walk_back - offset;
-
-        offset = part_idx + strlen(step->delim);
     }
 
     if(offset == source_len) {
-        url_calc_compound_parts(instance);
+        // url_calc_compound_parts(instance);
+        UNUSED(url_calc_compound_parts);
         success = true;
     }
 
     return success;
 }
 
-void url_get_part(const Url* instance, UrlPart part, StringSlice* out) {
+void url_get_part(const Url* instance, UrlPartId part_id, StringSlice* part) {
     furi_check(instance);
-    furi_check(part < UrlPartMax);
-    furi_check(out);
+    furi_check(part_id < UrlPartIdMax);
+    furi_check(part);
 
-    *out = instance->slices[part];
+    *part = instance->parts[part_id];
 }
