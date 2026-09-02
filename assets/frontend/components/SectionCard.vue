@@ -90,7 +90,7 @@ const DEFAULT_CARD_UI: Required<CardUi> = {
 };
 
 const DEFAULT_UI: Required<SectionCardCustomUi> = {
-  titleWrapper: 'flex items-center gap-4',
+  titleWrapper: 'flex items-center gap-2',
   icon: 'size-7',
   iconWrapper: 'size-14 rounded-full bg-accented/25 dark:bg-elevated p-[14px]',
   title: 'text-xl',

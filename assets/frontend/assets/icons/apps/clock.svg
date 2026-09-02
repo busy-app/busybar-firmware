@@ -1,0 +1,21 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="8px_cl-clock">
+<path id="vector" fill-rule="evenodd" clip-rule="evenodd" d="M20 4H24V8H28V20H24V24H20V28H8V24H4V20H0V8H4V4H8V0H20V4ZM12 8V16H20V12H16V8H12Z" fill="white"/>
+<rect id="vector_2" x="12" width="8" height="4" fill="#F12352"/>
+<rect id="vector_3" x="8" width="4" height="4" fill="#850853"/>
+<rect id="vector_4" x="4" y="4" width="4" height="4" fill="#850853"/>
+<rect id="vector_5" y="8" width="4" height="12" fill="#850853"/>
+<rect id="vector_6" x="20" y="4" width="4" height="4" fill="#FB7071"/>
+<rect id="vector_7" x="24" y="8" width="4" height="8" fill="#F12352"/>
+<rect id="vector_8" x="24" y="16" width="4" height="4" fill="#C00D64"/>
+<rect id="vector_9" x="20" y="20" width="4" height="4" fill="#850853"/>
+<rect id="vector_10" x="8" y="24" width="12" height="4" fill="#850853"/>
+<rect id="vector_11" x="4" y="20" width="4" height="4" fill="#850853"/>
+<rect id="vector_12" x="4" y="8" width="4" height="12" fill="#B4CDF3"/>
+<rect id="vector_13" x="8" y="20" width="12" height="4" fill="#B4CDF3"/>
+<g id="Vector">
+<path d="M12 8H16V16H12V8Z" fill="#30303A"/>
+<path d="M16 12H20V16H16V12Z" fill="#30303A"/>
+</g>
+</g>
+</svg>
