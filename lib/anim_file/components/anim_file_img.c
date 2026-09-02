@@ -31,12 +31,14 @@ void anim_file_img_init(AnimFile* anim, uint8_t* cutout_buffer, size_t width, si
             .filled_bytes = 0,
             .content = AnimFileBufferContentUninitialized,
         };
-        img->buffer_persistent = (AnimFileBuffer){
-            .data = malloc(bytes),
-            .max_bytes = bytes,
-            .filled_bytes = 0,
-            .content = AnimFileBufferContentUninitialized,
-        };
+        if(anim->options & AnimFileOptionAllowSubpixelTranslation) {
+            img->buffer_persistent = (AnimFileBuffer){
+                .data = malloc(bytes),
+                .max_bytes = bytes,
+                .filled_bytes = 0,
+                .content = AnimFileBufferContentUninitialized,
+            };
+        }
     }
 
     img->cutout_w = width;
@@ -47,7 +49,6 @@ void anim_file_img_init(AnimFile* anim, uint8_t* cutout_buffer, size_t width, si
         .filled_bytes = 0,
         .content = AnimFileBufferContentUninitialized,
     };
-    img->force_cut_operation = true;
 
     anim_file_img_set_cutout(anim, 0, 0);
 }
@@ -89,21 +90,6 @@ void anim_file_img_set_cutout(AnimFile* anim, float x, float y) {
 
     dsp_2d_kernel_subpixel_translate(
         ANIM_FILE_IMG_KERNEL_SZ, img->cutout_kernel, img->cutout_x - x, img->cutout_y - y);
-}
-
-static bool anim_file_img_cutout_operation_requested(AnimFile* anim) {
-    furi_assert(anim);
-    AnimFileImg* img = &anim->img;
-    AnimFileInfo* info = &anim->meta.info;
-
-    if(img->force_cut_operation) return true;
-    if(!dsp_2d_kernel_is_identity(ANIM_FILE_IMG_KERNEL_SZ, img->cutout_kernel)) return true;
-    if(img->cutout_w != info->width) return true;
-    if(img->cutout_h != info->height) return true;
-    if(img->cutout_x != 0) return true;
-    if(img->cutout_y != 0) return true;
-
-    return false;
 }
 
 AnimFileBuffer* anim_file_img_initial_buffer(AnimFile* anim) {
@@ -327,7 +313,7 @@ static AnimFileBuffer* anim_file_img_step_disperse(
     furi_assert(source->content == AnimFileBufferContentFullColor);
     AnimFileImg* img = &anim->img;
 
-    bool cutout_requested = anim_file_img_cutout_operation_requested(anim);
+    bool cutout_requested = anim->options & AnimFileOptionAllowSubpixelTranslation;
     bool margin_needed = cutout_requested;
 
     AnimFileBuffer* destination = cutout_requested ? &img->buffer_persistent : &img->buffer_cutout;
@@ -402,7 +388,7 @@ static AnimFileBuffer* anim_file_img_step_cut(
     furi_assert(frame_hdr);
     furi_assert(source);
 
-    if(!anim_file_img_cutout_operation_requested(anim)) {
+    if(!(anim->options & AnimFileOptionAllowSubpixelTranslation)) {
         furi_assert(source->content == AnimFileBufferContentCut);
         return source;
     }
@@ -440,7 +426,6 @@ static AnimFileBuffer* anim_file_img_step_cut(
         img->cutout_x,
         img->cutout_y);
 
-    img->force_cut_operation = false;
     destination->content = AnimFileBufferContentCut;
     destination->filled_bytes = info->width * info->height * ANIM_FILE_OUT_BYTES_PER_PIXEL;
     return destination;

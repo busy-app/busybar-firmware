@@ -15,15 +15,24 @@ typedef struct AnimFile AnimFile;
 
 #define ANIM_FILE_OUT_BYTES_PER_PIXEL 4
 
+typedef enum {
+    AnimFileOptionNone = 0,
+    AnimFileOptionAllowSubpixelTranslation =
+        (1 << 0), //<! Allow subpixel movement of resulting images (using @c anim_file_set_offset)
+    AnimFileOptionMAX,
+} AnimFileOption;
+
 /**
  * @brief Loads an `AnimFile` from the specified path
  * 
  * @param[in] storage `Storage` service
  * @param[in] path Path to `.anim` file
+ * @param[in] options Bitmask of options (see @c AnimFileOption documentation)
  * 
  * @returns Allocated and loaded `AnimFile`, or `NULL` on error.
  */
-AnimFile* FURI_WARN_UNUSED anim_file_alloc(Storage* storage, const char* path);
+AnimFile* FURI_WARN_UNUSED
+    anim_file_alloc(Storage* storage, const char* path, AnimFileOption options);
 
 /**
  * @brief Unloads an `AnimFile`

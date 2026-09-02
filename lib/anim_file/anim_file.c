@@ -3,10 +3,13 @@
  */
 
 #include "anim_file_i_struct.h"
+#include <toolbox/dsp.h>
 
-AnimFile* FURI_WARN_UNUSED anim_file_alloc(Storage* storage, const char* path) {
+AnimFile* FURI_WARN_UNUSED
+    anim_file_alloc(Storage* storage, const char* path, AnimFileOption options) {
     furi_check(storage);
     furi_check(path);
+    furi_check(options < AnimFileOptionMAX);
 
     AnimFile* result = NULL;
     File* file = storage_file_alloc(storage);
@@ -28,6 +31,7 @@ AnimFile* FURI_WARN_UNUSED anim_file_alloc(Storage* storage, const char* path) {
 
         AnimFile anim = {
             .file = file,
+            .options = options,
             .meta =
                 {
                     .info =
@@ -79,6 +83,7 @@ AnimFileInfo anim_file_info(const AnimFile* anim) {
 void anim_file_set_out_buf(AnimFile* anim, size_t width, size_t height, void* buffer) {
     furi_check(anim);
     furi_check(buffer);
+    FURI_LOG_D(TAG, "%p, w=%zu h=%zu buf=%p", anim, width, height, buffer);
     anim_file_img_init(anim, buffer, width, height);
 }
 
@@ -129,6 +134,11 @@ bool FURI_WARN_UNUSED
 
 void anim_file_set_offset(AnimFile* anim, float x, float y) {
     furi_check(anim);
+
+    if((fabsf(x) > DSP_EPSILON) || (fabsf(y) > DSP_EPSILON)) {
+        furi_check(anim->options & AnimFileOptionAllowSubpixelTranslation);
+    }
+
     anim_file_img_set_cutout(anim, -x, -y);
     anim_file_seq_redraw_current_frame(anim);
 }

@@ -10,6 +10,7 @@
 
 struct AnimFile {
     File* file;
+    AnimFileOption options;
     AnimFileMeta meta;
 
     // Components should not touch other components' state directly.
