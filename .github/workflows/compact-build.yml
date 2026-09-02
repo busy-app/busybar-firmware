@@ -29,8 +29,7 @@ jobs:
     steps:
       - name: "Wipe workspace"
         run: |
-          # Self-hosted runners preserve $HOME across runs; drop any stale
-          # credential file left by earlier jobs on the same runner.
+          # Self-hosted runners persist $HOME across jobs.
           rm -f "${HOME}/.git-credentials"
           find ./ -mount -maxdepth 1 -exec rm -rf {} \;
 

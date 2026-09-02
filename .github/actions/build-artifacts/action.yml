@@ -132,10 +132,7 @@ runs:
         set -euo pipefail
         git lfs install --skip-smudge
         if [[ -n "${GH_TOKEN:-}" ]]; then
-          # Keep credentials in the per-job temp dir: the runner cleans
-          # RUNNER_TEMP after each job, while self-hosted runners preserve
-          # $HOME across runs, so ~/.git-credentials would leak a dead token
-          # into later jobs on the same runner.
+          # Self-hosted runners persist $HOME; keep creds in per-job RUNNER_TEMP.
           rm -f "$HOME/.git-credentials"
           echo "https://x-access-token:${GH_TOKEN}@github.com" > "${RUNNER_TEMP}/git-credentials"
           git config credential.helper "store --file ${RUNNER_TEMP}/git-credentials"
@@ -149,9 +146,7 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
-        # GitHub intermittently throttles unauthenticated clone traffic from
-        # the shared self-hosted runner egress (HTTP 401/400 in waves when
-        # several CI jobs fire at once). Retry with backoff to ride it out.
+        # Shared-egress clone throttling comes in waves; retry with backoff.
         attempt=0
         until timeout 180 git submodule update --init --depth 1 --filter=blob:none --recursive --jobs="$(nproc)" \
             scripts/toolchain fbt_layers/fbtng; do

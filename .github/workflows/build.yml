@@ -35,8 +35,7 @@ jobs:
       - name: 'Wipe workspace'
         run: |
           rm -f /home/runner/.gitconfig
-          # Self-hosted runners preserve $HOME across runs; drop any stale
-          # credential file left by earlier jobs on the same runner.
+          # Self-hosted runners persist $HOME across jobs.
           rm -f "${HOME}/.git-credentials"
           find ./ -mount -maxdepth 1 -exec rm -rf {} \;
 
@@ -58,9 +57,7 @@ jobs:
       - name: 'Bootstrap tooling submodule'
         run: |
           set -euo pipefail
-          # GitHub intermittently throttles unauthenticated clone traffic from
-          # the shared self-hosted runner egress (HTTP 401/400 in waves when
-          # several CI jobs fire at once). Retry with backoff to ride it out.
+          # Shared-egress clone throttling comes in waves; retry with backoff.
           attempt=0
           until timeout 180 git submodule update --init --depth 1 --filter=blob:none fbt_layers/fbtng; do
             attempt=$((attempt + 1))
