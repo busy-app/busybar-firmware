@@ -8,36 +8,86 @@ struct Url {
     StringSlice slices[UrlPartMax];
 };
 
+typedef enum {
+    UrlParseStepIdxProtocol,
+    UrlParseStepIdxHostname,
+    UrlParseStepIdxPort,
+    UrlParseStepIdxPathname,
+    UrlParseStepIdxSearch,
+    UrlParseStepIdxMax,
+} UrlParseStepIdx;
+
 typedef struct {
     UrlPart part;
     uint8_t walk_back;
     const char* delim;
 } UrlParseStep;
 
+typedef struct {
+    UrlPart part;
+    uint8_t subparts_count;
+    const UrlParseStepIdx* subparts;
+} UrlCompoundPart;
+
+/* clang-format off */
+
 static const UrlParseStep url_parse_steps[] = {
-    {
+    [UrlParseStepIdxProtocol] = {
         .part = UrlPartProtocol,
         .delim = "//",
     },
-    {
+    [UrlParseStepIdxHostname] = {
         .part = UrlPartHostname,
         .delim = ":",
     },
-    {
+    [UrlParseStepIdxPort] = {
         .part = UrlPartPort,
         .delim = "/",
     },
-    {
+    [UrlParseStepIdxPathname] = {
         .part = UrlPartPathname,
         .walk_back = 1,
         .delim = "?",
     },
-    {
+    [UrlParseStepIdxSearch] = {
         .part = UrlPartSearch,
         .walk_back = 1,
         .delim = "",
     },
 };
+
+static const UrlCompoundPart url_compound_parts[] = {
+    {
+        .part = UrlPartHref,
+        .subparts_count = 5,
+        .subparts = (const UrlParseStepIdx[5]) {
+            UrlParseStepIdxProtocol,
+            UrlParseStepIdxHostname,
+            UrlParseStepIdxPort,
+            UrlParseStepIdxPathname,
+            UrlParseStepIdxSearch,
+        },
+    },
+    {
+        .part = UrlPartOrigin,
+        .subparts_count = 3,
+        .subparts = (const UrlParseStepIdx[3]) {
+            UrlParseStepIdxProtocol,
+            UrlParseStepIdxHostname,
+            UrlParseStepIdxPort,
+        },
+    },
+    {
+        .part = UrlPartHost,
+        .subparts_count = 2,
+        .subparts = (const UrlParseStepIdx[2]) {
+            UrlParseStepIdxHostname,
+            UrlParseStepIdxPort,
+        },
+    },
+};
+
+/* clang-format on */
 
 Url* url_alloc(void) {
     Url* instance = malloc(sizeof(Url));
@@ -58,6 +108,34 @@ static void url_reset(Url* instance) {
             .first_char = "",
             .length = 0,
         };
+    }
+}
+
+static void url_calc_compound_parts(Url* instance) {
+    for(uint32_t i = 0; i < COUNT_OF(url_compound_parts); ++i) {
+        const UrlCompoundPart* cp = &url_compound_parts[i];
+        const uint8_t subparts_count = cp->subparts_count;
+
+        StringSlice* slice = &instance->slices[cp->part];
+
+        for(uint32_t j = 0; j < subparts_count; ++j) {
+            const UrlParseStep* subpart = &url_parse_steps[cp->subparts[j]];
+            const StringSlice* subpart_slice = &instance->slices[subpart->part];
+
+            if(subpart_slice->length == 0) {
+                continue;
+            }
+
+            if(slice->length == 0) {
+                slice->first_char = subpart_slice->first_char;
+            }
+
+            slice->length += subpart_slice->length;
+
+            if(j < (subparts_count - 1U)) {
+                slice->length += strlen(subpart->delim);
+            }
+        }
     }
 }
 
@@ -99,6 +177,7 @@ bool url_parse(Url* instance, const char* source_str) {
     }
 
     if(offset == source_len) {
+        url_calc_compound_parts(instance);
         success = true;
     }
 
