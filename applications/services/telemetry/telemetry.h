@@ -61,6 +61,8 @@ typedef enum {
     TelemetryEventNetOfflineDuration, /**< Reported offline duration on reconnect (p2) */
     TelemetryEventAccountLink, /**< Account linked (p2) */
     TelemetryEventAccountUnlink, /**< Account unlinked (p2) */
+    TelemetryEventCanvasAcquire, /**< Canvas acquired by an HTTP API app (p1) */
+    TelemetryEventCanvasRelease, /**< Canvas released (no HTTP API content) (p1) */
     TelemetryEventMax, /**< Special value, internal use */
 } TelemetryEventType;
 

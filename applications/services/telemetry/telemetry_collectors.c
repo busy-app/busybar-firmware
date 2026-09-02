@@ -305,6 +305,37 @@ static void telemetry_updater_state_callback(const void* item, void* context) {
     telemetry_report_event(instance, TelemetryEventFwUpdate, d);
 }
 
+// ===== Canvas ownership =====
+
+static void telemetry_canvas_ownership_callback(const void* item, void* context) {
+    Telemetry* instance = context;
+
+    const CanvasOwnershipInfo* info = item;
+
+    if(info->is_active) {
+        // New or changed owner: emit canvas.acquire.
+        if(!instance->last_canvas_active ||
+           (strcmp(instance->last_canvas_app, info->app_id) != 0)) {
+            instance->last_canvas_active = true;
+            strlcpy(instance->last_canvas_app, info->app_id, sizeof(instance->last_canvas_app));
+
+            cJSON* d = cJSON_CreateObject();
+            cJSON_AddStringToObject(d, "app", info->app_id);
+            cJSON_AddNumberToObject(d, "priority", info->priority);
+            telemetry_report_event(instance, TelemetryEventCanvasAcquire, d);
+        }
+    } else {
+        // Released: emit canvas.release.
+        if(instance->last_canvas_active) {
+            cJSON* d = cJSON_CreateObject();
+            cJSON_AddStringToObject(d, "app", instance->last_canvas_app);
+            instance->last_canvas_active = false;
+            instance->last_canvas_app[0] = '\0';
+            telemetry_report_event(instance, TelemetryEventCanvasRelease, d);
+        }
+    }
+}
+
 // ===== Registration =====
 
 void telemetry_collectors_init(Telemetry* instance) {
@@ -355,4 +386,24 @@ void telemetry_collectors_init(Telemetry* instance) {
 
     // Matter (used for the device.state snapshot)
     instance->matter = furi_record_open(RECORD_MATTER);
+
+    // Canvas ownership (get_subscribe: no initial notification; seed the dedup value)
+    CanvasSrv* canvas = furi_record_open(RECORD_CANVAS);
+    instance->canvas_ownership_state = canvas_get_ownership_state(canvas);
+    CanvasOwnershipInfo ownership_info;
+    furi_state_get_subscribe(
+        instance->canvas_ownership_state,
+        &ownership_info,
+        telemetry_canvas_ownership_callback,
+        instance);
+    instance->last_canvas_active = ownership_info.is_active;
+    strlcpy(instance->last_canvas_app, ownership_info.app_id, sizeof(instance->last_canvas_app));
+
+    // Report the current canvas owner once at startup (a draw may predate this service)
+    if(ownership_info.is_active) {
+        cJSON* d = cJSON_CreateObject();
+        cJSON_AddStringToObject(d, "app", ownership_info.app_id);
+        cJSON_AddNumberToObject(d, "priority", ownership_info.priority);
+        telemetry_report_event(instance, TelemetryEventCanvasAcquire, d);
+    }
 }
