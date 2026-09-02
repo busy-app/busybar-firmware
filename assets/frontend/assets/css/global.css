@@ -54,6 +54,8 @@
   --ui-error: var(--color-error-500);
   --ui-modal-bg: --alpha(var(--color-neutral-100) / 90%);
   --ui-modal-overlay-bg: --alpha(var(--color-neutral-900) / 20%);
+  --ui-surface-card: #FFFFFF;
+  --ui-divider: --alpha(#111111 / 5%);
 
   --glass-ring-inner: --alpha(var(--color-white) / 10%);
   --glass-ring-outer: --alpha(var(--color-black) / 4%);
@@ -68,6 +70,9 @@
   --ui-modal-bg: --alpha(var(--color-neutral-800) / 75%);
   --ui-modal-overlay-bg: --alpha(var(--color-neutral-900) / 80%);
   --ui-surface-container: #181818;
+  --ui-surface-card: #222222;
+  --ui-divider: --alpha(#FAFAFA / 4%);
+
   --glass-ring-inner: --alpha(var(--color-white) / 10%);
   --glass-ring-outer: --alpha(var(--color-white) / 4%);
 }
@@ -123,6 +128,10 @@
 
 @utility bg-surface-container {
   background-color: var(--ui-surface-container);
+}
+
+@utility border-divider {
+  border-color: var(--ui-divider);
 }
 
 @layer utilities {
