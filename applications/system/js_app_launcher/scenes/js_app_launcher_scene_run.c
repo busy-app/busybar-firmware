@@ -63,9 +63,10 @@ static bool js_app_launcher_scene_run_start_app(JsAppLauncher* instance) {
             break;
         }
 
+        data->js_runner_exec_handle = run_result.handle;
         data->js_error = JsRunnerErrorNone;
-        success = true;
 
+        success = true;
     } while(false);
 
     return success;
