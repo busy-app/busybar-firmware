@@ -422,11 +422,8 @@ export const useFirmwareStore = defineStore('firmware', () => {
   }
 
   function completeSuccessfulUpdate () {
-    autoUpdate.value.modals.updating = false;
-
-    nextTick(() => {
-      autoUpdate.value.modals.success = true;
-    });
+    localStorage.setItem('successfulUpdate', 'true');
+    window.location.reload();
   }
 
   watch(

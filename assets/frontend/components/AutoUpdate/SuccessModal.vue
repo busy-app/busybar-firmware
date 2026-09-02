@@ -10,7 +10,7 @@
     }"
     :primary-action-props="{
       label: 'Done',
-      onClick: dismiss
+      onClick: () => { firmwareStore.autoUpdate.modals.success = false }
     }"
   />
 </template>
@@ -22,10 +22,4 @@ import updateCompletedImageDark from '@/assets/images/update-completed-image-dar
 const firmwareStore = useFirmwareStore();
 const deviceStore = useDeviceStore();
 const version = computed(() => deviceStore.deviceStatus?.firmware?.version);
-
-function dismiss () {
-  firmwareStore.autoUpdate.modals.success = false;
-  firmwareStore.autoUpdate.stage = UpdateStage.IDLE;
-  firmwareStore.fileUpdate.stage = UpdateStage.IDLE;
-}
 </script>
