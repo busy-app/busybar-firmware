@@ -24,7 +24,7 @@ typedef struct GetLineResult {
  * Only lines up to max_length characters (including the newline) are read and returned.
  * Longer lines are discarded.
  *
- * @param max_length maximal length of the string (including the newline character).
+ * @param max_length maximal length of the string (CR and LF characters are trimmed).
  * @return result of the operation. If error is GetLineErrorNone, line contains a valid string.
  */
 GetLineResult get_line(size_t max_length);
@@ -35,7 +35,8 @@ GetLineResult get_line(size_t max_length);
  * Only lines up to max_length characters (including the newline) are read and returned.
  * Longer lines are discarded.
  *
- * @param max_length maximal length of the string (including the newline character).
+ * @param pipe pipe to read from.
+ * @param max_length maximal length of the string (CR and LF characters are trimmed).
  * @return result of the operation. If error is GetLineErrorNone, line contains a valid string.
  */
 GetLineResult get_line_pipe(PipeSide* pipe, size_t max_length);

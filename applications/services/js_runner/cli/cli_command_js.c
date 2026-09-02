@@ -112,6 +112,7 @@ static void run_repl(const FuriString* app_id, PipeSide* pipe) {
         printf(REPL_PROMPT);
         fflush(stdout);
         while(true) {
+            bool show_prompt = false;
             GetLineResult line = get_line(MAX_REPL_LINE_LENGTH);
 
             if(line.error == GetLineErrorEOF) {
@@ -120,11 +121,10 @@ static void run_repl(const FuriString* app_id, PipeSide* pipe) {
                 printf("Too long\r\n");
             } else if(line.error == GetLineErrorNone) {
                 bool stop = false;
-                if(furi_string_cmp(line.line, "exit\n") == 0 ||
-                   furi_string_cmp(line.line, "exit\r\n") == 0) {
+                if(furi_string_cmp(line.line, "exit") == 0) {
                     stop = true;
                 } else {
-                    if(furi_string_size(line.line) > 1) {
+                    if(furi_string_size(line.line) > 0) {
                         JsRunnerRunResult run_result =
                             js_runner_run_snippet(handle, furi_string_get_cstr(line.line), true);
                         if(run_result.error != JsRunnerErrorNone) {
@@ -134,6 +134,9 @@ static void run_repl(const FuriString* app_id, PipeSide* pipe) {
                                 js_runner_join(run_result.handle, FuriWaitForever);
                             furi_check(join_result == JsRunnerErrorNone);
                         }
+                        show_prompt = true;
+                    } else {
+                        show_prompt = false;
                     }
                 }
                 furi_string_free(line.line);
@@ -141,8 +144,10 @@ static void run_repl(const FuriString* app_id, PipeSide* pipe) {
                     break;
                 }
             }
-            printf(REPL_PROMPT);
-            fflush(stdout);
+            if(show_prompt) {
+                printf(REPL_PROMPT);
+                fflush(stdout);
+            }
         }
         js_runner_context_free(handle);
     }

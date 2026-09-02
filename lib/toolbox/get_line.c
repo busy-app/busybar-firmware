@@ -24,6 +24,8 @@ static GetLineResult get_line_common(size_t max_length, Reader reader, void* con
     if(error != GetLineErrorNone) {
         furi_string_free(line);
         line = NULL;
+    } else {
+        furi_string_trim(line, "\r\n");
     }
     return (GetLineResult){
         .error = error,
