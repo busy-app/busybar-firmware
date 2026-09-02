@@ -76,6 +76,8 @@ JsRunnerContextInitResult js_runner_context_alloc(
 
 /** @brief Free a Javascript execution context.
  *
+ * Any execution handles obtained with this context handle must be joined before calling this function.
+ *
  * @param handle context handle to be freed.
  */
 void js_runner_context_free(JsRunnerContextHandle* handle);

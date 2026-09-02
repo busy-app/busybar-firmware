@@ -426,8 +426,10 @@ JsRunnerContextInitResult js_runner_context_alloc(
 
 void js_runner_context_free(JsRunnerContextHandle* handle) {
     JS_TRACE("Stopping the thread");
+    if(atomic_flag_test_and_set(&handle->app->is_execution_handle_taken)) {
+        furi_check(!"Execution handles must be joined before calling js_runner_context_free");
+    }
     JsRunnerAppCommand cmd = {.type = JsRunnerAppCommandTypeQuit};
-    handle->app->should_terminate = true;
     furi_message_queue_put(handle->command_queue, &cmd, FuriWaitForever);
     furi_thread_join(handle->thread);
     furi_thread_free(handle->thread);
@@ -744,8 +746,7 @@ static void run_snippet_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
 
 static void quit_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
     furi_check(cmd->type == JsRunnerAppCommandTypeQuit);
-    app_terminate_from_app_thread(app);
-    js_runner_app_stop_if_done(app);
+    furi_check(furi_event_flag_get(app->is_idle) & JS_RUNNER_APP_FLAG_IDLE);
     furi_event_loop_stop(app->event_loop);
 }
 
