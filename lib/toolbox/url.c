@@ -19,6 +19,7 @@ typedef enum {
 
 typedef struct {
     UrlPart part;
+    bool is_required;
     uint8_t walk_back;
     const char* delim;
 } UrlParseStep;
@@ -34,10 +35,12 @@ typedef struct {
 static const UrlParseStep url_parse_steps[] = {
     [UrlParseStepIdxProtocol] = {
         .part = UrlPartProtocol,
+        .is_required = true,
         .delim = "//",
     },
     [UrlParseStepIdxHostname] = {
         .part = UrlPartHostname,
+        .is_required = true,
         .delim = ":",
     },
     [UrlParseStepIdxPort] = {
