@@ -54,7 +54,20 @@ jobs:
 
       - name: 'Bootstrap tooling submodule'
         run: |
-          timeout 180 git submodule update --init --depth 1 --filter=blob:none fbt_layers/fbtng
+          set -euo pipefail
+          # GitHub intermittently throttles unauthenticated clone traffic from
+          # the shared self-hosted runner egress (HTTP 401/400 in waves when
+          # several CI jobs fire at once). Retry with backoff to ride it out.
+          attempt=0
+          until timeout 180 git submodule update --init --depth 1 --filter=blob:none fbt_layers/fbtng; do
+            attempt=$((attempt + 1))
+            if (( attempt >= 3 )); then
+              echo "submodule bootstrap failed after ${attempt} attempts"
+              exit 1
+            fi
+            echo "submodule bootstrap attempt ${attempt}/3 failed; retrying in $((attempt * 15))s"
+            sleep "$((attempt * 15))"
+          done
 
       - name: 'Get commit details'
         id: get-env

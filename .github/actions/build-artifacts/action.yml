@@ -149,10 +149,21 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
-        timeout 180 git submodule update --init --depth 1 --filter=blob:none --recursive --jobs="$(nproc)" scripts/toolchain fbt_layers/fbtng || {
-          git lfs logs last 2>/dev/null || true
-          exit 1
-        }
+        # GitHub intermittently throttles unauthenticated clone traffic from
+        # the shared self-hosted runner egress (HTTP 401/400 in waves when
+        # several CI jobs fire at once). Retry with backoff to ride it out.
+        attempt=0
+        until timeout 180 git submodule update --init --depth 1 --filter=blob:none --recursive --jobs="$(nproc)" \
+            scripts/toolchain fbt_layers/fbtng; do
+          attempt=$((attempt + 1))
+          if (( attempt >= 3 )); then
+            git lfs logs last 2>/dev/null || true
+            echo "submodule update failed after ${attempt} attempts"
+            exit 1
+          fi
+          echo "submodule update attempt ${attempt}/3 failed; retrying in $((attempt * 15))s"
+          sleep "$((attempt * 15))"
+        done
 
     - name: Build update package
       shell: bash
