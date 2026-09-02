@@ -1,0 +1,300 @@
+tags:
+  - name: JavaScript applications
+    description: Install, list, launch, remove, and configure JavaScript applications
+
+paths:
+  /api/apps/install:
+    post:
+      tags:
+        - JavaScript applications
+      summary: Install a JavaScript application package
+      description: >-
+        Uploads a TAR or TGZ package whose appmeta and scripts directories are at the archive root.
+        An installed application is replaced only when the uploaded semantic version is newer.
+      operationId: installJavaScriptApplication
+      requestBody:
+        required: true
+        content:
+          application/gzip:
+            schema:
+              type: string
+              format: binary
+          application/x-tar:
+            schema:
+              type: string
+              format: binary
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "200":
+          description: Application installed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JavaScriptApplicationInstallResponse"
+        "400":
+          description: Invalid archive, invalid application, or a malformed upload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "405":
+          description: Method not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "408":
+          description: Upload stalled for longer than the idle timeout
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: Installed version is newer or equal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "413":
+          description: Package exceeds 8 MiB, extracted data exceeds 16 MiB, or too many entries
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "508":
+          description: Installation failed because the package could not be written or installed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/apps/list:
+    get:
+      tags:
+        - JavaScript applications
+      summary: List installed JavaScript applications
+      operationId: listJavaScriptApplications
+      responses:
+        "200":
+          description: Installed applications
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [applications]
+                properties:
+                  applications:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/JavaScriptApplication"
+
+  /api/apps/launch:
+    post:
+      tags:
+        - JavaScript applications
+      summary: Launch a JavaScript application immediately
+      operationId: launchJavaScriptApplication
+      parameters:
+        - name: application_name
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApplicationName"
+      responses:
+        "200":
+          description: Application launch queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid application name
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Application not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Application launch could not be queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/apps/remove:
+    delete:
+      tags:
+        - JavaScript applications
+      summary: Remove a JavaScript application and its saved settings
+      operationId: removeJavaScriptApplication
+      parameters:
+        - name: application_name
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApplicationName"
+      responses:
+        "200":
+          description: Application removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid application name
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Application not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Application could not be removed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/apps/settings:
+    get:
+      tags:
+        - JavaScript applications
+      summary: Get a JavaScript application's settings schema and values
+      operationId: getJavaScriptApplicationSettings
+      parameters:
+        - name: application_name
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApplicationName"
+      responses:
+        "200":
+          description: Settings schema and current nested values
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [schema, values]
+                properties:
+                  schema:
+                    $ref: "#/components/schemas/JavaScriptApplicationSettingsSchema"
+                  values:
+                    type: object
+                    additionalProperties: true
+        "400":
+          description: Invalid application name
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Application or settings schema not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      tags:
+        - JavaScript applications
+      summary: Update a JavaScript application's nested settings
+      description: Validates and applies a partial nested settings object.
+      operationId: updateJavaScriptApplicationSettings
+      parameters:
+        - name: application_name
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/ApplicationName"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        "200":
+          description: Complete nested settings values after the update
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        "400":
+          description: Invalid application name or settings value
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Application or settings schema not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "413":
+          description: Settings payload exceeds 32 KiB
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+schemas:
+  JavaScriptApplication:
+    type: object
+    required: [id, name, version, description, author, heap_size_kib, debug, has_settings]
+    properties:
+      id:
+        $ref: "#/components/schemas/ApplicationName"
+      name:
+        type: string
+      version:
+        type: string
+        description: Semantic version
+      description:
+        type: string
+      author:
+        type: string
+      heap_size_kib:
+        type: integer
+        minimum: 1
+        maximum: 256
+      debug:
+        type: boolean
+      has_settings:
+        type: boolean
+
+  JavaScriptApplicationInstallResponse:
+    allOf:
+      - $ref: "#/components/schemas/SuccessResponse"
+      - type: object
+        required: [application_name]
+        properties:
+          application_name:
+            $ref: "#/components/schemas/ApplicationName"
+
+  JavaScriptApplicationSettingsSchema:
+    type: object
+    required: [format_version, settings]
+    properties:
+      format_version:
+        type: integer
+        const: 1
+      settings:
+        type: array
+        minItems: 1
+        items:
+          type: object
+          additionalProperties: true

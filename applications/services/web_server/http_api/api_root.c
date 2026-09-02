@@ -597,6 +597,15 @@ static const HttpHandler handlers_api_root[] = {
         .on_headers = http_api_assets_hdr_callback,
     },
     {
+        .uri = "apps",
+        .method = HttpMethodAny,
+        .type = HttpHandlerCustom,
+        .ctx_alloc = http_api_apps_alloc,
+        .ctx_free = http_api_apps_free,
+        .on_request = http_api_apps_callback,
+        .on_headers = http_api_apps_hdr_callback,
+    },
+    {
         .uri = "storage",
         .method = HttpMethodAny,
         .type = HttpHandlerCustom,
