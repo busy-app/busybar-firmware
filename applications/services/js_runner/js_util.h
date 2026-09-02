@@ -3,10 +3,7 @@
  * @brief Utility functions for working with JS values
  */
 #pragma once
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wattributes"
-#include <jerryscript.h>
-#pragma GCC diagnostic pop
+#include "js_runner_types.h"
 #include <furi/core/string.h>
 
 #define JS_CHECK_ARGS_COUNT(n)                                                             \
@@ -150,3 +147,13 @@ FuriString* js_get_exception_string(jerry_value_t exception);
  * @brief Log exception message with ERROR severity
  */
 void js_log_exception(const char* tag, const char* msg, jerry_value_t exception);
+
+/**
+ * @brief Create an external ArrayBuffer referencing ByteArray's data.
+ *
+ * Ownership of the ByteArray is transferred to jerryscript/
+ *
+ * @param array pointer to ByteArray (heap-allocated).
+ * @return a JS ArrayBuffer object.
+ */
+jerry_value_t js_arraybuffer_from_byte_array(ByteArray_t* array);

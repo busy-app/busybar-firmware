@@ -176,8 +176,7 @@ static bool array_buffer_body_collected(BodyMethod* instance) {
     size_t body_size = ByteArray_size(*instance->body);
     jerry_value_t array_buffer;
     if(body_size > 0) {
-        array_buffer = jerry_arraybuffer_external(
-            ByteArray_get(*instance->body, 0), body_size, instance->body);
+        array_buffer = js_arraybuffer_from_byte_array(instance->body);
     } else {
         array_buffer = jerry_arraybuffer(0);
     }
@@ -200,8 +199,7 @@ static bool bytes_body_collected(BodyMethod* instance) {
     size_t body_size = ByteArray_size(*instance->body);
     jerry_value_t bytes;
     if(body_size > 0) {
-        jerry_value_t array_buffer = jerry_arraybuffer_external(
-            ByteArray_get(*instance->body, 0), body_size, instance->body);
+        jerry_value_t array_buffer = js_arraybuffer_from_byte_array(instance->body);
         bytes = jerry_typedarray_with_buffer(JERRY_TYPEDARRAY_UINT8, array_buffer);
         jerry_value_free(array_buffer);
     } else {
