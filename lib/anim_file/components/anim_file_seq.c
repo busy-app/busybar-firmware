@@ -62,6 +62,11 @@ static AnimFileFrameFlag anim_file_seq_render_frame(AnimFile* anim, size_t file_
     }
 
     to_read = frame_hdr->pixel_length;
+    if(to_read > pixel_buffer->max_bytes) {
+        ANIM_FILE_ERR(
+            "Invalid frame header: frame.pixel_length larger than raw unencoded pixel data");
+        return AnimFileFrameFlagError;
+    }
     if(storage_file_read(anim->file, pixel_buffer->data, to_read) != to_read) {
         ANIM_FILE_ERR("Invalid frame header: frame.pixel_length lies outside of file");
         return AnimFileFrameFlagError;
@@ -145,5 +150,6 @@ void anim_file_seq_redraw_current_frame(AnimFile* anim) {
 
     AnimFileSeq* seq = &anim->seq;
 
+    if(!seq->loaded_frame_offset) return;
     anim_file_seq_render_frame(anim, seq->loaded_frame_offset);
 }

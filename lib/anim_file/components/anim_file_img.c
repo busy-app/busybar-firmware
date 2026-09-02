@@ -140,7 +140,7 @@ static bool anim_file_img_step_decode_qoi(
     inline void output_pixel(uint32_t pixel) {
         hash_lut[pixel_hash(pixel)] = pixel;
         last_px = pixel;
-        dest_buf[dest_pixels++] = pixel;
+        if(dest_pixels < max_pixels) dest_buf[dest_pixels++] = pixel;
     }
 
     inline uint8_t wrapping_add8(uint8_t old, int8_t diff) {
@@ -150,10 +150,6 @@ static bool anim_file_img_step_decode_qoi(
     for(size_t i = 0; i < source->filled_bytes; i++) {
         size_t remaining_bytes = source->filled_bytes - i;
         size_t additional_bytes_used = 0;
-        if(dest_pixels > max_pixels) {
-            ANIM_FILE_ERR("QOI destination overrun");
-            return false;
-        }
 
         uint8_t tag = source->data[i];
         uint8_t short_tag = source->data[i] & ANIM_FILE_QOI_SHORT_TAG_MASK;
@@ -161,7 +157,7 @@ static bool anim_file_img_step_decode_qoi(
         uint8_t* payload = &source->data[i + 1];
 
         if(tag == ANIM_FILE_QOI_OP_RGB) {
-            if(remaining_bytes < 3) {
+            if(remaining_bytes < 4) {
                 ANIM_FILE_ERR("QOI_OP_RGB source overrun");
                 return false;
             }
@@ -170,7 +166,7 @@ static bool anim_file_img_step_decode_qoi(
             additional_bytes_used = 3;
 
         } else if(tag == ANIM_FILE_QOI_OP_RGBA) {
-            if(remaining_bytes < 4) {
+            if(remaining_bytes < 5) {
                 ANIM_FILE_ERR("QOI_OP_RGBA source overrun");
                 return false;
             }
@@ -190,7 +186,7 @@ static bool anim_file_img_step_decode_qoi(
                 (wrapping_add8(last_ch[1], dg) << 8) | wrapping_add8(last_ch[0], db));
 
         } else if(short_tag == ANIM_FILE_QOI_SHORT_OP_LUMA) {
-            if(remaining_bytes < 1) {
+            if(remaining_bytes < 2) {
                 ANIM_FILE_ERR("QOI_OP_LUMA source overrun");
                 return false;
             }
@@ -209,6 +205,11 @@ static bool anim_file_img_step_decode_qoi(
         }
 
         i += additional_bytes_used;
+    }
+
+    if(dest_pixels > max_pixels) {
+        ANIM_FILE_ERR("QOI destination overrun by %zu px", dest_pixels - max_pixels);
+        return false;
     }
 
     destination->content = AnimFileBufferContentFullColor;
