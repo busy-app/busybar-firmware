@@ -6,7 +6,6 @@
 struct Url {
     FuriString* source;
     StringSlice slices[UrlPartMax];
-    bool is_valid;
 };
 
 typedef struct {
@@ -53,11 +52,21 @@ void url_free(Url* instance) {
     free(instance);
 }
 
+static void url_reset(Url* instance) {
+    for(uint32_t i = 0; i < COUNT_OF(instance->slices); ++i) {
+        instance->slices[i] = (const StringSlice){
+            .first_char = "",
+            .length = 0,
+        };
+    }
+}
+
 bool url_parse(Url* instance, const char* source_str) {
     furi_check(instance);
     furi_check(source_str);
 
     bool success = false;
+    url_reset(instance);
 
     FuriString* source = instance->source;
     furi_string_set(source, source_str);
@@ -93,8 +102,6 @@ bool url_parse(Url* instance, const char* source_str) {
         success = true;
     }
 
-    instance->is_valid = success;
-
     return success;
 }
 
@@ -103,14 +110,5 @@ void url_get_part(const Url* instance, UrlPart part, StringSlice* out) {
     furi_check(part < UrlPartMax);
     furi_check(out);
 
-    const StringSlice* part_slice = &instance->slices[part];
-
-    if(part_slice->first_char != NULL) {
-        *out = *part_slice;
-    } else {
-        *out = (const StringSlice){
-            .first_char = "",
-            .length = 0,
-        };
-    }
+    *out = instance->slices[part];
 }
