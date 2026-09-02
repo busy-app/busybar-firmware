@@ -11,6 +11,8 @@ and a set of standard and custom interfaces to be used by these scripts.
 Additionally, the firmware is able to enumerate and list currently installed applications and display them
 in the [APPS menu](https://docs.busy.app/bar/apps-and-integrations) for easy access.
 
+JavaScript applications are enabled by default and do not require an enable flag on the device.
+
 # Application structure
 
 ## Applications directory
@@ -18,6 +20,39 @@ in the [APPS menu](https://docs.busy.app/bar/apps-and-integrations) for easy acc
 The firmware is looking for JavaScript applications in the `/ext/user_assets` directory on the EMMC storage.
 
 Every subfolder in this directory will be searched for a valid application file structure.
+
+Applications may be installed over HTTP as TAR or TGZ packages. Package `appmeta/`, `scripts/`,
+and any resource directories directly at the archive root; do not wrap them in an additional app
+directory. The firmware derives the app ID from `appmeta/manifest.json`.
+
+Installation is staged under `/ext/tmp/app_install/`, on the same filesystem as
+`/ext/user_assets/`. Archive paths and sizes are validated before the staged directory is promoted
+with a filesystem rename. When updating an existing app, the old directory is first renamed to a
+backup and restored if promotion fails. Only a package with a newer SemVer replaces an installed
+version. Saved settings are preserved across updates.
+
+The application management endpoints are:
+
+| Method | Endpoint | Purpose |
+| ------ | -------- | ------- |
+| `POST` | `/api/apps/install` | Upload and install a TAR or TGZ binary body |
+| `GET` | `/api/apps/list` | List valid installed applications |
+| `POST` | `/api/apps/launch?application_name=<id>` | Launch an app immediately, bypassing Start/Setup |
+| `DELETE` | `/api/apps/remove?application_name=<id>` | Remove an app and its saved settings |
+| `GET`, `PUT` | `/api/apps/settings?application_name=<id>` | Read or update settings |
+
+The current storage layout does not distinguish firmware-bundled JavaScript apps from uploaded
+ones, so removal protection for stock apps will be added when those sources move to a separate
+read-only location.
+
+## Firmware source directory
+
+JavaScript applications maintained with the firmware live in `applications_js/<app-id>/`.
+Application sources place `main.ts` or `main.js` at the application root, with metadata in
+`appmeta/`. Shared build and development tooling lives in `applications_js/.platform/`.
+
+The JavaScript application builder produces the deployed package described below, including the
+compiled `scripts/main.js`, under `assets/applications_js/<app-id>/`.
 
 ## Application file structure
 
@@ -141,4 +176,128 @@ Application manifest file is a JSON file that matches the following schema:
 
 ## Settings file
 
-To be decided
+The optional `appmeta/settings.json` file describes settings that are rendered by the native Setup
+screen and persisted separately from the application package. Setting names use lowercase letters,
+numbers, and underscores. A name must begin with a lowercase letter.
+
+Each settings level must contain either groups or values. Mixing group rows and editable value rows
+at the same level is not supported. Groups may be nested up to four levels deep.
+
+Supported types correspond to the native variable-item list:
+
+| Type | Value | Additional properties |
+| ---- | ----- | --------------------- |
+| `group` | Nested object | `settings`, optional `sub_label_setting` |
+| `switch` | Boolean | `default` |
+| `selector` | String | `default`, `options`, optional `suffix` |
+| `spinbox` | Integer | `default`, `min`, `max`, `step`, optional `suffix` |
+| `timebox` | Integer minutes | `default`, `min`, `max`, `step` |
+
+For numeric settings, the range must be evenly divisible by `step`, and `min` must be aligned to
+that step.
+
+Any setting, group or value, may declare `visible_if`. Its `setting` names another value in the
+same group, and `equals` is the value that makes the setting visible. A group hidden this way hides
+everything inside it. A setting may not refer to itself.
+
+```json
+{
+    "format_version": 1,
+    "version": 1,
+    "settings": [
+        {
+            "name": "timer",
+            "label": "Timer",
+            "type": "group",
+            "sub_label_setting": "mode",
+            "settings": [
+                {
+                    "name": "mode",
+                    "label": "Mode",
+                    "type": "selector",
+                    "default": "simple",
+                    "options": [
+                        {"value": "simple", "label": "Simple"},
+                        {"value": "interval", "label": "Interval"}
+                    ]
+                },
+                {
+                    "name": "cycles",
+                    "label": "Cycles",
+                    "type": "spinbox",
+                    "default": 3,
+                    "min": 2,
+                    "max": 35,
+                    "step": 1,
+                    "visible_if": {
+                        "setting": "mode",
+                        "equals": "interval"
+                    }
+                }
+            ]
+        }
+    ]
+}
+```
+
+Values are stored as typed, nested JSON in
+`/ext/apps_data/jsrunner/<app-id>.json`. They are not stored in `localStorage` and are not
+removed when the application package is updated.
+
+The descriptor's `version` is copied into the stored settings. Changing it discards incompatible
+stored values and recreates the nested object from defaults.
+
+The global `Settings` object exposes the current values through Promise-based batch operations:
+
+```js
+const config = await Settings.load();
+const values = config.values;
+
+values.timer.mode = "interval";
+values.timer.cycles = 4;
+await Settings.save(values);
+```
+
+`Settings.load()` resolves to `{format_version, version, values}`, where `values` is the complete
+nested object. `Settings.save(values)` validates the supplied nested batch before saving it and
+rejects its Promise if a path or value is invalid. Nested groups, selector options, numeric ranges,
+and numeric steps are validated by the same implementation used by the Setup screen and HTTP API.
+
+The values are loaded when the application starts. Changes made from Setup or the HTTP API become
+visible to a running application the next time it calls `Settings.load()`.
+
+# Input
+
+The global `Input` object lets an application react to its available physical controls. Registering a
+handler keeps the application alive until the application is closed. Registering another handler
+for the same control replaces the previous handler.
+
+```js
+Input.on("dial", ({direction, delta}) => {
+    console.log(direction, delta);
+});
+
+Input.on("startPause", ({action}) => {
+    console.log(action);
+});
+
+Input.on("ok", ({action}) => {
+    console.log(action);
+});
+```
+
+Supported control names and event values:
+
+| Control | Event properties |
+| ------- | ---------------- |
+| `dial` | `direction`: `clockwise` or `counterclockwise`; `delta`: `1` or `-1` |
+| `startPause` | `action`: `press` or `release` |
+| `ok` | `action`: `press` or `release` |
+
+Button handlers receive physical state changes only. The input service's internal `short`, `long`,
+and `repeat` events are not forwarded because they describe the same physical interaction again.
+An application that needs custom hold or repeat behavior can start and stop its own interval from
+the `press` and `release` events.
+
+Back and the mode selector are reserved by the firmware and are never delivered to JavaScript.
+Pressing Back stops the application and performs normal cleanup.

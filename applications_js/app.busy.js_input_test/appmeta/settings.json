@@ -1,0 +1,98 @@
+{
+  "format_version": 1,
+  "version": 1,
+  "settings": [
+    {
+      "name": "display",
+      "label": "Display",
+      "type": "group",
+      "sub_label_setting": "accent",
+      "settings": [
+        {
+          "name": "accent",
+          "label": "Accent",
+          "type": "selector",
+          "default": "blue",
+          "options": [
+            {
+              "value": "blue",
+              "label": "Blue"
+            },
+            {
+              "value": "green",
+              "label": "Green"
+            },
+            {
+              "value": "purple",
+              "label": "Purple"
+            }
+          ]
+        },
+        {
+          "name": "show_event_count",
+          "label": "Show event\ncount",
+          "type": "switch",
+          "default": true
+        },
+        {
+          "name": "event_format",
+          "label": "Event format",
+          "type": "selector",
+          "default": "detailed",
+          "options": [
+            {
+              "value": "compact",
+              "label": "Compact"
+            },
+            {
+              "value": "detailed",
+              "label": "Detailed"
+            }
+          ]
+        },
+        {
+          "name": "uppercase",
+          "label": "Uppercase",
+          "type": "switch",
+          "default": true,
+          "visible_if": {
+            "setting": "event_format",
+            "equals": "detailed"
+          }
+        }
+      ]
+    },
+    {
+      "name": "input",
+      "label": "Input",
+      "type": "group",
+      "sub_label_setting": "show_releases",
+      "settings": [
+        {
+          "name": "show_releases",
+          "label": "Show releases",
+          "type": "switch",
+          "default": true
+        },
+        {
+          "name": "dial_step",
+          "label": "Dial step",
+          "type": "spinbox",
+          "default": 1,
+          "min": 1,
+          "max": 10,
+          "step": 1
+        },
+        {
+          "name": "hold_time",
+          "label": "Hold time",
+          "type": "timebox",
+          "default": 5,
+          "min": 5,
+          "max": 60,
+          "step": 5
+        }
+      ]
+    }
+  ]
+}

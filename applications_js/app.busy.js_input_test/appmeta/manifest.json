@@ -1,0 +1,10 @@
+{
+  "format_version": 1,
+  "id": "app.busy.js_input_test",
+  "name": "JS Input Test",
+  "version": "0.3.0",
+  "description": "Tests physical Busy Bar input from a JavaScript app",
+  "author": "Busy Bar developer example",
+  "heap_size_kib": 64,
+  "debug": false
+}
