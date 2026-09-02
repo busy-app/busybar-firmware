@@ -69,20 +69,9 @@ jobs:
               uses: ./.github/actions/authenticate-git
 
             - name: "Bootstrap tooling submodule"
-              run: |
-                  set -euo pipefail
-                  # Shared-egress clone throttling comes in waves; retry with
-                  # backoff.
-                  attempt=0
-                  until timeout 180 git submodule update --init --depth 1 --filter=blob:none fbt_layers/fbtng; do
-                      attempt=$((attempt + 1))
-                      if (( attempt >= 3 )); then
-                          echo "submodule bootstrap failed after ${attempt} attempts"
-                          exit 1
-                      fi
-                      echo "submodule bootstrap attempt ${attempt}/3 failed; retrying in $((attempt * 15))s"
-                      sleep "$((attempt * 15))"
-                  done
+              uses: ./.github/actions/update-submodules
+              with:
+                  paths: fbt_layers/fbtng
 
             - name: "Get commit details"
               id: get-env

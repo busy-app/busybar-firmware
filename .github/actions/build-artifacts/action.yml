@@ -143,22 +143,10 @@ runs:
         git config --global http.lowSpeedTime 30
 
     - name: Update submodules
-      shell: bash
-      run: |
-        set -euo pipefail
-        # Shared-egress clone throttling comes in waves; retry with backoff.
-        attempt=0
-        until timeout 180 git submodule update --init --depth 1 --filter=blob:none --recursive --jobs="$(nproc)" \
-            scripts/toolchain fbt_layers/fbtng; do
-          attempt=$((attempt + 1))
-          if (( attempt >= 3 )); then
-            git lfs logs last 2>/dev/null || true
-            echo "submodule update failed after ${attempt} attempts"
-            exit 1
-          fi
-          echo "submodule update attempt ${attempt}/3 failed; retrying in $((attempt * 15))s"
-          sleep "$((attempt * 15))"
-        done
+      uses: ./.github/actions/update-submodules
+      with:
+        paths: scripts/toolchain fbt_layers/fbtng
+        recursive: 'true'
 
     - name: Build update package
       shell: bash
