@@ -200,7 +200,7 @@ CanvasResult canvas_get_app_id(CanvasSrv* canvas, FuriString* string);
 /**
  * @brief Current canvas ownership (which HTTP API application owns the canvas).
  *
- * Published as a FuriState (see @ref canvas_get_ownership_state) whenever the
+ * Published as a FuriState (see `canvas_get_ownership_state()`) whenever the
  * canvas goes from idle to owned, the owner changes, or the canvas is released.
  */
 typedef struct {
