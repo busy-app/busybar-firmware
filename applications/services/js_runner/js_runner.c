@@ -8,8 +8,6 @@
 #include "js_response.h"
 #include "js_stubs.h"
 
-#include <furi_hal_memory.h>
-
 #define TAG "JsRunner"
 
 JsRunnerStaticContext js_runner_static_context = {
@@ -223,7 +221,7 @@ static void
         ByteArray_t* array = user_p;
         ByteArray_clear(*array);
         free(array);
-    } else if(furi_hal_memory_is_address_in_region(string_p, FuriHalMemoryRegionIdHeap)) {
+    } else if(string_p) {
         free(string_p);
     }
 }
