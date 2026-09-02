@@ -199,7 +199,7 @@ void cli_command_js(PipeSide* pipe, FuriString* args, void* context) {
     bool parse_ok = parse_args(args, "hi:k", argparse_callback, &params);
     bool validate_ok = validate_params(&params);
     if(!parse_ok || !validate_ok) {
-        printf("Usage: js [-i app_id] <filename>\r\n");
+        printf("Usage: js [-i app_id] [filename]\r\n");
         printf("       js -k\r\n");
         printf("       js -h\r\n");
     } else {
