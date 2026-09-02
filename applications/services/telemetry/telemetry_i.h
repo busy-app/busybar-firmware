@@ -10,6 +10,7 @@
 #include <toolbox/api_lock.h>
 
 #include <mqtt/mqtt.h>
+#include <canvas/canvas.h>
 #include <loader/loader.h>
 #include <busy_timer/busy_timer.h>
 #include <power/power_service/power.h>
@@ -105,6 +106,11 @@ struct Telemetry {
     FuriState* updater_state;
     Matter* matter;
     FuriPubSub* mqtt_pubsub;
+    FuriState* canvas_ownership_state;
+
+    // canvas ownership dedup (only touched in the canvas state callback)
+    bool last_canvas_active;
+    char last_canvas_app[CANVAS_OWNER_APP_ID_MAX + 1];
 
     // input aggregate counters (touched from the input service thread)
     _Atomic uint32_t input_ok;

@@ -17,6 +17,7 @@ App(
         "mqtt",
         "loader",
         "busy_timer",
+        "canvas",
         "power_srv",
         "audio",
         "brightness_control",

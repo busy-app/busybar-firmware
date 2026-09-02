@@ -35,6 +35,8 @@ static const TelemetryEventInfo telemetry_event_info[TelemetryEventMax] = {
     [TelemetryEventNetOfflineDuration] = {"net.offline_duration", TelemetryPriorityPush},
     [TelemetryEventAccountLink] = {"account.link", TelemetryPriorityPush},
     [TelemetryEventAccountUnlink] = {"account.unlink", TelemetryPriorityPush},
+    [TelemetryEventCanvasAcquire] = {"canvas.acquire", TelemetryPriorityBatch},
+    [TelemetryEventCanvasRelease] = {"canvas.release", TelemetryPriorityBatch},
 };
 
 static_assert(COUNT_OF(telemetry_event_info) == TelemetryEventMax);
