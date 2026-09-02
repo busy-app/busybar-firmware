@@ -1,0 +1,28 @@
+name: Authenticate git for the job
+description: >-
+  Reproduce actions/checkout's credential mechanism for every git operation in
+  the calling job (submodule bootstraps, build-artifacts' submodule update, and
+  fbt's own recursive submodule init): write an Authorization extraheader for
+  github.com into a per-job config file and point GIT_CONFIG_GLOBAL at it. This
+  escapes GitHub's throttling of unauthenticated clone traffic from the shared
+  self-hosted runner egress. Uses the GH_TOKEN env var of the calling job; run
+  after actions/checkout.
+author: hedger
+
+runs:
+  using: composite
+  steps:
+    - name: 'Configure git auth for the job'
+      shell: bash
+      run: |
+        set -euo pipefail
+        # base64 must stay single-line: GNU base64 wraps at 76 cols by default,
+        # which would embed newlines in the Authorization header value and make
+        # the server reset the connection ("Failed sending HTTP request").
+        if [[ -n "${GH_TOKEN:-}" ]]; then
+          CFG="${RUNNER_TEMP}/git-credentials.config"
+          AUTH="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 | tr -d '\n')"
+          git config --file "$CFG" http.https://github.com/.extraheader "$AUTH"
+          chmod 600 "$CFG"
+          echo "GIT_CONFIG_GLOBAL=${CFG}" >> "${GITHUB_ENV}"
+        fi
