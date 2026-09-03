@@ -221,7 +221,6 @@ bool url_parse(Url* instance, const char* source_str) {
 
     if(offset == source_len) {
         url_calc_compound_parts(instance);
-        UNUSED(url_calc_compound_parts);
         success = true;
     }
 
