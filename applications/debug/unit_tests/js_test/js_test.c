@@ -73,7 +73,8 @@ static JsRunnerError run_and_join(
             break;
         }
         do {
-            JsRunnerRunResult run_result = js_runner_run(context_init_result.handle, path);
+            JsRunnerRunResult run_result =
+                js_runner_run(context_init_result.handle, path, NULL, NULL);
             if(run_result.error != JsRunnerErrorNone) {
                 result = run_result.error;
                 break;
@@ -256,17 +257,17 @@ MU_TEST(js_tests_handle) {
     mu_assert_int_eq(JsRunnerErrorResource, result2.error);
     mu_assert_null(result2.handle);
 
-    JsRunnerRunResult run_result1 = js_runner_run(result1.handle, SCRIPT_FILE);
+    JsRunnerRunResult run_result1 = js_runner_run(result1.handle, SCRIPT_FILE, NULL, NULL);
     mu_assert_int_eq(JsRunnerErrorNone, run_result1.error);
     mu_assert_not_null(run_result1.handle);
 
-    JsRunnerRunResult run_result2 = js_runner_run(result1.handle, SCRIPT_FILE);
+    JsRunnerRunResult run_result2 = js_runner_run(result1.handle, SCRIPT_FILE, NULL, NULL);
     mu_assert_int_eq(JsRunnerErrorResource, run_result2.error);
     mu_assert_null(run_result2.handle);
 
     mu_assert_int_eq(JsRunnerErrorNone, js_runner_join(run_result1.handle, FuriWaitForever));
 
-    JsRunnerRunResult run_result3 = js_runner_run(result1.handle, SCRIPT_FILE);
+    JsRunnerRunResult run_result3 = js_runner_run(result1.handle, SCRIPT_FILE, NULL, NULL);
     mu_assert_int_eq(JsRunnerErrorNone, run_result3.error);
     mu_assert_not_null(run_result3.handle);
 

@@ -56,7 +56,7 @@ static bool js_app_launcher_scene_run_start_app(JsAppLauncher* instance) {
         data->js_runner_handle = init_result.handle;
 
         const JsRunnerRunResult run_result =
-            js_runner_run(data->js_runner_handle, js_info.path.entry);
+            js_runner_run(data->js_runner_handle, js_info.path.entry, NULL, NULL);
 
         if(run_result.error != JsRunnerErrorNone) {
             data->js_error = run_result.error;

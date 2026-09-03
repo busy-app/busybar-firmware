@@ -70,6 +70,10 @@ void js_runner_app_stop_if_done(JsRunnerApp* app) {
     if(!app_has_background_tasks(app)) {
         JS_TRACE("No more tasks");
         furi_event_flag_set(app->is_idle, JS_RUNNER_APP_FLAG_IDLE);
+        JsRunnerExecutionHandle* handle = app->execution_handle;
+        if(handle->termination_callback) {
+            handle->termination_callback(handle, handle->termination_callback_context);
+        }
     }
 }
 
@@ -203,6 +207,7 @@ static void js_runner_app_init(JsRunnerApp* app, const AppThreadParams* params) 
     app->command_queue = params->command_queue;
     app->should_terminate = false;
     atomic_flag_clear(&app->is_execution_handle_taken);
+    app->execution_handle = NULL;
     app->heap_size = params->heap_size;
     app->jrs_context = NULL;
     app->event_loop = furi_event_loop_alloc();
@@ -437,28 +442,39 @@ void js_runner_context_free(JsRunnerContextHandle* handle) {
     free(handle);
 }
 
-static JsRunnerExecutionHandle* execution_handle_alloc(JsRunnerContextHandle* parent) {
+static JsRunnerExecutionHandle* execution_handle_alloc(
+    JsRunnerContextHandle* parent,
+    JsRunnerTerminationCallback on_terminate,
+    void* context) {
     if(atomic_flag_test_and_set(&parent->app->is_execution_handle_taken)) {
         return NULL;
     }
     JsRunnerExecutionHandle* handle = malloc(sizeof(JsRunnerExecutionHandle));
     handle->app = parent->app;
     handle->context_handle = parent;
+    handle->termination_callback = on_terminate;
+    handle->termination_callback_context = context;
+    parent->app->execution_handle = handle;
     return handle;
 }
 
 static void execution_handle_free(JsRunnerExecutionHandle* handle) {
+    handle->app->execution_handle = NULL;
     atomic_flag_clear(&handle->app->is_execution_handle_taken);
     free(handle);
 }
 
-JsRunnerRunResult js_runner_run(JsRunnerContextHandle* handle, const char* path) {
+JsRunnerRunResult js_runner_run(
+    JsRunnerContextHandle* handle,
+    const char* path,
+    JsRunnerTerminationCallback on_terminate,
+    void* context) {
     FURI_LOG_I(TAG, "Running script: %s", path);
 
     JsRunnerError result = JsRunnerErrorNone;
     JsRunnerExecutionHandle* exec_handle = NULL;
     do {
-        exec_handle = execution_handle_alloc(handle);
+        exec_handle = execution_handle_alloc(handle, on_terminate, context);
         if(!exec_handle) {
             result = JsRunnerErrorResource;
             break;
@@ -488,12 +504,16 @@ JsRunnerRunResult js_runner_run(JsRunnerContextHandle* handle, const char* path)
     };
 }
 
-JsRunnerRunResult
-    js_runner_run_snippet(JsRunnerContextHandle* handle, const char* code, bool print_result) {
+JsRunnerRunResult js_runner_run_snippet(
+    JsRunnerContextHandle* handle,
+    const char* code,
+    bool print_result,
+    JsRunnerTerminationCallback on_terminate,
+    void* context) {
     JsRunnerError result = JsRunnerErrorNone;
     JsRunnerExecutionHandle* exec_handle = NULL;
     do {
-        exec_handle = execution_handle_alloc(handle);
+        exec_handle = execution_handle_alloc(handle, on_terminate, context);
         if(!exec_handle) {
             result = JsRunnerErrorResource;
             break;
@@ -531,8 +551,7 @@ JsRunnerError js_runner_join(JsRunnerExecutionHandle* handle, uint32_t timeout) 
     JsRunnerError result = JsRunnerErrorNone;
     if(wait_result == JS_RUNNER_APP_FLAG_IDLE) {
         handle->app->should_terminate = false;
-        atomic_flag_clear(&handle->app->is_execution_handle_taken);
-        free(handle);
+        execution_handle_free(handle);
     } else if((FuriStatus)wait_result == FuriStatusErrorTimeout) {
         result = JsRunnerErrorTimeout;
     } else {

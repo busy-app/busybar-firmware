@@ -65,7 +65,8 @@ static void run_script(const FuriString* path, const FuriString* app_id, PipeSid
             js_runner_get_error_message(context_init_result.error));
     } else {
         JsRunnerContextHandle* handle = context_init_result.handle;
-        JsRunnerRunResult run_result = js_runner_run(handle, furi_string_get_cstr(path));
+        JsRunnerRunResult run_result =
+            js_runner_run(handle, furi_string_get_cstr(path), NULL, NULL);
         if(run_result.error != JsRunnerErrorNone) {
             printf("Error running script: %s\r\n", js_runner_get_error_message(run_result.error));
         } else {
@@ -126,8 +127,8 @@ static void run_repl(const FuriString* app_id, PipeSide* pipe) {
                     stop = true;
                 } else {
                     if(furi_string_size(line.line) > 0) {
-                        JsRunnerRunResult run_result =
-                            js_runner_run_snippet(handle, furi_string_get_cstr(line.line), true);
+                        JsRunnerRunResult run_result = js_runner_run_snippet(
+                            handle, furi_string_get_cstr(line.line), true, NULL, NULL);
                         if(run_result.error != JsRunnerErrorNone) {
                             printf("Error: %s\r\n", js_runner_get_error_message(run_result.error));
                         } else {
