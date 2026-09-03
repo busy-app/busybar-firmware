@@ -1,7 +1,8 @@
 <template>
   <component
-    :is="currentApp.component"
-    v-if="currentApp"
+    :is="currentAppView.component"
+    v-if="currentAppView"
+    v-bind="currentAppView.props"
     @back="openApp = undefined"
   />
   <TabAppsCard
@@ -9,12 +10,12 @@
     @add="showAddAppModal = true"
   >
     <TabAppsAppCard
-      v-for="app in APPS"
-      :key="app.id"
-      :data-id="`apps-section-app-${app.id}`"
-      :title="app.title"
+      v-for="app in apps"
+      :key="app.manifest.id"
+      :data-id="`apps-section-app-${app.manifest.id}`"
+      :title="app.manifest.name"
       :icon="app.icon"
-      @click="openApp = app.id"
+      @click="openApp = app.manifest.id"
     />
   </TabAppsCard>
 
@@ -25,26 +26,52 @@
 </template>
 
 <script setup lang="ts">
-import { TabAppsWeather } from '#components';
+import type { Component } from 'vue';
+import { TabAppsWeather, TabAppsCustomApp } from '#components';
 import weatherIcon from '@/assets/icons/apps/weather.svg?url';
+import type { AppManifest, AppPackage } from '@/util/readAppPackage';
 
-type AppId = typeof APPS[number]['id'];
+interface App {
+  manifest: Pick<AppManifest, 'id' | 'name'> & Partial<AppManifest>;
+  icon?: string;
+}
 
-const APPS = [
-  { id: 'weather', title: 'Weather', icon: weatherIcon, component: TabAppsWeather }
-] as const;
+const NATIVE_VIEWS: Record<string, Component> = { weather: markRaw(TabAppsWeather) };
 
 const toast = useToast();
 
-const openApp = ref<AppId>();
+const openApp = ref<string>();
 const showAddAppModal = ref(false);
+const apps = ref<App[]>([
+  { manifest: { id: 'weather', name: 'Weather' }, icon: weatherIcon }
+]);
 
-const currentApp = computed(() => APPS.find(app => app.id === openApp.value));
+const currentApp = computed(() => apps.value.find(app => app.manifest.id === openApp.value));
 
-function onAppUploaded (file: File) {
+const currentAppView = computed(() => {
+  if (!currentApp.value) {
+    return undefined;
+  }
+
+  const nativeView = NATIVE_VIEWS[currentApp.value.manifest.id];
+
+  return nativeView
+    ? { component: nativeView, props: {} }
+    : { component: markRaw(TabAppsCustomApp), props: { app: currentApp.value } };
+});
+
+function onAppUploaded (appPackage: AppPackage) {
+  const installedIndex = apps.value.findIndex(app => app.manifest.id === appPackage.manifest.id);
+
+  if (installedIndex === -1) {
+    apps.value.push(appPackage);
+  } else {
+    apps.value[installedIndex] = appPackage;
+  }
+
   toast.add({
     title: 'App added',
-    description: `${file.name} has been uploaded to your BUSY Bar.`,
+    description: `${appPackage.manifest.name} has been added to your BUSY Bar.`,
     icon: 'i-bi-checkmark-circle-fill',
     color: 'success'
   });

@@ -5,12 +5,18 @@
   >
     <div class="flex min-w-0 flex-1 items-center gap-2">
       <img
+        v-if="icon"
         :src="icon"
         alt=""
         width="32"
         height="32"
         class="size-8 shrink-0 [image-rendering:pixelated]"
       >
+      <div
+        v-else
+        class="size-8 shrink-0 rounded-lg bg-accented/25"
+      />
+
       <div class="truncate text-xl font-medium">
         {{ title }}
       </div>
@@ -26,6 +32,6 @@
 <script setup lang="ts">
 defineProps<{
   title: string;
-  icon: string;
+  icon?: string;
 }>();
 </script>

@@ -2,12 +2,25 @@
   <ModalGeneric
     v-model:open="open"
     data-id="modal-uploader-app"
-    title="Add your file"
+    :title="confirming ? appPackage!.manifest.name : 'Add your file'"
     wide
     :dismissible="!uploading"
     :show-close-button="!file || failed"
-    :description="file && !uploading && !failed ? 'This file will be added to your BUSY Bar and the local web interface.' : undefined"
+    :description="file && !uploading && !failed && !confirming ? 'This file will be added to your BUSY Bar and the local web interface.' : undefined"
   >
+    <template
+      v-if="confirming && appPackage!.icon"
+      #icon
+    >
+      <img
+        :src="appPackage!.icon"
+        alt=""
+        width="40"
+        height="40"
+        class="size-10 shrink-0 [image-rendering:pixelated]"
+      >
+    </template>
+
     <template #body>
       <template v-if="!file">
         <div @click="fileInput?.click()">
@@ -110,6 +123,11 @@
         />
       </div>
 
+      <TabAppsAppInfo
+        v-else-if="confirming"
+        :manifest="appPackage!.manifest"
+      />
+
       <div
         v-else
         data-id="modal-uploader-app-file-selected"
@@ -138,7 +156,7 @@
           :ui="{
             base: 'p-2.5 rounded-full bg-accented/50'
           }"
-          @click="() => { file = null; }"
+          @click="removeFile"
         />
       </div>
     </template>
@@ -159,13 +177,23 @@
         />
 
         <UButton
-          v-if="!uploading"
+          v-if="confirming"
+          data-id="modal-uploader-app-confirm-button"
+          label="Confirm"
+          color="neutral"
+          size="lg"
+          class="min-w-20 justify-center"
+          @click="uploadFile"
+        />
+
+        <UButton
+          v-else-if="!uploading"
           data-id="modal-uploader-app-add-button"
           label="Add"
           color="neutral"
           size="lg"
           class="min-w-20 justify-center"
-          @click="addFile"
+          @click="readPackage"
         />
       </div>
     </template>
@@ -173,31 +201,90 @@
 </template>
 
 <script setup lang="ts">
+import type { AppPackage } from '@/util/readAppPackage';
 
 const emit = defineEmits<{
-  (e: 'uploaded', file: File): void;
+  (e: 'uploaded', appPackage: AppPackage): void;
 }>();
 
 const open = defineModel<boolean>('open', { default: false });
 
 const APP_FILE_EXTENSION = '.tgz';
 
+let uploadController: AbortController | null = null;
+
 const toast = useToast();
 
 const file = ref<File | null>(null);
 const fileInput = useTemplateRef<HTMLInputElement>('fileInput');
 
+const appPackage = ref<AppPackage>();
 const uploading = ref(false);
 const progress = ref(0);
 const failed = ref(false);
 
-let uploadController: AbortController | null = null;
+const confirming = computed(() => !!appPackage.value && !uploading.value && !failed.value);
 
 function selectFile (event: Event) {
   const input = event.target as HTMLInputElement;
 
   file.value = input.files?.[0] ?? null;
   input.value = '';
+}
+
+function removeFile () {
+  file.value = null;
+  appPackage.value = undefined;
+}
+
+function onUploadProgress (value: number) {
+  progress.value = value;
+}
+
+async function readPackage () {
+  if (!file.value) {
+    return;
+  }
+
+  try {
+    appPackage.value = await readAppPackage(file.value);
+  } catch {
+    failed.value = true;
+  }
+}
+
+async function uploadFile () {
+  if (!file.value || !appPackage.value) {
+    return;
+  }
+
+  const confirmedPackage = appPackage.value;
+
+  uploadController = new AbortController();
+  uploading.value = true;
+  progress.value = 0;
+  failed.value = false;
+
+  try {
+    await uploadAppPackage(file.value, onUploadProgress, uploadController.signal);
+
+    emit('uploaded', confirmedPackage);
+    open.value = false;
+  } catch {
+    failed.value = !uploadController.signal.aborted;
+  } finally {
+    uploading.value = false;
+    uploadController = null;
+  }
+}
+
+function cancel () {
+  if (uploading.value) {
+    uploadController?.abort();
+    return;
+  }
+
+  open.value = false;
 }
 
 watch(file, value => {
@@ -218,46 +305,9 @@ watch(file, value => {
 watch(open, value => {
   if (value) {
     file.value = null;
+    appPackage.value = undefined;
     progress.value = 0;
     failed.value = false;
   }
 });
-
-function onUploadProgress (value: number) {
-  progress.value = value;
-}
-
-async function addFile () {
-  if (!file.value) {
-    return;
-  }
-
-  const uploadedFile = file.value;
-
-  uploadController = new AbortController();
-  uploading.value = true;
-  progress.value = 0;
-  failed.value = false;
-
-  try {
-    await uploadAppPackage(uploadedFile, onUploadProgress, uploadController.signal);
-
-    emit('uploaded', uploadedFile);
-    open.value = false;
-  } catch {
-    failed.value = !uploadController.signal.aborted;
-  } finally {
-    uploading.value = false;
-    uploadController = null;
-  }
-}
-
-function cancel () {
-  if (uploading.value) {
-    uploadController?.abort();
-    return;
-  }
-
-  open.value = false;
-}
 </script>
