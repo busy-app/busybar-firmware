@@ -68,8 +68,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AccessTokensInfo"
-        "400":
-          description: Invalid request data
+        "403":
+          description: Request forbidden
           content:
             application/json:
               schema:
@@ -99,6 +99,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "403":
+          description: Request forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
     delete:
       tags:
         - Settings
@@ -112,8 +118,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
-        "400":
-          description: Invalid request data
+        "403":
+          description: Request forbidden
           content:
             application/json:
               schema:
@@ -138,8 +144,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
-        "400":
-          description: Invalid request data
+        "403":
+          description: Request forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Specified token not found
           content:
             application/json:
               schema:
