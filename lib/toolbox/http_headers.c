@@ -1,21 +1,24 @@
 #include "http_headers.h"
 
+#include <m-array.h>
+
+#include <core/check.h>
+
 #define HTTP_MIN_HEADERS_LENGTH strlen("HTTP/1.0 XXX \r\n")
 #define HTTP_NAME               "HTTP/"
 #define HTTP_NAME_LEN           5
 
-void http_header_free(HttpHeader header);
+static void http_header_clear(HttpHeader header);
 
-M_ARRAY_DEF(HttpHeaderArray, HttpHeader, M_OPEXTEND(M_POD_OPLIST, CLEAR(http_header_free)));
+M_ARRAY_DEF(HttpHeaderArray, HttpHeader, M_OPEXTEND(M_POD_OPLIST, CLEAR(http_header_clear)));
 
 typedef struct HttpHeaders {
     uint32_t status;
     FuriString* status_text;
-
     HttpHeaderArray_t headers;
 } HttpHeaders;
 
-void http_header_free(HttpHeader header) {
+static void http_header_clear(HttpHeader header) {
     furi_string_free(header.key);
     furi_string_free(header.value);
 }
@@ -147,54 +150,101 @@ static ssize_t parse_status_line(HttpHeaders* headers, const char* data, size_t 
             break;
         }
         size_t reason_phrase_len = cr - data - i;
-        headers->status_text = furi_string_alloc_printf("%.*s", reason_phrase_len, data + i);
+        furi_string_printf(headers->status_text, "%.*s", reason_phrase_len, data + i);
         result = cr - data + 2;
     } while(false);
+    return result;
+}
+
+static HttpHeader* http_headers_find_by_key(const HttpHeaders* instance, const char* key) {
+    HttpHeader* result = NULL;
+
+    for(uint32_t i = 0; i < HttpHeaderArray_size(instance->headers); ++i) {
+        HttpHeader* hdr = HttpHeaderArray_get(instance->headers, i);
+        if(furi_string_cmpi(hdr->key, key) == 0) {
+            result = hdr;
+        }
+    }
+
     return result;
 }
 
 HttpHeaders* http_headers_alloc(void) {
     HttpHeaders* instance = malloc(sizeof(HttpHeaders));
     HttpHeaderArray_init(instance->headers);
+    instance->status_text = furi_string_alloc();
 
     return instance;
 }
 
-bool http_headers_parse(HttpHeaders* instance, const char* data, size_t size) {
+void http_headers_free(HttpHeaders* instance) {
+    furi_check(instance);
+
+    HttpHeaderArray_clear(instance->headers);
+    furi_string_free(instance->status_text);
+    free(instance);
+}
+
+bool http_headers_parse(HttpHeaders* instance, const char* data, size_t data_len) {
+    furi_check(instance);
+    furi_check(data);
+    furi_check(data_len);
+
     bool success = false;
 
     do {
-        ssize_t headers_offset = parse_status_line(instance, data, size);
+        ssize_t headers_offset = parse_status_line(instance, data, data_len);
         if(headers_offset < 0) {
             break;
         }
 
-        success = parse_headers_list(instance, data + headers_offset, size - headers_offset);
+        success = parse_headers_list(instance, data + headers_offset, data_len - headers_offset);
     } while(false);
 
     return success;
 }
 
-void http_headers_free(HttpHeaders* headers) {
-    HttpHeaderArray_clear(headers->headers);
-    if(headers->status_text) {
-        furi_string_free(headers->status_text);
-    }
-    free(headers);
-}
-
 uint32_t http_headers_get_status(const HttpHeaders* instance) {
+    furi_check(instance);
     return instance->status;
 }
 
 const char* http_headers_get_status_text(const HttpHeaders* instance) {
+    furi_check(instance);
     return furi_string_get_cstr(instance->status_text);
 }
 
 size_t http_headers_get_header_count(const HttpHeaders* instance) {
+    furi_check(instance);
     return HttpHeaderArray_size(instance->headers);
 }
 
 const HttpHeader* http_headers_get_header(const HttpHeaders* instance, size_t index) {
+    furi_check(instance);
     return HttpHeaderArray_cget(instance->headers, index);
+}
+
+const HttpHeader* http_headers_get(const HttpHeaders* instance, const char* key) {
+    furi_check(instance);
+    furi_check(key);
+    return http_headers_find_by_key(instance, key);
+}
+
+void http_headers_set(HttpHeaders* instance, const char* key, const char* value) {
+    furi_check(instance);
+    furi_check(key);
+    furi_check(value);
+
+    HttpHeader* header = http_headers_find_by_key(instance, key);
+    if(header == NULL) {
+        const HttpHeader new_header = {
+            .key = furi_string_alloc_set(key),
+            .value = furi_string_alloc_set(value),
+        };
+        HttpHeaderArray_push_back(instance->headers, new_header);
+
+    } else {
+        furi_string_set(header->key, key);
+        furi_string_set(header->value, value);
+    }
 }
