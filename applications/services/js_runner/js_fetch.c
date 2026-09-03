@@ -65,7 +65,7 @@ static RequestParseResult parse_request(jerry_value_t obj) {
             };
             break;
         }
-        FURI_LOG_D(TAG, "Fetch %s", request.url);
+        JS_TRACE("Fetch %s", request.url);
 
         if(js_object_has_property(obj, "method")) {
             jerry_value_t method_val = jerry_object_get_sz(obj, "method");
