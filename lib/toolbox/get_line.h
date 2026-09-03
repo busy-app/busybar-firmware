@@ -10,6 +10,7 @@
 typedef enum GetLineError {
     GetLineErrorNone,
     GetLineErrorTooLong,
+    GetLineErrorInterrupt,
     GetLineErrorEOF,
 } GetLineError;
 

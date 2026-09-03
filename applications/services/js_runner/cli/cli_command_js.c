@@ -115,12 +115,13 @@ static void run_repl(const FuriString* app_id, PipeSide* pipe) {
             bool show_prompt = false;
             GetLineResult line = get_line(MAX_REPL_LINE_LENGTH);
 
-            if(line.error == GetLineErrorEOF) {
+            if(line.error == GetLineErrorEOF || line.error == GetLineErrorInterrupt) {
                 break;
             } else if(line.error == GetLineErrorTooLong) {
                 printf("Too long\r\n");
             } else if(line.error == GetLineErrorNone) {
                 bool stop = false;
+                printf("\r\n");
                 if(furi_string_cmp(line.line, "exit") == 0) {
                     stop = true;
                 } else {
