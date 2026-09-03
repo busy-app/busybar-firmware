@@ -3,18 +3,18 @@
     v-model:open="open"
     data-id="modal-uploader-app"
     title="Add your file"
-    dismissible
     wide
+    :dismissible="!uploading"
     :show-close-button="!file"
     :no-actions="!file"
-    :description="file ? 'This file will be added to your BUSY Bar and the local web interface.' : undefined"
-    :primary-action-props="{
+    :description="file && !uploading ? 'This file will be added to your BUSY Bar and the local web interface.' : undefined"
+    :primary-action-props="uploading ? undefined : {
       label: 'Add',
       onClick: addFile
     }"
     :secondary-action-props="{
       label: 'Cancel',
-      onClick: () => { open = false; }
+      onClick: cancel
     }"
   >
     <template #body>
@@ -65,6 +65,36 @@
       </template>
 
       <div
+        v-else-if="uploading"
+        data-id="modal-uploader-app-progress"
+        class="flex flex-col gap-6 py-4"
+      >
+        <div class="flex items-start gap-2">
+          <UIcon
+            name="i-bi-upload"
+            class="size-6 shrink-0"
+          />
+
+          <div class="min-w-0 flex-1">
+            Uploading the file. Do not disconnect your BUSY Bar.
+          </div>
+
+          <div
+            data-id="modal-uploader-app-progress-value"
+            class="text-muted"
+          >
+            {{ progress }}%
+          </div>
+        </div>
+
+        <UProgress
+          v-model="progress"
+          color="success"
+          size="lg"
+        />
+      </div>
+
+      <div
         v-else
         data-id="modal-uploader-app-file-selected"
         class="flex items-center gap-2 rounded-xl border border-accented p-3"
@@ -102,7 +132,7 @@
 <script setup lang="ts">
 
 const emit = defineEmits<{
-  (e: 'select', file: File): void;
+  (e: 'uploaded', file: File): void;
 }>();
 
 const open = defineModel<boolean>('open', { default: false });
@@ -113,6 +143,11 @@ const toast = useToast();
 
 const file = ref<File | null>(null);
 const fileInput = useTemplateRef<HTMLInputElement>('fileInput');
+
+const uploading = ref(false);
+const progress = ref(0);
+
+let uploadController: AbortController | null = null;
 
 function selectFile (event: Event) {
   const input = event.target as HTMLInputElement;
@@ -139,15 +174,51 @@ watch(file, value => {
 watch(open, value => {
   if (value) {
     file.value = null;
+    progress.value = 0;
   }
 });
 
-function addFile () {
+function onUploadProgress (value: number) {
+  progress.value = value;
+}
+
+async function addFile () {
   if (!file.value) {
     return;
   }
 
-  emit('select', file.value);
+  const uploadedFile = file.value;
+
+  uploadController = new AbortController();
+  uploading.value = true;
+  progress.value = 0;
+
+  try {
+    await uploadAppPackage(uploadedFile, onUploadProgress, uploadController.signal);
+
+    emit('uploaded', uploadedFile);
+    open.value = false;
+  } catch {
+    if (!uploadController.signal.aborted) {
+      toast.add({
+        title: 'Upload failed',
+        description: `${uploadedFile.name} could not be uploaded to your BUSY Bar.`,
+        icon: 'i-bi-alert',
+        color: 'error'
+      });
+    }
+  } finally {
+    uploading.value = false;
+    uploadController = null;
+  }
+}
+
+function cancel () {
+  if (uploading.value) {
+    uploadController?.abort();
+    return;
+  }
+
   open.value = false;
 }
 </script>

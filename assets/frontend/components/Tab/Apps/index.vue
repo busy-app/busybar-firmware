@@ -20,7 +20,7 @@
 
   <TabAppsUploaderModal
     v-model:open="showAddAppModal"
-    @select="onAppFileSelect"
+    @uploaded="onAppUploaded"
   />
 </template>
 
@@ -41,11 +41,12 @@ const showAddAppModal = ref(false);
 
 const currentApp = computed(() => APPS.find(app => app.id === openApp.value));
 
-function onAppFileSelect (file: File) {
+function onAppUploaded (file: File) {
   toast.add({
-    title: 'File added',
-    description: `${file.name} is ready, but installing apps is not available yet.`,
-    icon: 'i-bi-info'
+    title: 'App added',
+    description: `${file.name} has been uploaded to your BUSY Bar.`,
+    icon: 'i-bi-checkmark-circle-fill',
+    color: 'success'
   });
 }
 </script>
