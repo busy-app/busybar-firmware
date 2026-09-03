@@ -9,6 +9,7 @@
     <TabDrawTool v-if="tabStore.currentTab === 'draw-tool'" />
 
     <template v-if="tabStore.showHiddenTabs">
+      <TabApps v-if="tabStore.currentTab === 'apps'" />
       <TabFiles v-if="tabStore.currentTab === 'files'" />
       <TabAnimations v-if="tabStore.currentTab === 'animations'" />
     </template>

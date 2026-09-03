@@ -100,6 +100,15 @@ export default defineAppConfig({
         size: 'xl'
       }
     },
+    separator: {
+      variants: {
+        color: {
+          neutral: {
+            border: 'border-divider'
+          }
+        }
+      }
+    },
     tooltip: {
       slots: {
         content: 'bg-inverted text-inverted'

@@ -82,8 +82,10 @@ jobs:
       - name: 'Configure Git and LFS for submodules'
         run: |
           git lfs install --skip-smudge
-          echo "https://x-access-token:${GH_TOKEN}@github.com" > ~/.git-credentials
-          git config credential.helper 'store --file ~/.git-credentials'
+          # Self-hosted runners persist $HOME; keep creds in per-job RUNNER_TEMP.
+          rm -f "$HOME/.git-credentials"
+          echo "https://x-access-token:${GH_TOKEN}@github.com" > "${RUNNER_TEMP}/git-credentials"
+          git config credential.helper "store --file ${RUNNER_TEMP}/git-credentials"
           git config lfs.transfer.maxretries 3
 
       - name: 'Update submodules'
