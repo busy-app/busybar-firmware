@@ -17,7 +17,7 @@
 #include <jerryscript.h>
 #pragma GCC diagnostic pop
 
-#define JS_DEBUG
+// #define JS_DEBUG
 
 #if defined(JS_DEBUG)
 #define JS_TRACE(...) FURI_LOG_D(TAG, __VA_ARGS__)
