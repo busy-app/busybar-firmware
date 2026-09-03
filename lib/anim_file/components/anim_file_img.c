@@ -130,7 +130,8 @@ static bool anim_file_img_step_decode_qoi(
     inline void output_pixel(uint32_t pixel) {
         hash_lut[pixel_hash(pixel)] = pixel;
         last_px = pixel;
-        if(dest_pixels < max_pixels) dest_buf[dest_pixels++] = pixel;
+        if(dest_pixels < max_pixels) dest_buf[dest_pixels] = pixel;
+        dest_pixels++;
     }
 
     inline uint8_t wrapping_add8(uint8_t old, int8_t diff) {
@@ -160,7 +161,9 @@ static bool anim_file_img_step_decode_qoi(
                 ANIM_FILE_ERR("QOI_OP_RGBA source overrun");
                 return false;
             }
-            output_pixel((payload[3] << 24) | (payload[0] << 16) | (payload[1] << 8) | payload[2]);
+            output_pixel(
+                ((size_t)payload[3] << 24) | ((size_t)payload[0] << 16) |
+                ((size_t)payload[1] << 8) | (size_t)payload[2]);
             additional_bytes_used = 4;
 
         } else if(short_tag == ANIM_FILE_QOI_SHORT_OP_INDEX) {
@@ -275,6 +278,17 @@ static AnimFileBuffer* anim_file_img_step_unpack(
     AnimFileBuffer* destination = anim_file_img_request_buffer(anim, source);
     uint8_t* src_data = source->data;
     uint8_t* dest_data = destination->data;
+
+    size_t will_fill_bytes = 0;
+    if(format == AnimFileColorFormatGray4) {
+        will_fill_bytes = source->filled_bytes * ANIM_FILE_OUT_BYTES_PER_PIXEL * 2;
+    } else if(format == AnimFileColorFormatBgr888) {
+        will_fill_bytes = source->filled_bytes * ANIM_FILE_OUT_BYTES_PER_PIXEL / 3;
+    }
+
+    furi_assert(
+        will_fill_bytes <= destination->max_bytes,
+        "Incorrectly chosen buffer size in anim_file_img_init");
 
     if(format == AnimFileColorFormatGray4) {
         for(size_t i = 0; i < source->filled_bytes; i++) {
