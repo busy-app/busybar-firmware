@@ -278,12 +278,42 @@ MU_TEST(js_tests_handle) {
     furi_record_close(RECORD_JS_RUNNER);
 }
 
+static void terminate_callback(JsRunnerExecutionHandle* handle, void* context) {
+    UNUSED(handle);
+    bool* done = context;
+    *done = true;
+}
+
+MU_TEST(js_tests_callback) {
+    JsRunner* instance = furi_record_open(RECORD_JS_RUNNER);
+
+    JsRunnerContextInitResult result =
+        js_runner_context_alloc(instance, APP_ID, HEAP_SIZE, NULL, NULL);
+    mu_assert_int_eq(JsRunnerErrorNone, result.error);
+    mu_assert_not_null(result.handle);
+
+    bool done = false;
+    JsRunnerRunResult run_result =
+        js_runner_run_snippet(result.handle, "2+2", false, terminate_callback, &done);
+    mu_assert_int_eq(JsRunnerErrorNone, run_result.error);
+    mu_assert_not_null(run_result.handle);
+
+    mu_assert_int_eq(JsRunnerErrorNone, js_runner_join(run_result.handle, FuriWaitForever));
+
+    mu_check(done);
+
+    js_runner_context_free(result.handle);
+
+    furi_record_close(RECORD_JS_RUNNER);
+}
+
 MU_TEST_SUITE(js_test_suite) {
     MU_RUN_TEST(js_tests_console);
     MU_RUN_TEST(js_tests_modules);
     MU_RUN_TEST(js_tests_set_interval);
     MU_RUN_TEST(js_tests_local_storage);
     MU_RUN_TEST(js_tests_handle);
+    MU_RUN_TEST(js_tests_callback);
 }
 
 int run_minunit_js_test(void) {
