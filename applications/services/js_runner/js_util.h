@@ -81,6 +81,24 @@ void js_set_property_getset(
 /** @brief Test if an object has a property with given name */
 bool js_object_has_property(jerry_value_t object, const char* key);
 
+/** @brief Get a value of a property nested under several layers.
+ *
+ * Example: get object.foo.bar.baz
+ *
+ * const char* const keys[] = {"foo", "bar", "baz"};
+ * jerry_value_t baz_value = js_object_get_nested_property(object, keys, 3)
+ *
+ * @param object root object.
+ * @param keys array of property names for each nesting level.
+ * @param nesting_count number of entries in the keys array.
+ *
+ * @return the value of the nested property or undefined if any property lookup failed.
+ */
+jerry_value_t js_object_get_nested_property(
+    jerry_value_t object,
+    const char* const keys[],
+    size_t nesting_count);
+
 /** @brief Create a return value of an Iterator's next() method.
  *
  * The object has two properties: `done` and `value`.
