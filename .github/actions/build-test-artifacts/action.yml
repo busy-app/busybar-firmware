@@ -45,9 +45,9 @@ runs:
   using: composite
   steps:
     - name: 'Bootstrap tooling submodule'
-      shell: bash
-      run: |
-        git submodule update --init --depth 1 --filter=blob:none fbt_layers/fbtng
+      uses: ./.github/actions/update-submodules
+      with:
+        paths: fbt_layers/fbtng
 
     - name: 'Get commit details'
       id: get-env

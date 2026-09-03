@@ -132,8 +132,10 @@ runs:
         set -euo pipefail
         git lfs install --skip-smudge
         if [[ -n "${GH_TOKEN:-}" ]]; then
-          echo "https://x-access-token:${GH_TOKEN}@github.com" > ~/.git-credentials
-          git config credential.helper 'store --file ~/.git-credentials'
+          # Self-hosted runners persist $HOME; keep creds in per-job RUNNER_TEMP.
+          rm -f "$HOME/.git-credentials"
+          echo "https://x-access-token:${GH_TOKEN}@github.com" > "${RUNNER_TEMP}/git-credentials"
+          git config credential.helper "store --file ${RUNNER_TEMP}/git-credentials"
         fi
         git config lfs.transfer.maxretries 3
         # Fail fast on stalled connections: 30s with no data = abort
@@ -141,13 +143,10 @@ runs:
         git config --global http.lowSpeedTime 30
 
     - name: Update submodules
-      shell: bash
-      run: |
-        set -euo pipefail
-        timeout 180 git submodule update --init --depth 1 --filter=blob:none --recursive --jobs="$(nproc)" scripts/toolchain fbt_layers/fbtng || {
-          git lfs logs last 2>/dev/null || true
-          exit 1
-        }
+      uses: ./.github/actions/update-submodules
+      with:
+        paths: scripts/toolchain fbt_layers/fbtng
+        recursive: 'true'
 
     - name: Build update package
       shell: bash
