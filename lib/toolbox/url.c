@@ -27,7 +27,6 @@ typedef struct {
 
 typedef struct {
     UrlPartId part_id;
-    uint8_t subparts_count;
     const UrlParseStepIdx* subparts;
 } UrlCompoundPart;
 
@@ -83,30 +82,30 @@ static const UrlParseStep url_parse_steps[] = {
 static const UrlCompoundPart url_compound_parts[] = {
     {
         .part_id = UrlPartIdHref,
-        .subparts_count = 5,
-        .subparts = (const UrlParseStepIdx[5]) {
+        .subparts = (const UrlParseStepIdx[]) {
             UrlParseStepIdxProtocol,
             UrlParseStepIdxHostname,
             UrlParseStepIdxPort,
             UrlParseStepIdxPathname,
             UrlParseStepIdxSearch,
+            UrlParseStepIdxMax,
         },
     },
     {
         .part_id = UrlPartIdOrigin,
-        .subparts_count = 3,
-        .subparts = (const UrlParseStepIdx[3]) {
+        .subparts = (const UrlParseStepIdx[]) {
             UrlParseStepIdxProtocol,
             UrlParseStepIdxHostname,
             UrlParseStepIdxPort,
+            UrlParseStepIdxMax,
         },
     },
     {
         .part_id = UrlPartIdHost,
-        .subparts_count = 2,
-        .subparts = (const UrlParseStepIdx[2]) {
+        .subparts = (const UrlParseStepIdx[]) {
             UrlParseStepIdxHostname,
             UrlParseStepIdxPort,
+            UrlParseStepIdxMax,
         },
     },
 };
@@ -140,8 +139,13 @@ static void url_calc_compound_parts(Url* instance) {
         const UrlCompoundPart* cp = &url_compound_parts[i];
         StringSlice* part = &instance->parts[cp->part_id];
 
-        for(uint32_t j = 0, n = 0; j < cp->subparts_count; ++j) {
-            const UrlParseStep* subpart_step = &url_parse_steps[cp->subparts[j]];
+        for(uint32_t j = 0, n = 0;; ++j) {
+            const UrlParseStepIdx subpart_step_idx = cp->subparts[j];
+            if(subpart_step_idx == UrlParseStepIdxMax) {
+                break;
+            }
+
+            const UrlParseStep* subpart_step = &url_parse_steps[subpart_step_idx];
             const StringSlice* subpart = &instance->parts[subpart_step->part_id];
 
             if(subpart->length == 0) {
@@ -154,11 +158,11 @@ static void url_calc_compound_parts(Url* instance) {
 
             part->length += subpart->length;
 
-            if(n != 0) {
+            if(n != 0 && !subpart_step->is_include_delim) {
                 part->length += strlen(subpart_step->delim);
             }
 
-            n += 1;
+            ++n;
         }
     }
 }
