@@ -27,6 +27,24 @@
 #define FIELD_INVALID_ERROR(field_name, expectation) \
     ".%s value is invalid; must %s", (field_name), (expectation)
 
+static size_t api_display_draw_parse_enum(
+    const char* txt_value,
+    const char* const* options,
+    size_t option_cnt,
+    const char* field_key,
+    FuriString* error) {
+    size_t value = value_index_string(txt_value, options, option_cnt);
+    if(value == option_cnt) {
+        furi_string_cat_printf(error, FIELD_INVALID_ERROR(field_key, "be one of: "));
+        for(size_t i = 0; i < option_cnt; i++) {
+            if(!options[i]) continue;
+            furi_string_cat_printf(error, "\"%s\"", options[i]);
+            if(i != option_cnt - 1) furi_string_cat_str(error, ", ");
+        }
+    }
+    return value;
+}
+
 static bool api_display_draw_parse_text_element(
     CanvasElement* canvas_element,
     const char* app_name,
@@ -183,19 +201,10 @@ static bool api_display_draw_parse_countdown_element(
             [CountdownDirectionTimeLeft] = "time_left",
             [CountdownDirectionTimeSince] = "time_since",
         };
-        size_t direction_temp =
-            value_index_string(direction_str, direction_lut, COUNT_OF(direction_lut));
+        size_t direction_temp = api_display_draw_parse_enum(
+            direction_str, direction_lut, COUNT_OF(direction_lut), "direction", error);
         free(direction_str);
-        if(direction_temp >= CountdownDirectionMAX) {
-            furi_string_cat_printf(error, FIELD_INVALID_ERROR("direction", "be one of: "));
-            for(size_t i = 0; i < COUNT_OF(direction_lut); i++) {
-                furi_string_cat_printf(error, "\"%s\"", direction_lut[i]);
-                if(i != COUNT_OF(direction_lut) - 1) {
-                    furi_string_cat_str(error, ", ");
-                }
-            }
-            break;
-        }
+        if(direction_temp >= CountdownDirectionMAX) break;
         canvas_element->countdown.direction = direction_temp;
 
         char* hours_str = mg_json_get_str(json_element, "$.show_hours");
@@ -207,18 +216,10 @@ static bool api_display_draw_parse_countdown_element(
             [CountdownShowHourWhenNonZero] = "when_non_zero",
             [CountdownShowHourAlways] = "always",
         };
-        size_t hours_temp = value_index_string(hours_str, hours_lut, COUNT_OF(hours_lut));
+        size_t hours_temp = api_display_draw_parse_enum(
+            hours_str, hours_lut, COUNT_OF(hours_lut), "show_hours", error);
         free(hours_str);
-        if(hours_temp >= CountdownShowHourMAX) {
-            furi_string_cat_printf(error, FIELD_INVALID_ERROR("show_hours", "be one of:"));
-            for(size_t i = 0; i < COUNT_OF(hours_lut); i++) {
-                furi_string_cat_printf(error, "\"%s\"", hours_lut[i]);
-                if(i != COUNT_OF(hours_lut) - 1) {
-                    furi_string_cat_str(error, ", ");
-                }
-            }
-            break;
-        }
+        if(hours_temp >= CountdownShowHourMAX) break;
         canvas_element->countdown.hours = hours_temp;
 
         result = true;
@@ -513,18 +514,10 @@ static bool api_display_draw_parse_rect_fill(
                 [RectangleFillGradientH] = "gradient_h",
                 [RectangleFillGradientV] = "gradient_v",
             };
-            fill = value_index_string(fill_type, fill_types, COUNT_OF(fill_types));
+            fill = api_display_draw_parse_enum(
+                fill_type, fill_types, COUNT_OF(fill_types), "fill", error);
             free(fill_type);
-            if(fill >= COUNT_OF(fill_types)) {
-                furi_string_cat_printf(error, FIELD_INVALID_ERROR("fill", "be one of: "));
-                for(size_t i = 0; i < COUNT_OF(fill_types); i++) {
-                    furi_string_cat_printf(error, "\"%s\"", fill_types[i]);
-                    if(i != COUNT_OF(fill_types) - 1) {
-                        furi_string_cat_str(error, ", ");
-                    }
-                }
-                break;
-            }
+            if(fill >= RectangleFillMax) break;
         }
 
         Color fill_color[2] = {
@@ -727,18 +720,11 @@ static bool api_display_draw_parse_element(
                 [AlignBottomMid] = "bottom_mid",
                 [AlignBottomRight] = "bottom_right",
             };
-            size_t align = value_index_string(alignment, alignments, COUNT_OF(alignments));
+            size_t align = api_display_draw_parse_enum(
+                alignment, alignments, COUNT_OF(alignments), "align", error);
             canvas_element->align = align;
             free(alignment);
-            if(align >= COUNT_OF(alignments)) {
-                furi_string_cat_printf(error, FIELD_INVALID_ERROR("align", "be one of: "));
-                for(size_t i = 0; i < COUNT_OF(alignments); i++) {
-                    furi_string_cat_printf(error, "\"%s\"", alignments[i]);
-                    if(i != COUNT_OF(alignments) - 1) {
-                        furi_string_cat_str(error, ", ");
-                    }
-                }
-            }
+            if(align >= AlignMax) break;
         } else {
             canvas_element->align = AlignDefault;
         }
