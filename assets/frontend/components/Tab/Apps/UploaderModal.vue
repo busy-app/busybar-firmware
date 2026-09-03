@@ -5,17 +5,8 @@
     title="Add your file"
     wide
     :dismissible="!uploading"
-    :show-close-button="!file"
-    :no-actions="!file"
-    :description="file && !uploading ? 'This file will be added to your BUSY Bar and the local web interface.' : undefined"
-    :primary-action-props="uploading ? undefined : {
-      label: 'Add',
-      onClick: addFile
-    }"
-    :secondary-action-props="{
-      label: 'Cancel',
-      onClick: cancel
-    }"
+    :show-close-button="!file || failed"
+    :description="file && !uploading && !failed ? 'This file will be added to your BUSY Bar and the local web interface.' : undefined"
   >
     <template #body>
       <template v-if="!file">
@@ -65,9 +56,34 @@
       </template>
 
       <div
+        v-else-if="failed"
+        data-id="modal-uploader-app-error"
+        class="flex flex-col gap-6"
+      >
+        <div class="flex items-start gap-2">
+          <UIcon
+            name="i-bi-error-fill"
+            class="size-6 shrink-0 text-error"
+          />
+
+          <div class="min-w-0 flex-1">
+            Unable to upload this file. Try these steps until the issue is resolved:
+          </div>
+        </div>
+
+        <div class="rounded-xl bg-accented/25 p-4">
+          <ul class="list-disc space-y-5 ps-5 text-sm text-highlighted/90">
+            <li>Check the file format — only .tgz files are supported</li>
+            <li>Check the API version — the app must use a supported version</li>
+            <li>Try again later — the server may be unavailable right now</li>
+          </ul>
+        </div>
+      </div>
+
+      <div
         v-else-if="uploading"
         data-id="modal-uploader-app-progress"
-        class="flex flex-col gap-6 py-4"
+        class="flex flex-col gap-6 pt-4"
       >
         <div class="flex items-start gap-2">
           <UIcon
@@ -126,6 +142,33 @@
         />
       </div>
     </template>
+
+    <template #actions>
+      <div
+        v-if="file && !failed"
+        class="mt-2 flex justify-end gap-2"
+      >
+        <UButton
+          data-id="modal-uploader-app-cancel-button"
+          label="Cancel"
+          color="neutral"
+          variant="ghost"
+          size="lg"
+          class="min-w-20 justify-center"
+          @click="cancel"
+        />
+
+        <UButton
+          v-if="!uploading"
+          data-id="modal-uploader-app-add-button"
+          label="Add"
+          color="neutral"
+          size="lg"
+          class="min-w-20 justify-center"
+          @click="addFile"
+        />
+      </div>
+    </template>
   </ModalGeneric>
 </template>
 
@@ -146,6 +189,7 @@ const fileInput = useTemplateRef<HTMLInputElement>('fileInput');
 
 const uploading = ref(false);
 const progress = ref(0);
+const failed = ref(false);
 
 let uploadController: AbortController | null = null;
 
@@ -175,6 +219,7 @@ watch(open, value => {
   if (value) {
     file.value = null;
     progress.value = 0;
+    failed.value = false;
   }
 });
 
@@ -192,6 +237,7 @@ async function addFile () {
   uploadController = new AbortController();
   uploading.value = true;
   progress.value = 0;
+  failed.value = false;
 
   try {
     await uploadAppPackage(uploadedFile, onUploadProgress, uploadController.signal);
@@ -199,14 +245,7 @@ async function addFile () {
     emit('uploaded', uploadedFile);
     open.value = false;
   } catch {
-    if (!uploadController.signal.aborted) {
-      toast.add({
-        title: 'Upload failed',
-        description: `${uploadedFile.name} could not be uploaded to your BUSY Bar.`,
-        icon: 'i-bi-alert',
-        color: 'error'
-      });
-    }
+    failed.value = !uploadController.signal.aborted;
   } finally {
     uploading.value = false;
     uploadController = null;
