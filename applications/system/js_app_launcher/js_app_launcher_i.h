@@ -1,5 +1,7 @@
 #pragma once
 
+#include "js_app_settings_storage.h"
+
 #include <furi.h>
 
 #include <gui/gui.h>
@@ -44,6 +46,7 @@ typedef struct {
     NavBar* nav_bar;
 
     JsApp* js_app;
+    JsAppSettingsStorage* settings_storage;
     JsAppLauncherError error;
 } JsAppLauncher;
 

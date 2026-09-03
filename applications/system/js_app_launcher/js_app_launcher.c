@@ -119,6 +119,7 @@ static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
         instance);
 
     if(instance->js_app) {
+        instance->settings_storage = js_app_settings_storage_alloc(app_id);
         scene_manager_next_scene(instance->scene_manager, JsAppLauncherSceneIdStart);
     } else {
         instance->error = JsAppLauncherErrorLoadFailed;
@@ -139,6 +140,10 @@ static void js_app_launcher_free(JsAppLauncher* instance) {
     furi_message_queue_free(instance->event_queue);
 
     furi_event_loop_free(instance->event_loop);
+
+    if(instance->settings_storage) {
+        js_app_settings_storage_free(instance->settings_storage);
+    }
 
     if(instance->js_app) {
         js_app_free(instance->js_app);
