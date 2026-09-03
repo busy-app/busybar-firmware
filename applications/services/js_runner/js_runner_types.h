@@ -92,6 +92,7 @@ typedef struct JsRunnerApp {
     _Atomic bool should_terminate; ///< Flag to terminate JS busy loops
     FuriMessageQueue* command_queue;
     atomic_flag is_execution_handle_taken;
+    JsRunnerExecutionHandle* execution_handle;
 
     JsRunnerAppConsole console;
     JsRunnerAppInterval interval;
@@ -113,6 +114,8 @@ typedef struct JsRunnerContextHandle {
 typedef struct JsRunnerExecutionHandle {
     JsRunnerContextHandle* context_handle;
     JsRunnerApp* app;
+    JsRunnerTerminationCallback termination_callback;
+    void* termination_callback_context;
 } JsRunnerExecutionHandle;
 
 typedef struct JsRunnerStaticContext {
