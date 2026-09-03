@@ -361,7 +361,6 @@ static jerry_value_t create_response(JsFetch* instance, SizedBuffer headers) {
     js_set_property_getset(response, "bodyUsed", body_used_getter, NULL);
     js_set_property(response, "type", jerry_string_sz("basic"));
     js_set_property(response, "url", jerry_string_sz(instance->request.url));
-    js_set_property(response, "status", jerry_number(0));
 
     js_set_method(response, "arrayBuffer", js_fetch_array_buffer);
     js_set_method(response, "blob", js_fetch_blob);
