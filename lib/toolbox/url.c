@@ -199,6 +199,11 @@ bool url_parse(Url* instance, const char* source_str) {
 
                 part_idx = furi_string_search(source, next_delim, offset);
                 if(part_idx == FURI_STRING_FAILURE) {
+                    if(next_step->is_required) {
+                        step_idx = UrlParseStepIdxMax;
+                        break;
+                    }
+
                     continue;
                 }
 
