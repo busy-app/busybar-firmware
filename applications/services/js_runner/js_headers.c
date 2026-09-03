@@ -1,8 +1,6 @@
 #include "js_headers.h"
 #include <toolbox/http_headers.h>
 
-#include <m-array.h>
-
 #define TAG "JsHeaders"
 
 typedef struct HeadersNative {
@@ -141,27 +139,16 @@ jerry_value_t headers_has(
         jerry_object_get_native_ptr(call_info->this_value, &headers_native_info);
     JS_CHECK_INSTANCE();
 
-    if(args_count == 0) {
-        return jerry_throw_sz(JERRY_ERROR_TYPE, "Too few arguments for has");
-    }
+    JS_CHECK_ARGS_COUNT(1);
+    JS_CHECK_ARG_IS_STRING(JS_ARG(0));
 
-    jerry_value_t name = args[0];
-    if(!jerry_value_is_string(name)) {
-        return jerry_throw_sz(JERRY_ERROR_TYPE, "Not a string");
-    }
-    char* name_buf = js_string_to_c_string(name);
+    char* key = js_string_to_c_string(JS_ARG(0));
+    furi_assert(key);
 
-    bool found = false;
-    for(size_t i = 0; i != http_headers_get_header_count(instance->headers); ++i) {
-        const HttpHeader* header = http_headers_get_header(instance->headers, i);
-        if(furi_string_cmpi(header->key, name_buf) == 0) {
-            found = true;
-            break;
-        }
-    }
+    const bool has_key = (http_headers_get(instance->headers, key) != NULL);
 
-    free(name_buf);
-    return jerry_boolean(found);
+    free(key);
+    return jerry_boolean(has_key);
 }
 
 jerry_value_t headers_foreach(
@@ -172,33 +159,34 @@ jerry_value_t headers_foreach(
         jerry_object_get_native_ptr(call_info->this_value, &headers_native_info);
     JS_CHECK_INSTANCE();
 
-    if(args_count == 0) {
-        return jerry_throw_sz(JERRY_ERROR_TYPE, "Too few arguments for forEach");
-    }
+    JS_CHECK_ARGS_COUNT(1);
 
-    jerry_value_t callback = args[0];
-    if(!jerry_value_is_function(callback)) {
-        return jerry_throw_sz(JERRY_ERROR_TYPE, "Argument is not a function");
-    }
-    jerry_value_t this_value = args_count == 1 ? jerry_undefined() : jerry_value_copy(args[1]);
+    jerry_value_t callback = JS_ARG(0);
+    JS_CHECK_ARG_IS_FUNCTION(callback);
 
+    jerry_value_t this_value = args_count == 1 ? jerry_undefined() : jerry_value_copy(JS_ARG(1));
     jerry_value_t result = jerry_undefined();
 
     for(size_t i = 0; i != http_headers_get_header_count(instance->headers); ++i) {
         const HttpHeader* header = http_headers_get_header(instance->headers, i);
 
-        jerry_value_t args[3] = {
+        jerry_value_t call_args[3] = {
             [0] = jerry_string_sz(furi_string_get_cstr(header->value)),
             [1] = jerry_string_sz(furi_string_get_cstr(header->key)),
             [2] = call_info->this_value,
         };
-        jerry_value_t call_result = jerry_call(callback, this_value, args, 3);
-        jerry_value_free(args[0]);
-        jerry_value_free(args[1]);
+
+        jerry_value_t call_result =
+            jerry_call(callback, this_value, call_args, COUNT_OF(call_args));
+
+        jerry_value_free(call_args[0]);
+        jerry_value_free(call_args[1]);
+
         if(jerry_value_is_exception(call_result)) {
             jerry_value_free(result);
             result = call_result;
             break;
+
         } else {
             jerry_value_free(call_result);
         }
