@@ -48,8 +48,8 @@ static jerry_value_t request_constructor(
         return jerry_throw_sz(JERRY_ERROR_TYPE, "Too few arguments");
     }
 
-    jerry_value_t url = JS_ARG(0);
-    jerry_value_t init = JS_ARG(1);
+    jerry_value_t url = JS_ARG_OR_UNDEFINED(0);
+    jerry_value_t init = JS_ARG_OR_UNDEFINED(1);
 
     return js_request_init(call_info->this_value, url, init);
 }

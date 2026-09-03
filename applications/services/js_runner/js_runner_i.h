@@ -44,7 +44,8 @@ extern JsRunnerStaticContext js_runner_static_context;
         BLOCK                                                  \
     } while(false)
 
-#define JS_ARG(n) (args_count > (n) ? args[(n)] : jerry_undefined())
+#define JS_ARG(n)              (args[(n)])
+#define JS_ARG_OR_UNDEFINED(n) (args_count > (n) ? args[(n)] : jerry_undefined())
 
 void js_runner_app_stop_if_done(JsRunnerApp* app);
 void js_run_jobs(void);

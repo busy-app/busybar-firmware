@@ -57,18 +57,11 @@ static jerry_value_t url_constructor(
             JERRY_ERROR_TYPE, "Class constructor URL cannot be invoked without 'new'");
     }
 
-    if(args_count == 0) {
-        return jerry_throw_sz(JERRY_ERROR_TYPE, "Too few arguments");
-    }
+    JS_CHECK_ARGS_COUNT(1);
+    JS_CHECK_ARG_IS_STRING(JS_ARG(0));
 
-    jerry_value_t arg = JS_ARG(0);
-
-    if(!jerry_value_is_string(arg)) {
-        return jerry_throw_sz(JERRY_ERROR_TYPE, "String argument expected");
-    }
-
-    char* url_str = js_string_to_c_string(arg);
-    furi_check(url_str != NULL);
+    char* url_str = js_string_to_c_string(JS_ARG(0));
+    furi_assert(url_str);
 
     const jerry_value_t result = js_url_init(this_value, url_str);
     free(url_str);

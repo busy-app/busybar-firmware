@@ -159,7 +159,7 @@ static jerry_value_t iterator_return(
 
     jerry_value_t promise = jerry_promise();
 
-    jerry_value_t value = JS_ARG(0);
+    jerry_value_t value = JS_ARG_OR_UNDEFINED(0);
 
     detach_sink(instance);
 

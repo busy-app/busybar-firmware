@@ -288,7 +288,7 @@ static jerry_value_t fetch(
         return js_rejected_promise("At least 1 argument required, but only 0 passed");
     }
     jerry_value_t url = JS_ARG(0);
-    jerry_value_t init = JS_ARG(1);
+    jerry_value_t init = JS_ARG_OR_UNDEFINED(1);
 
     jerry_value_t request = js_request_construct(url, init);
     if(jerry_value_is_exception(request)) {
