@@ -104,6 +104,10 @@ static void usb_network_dhcp_stop(UsbNetwork* instance) {
     dhserv_deinit();
 }
 
+static void usb_network_set_state(UsbNetwork* instance, UsbNetworkState state) {
+    with_furi_state(instance->state, UsbNetworkInfo * info, { info->state = state; });
+}
+
 static void usb_network_netif_set_hw_address(struct netif* netif) {
     memcpy(netif->hwaddr, furi_hal_version_get_usb_mac(), ETH_HWADDR_LEN);
     netif->hwaddr[5] ^= 0x01;
@@ -134,6 +138,8 @@ static void usb_network_init_netif(UsbNetwork* instance) {
 #endif
 
     UNLOCK_TCPIP_CORE();
+
+    usb_network_set_state(instance, UsbNetworkStateDown);
 }
 
 void usb_network_up(void) {
@@ -147,9 +153,7 @@ void usb_network_up(void) {
     usb_network_dhcp_start(usb_network);
     UNLOCK_TCPIP_CORE();
 
-    with_furi_state(usb_network->state, UsbNetworkInfo * info, {
-        info->state = UsbNetworkStateUp;
-    });
+    usb_network_set_state(usb_network, UsbNetworkStateUp);
 }
 
 void usb_network_down(void) {
@@ -163,9 +167,7 @@ void usb_network_down(void) {
     netif_set_down(netif);
     UNLOCK_TCPIP_CORE();
 
-    with_furi_state(usb_network->state, UsbNetworkInfo * info, {
-        info->state = UsbNetworkStateDown;
-    });
+    usb_network_set_state(usb_network, UsbNetworkStateDown);
 }
 
 bool usb_network_rx(const uint8_t* data, uint16_t data_size) {

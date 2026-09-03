@@ -13,7 +13,7 @@ import os
 import allure
 import pytest
 
-from integration.frontend.wifi.test_api_wifi import (
+from utils.wifi_helpers import (
     connect_to_test_network_or_fail,
     ensure_disconnected,
     wait_for_wifi_state,

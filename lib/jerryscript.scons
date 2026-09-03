@@ -1,0 +1,69 @@
+Import("env")
+
+LIB_DIR="jerryscript/amalgam"
+
+JERRYSCRIPT_DIR=LIB_DIR
+
+env.AppendUnique(
+    CPPPATH=[
+        Dir(JERRYSCRIPT_DIR).srcnode(),
+    ],
+)
+
+libenv = env.Clone(FW_LIB_NAME=LIB_DIR)
+libenv.ApplyLibFlags()
+
+libenv.AppendUnique(
+    CPPDEFINES=[
+        "JERRY_GLOBAL_HEAP_SIZE=8", # 8 KiB
+        "JERRY_EXTERNAL_CONTEXT=1",
+        # "JERRY_NUMBER_TYPE_FLOAT64=0",
+        "JERRY_UNICODE_CASE_CONVERSION=0",
+        "JERRY_BUILTIN_ANNEXB=0",
+        "JERRY_BUILTIN_ARRAY=1",
+        "JERRY_BUILTIN_BOOLEAN=1",
+        "JERRY_BUILTIN_DATE=1",
+        "JERRY_BUILTIN_ERRORS=1",
+        "JERRY_BUILTIN_JSON=1",
+        "JERRY_BUILTIN_MATH=1",
+        "JERRY_BUILTIN_NUMBER=1",
+        "JERRY_BUILTIN_REGEXP=1",
+        "JERRY_BUILTIN_STRING=1",
+        "JERRY_BUILTIN_BIGINT=1",
+        "JERRY_BUILTIN_CONTAINER=1",
+        "JERRY_BUILTIN_DATAVIEW=1",
+        "JERRY_BUILTIN_GLOBAL_THIS=1",
+        "JERRY_BUILTIN_PROXY=1",
+        "JERRY_BUILTIN_REALMS=1",
+        "JERRY_BUILTIN_REFLECT=0",
+        "JERRY_BUILTIN_TYPEDARRAY=1",
+        "JERRY_BUILTIN_SHAREDARRAYBUFFER=1",
+        "JERRY_BUILTIN_ATOMICS=1",
+        "JERRY_BUILTIN_WEAKREF=1",
+        "JERRY_MODULE_SYSTEM=1",
+        "JERRY_VM_HALT=1",
+    ],
+    CPPPATH=[],
+    CPPFLAGS=[
+        "-Wno-deprecated-declarations",
+        "-Wno-double-promotion",
+        "-Wno-extra",
+        "-Wno-format",
+        "-Wno-missing-field-initializers",
+        "-Wno-overflow",
+        "-Wno-redundant-decls",
+        "-Wno-type-limits",
+        "-Wno-unknown-pragmas",
+        "-Wno-unused-parameter",
+        "-Wno-undef",
+        "-Wno-attributes",
+    ],
+)
+
+sources = [
+    libenv.Glob(JERRYSCRIPT_DIR + "/*.c", source=True),
+]
+
+lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
+libenv.Install("${LIB_DIST_DIR}", lib)
+Return("lib")

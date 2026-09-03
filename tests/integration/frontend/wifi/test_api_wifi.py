@@ -10,52 +10,21 @@ import allure
 import pytest
 import requests
 
-from clients.api import APIError, WIFI_SSID, SettingsAPI, WifiAPI
-from utils.logging_config import log_web_request
+from clients.api import WIFI_SSID, SettingsAPI, WifiAPI
+from utils.wifi_helpers import (
+    connect_to_test_network_or_fail,
+    ensure_disconnected,
+    fetch_over_wifi_with_recovery,
+    wait_for_wifi_link_stable,
+    wait_for_wifi_state,
+)
 
 
 _WIFI_API_ACCESS_KEY = "12345678"
 
 
-def wait_for_wifi_state(wifi_api: WifiAPI, states: list[str], timeout: int = 20) -> str:
-    """Poll WiFi status until it matches one of the expected states."""
-    deadline = time.time() + timeout
-    last_state = ""
-    while time.time() < deadline:
-        last_state = wifi_api.get_status().state
-        if last_state in states:
-            return last_state
-        sleep(1)
-    pytest.fail(f"Timed out waiting for WiFi state {states}, last state: {last_state}")
-
-
-def ensure_disconnected(wifi_api: WifiAPI, timeout: int = 20) -> None:
-    """Bring the device into the `disconnected` state, tolerating transitions.
-    """
-    if wifi_api.get_status().state == "disconnected":
-        return
-    try:
-        wifi_api.disconnect()
-    except APIError:
-        pass
-    wait_for_wifi_state(wifi_api, ["disconnected"], timeout=timeout)
-
-
-def connect_to_test_network_or_fail(wifi_api: WifiAPI, timeout: int = 30) -> None:
-    """Connect to the test SSID and fail with diagnostics if the API rejects it.
-    """
-    response = wifi_api.connect_to_test_network(timeout=timeout)
-    if response.status_code != 200:
-        body = response.text.strip() or "(empty body)"
-        pytest.fail(
-            f"POST /api/wifi/connect to {WIFI_SSID!r} failed: "
-            f"HTTP {response.status_code} — {body}"
-        )
-    wait_for_wifi_state(wifi_api, ["connected"], timeout=timeout)
-
-
 def wifi_external_base_url_or_fail(wifi_api: WifiAPI, web_base_url: str) -> str:
-    status = wifi_api.get_status()
+    status = wait_for_wifi_link_stable(wifi_api)
     ip_config = status.ip_config
     if status.state != "connected" or not ip_config or not ip_config.address:
         pytest.fail(
@@ -91,34 +60,22 @@ def wifi_external_base_url_or_fail(wifi_api: WifiAPI, web_base_url: str) -> str:
     return f"http://{address}"
 
 
-def wifi_get(base_url: str, endpoint: str, token: str | None = None) -> requests.Response:
+def wifi_get(
+    web_session: requests.Session,
+    base_url: str,
+    endpoint: str,
+    token: str | None = None,
+) -> requests.Response:
     url = f"{base_url}{endpoint}"
     headers = {
         "User-Agent": "BSB-AutoTest/1.0",
         "Accept": "application/json",
-        "Connection": "close",
     }
     if token is not None:
         headers["X-API-Token"] = token
 
-    response = None
-    error = None
-    start_time = time.time()
-    with requests.Session() as session:
-        try:
-            response = session.get(url, headers=headers, timeout=10)
-            body = response.text
-        except requests.RequestException as exc:
-            error = exc
-            raise
-        finally:
-            log_web_request(
-                method="GET",
-                url=url,
-                duration=time.time() - start_time,
-                status_code=getattr(response, "status_code", None),
-                error=error,
-            )
+    response = web_session.get(url, headers=headers, timeout=10)
+    body = response.text
 
     allure.attach(
         json.dumps(
@@ -240,6 +197,7 @@ class TestWifiAPI:
         self,
         wifi_api: WifiAPI,
         settings_api: SettingsAPI,
+        web_session: requests.Session,
         web_base_url: str,
     ):
         original_access = settings_api.get_access()
@@ -263,20 +221,29 @@ class TestWifiAPI:
                 assert verify.key_valid is True
 
             with allure.step("Verify request path is Wi-Fi"):
-                transport = wifi_get(wifi_base_url, "/api/transport")
+                transport = wifi_get(web_session, wifi_base_url, "/api/transport")
                 assert transport.status_code == 200
                 assert transport.json()["type"] == "wifi"
 
             with allure.step("Reject protected API without or with wrong key"):
-                assert wifi_get(wifi_base_url, "/api/status").status_code == 403
                 assert (
-                    wifi_get(wifi_base_url, "/api/status", token="00000000").status_code
+                    wifi_get(web_session, wifi_base_url, "/api/status").status_code
+                    == 403
+                )
+                assert (
+                    wifi_get(
+                        web_session,
+                        wifi_base_url,
+                        "/api/status",
+                        token="00000000",
+                    ).status_code
                     == 403
                 )
 
             with allure.step("Allow protected API with valid key"):
                 assert (
                     wifi_get(
+                        web_session,
                         wifi_base_url,
                         "/api/status",
                         token=_WIFI_API_ACCESS_KEY,
@@ -284,6 +251,7 @@ class TestWifiAPI:
                     == 200
                 )
                 status = wifi_get(
+                    web_session,
                     wifi_base_url,
                     "/api/wifi/status",
                     token=_WIFI_API_ACCESS_KEY,
@@ -364,39 +332,51 @@ class TestWifiFetch:
     @pytest.mark.frontend
     def test_wifi_status_after_connect(self, wifi_api):
         if wifi_api.get_status().state != "connected":
-            connect_to_test_network_or_fail(wifi_api)
-        status = wifi_api.get_status()
-        assert status.state == "connected", status
-        assert status.ip_config and status.ip_config.address, (
-            f"no ip_config: {status.ip_config!r}"
-        )
+            status = connect_to_test_network_or_fail(wifi_api)
+        else:
+            status = wait_for_wifi_link_stable(wifi_api)
 
-    @allure.title("CLI. fetch works with https")
+        with allure.step("Verify the stable Wi-Fi connection and IP address"):
+            assert status.state == "connected", f"Wi-Fi status={status!r}"
+            assert (
+                status.ip_config and status.ip_config.address
+            ), f"Wi-Fi has no usable IP configuration: status={status!r}"
+
+    @allure.title("CLI. fetch completes over HTTPS with bounded Wi-Fi recovery")
     @pytest.mark.cli
     @pytest.mark.frontend
+    @pytest.mark.external_service
     def test_cli_fetch_smoke(self, persistent_cli_connection, wifi_api):
         if wifi_api.get_status().state != "connected":
             connect_to_test_network_or_fail(wifi_api)
 
-        path = f"/ext/_test_fetch_{uuid.uuid4().hex[:8]}.json"
-        try:
-            out = persistent_cli_connection.execute_command(
-                f"fetch {self._UPDATE_DIR} -o {path}", timeout=60, slow_command=True,
-            )
-            assert "Downloaded: 100%" in out, out
-        finally:
-            persistent_cli_connection.execute_command(f"storage remove {path}")
+        result = fetch_over_wifi_with_recovery(
+            persistent_cli_connection,
+            wifi_api,
+            self._UPDATE_DIR,
+        )
+        with allure.step("Verify Fetch completed after Wi-Fi became usable"):
+            assert (
+                "Downloaded: 100%" in result.output
+            ), f"Fetch attempts={result.attempt_count}, output={result.output!r}"
 
     @allure.title("CLI. fetch + storage md5 matches runner-side md5")
     @pytest.mark.cli
     @pytest.mark.frontend
     @pytest.mark.regression
     @pytest.mark.external_service
-    def test_cli_fetch_md5_matches(self, persistent_cli_connection, wifi_api):
+    def test_cli_fetch_md5_matches(
+        self,
+        persistent_cli_connection,
+        wifi_api,
+        web_session: requests.Session,
+    ):
         if wifi_api.get_status().state != "connected":
             connect_to_test_network_or_fail(wifi_api)
+        else:
+            wait_for_wifi_link_stable(wifi_api)
 
-        directory = requests.get(self._UPDATE_DIR, timeout=10).json()
+        directory = web_session.get(self._UPDATE_DIR, timeout=10).json()
         url = next(
             f["url"]
             for ch in directory["channels"]
@@ -404,7 +384,9 @@ class TestWifiFetch:
             for f in v["files"]
             if f["url"].endswith(".bin")
         )
-        expected_md5 = hashlib.md5(requests.get(url, timeout=120).content).hexdigest()
+        expected_md5 = hashlib.md5(
+            web_session.get(url, timeout=120).content
+        ).hexdigest()
 
         path = f"/ext/_test_fetch_{uuid.uuid4().hex[:8]}.bin"
         try:

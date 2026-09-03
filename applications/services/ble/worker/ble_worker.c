@@ -18,12 +18,12 @@ static BleWorker* ble_worker_instance = NULL;
 static int32_t ble_worker_thread_callback(void* context) {
     BleWorker* instance = context;
     BLE_LOG_I("Worker Thread Start");
-    ble_device_start(instance->device);
 
     instance->event_loop = furi_event_loop_alloc();
 
     ble_transmitter_subscribe(instance->transport, instance->event_loop, context);
     ble_incoming_nwp_event_processor_subscribe(instance->event_proc, instance->event_loop);
+    ble_device_start(instance->device);
 
     api_lock_unlock(instance->api_lock);
     furi_event_loop_run(instance->event_loop);
@@ -115,10 +115,15 @@ void ble_worker_receive_confirm(uint16_t handle, uint8_t cccd_value) {
 }
 
 bool ble_worker_forget_pairing() {
-    if(ble_device_is_connected(ble_worker_instance->device)) {
-        ble_device_disconnect(ble_worker_instance->device);
-    }
-    return ble_device_forget_paired(ble_worker_instance->device);
+    api_lock_relock(ble_worker_instance->api_lock);
+    BleWorkerCmdEventData cmd = {.api_lock = ble_worker_instance->api_lock, .result = false};
+
+    ble_worker_instance->pending_command = &cmd;
+    ble_incoming_nwp_event_processor_spawn_event(
+        ble_worker_instance->event_proc, BleIncomingNwpEventTypeForgetPaired, 0, NULL);
+
+    api_lock_wait_unlock(ble_worker_instance->api_lock);
+    return cmd.result;
 }
 
 bool ble_worker_pairing_exists() {

@@ -2,9 +2,9 @@
 
 /**
 * A subset of the mbedTLS configuration options that are relevant to the
-* Busy Bar firmware and apps. They are built to "mbedtls" library you can 
+* Busy Bar firmware and apps. They are built to "mbedtls" library you can
 * link your apps with.
-* 
+*
 * If you need more features, either bring the full mbedtls library into your
 * app using "fap_private_libs" or open an issue on GitHub to add them to the
 * default configuration.
@@ -92,7 +92,7 @@
 // #define MBEDTLS_SSL_EXPORT_KEYS
 #define MBEDTLS_SSL_KEEP_PEER_CERTIFICATE // Required for TLS1.3
 #define MBEDTLS_SSL_MAX_FRAGMENT_LENGTH
-#define MBEDTLS_SSL_ALPN
+// #define MBEDTLS_SSL_ALPN
 
 #define MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED
 #define MBEDTLS_KEY_EXCHANGE_ECDHE_RSA_ENABLED

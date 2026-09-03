@@ -83,6 +83,186 @@ class TestStorageAPI:
             remove_response = storage_api.remove_raw(test_file)
             assert remove_response.status_code == 200
 
+    @allure.title("POST /api/storage/write (append=1 creates the file)")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_storage_write_append_creates_file(self, storage_api: StorageAPI):
+        """Append to a non-existent file creates it"""
+        test_file = f"/ext/test_append_create_{int(time.time())}.txt"
+        content = b"Created by an append write"
+
+        try:
+            with allure.step(f"Verify file does not exist: {test_file}"):
+                read_response = storage_api.read(test_file)
+                assert read_response.status_code == 400, (
+                    f"Expected 400 for a non-existent file, got {read_response.status_code}"
+                )
+
+            with allure.step("Append to the non-existent file"):
+                write_response = storage_api.write(test_file, content, append=True)
+                assert write_response.status_code == 200, (
+                    f"Expected 200, got {write_response.status_code}"
+                )
+
+            with allure.step("Verify the file was created with the request body"):
+                read_response = storage_api.read(test_file)
+                assert read_response.status_code == 200, (
+                    f"Expected 200, got {read_response.status_code}"
+                )
+                assert read_response.content == content, (
+                    f"Expected {content!r}, got {read_response.content!r}"
+                )
+
+        finally:
+            storage_api.remove_raw(test_file)
+
+    @allure.title("POST /api/storage/write (append=1 appends to an existing file)")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_storage_write_append_extends_file(self, storage_api: StorageAPI):
+        """Append adds the request body to the end of an existing file"""
+        test_file = f"/ext/test_append_extend_{int(time.time())}.txt"
+        first_part = b"First part of the file. "
+        second_part = b"Second part of the file."
+
+        try:
+            with allure.step(f"Write initial content: {test_file}"):
+                write_response = storage_api.write(test_file, first_part)
+                assert write_response.status_code == 200, (
+                    f"Expected 200, got {write_response.status_code}"
+                )
+
+            with allure.step("Append the second part"):
+                write_response = storage_api.write(test_file, second_part, append=True)
+                assert write_response.status_code == 200, (
+                    f"Expected 200, got {write_response.status_code}"
+                )
+
+            with allure.step("Verify the file contains both parts in order"):
+                read_response = storage_api.read(test_file)
+                assert read_response.status_code == 200, (
+                    f"Expected 200, got {read_response.status_code}"
+                )
+                assert read_response.content == first_part + second_part, (
+                    f"Expected {(first_part + second_part)!r}, got {read_response.content!r}"
+                )
+
+        finally:
+            storage_api.remove_raw(test_file)
+
+    @allure.title("POST /api/storage/write (write without append replaces the file)")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_storage_write_replaces_file(self, storage_api: StorageAPI):
+        """Write without the append parameter replaces the file content"""
+        test_file = f"/ext/test_replace_{int(time.time())}.txt"
+        old_content = b"Old content that must be replaced completely"
+        # Shorter than the old content: appending or a partial
+        # overwrite would leave the file longer than this.
+        new_content = b"New content"
+
+        try:
+            with allure.step(f"Write initial content: {test_file}"):
+                write_response = storage_api.write(test_file, old_content)
+                assert write_response.status_code == 200, (
+                    f"Expected 200, got {write_response.status_code}"
+                )
+
+            with allure.step("Write again without the append parameter"):
+                write_response = storage_api.write(test_file, new_content)
+                assert write_response.status_code == 200, (
+                    f"Expected 200, got {write_response.status_code}"
+                )
+
+            with allure.step("Verify the file holds only the new content"):
+                read_response = storage_api.read(test_file)
+                assert read_response.status_code == 200, (
+                    f"Expected 200, got {read_response.status_code}"
+                )
+                assert read_response.content == new_content, (
+                    f"Expected {new_content!r}, got {read_response.content!r}"
+                )
+
+        finally:
+            storage_api.remove_raw(test_file)
+
+    @allure.title("POST /api/storage/write (append=0 replaces the file)")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_storage_write_append_zero_replaces_file(self, storage_api: StorageAPI):
+        """An explicit append=0 replaces the file content, as documented"""
+        test_file = f"/ext/test_append_zero_{int(time.time())}.txt"
+        old_content = b"Old content that must be replaced completely"
+        # Shorter than the old content: appending or a partial
+        # overwrite would leave the file longer than this.
+        new_content = b"New content"
+
+        try:
+            with allure.step(f"Write initial content: {test_file}"):
+                write_response = storage_api.write(test_file, old_content)
+                assert write_response.status_code == 200, (
+                    f"Expected 200, got {write_response.status_code}"
+                )
+
+            with allure.step("Write again with an explicit append=0"):
+                write_response = storage_api.write(test_file, new_content, append=False)
+                assert write_response.status_code == 200, (
+                    f"Expected 200, got {write_response.status_code}"
+                )
+
+            with allure.step("Verify the file holds only the new content"):
+                read_response = storage_api.read(test_file)
+                assert read_response.status_code == 200, (
+                    f"Expected 200, got {read_response.status_code}"
+                )
+                assert read_response.content == new_content, (
+                    f"Expected {new_content!r}, got {read_response.content!r}"
+                )
+
+        finally:
+            storage_api.remove_raw(test_file)
+
+    @allure.title("POST /api/storage/write (invalid append value)")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    @pytest.mark.parametrize("append_value", ["2", "true"])
+    def test_api_storage_write_append_invalid_value(
+        self, storage_api: StorageAPI, append_value: str
+    ):
+        """An invalid append value is rejected and leaves the file unchanged"""
+        test_file = f"/ext/test_append_invalid_{int(time.time())}.txt"
+        content = b"Content that must survive a rejected write"
+
+        try:
+            with allure.step(f"Write initial content: {test_file}"):
+                write_response = storage_api.write(test_file, content)
+                assert write_response.status_code == 200, (
+                    f"Expected 200, got {write_response.status_code}"
+                )
+
+            with allure.step(f"Write with append={append_value} is rejected"):
+                response = storage_api.post_raw(
+                    "/api/storage/write",
+                    params={"path": test_file, "append": append_value},
+                    data=b"rejected",
+                    headers={"Content-Type": "application/octet-stream"},
+                )
+                assert response.status_code == 400, (
+                    f"Expected 400, got {response.status_code}"
+                )
+
+            with allure.step("Verify the file content is unchanged"):
+                read_response = storage_api.read(test_file)
+                assert read_response.status_code == 200, (
+                    f"Expected 200, got {read_response.status_code}"
+                )
+                assert read_response.content == content, (
+                    f"Expected {content!r}, got {read_response.content!r}"
+                )
+
+        finally:
+            storage_api.remove_raw(test_file)
+
     @allure.title("POST /api/storage/rename")
     @pytest.mark.api
     @pytest.mark.frontend

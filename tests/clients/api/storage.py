@@ -100,7 +100,13 @@ class StorageAPI(BaseAPI):
         """
         return self.get_raw("/api/storage/read", params={"path": path})
 
-    def write(self, path: str, content: bytes, timeout: int = 10):
+    def write(
+        self,
+        path: str,
+        content: bytes,
+        timeout: int = 10,
+        append: bool | None = None,
+    ):
         """
         Write file to storage.
 
@@ -108,13 +114,19 @@ class StorageAPI(BaseAPI):
             path: File path
             content: File content as bytes
             timeout: Request timeout in seconds
+            append: Append to the file instead of replacing it.
+                None omits the parameter, True sends append=1,
+                False sends an explicit append=0.
 
         Returns:
             Raw response (for checking status codes)
         """
+        params = {"path": path}
+        if append is not None:
+            params["append"] = "1" if append else "0"
         return self.post_raw(
             "/api/storage/write",
-            params={"path": path},
+            params=params,
             data=content,
             headers={"Content-Type": "application/octet-stream"},
             timeout=timeout,

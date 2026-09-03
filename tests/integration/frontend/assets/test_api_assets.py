@@ -74,6 +74,34 @@ class TestAssetsManagement:
 
         assets_api.delete_assets(test_app_id)
 
+    @allure.title("POST /api/assets/upload (re-upload replaces the file)")
+    def test_api_assets_reupload_replaces(
+        self, assets_api: AssetsAPI, storage_api: StorageAPI, asset_cleanup
+    ):
+        """Uploading the same asset twice replaces the previous content"""
+        test_app_id = asset_cleanup("test_asset_reupload")
+        test_filename = "reupload_test.txt"
+        asset_path = f"/ext/user_assets/{test_app_id}/{test_filename}"
+        first_content = b"First upload content, long enough to detect leftovers"
+        # Shorter than the first upload: appending or a partial
+        # overwrite would leave the file longer than this.
+        second_content = b"Second upload"
+
+        with allure.step(f"Upload asset: {asset_path}"):
+            assets_api.upload_asset(test_app_id, test_filename, first_content)
+
+        with allure.step("Upload the same asset again with different content"):
+            assets_api.upload_asset(test_app_id, test_filename, second_content)
+
+        with allure.step("Verify the asset holds only the second content"):
+            read_response = storage_api.read(asset_path)
+            assert read_response.status_code == 200, (
+                f"Expected 200, got {read_response.status_code}"
+            )
+            assert read_response.content == second_content, (
+                f"Expected {second_content!r}, got {read_response.content!r}"
+            )
+
 
 @allure.feature("5. Web Frontend")
 @allure.story("Assets")

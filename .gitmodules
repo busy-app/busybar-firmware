@@ -62,3 +62,7 @@
 [submodule "documentation/doxygen/doxygen-awesome-css"]
 	path = documentation/doxygen/doxygen-awesome-css
 	url = https://github.com/jothepro/doxygen-awesome-css.git
+[submodule "lib/jerryscript"]
+	path = lib/jerryscript
+	url = https://github.com/flipperdevices/jerryscript.git
+	branch = bsb

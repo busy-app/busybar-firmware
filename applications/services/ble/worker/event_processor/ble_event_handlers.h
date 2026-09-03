@@ -19,6 +19,18 @@
  * @return always true
  */
 bool ble_event_handler_cmd_exit(size_t data_size, void* data, void* context);
+
+/**
+ * @brief Forget paired device command initiated by ble_worker_forget_pairing
+ * It can also be initiated a second time from the disconnect event to guarantee
+ * that the device forgets its pairing only after disconnecting from the remote
+ * @param[in] data_size payload size
+ * @param[in] data payload data
+ * @param[in] context used for call
+ * @return always true
+ */
+bool ble_event_handler_cmd_forget_paired(size_t data_size, void* data, void* context);
+
 /**@}*/
 
 /** @name GAP handlers */

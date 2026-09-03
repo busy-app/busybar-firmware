@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
-  version: 25.0.0
+  version: 27.5.0
   contact:
     name: tbd
 
@@ -37,14 +37,14 @@ components:
         error:
           type: string
           description: Error message
-        code:
-          type: integer
+        error_code:
+          type: string
           description: Error code
       required:
         - error
       example:
         error: "Invalid parameter"
-        code: 400
+        error_code: "invalid_parameter"
 
     # {SCHEMAS}
 

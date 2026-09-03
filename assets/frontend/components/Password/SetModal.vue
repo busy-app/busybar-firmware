@@ -50,7 +50,7 @@
               :ui="{
                 leadingIcon: 'size-6 text-muted'
               }"
-              @click="pms.passwordModel.showNew = !pms.passwordModel.showNew"
+              @click="() => { pms.passwordModel.showNew = !pms.passwordModel.showNew; }"
             />
           </template>
         </UInput>

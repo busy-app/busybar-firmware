@@ -134,3 +134,75 @@ bool path_contains_only_ascii(const char* path) {
 
     return true;
 }
+
+static size_t count_path_separators(const char* path) {
+    size_t result = 0;
+    for(; *path; ++path) {
+        if(*path == '/') {
+            result += 1;
+        }
+    }
+    return result;
+}
+
+static void join_with_path_separator(FuriString* a, const char* b) {
+    size_t len = furi_string_size(a);
+    if(len == 0) {
+        furi_string_set(a, b);
+    } else {
+        if(furi_string_get_char(a, len - 1) != '/') {
+            furi_string_cat(a, "/");
+        }
+        furi_string_cat(a, b);
+    }
+}
+
+void path_normalize(const char* path, FuriString* out_path, bool allow_escape_root) {
+    bool is_abs_path = path[0] == '/';
+    if(is_abs_path) {
+        ++path;
+    }
+
+    char* own_path = malloc(strlen(path) + 1);
+    strcpy(own_path, path);
+    size_t max_num_fragments = count_path_separators(path) + 1;
+    const char** fragments = malloc(sizeof(char*) * (max_num_fragments + 1));
+    size_t num_parents = 0;
+    {
+        char* lasts = NULL;
+        size_t fragment_i = 0;
+        for(const char* fragment = strtok_r(own_path, "/", &lasts); fragment;
+            fragment = strtok_r(NULL, "/", &lasts)) {
+            if(strcmp(fragment, ".") == 0) {
+                // skip
+            } else if(strcmp(fragment, "..") == 0) {
+                if(fragment_i == 0) {
+                    // already at toplevel
+                    num_parents += 1;
+                } else {
+                    --fragment_i;
+                    fragments[fragment_i] = NULL;
+                }
+            } else {
+                fragments[fragment_i] = fragment;
+                ++fragment_i;
+            }
+        }
+    }
+
+    if(is_abs_path) {
+        furi_string_set(out_path, "/");
+    }
+    if(!is_abs_path && allow_escape_root) {
+        for(size_t i = 0; i != num_parents; ++i) {
+            join_with_path_separator(out_path, "..");
+        }
+    }
+
+    for(const char** fragment = fragments; *fragment; ++fragment) {
+        join_with_path_separator(out_path, *fragment);
+    }
+
+    free(own_path);
+    free(fragments);
+}

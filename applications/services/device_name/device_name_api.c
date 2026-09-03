@@ -10,17 +10,13 @@ void device_name_get(DeviceName* instance, FuriString* name) {
     furi_check(instance);
     furi_check(name);
 
-    DeviceNameMessage message = {
-        .type = DeviceNameMessageTypeGetName,
-        .data.get_name =
-            {
-                .name = name,
-            },
-    };
-    device_name_send_message(instance, &message);
+    DeviceNameInfo info;
+    furi_state_get(instance->state, &info);
+
+    furi_string_set(name, info.name);
 }
 
-DeviceNameError device_name_set(DeviceName* instance, const FuriString* name) {
+DeviceNameError device_name_set(DeviceName* instance, const char* name) {
     furi_check(instance);
     furi_check(name);
 
@@ -39,7 +35,7 @@ DeviceNameError device_name_set(DeviceName* instance, const FuriString* name) {
     return error;
 }
 
-FuriPubSub* device_name_get_pubsub(DeviceName* instance) {
+FuriState* device_name_get_state(const DeviceName* instance) {
     furi_check(instance);
-    return instance->pubsub;
+    return instance->state;
 }

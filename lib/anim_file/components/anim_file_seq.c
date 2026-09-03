@@ -25,7 +25,9 @@ AnimFileFrameFlag anim_file_seq_load_current_frame(AnimFile* anim) {
     AnimFileSeq* seq = &anim->seq;
     AnimFileFrameHeader* frame_hdr = &seq->frame_hdr;
 
-    if(seq->loaded_file_frame == seq->requested_file_frame) {
+    bool only_frame = anim->meta.info.frames == 1;
+
+    if((seq->loaded_file_frame == seq->requested_file_frame) && !only_frame) {
         if(!seq->remaining_duration) return AnimFileFrameFlagNoChange;
 
         if(seq->disp_frame_idx == seq->last_disp_frame) {

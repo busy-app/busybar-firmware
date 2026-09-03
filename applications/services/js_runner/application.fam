@@ -1,0 +1,33 @@
+App(
+    appid="js_runner",
+    name="JsRunnerSrv",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="js_runner_srv",
+    stack_size=1024 * 2,
+    order=300,
+    targets=["f20", "f21", "f22"],
+    provides=["cli_js"],
+    sources=[
+        "js_runner.c",
+        "js_interval.c",
+        "js_console.c",
+        "js_fetch.c",
+        "js_readable_stream.c",
+        "js_fetch_body_methods.c",
+        "js_headers.c",
+        "js_request.c",
+        "js_local_storage.c",
+        "js_util.c",
+    ],
+)
+
+App(
+    appid="cli_js",
+    name="js",
+    targets=["f20", "f21", "f22"],
+    apptype=FlipperAppType.CLICMD,
+    entry_point="cli_command_js",
+    sources=["cli/cli_command_js.c"],
+    stack_size=1024 * 8,
+    resources="resources",
+)

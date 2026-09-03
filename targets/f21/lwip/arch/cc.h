@@ -88,4 +88,7 @@ void lwip_glue_log(const char* fmt, ...);
 #define htonl(x) __builtin_bswap32(x)
 #define ntohl(x) __builtin_bswap32(x)
 
+extern uint32_t lwip_glue_rand(void);
+#define LWIP_RAND() (lwip_glue_rand())
+
 #endif

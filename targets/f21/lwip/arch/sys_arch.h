@@ -92,6 +92,4 @@ void sys_arch_netconn_sem_free(void);
 #define LWIP_NETCONN_THREAD_SEM_FREE()  sys_arch_netconn_sem_free()
 #endif /* LWIP_NETCONN_SEM_PER_THREAD */
 
-#define LWIP_RAND() ((uint32_t)rand())
-
 #endif /* LWIP_ARCH_SYS_ARCH_H */

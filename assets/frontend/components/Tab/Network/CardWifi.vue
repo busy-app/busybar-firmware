@@ -84,7 +84,7 @@
         }"
         class="justify-center sm:justify-start"
         :loading="loading.forget"
-        @click="forgetNetworkModal = true"
+        @click="() => { forgetNetworkModal = true; }"
       />
       <UTooltip
         v-if="!connected && showNetworksList"
@@ -322,7 +322,7 @@
               :ui="{
                 leadingIcon: 'size-6 text-muted'
               }"
-              @click="showPassword = !showPassword"
+              @click="() => { showPassword = !showPassword; }"
             />
           </template>
         </UInput>
@@ -534,7 +534,7 @@ async function forgetNetwork () {
 
 const connected = computed(() => wifiStore.wifi?.state === 'connected');
 const connecting = computed(() => wifiStore.wifi?.state === 'connecting');
-const reconnecting = computed(() => wifiStore.wifi?.state === 'reconnecting' || (wifiStore.wifi.channel === 0 && wifiStore.wifi.rssi === 0));
+const reconnecting = computed(() => wifiStore.wifi?.state === 'reconnecting' || (wifiStore.wifi?.channel === 0 && wifiStore.wifi?.rssi === 0));
 
 const reconnectTimeout = ref<NodeJS.Timeout | null>(null);
 const RECONNECT_TIMEOUT_DURATION = 10000;
@@ -542,7 +542,7 @@ const showOffline = ref(false);
 function setReconnectTimeout () {
   if (!reconnectTimeout.value) {
     reconnectTimeout.value = setTimeout(() => {
-      if (wifiStore.wifi?.state === 'reconnecting' || (wifiStore.wifi.channel === 0 && wifiStore.wifi.rssi === 0)) {
+      if (reconnecting.value) {
         showOffline.value = true;
       }
       reconnectTimeout.value = null;

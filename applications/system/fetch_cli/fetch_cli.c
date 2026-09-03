@@ -35,6 +35,10 @@ typedef struct {
     bool is_error;
 } FetchCli;
 
+static void fetch_cli_print_error(const char* error_message) {
+    printf("Error: %s\r\n", error_message);
+}
+
 static void fetch_cli_console_out(const char* data, size_t data_size) {
     for(size_t i = 0; i < data_size; i++) {
         const char c = data[i];
@@ -79,17 +83,20 @@ static void fetch_headers_callback(const void* data, size_t data_size, void* con
     fetch_cli_console_out(data, data_size);
 }
 
-static void fetch_callback_error(const char* error, void* context) {
+static void fetch_error_callback(const char* error, void* context) {
     furi_assert(context);
     FetchCli* instance = context;
 
-    printf("Error: %s\r\n", error);
-
+    fetch_cli_print_error(error);
     instance->is_error = true;
 }
 
 static int32_t fetch_cli_print_download_progress(const FetchProgress* progress) {
     int32_t print_len = 0;
+
+    if(progress->total_download_size == 0) {
+        return print_len;
+    }
 
     const char* units_str;
     size_t multiplier;
@@ -164,7 +171,7 @@ static void fetch_progress_callback(const FetchProgress* progress, void* context
 
     int32_t print_len;
 
-    if(progress->total_download_size != 0) {
+    if(progress->has_total_download_size) {
         print_len = fetch_cli_print_download_progress(progress);
     } else {
         print_len = fetch_cli_print_download_progress_simple(progress);
@@ -183,7 +190,7 @@ static FetchCli* fetch_cli_alloc() {
     instance->is_error = false;
 
     fetch_set_callback_context(instance->fetch, instance);
-    fetch_set_error_callback(instance->fetch, fetch_callback_error);
+    fetch_set_error_callback(instance->fetch, fetch_error_callback);
 
     return instance;
 }
@@ -205,7 +212,7 @@ static bool fetch_cli_prepare_file_output(FetchCli* instance, const char* file_p
         fetch_set_progress_callback(instance->fetch, fetch_progress_callback);
 
     } else {
-        printf("Error: Failed to open file for writing: %s\r\n", file_path);
+        fetch_cli_print_error("Failed to open output file for writing");
     }
 
     return success;
@@ -262,6 +269,10 @@ static void fetch_cli_print_usage(void) {
            "\t-d HTTP POST/PUT data\r\n"
            "\t-H Custom header(s)\r\n"
            "\t-X Request method\r\n"
+           "\t-k (TLS) Ignore server certificate\r\n"
+           "\t-a (TLS) Client auth type (\"none\" (default), \"device\" or \"cert\")\r\n"
+           "\t-C (TLS) Custom client certificate file path\r\n"
+           "\t-K (TLS) Custom client private key file path\r\n"
            "\t-v Enable full output\r\n");
 }
 
@@ -276,11 +287,30 @@ static void fetch_adjust_url(FuriString* url, const char* src_url) {
     }
 }
 
+static TlsClientCertType fetch_cli_get_client_cert_type(const char* str_type) {
+    TlsClientCertType client_cert_type;
+
+    if(strcmp(str_type, "none") == 0) {
+        client_cert_type = TlsClientCertTypeNone;
+    } else if(strcmp(str_type, "device") == 0) {
+        client_cert_type = TlsClientCertTypeDevice;
+    } else if(strcmp(str_type, "cert") == 0) {
+        client_cert_type = TlsClientCertTypeCustom;
+    } else {
+        client_cert_type = TlsClientCertTypeInvalid;
+    }
+
+    return client_cert_type;
+}
+
 static void fetch_cli_option_callback(char opt, const char* optarg, void* context) {
     furi_assert(context);
     FetchCliParams* params = context;
 
     FetchRequest* request = &params->request;
+
+    TlsConfig* tls_config = &request->tls_config;
+    TlsClientCertInfo* client_cert_info = &tls_config->client_cert_info;
 
     if(opt == '\0') {
         fetch_adjust_url(params->url_store, optarg);
@@ -294,6 +324,14 @@ static void fetch_cli_option_callback(char opt, const char* optarg, void* contex
     } else if(opt == 'd') {
         request->body.data = optarg;
         request->body.length = strlen(optarg);
+    } else if(opt == 'k') {
+        tls_config->is_server_cert_ignored = true;
+    } else if(opt == 'a') {
+        client_cert_info->type = fetch_cli_get_client_cert_type(optarg);
+    } else if(opt == 'C') {
+        client_cert_info->paths.certificate = optarg;
+    } else if(opt == 'K') {
+        client_cert_info->paths.private_key = optarg;
     } else if(opt == 'o') {
         params->output_path = optarg;
     } else if(opt == 'v') {
@@ -303,7 +341,10 @@ static void fetch_cli_option_callback(char opt, const char* optarg, void* contex
 
 static FetchCliParams* fetch_cli_params_alloc(void) {
     FetchCliParams* params = malloc(sizeof(FetchCliParams));
+
     params->url_store = furi_string_alloc();
+    tls_config_init(&params->request.tls_config);
+
     return params;
 }
 
@@ -312,12 +353,63 @@ static void fetch_cli_params_free(FetchCliParams* params) {
     free(params);
 }
 
+static bool fetch_cli_tls_config_validate(const TlsConfig* tls_config) {
+    bool success = false;
+
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+
+    do {
+        const TlsConfigValidationStatus tls_status = tls_config_validate(tls_config);
+
+        if(tls_status != TlsConfigValidationStatusOk) {
+            if(tls_status == TlsConfigValidationStatusInvalidType) {
+                fetch_cli_print_error("Invalid client auth type");
+            } else if(tls_status == TlsConfigValidationStatusClientCertNotSpecified) {
+                fetch_cli_print_error("No certificate file specified");
+            } else if(tls_status == TlsConfigValidationStatusPrivateKeyNotSpecified) {
+                fetch_cli_print_error("No private key file specified");
+            } else {
+                fetch_cli_print_error("Unknown TLS error");
+            }
+
+            break;
+        }
+
+        const TlsClientCertInfo* client_cert_info = &tls_config->client_cert_info;
+
+        if(client_cert_info->type == TlsClientCertTypeCustom) {
+            const TlsClientCertPaths* paths = &client_cert_info->paths;
+
+            if(storage_common_stat(storage, paths->certificate, NULL) != FSE_OK) {
+                fetch_cli_print_error("Certificate file does not exist");
+                break;
+            }
+
+            if(storage_common_stat(storage, paths->private_key, NULL) != FSE_OK) {
+                fetch_cli_print_error("Private key file does not exist");
+                break;
+            }
+        }
+
+        success = true;
+
+    } while(false);
+
+    furi_record_close(RECORD_STORAGE);
+
+    return success;
+}
+
 static bool fetch_cli_params_validate(const FetchCliParams* params) {
     bool is_valid = false;
 
     do {
         if(params->request.url == NULL) {
-            printf("Error: no url specified\r\n");
+            fetch_cli_print_error("No URL specified");
+            break;
+        }
+
+        if(!fetch_cli_tls_config_validate(&params->request.tls_config)) {
             break;
         }
 
@@ -337,8 +429,8 @@ void fetch_cli_command(PipeSide* pipe, FuriString* args, void* context) {
     FetchCliParams* params = fetch_cli_params_alloc();
 
     do {
-        if(!parse_args(args, "o:d:H:X:v", fetch_cli_option_callback, params)) {
-            printf("Error: invalid arguments\r\n");
+        if(!parse_args(args, "o:d:H:X:a:C:K:kv", fetch_cli_option_callback, params)) {
+            fetch_cli_print_error("Invalid arguments");
             break;
         }
         if(!fetch_cli_params_validate(params)) {

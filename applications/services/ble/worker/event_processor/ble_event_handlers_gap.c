@@ -52,6 +52,9 @@ bool ble_event_handler_gap_disconnected(size_t data_size, void* data, void* cont
     if(state == BleDeviceStateStopping) {
         ble_incoming_nwp_event_processor_spawn_event(
             instance->event_proc, BleIncomingNwpEventTypeExit, 0, NULL);
+    } else if(state == BleDeviceStateForgetting) {
+        ble_incoming_nwp_event_processor_spawn_event(
+            instance->event_proc, BleIncomingNwpEventTypeForgetPaired, 0, NULL);
     } else {
         ble_worker_invoke_disconnect_callback(instance);
     }

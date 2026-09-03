@@ -29,6 +29,24 @@ export async function handleHTTPError (error: any, title: string, shouldCheckFor
   });
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function isDisplayPriorityConflict (error: any) {
+  return error?.status === 409;
+}
+
+export function notifyDisplayPriorityConflict () {
+  const configStore = useConfigStore();
+
+  toast.add({
+    id: 'device-status-priority-conflict',
+    title: 'Can\'t show status',
+    description: 'Another activity is already running on your BUSY Bar. End it to show a custom status.',
+    icon: 'i-bi-alert',
+    color: 'warning',
+    duration: Number(configStore.get('notificationDuration'))
+  });
+}
+
 const genericErrorMessage = 'Unknown error. Check your connection and try again.';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parseError (error: any) {

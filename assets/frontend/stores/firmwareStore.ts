@@ -219,7 +219,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
     }
     console.debug('Requesting auto-update installation');
 
-    return deviceStore.busyBar.UpdateInstall({ version: autoUpdate.value.availableVersion, timeout: 0 });
+    return deviceStore.busyBar.UpdateInstall({ version: autoUpdate.value.availableVersion }, { timeout: 0 });
   }
   async function abortAutoUpdateDownload () {
     await deviceStore.busyBar.UpdateAbort()

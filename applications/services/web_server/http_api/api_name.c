@@ -60,7 +60,7 @@ bool http_api_name_callback(
             }
 
             DeviceName* dev_name = furi_record_open(RECORD_DEVICE_NAME);
-            DeviceNameError error = device_name_set(dev_name, name);
+            DeviceNameError error = device_name_set(dev_name, furi_string_get_cstr(name));
             furi_assert(error < DeviceNameErrorMax);
 
             furi_record_close(RECORD_DEVICE_NAME);

@@ -20,7 +20,7 @@ on:
       target:
         required: false
         type: string
-        default: '21'
+        default: '22'
 
 permissions:
   contents: read
@@ -118,15 +118,15 @@ jobs:
           echo "Downloading normal firmware: $URL"
           curl --fail -L -o "normal-update.tgz" "$URL"
 
+      - name: 'Reboot device and wipe /ext'
+        id: prepare
+        uses: ./.github/actions/flash-device
+
       - name: 'Flash update with bricked 917 firmware'
         id: flash_brick
         run: |
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
-          python3 scripts/testops.py power reboot
-          python3 scripts/testops.py wait -t 20
-          python3 scripts/testops.py debug 1
-          python3 scripts/testops.py format --no-confirm
 
           # Find the update tar in the extracted brick package
           BRICK_TAR=$(find brick-firmware -name "*.tgz" | head -1)
@@ -207,7 +207,7 @@ jobs:
             echo ""
             echo "| Phase | Status |"
             echo "|-------|--------|"
-            echo "| Flash brick firmware | ${{ steps.flash_brick.outcome }} |"
+            echo "| Flash brick firmware | ${{ steps.prepare.outcome == 'success' && steps.flash_brick.outcome || steps.prepare.outcome }} |"
             echo "| Verify bricked state | ${{ steps.verify_brick.outcome == 'failure' && 'success (expected failure)' || 'unexpected' }} |"
             echo "| Flash recovery firmware | ${{ steps.flash_recovery.outcome }} |"
             echo "| Verify recovery | ${{ steps.verify_recovery.outcome }} |"

@@ -10,6 +10,7 @@ for libname in [
     "cjson",
     "cli",
     "containers",
+    "jerryscript",
     "lvgl",
     "lvgl_addons",
     "network",
@@ -36,6 +37,8 @@ for libname in [
     "proto",
     "fetch",
     "storage_utils",
+    "js_app",
+    "xpm",
     ## SI917
     "sl_glue",
     "simplicity_sdk",

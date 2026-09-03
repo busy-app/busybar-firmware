@@ -17,6 +17,7 @@ typedef enum {
     BleDeviceStateAdvertising, /**< Device currently advertises itself over ble and waiting for connections*/
     BleDeviceStateConnected, /**< Device is connected */
     BleDeviceStateStopping, /**< Device performs stop sequence, when it will be done it will move back to BleDeviceStateIdle */
+    BleDeviceStateForgetting, /**< Device performs forget pairing sequence */
     BleDeviceStateError, /**< Error happened, more info in logs */
 } BleDeviceState;
 

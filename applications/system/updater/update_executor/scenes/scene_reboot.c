@@ -44,7 +44,7 @@ static void update_executor_reboot_scene_on_enter(void* context) {
         anim_player_set_source(back_anim, SHARED_ANIM_PATH("spinner_back_16x16.anim"));
 
         Label* back_label = label_alloc(flex_box_get_base(scene->back_box));
-        label_set_text(back_label, "Restarting device...");
+        label_set_text(back_label, "Restarting device");
         label_set_font(back_label, FONT_BUSY_REGULAR_9);
     });
 }

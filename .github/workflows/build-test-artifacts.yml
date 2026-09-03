@@ -1,0 +1,117 @@
+name: Build test suite artifacts
+
+# Shared pipeline for building a firmware variant used by a hardware test
+# suite (unit tests / 917 brick recovery): checkout, build, bundle into a zip,
+# upload to the build server and expose the update URLs for the downstream
+# test jobs. Upload and URL computation are skipped for fork PRs, which cannot
+# upload artifacts (no secrets).
+#
+# Called from the `unit-test-build` / `brick-test-build` jobs in build.yml with
+# `secrets: inherit`, so the `secrets` context is available here.
+
+on:
+    workflow_call:
+        inputs:
+            target_spec:
+                description: Target specification in the format "U5TARGET_SILTARGET", e.g. "22_65"
+                required: true
+                type: string
+            firmware_app_set:
+                description: FIRMWARE_APP_SET to build (e.g. unit_tests, 917_crash)
+                required: true
+                type: string
+            artifact_path:
+                description: Directory where build-artifacts stores the built artifacts
+                required: true
+                type: string
+            custom_suffix:
+                description: Suffix override for artifact naming
+                required: true
+                type: string
+            zip_prefix:
+                description: Prefix used in the uploaded zip filename (e.g. unittests, bricktest)
+                required: true
+                type: string
+        outputs:
+            update_url:
+                description: Relative path of the uploaded test zip on the build server
+                value: ${{ jobs.build-test-artifacts.outputs.update_url }}
+            normal_update_url:
+                description: Relative path of the normal firmware update package
+                value: ${{ jobs.build-test-artifacts.outputs.normal_update_url }}
+            target:
+                description: Parsed U5 target value
+                value: ${{ jobs.build-test-artifacts.outputs.target }}
+
+jobs:
+    build-test-artifacts:
+        runs-on: BsbShell
+        timeout-minutes: 20
+        env:
+            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        outputs:
+            update_url: ${{ steps.set-url.outputs.update_url }}
+            normal_update_url: ${{ steps.set-url.outputs.normal_update_url }}
+            target: ${{ steps.build-fw.outputs.u5_target_hw }}
+        steps:
+            - name: "Wipe workspace"
+              run: |
+                  find ./ -mount -maxdepth 1 -exec rm -rf {} \;
+
+            - name: "Checkout code"
+              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+              with:
+                  ref: ${{ github.event.pull_request.head.sha || github.sha }}
+                  fetch-depth: 2
+                  token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: "Authenticate git for the job"
+              uses: ./.github/actions/authenticate-git
+
+            - name: "Bootstrap tooling submodule"
+              uses: ./.github/actions/update-submodules
+              with:
+                  paths: fbt_layers/fbtng
+
+            - name: "Get commit details"
+              id: get-env
+              uses: ./.github/actions/get-commit-details
+
+            - name: "Build firmware artifacts"
+              id: build-fw
+              uses: ./.github/actions/build-artifacts
+              with:
+                  target_spec: ${{ inputs.target_spec }}
+                  build_type: debug
+                  firmware_app_set: ${{ inputs.firmware_app_set }}
+                  artifact_path: ${{ inputs.artifact_path }}
+                  custom_suffix: ${{ inputs.custom_suffix }}
+
+            - name: "Bundle artifacts into zip"
+              id: zip
+              run: |
+                  set -euo pipefail
+                  ARTIFACT_DIR="${{ inputs.artifact_path }}"
+                  zip_name="busybar-f${U5_TARGET_HW}-${{ inputs.zip_prefix }}-${{ steps.get-env.outputs.suffix }}.zip"
+                  rm -f "$zip_name"
+                  (cd "$ARTIFACT_DIR" && zip -qr "../$zip_name" .)
+                  echo "zip_path=$zip_name" >> "$GITHUB_OUTPUT"
+
+            - name: "Upload bundle to build artifacts server"
+              if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success' }}
+              run: |
+                  ZIP_PATH="${{ steps.zip.outputs.zip_path }}"
+                  curl --fail -L -H "Token: ${{ secrets.INDEXER_TOKEN }}" \
+                      -F "branch=${BRANCH_NAME}" \
+                      -F "version_token=${COMMIT_SHA}" \
+                      -F "files=@${ZIP_PATH}" \
+                      "${{ secrets.INDEXER_URL }}"/busybar-firmware/uploadfiles
+
+            - name: "Set update URL output"
+              id: set-url
+              if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success' }}
+              run: |
+                  BRANCH="${{ steps.get-env.outputs.branch_name }}"
+                  SUFFIX="${{ steps.get-env.outputs.suffix }}"
+                  echo "update_url=${BRANCH}/${{ steps.zip.outputs.zip_path }}" >> "$GITHUB_OUTPUT"
+                  echo "normal_update_url=${BRANCH}/busybar-f${{ steps.build-fw.outputs.u5_target_hw }}-update-${SUFFIX}.tgz" >> "$GITHUB_OUTPUT"

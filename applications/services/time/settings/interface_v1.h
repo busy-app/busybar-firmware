@@ -1,6 +1,6 @@
 #include "time_format.h"
 
-#include <setting_provider.h>
+#include <setting_provider/setting_provider.h>
 #include <utz/utz.h>
 
 #define TIME_SERVER_ADDRESS_MAX_LENGTH 64

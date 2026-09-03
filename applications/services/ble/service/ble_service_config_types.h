@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../ble_common.h"
+#include "../ble_log.h"
 #include "../ble_callback_types.h"
 #include "ble_service_index.h"
 

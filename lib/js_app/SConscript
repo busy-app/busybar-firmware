@@ -1,0 +1,28 @@
+Import("env")
+
+env.Append(
+    CPPPATH=[
+        Dir(".").srcnode(),
+    ],
+    LINT_SOURCES=[
+        Dir(".").srcnode(),
+    ],
+    SDK_HEADERS=[
+        File("js_app.h"),
+        File("js_app_manifest.h"),
+        File("js_app_registry.h"),
+    ],
+)
+
+libenv = env.Clone(FW_LIB_NAME="js_app")
+libenv.ApplyLibFlags()
+
+sources = [
+    "js_app.c",
+    "js_app_manifest.c",
+    "js_app_registry.c",
+]
+
+lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
+libenv.Install("${LIB_DIST_DIR}", lib)
+Return("lib")

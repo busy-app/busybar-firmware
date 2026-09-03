@@ -13,9 +13,10 @@
 #define TOTAL_FULL_POINTS (END_FULL_POINTS * 2)
 
 // Some sort of imperfection in the charger offsets measured battery voltage by
-// ~60mV up. This offset is not present when discharging and not dependent on
+// ~10mV up. This offset is not present when discharging and not dependent on
 // charging current (i.e. not caused by a resistance). This offset was not
 // present in out-of-band measurements.
+// On one unit, this appears to be 60mV, and 10mV on all the other units.
 #define CHARGER_OFFSET_MV         10
 #define CHARGER_OFFSET_TRIGGER_MA +2
 

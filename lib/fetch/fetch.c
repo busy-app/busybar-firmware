@@ -1,17 +1,14 @@
 #include "fetch.h"
 
 #include <network/network.h>
-#include <storage/storage.h>
-
 #include <toolbox/timers.h>
 
-#include <mongoose_glue.h>
+#include <mongoose_dns.h>
+#include <mongoose_tls.h>
 
 #define TAG "Fetch"
 
 #define FETCH_INACTIVITY_TIMEOUT_MS (5 * 1000)
-
-#define FETCH_CA_BUNDLE_PATH EXT_PATH("apps_assets/shared/ca/cacert.pem")
 
 #define FETCH_USER_AGENT                         \
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " \
@@ -25,6 +22,10 @@
 #define FETCH_LOG_I(...)
 #define FETCH_LOG_E(...)
 #endif
+
+// =====
+// Types
+// =====
 
 struct Fetch {
     struct mg_mgr mgr;
@@ -48,10 +49,35 @@ struct Fetch {
     _Atomic bool is_stop_requested;
 };
 
+// ============================
+// Stateless internal functions
+// ============================
+
 static uint32_t fetch_calc_download_speed(size_t size_delta, uint32_t start_timestamp_ticks) {
     const uint32_t delta_ticks = furi_get_tick() - start_timestamp_ticks + 1;
     const float delta_s = (float)delta_ticks / furi_kernel_get_tick_frequency();
     return size_delta / delta_s;
+}
+
+// ===========================
+// Stateful internal functions
+// ===========================
+
+static bool fetch_is_rx_complete(const Fetch* instance) {
+    bool is_complete = false;
+
+    const FetchProgress* progress = &instance->progress;
+
+    if(progress->has_total_download_size) {
+        const size_t expected_size = progress->total_download_size;
+        const size_t actual_size = progress->received_download_size;
+
+        if(actual_size >= expected_size) {
+            is_complete = true;
+        }
+    }
+
+    return is_complete;
 }
 
 static void fetch_consume_rx_data(struct mg_connection* conn, size_t length) {
@@ -69,7 +95,9 @@ static void fetch_switch_to_raw_protocol(
     instance->started_download_ticks = instance->started_raw_ticks;
 
     if(body_length != -1) {
-        instance->progress.total_download_size = body_length;
+        FetchProgress* progress = &instance->progress;
+        progress->total_download_size = body_length;
+        progress->has_total_download_size = true;
     }
 
     fetch_consume_rx_data(conn, msg->head.len);
@@ -89,39 +117,13 @@ static void fetch_raise_error(Fetch* instance, const char* error_message) {
     instance->is_error_occurred = true;
 }
 
-static bool fetch_init_tls(Fetch* instance, struct mg_connection* conn, struct mg_str hostname) {
-    bool success = false;
-
-    struct mg_str ca_data = mg_file_read(http_fs_get(), FETCH_CA_BUNDLE_PATH);
-
-    if(ca_data.buf != NULL && ca_data.len > 0) {
-        const struct mg_tls_opts opts = {
-            .ca = ca_data,
-            .name = hostname,
-        };
-
-        mg_tls_init(conn, &opts);
-
-        success = true;
-
-    } else {
-        fetch_raise_error(instance, "Failed to read CA certificate bundle");
-    }
-
-    if(ca_data.buf != NULL) {
-        free(ca_data.buf);
-    }
-
-    return success;
-}
-
-static bool fetch_init_connection(Fetch* instance, struct mg_connection* conn) {
+static bool fetch_init_connection(const FetchRequest* request, struct mg_connection* conn) {
     bool success = true;
 
-    const char* url = instance->request->url;
+    const char* url = request->url;
 
     if(mg_url_is_ssl(url)) {
-        success = fetch_init_tls(instance, conn, mg_url_host(url));
+        success = mongoose_tls_init(conn, url, &request->tls_config);
     }
 
     return success;
@@ -180,13 +182,14 @@ static FURI_ALWAYS_INLINE void fetch_connect_event(Fetch* instance, struct mg_co
     const FetchRequest* request = instance->request;
     furi_assert(request);
 
-    if(fetch_init_connection(instance, conn)) {
+    if(fetch_init_connection(request, conn)) {
         fetch_send_request_method(request, conn);
         fetch_send_request_headers(request, conn);
         fetch_send_extra_request_headers(request, conn);
         fetch_send_request_body(request, conn);
 
     } else {
+        fetch_raise_error(instance, "Failed to establish TLS connection");
         conn->is_draining = 1;
     }
 }
@@ -241,6 +244,10 @@ static FURI_ALWAYS_INLINE void fetch_read_event(Fetch* instance, struct mg_conne
     }
 
     fetch_consume_rx_data(conn, recv_len);
+
+    if(fetch_is_rx_complete(instance)) {
+        conn->is_draining = 1;
+    }
 }
 
 static FURI_ALWAYS_INLINE void fetch_close_event(Fetch* instance, struct mg_connection* conn) {
@@ -321,16 +328,23 @@ static bool fetch_verify_response_body_size(Fetch* instance) {
 
     if(!(instance->is_stop_requested || instance->is_error_occurred)) {
         const FetchProgress* progress = &instance->progress;
-        const size_t expected_size = progress->total_download_size;
-        const size_t actual_size = progress->received_download_size;
 
-        if((expected_size != 0) && (expected_size != actual_size)) {
-            success = false;
+        if(progress->has_total_download_size) {
+            const size_t expected_size = progress->total_download_size;
+            const size_t actual_size = progress->received_download_size;
+
+            if(expected_size != actual_size) {
+                success = false;
+            }
         }
     }
 
     return success;
 }
+
+// ==========
+// Public API
+// ==========
 
 Fetch* fetch_alloc(void) {
     Fetch* instance = malloc(sizeof(Fetch));
@@ -350,7 +364,11 @@ FetchStatus fetch_run(Fetch* instance, const FetchRequest* request) {
 
     furi_check(request);
     furi_check(request->url);
-    furi_check(request->headers.count < FETCH_HEADERS_COUNT_MAX);
+    furi_check(request->headers.count <= FETCH_HEADERS_COUNT_MAX);
+
+    if(instance->is_stop_requested) {
+        return FetchStatusAborted;
+    }
 
     fetch_reset(instance);
 
@@ -362,6 +380,7 @@ FetchStatus fetch_run(Fetch* instance, const FetchRequest* request) {
 #endif
 
     mg_mgr_init(&instance->mgr);
+    mongoose_dns_init(&instance->mgr);
 
     struct mg_connection* conn =
         mg_http_connect(&instance->mgr, request->url, fetch_mg_handler, instance);
@@ -396,6 +415,7 @@ FetchStatus fetch_run(Fetch* instance, const FetchRequest* request) {
         fetch_raise_error(instance, "Failed to connect to server");
     }
 
+    mongoose_dns_deinit(&instance->mgr);
     mg_mgr_free(&instance->mgr);
 
     network_deinit_current_thread(network);

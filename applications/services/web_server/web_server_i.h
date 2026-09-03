@@ -192,6 +192,7 @@ void http_reply_cors_preflight(struct mg_connection* conn, HttpMethod allowed_me
 void http_upload_start(
     struct mg_connection* conn,
     struct mg_http_message* msg,
-    const char* file_path);
+    const char* file_path,
+    bool append);
 
 struct mg_mgr* web_srv_get_mgr(void);

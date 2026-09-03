@@ -3,55 +3,15 @@ import { useApiStore } from '@/stores/apiStore';
 import {
   LocalStateStream,
   DataStatus,
-  BSB_State,
-  BSB_Update,
   StreamLifecycle,
   ConnectionStatus
 } from '@busy-app/busy-lib';
-import type { ProcessedState, StreamStatus, SmartHomePairingInfo } from '@busy-app/busy-lib';
+import type { BSB_State, ProcessedState, ProcessedUpdate, StreamStatus, SmartHomePairingInfo } from '@busy-app/busy-lib';
 
-function mapWifiSecurity (value: BSB_State.WifiStateConnected['security']) {
-  switch (value) {
-    case BSB_State.WifiSecurity.OPEN:
-      return 'Open';
-    case BSB_State.WifiSecurity.WPA:
-      return 'WPA';
-    case BSB_State.WifiSecurity.WPA2:
-      return 'WPA2';
-    case BSB_State.WifiSecurity.WEP:
-      return 'WEP';
-    case BSB_State.WifiSecurity.WPA_WPA2:
-      return 'WPA/WPA2';
-    case BSB_State.WifiSecurity.WPA3:
-      return 'WPA3';
-    case BSB_State.WifiSecurity.WPA2_WPA3:
-      return 'WPA2/WPA3';
-    default:
-      return undefined;
-  }
-}
-
-function mapWifiMethod (value: BSB_State.IpAddress['method']) {
-  switch (value) {
-    case BSB_State.IpConfigurationMethod.DHCP:
-      return 'dhcp';
-    case BSB_State.IpConfigurationMethod.STATIC:
-      return 'static';
-    default:
-      return undefined;
-  }
-}
-
-function mapWifiProtocol (value: BSB_State.IpAddress['protocol']) {
-  switch (value) {
-    case BSB_State.IpProtocol.IPV4:
-      return 'ipv4';
-    case BSB_State.IpProtocol.IPV6:
-      return 'ipv6';
-    default:
-      return undefined;
-  }
-}
+type WifiUpdate = NonNullable<ProcessedUpdate['wifi']>;
+type PowerUpdate = NonNullable<ProcessedUpdate['power']>;
+type CheckStateUpdate = NonNullable<ProcessedUpdate['updateCheck']>;
+type MatterUpdate = NonNullable<ProcessedUpdate['matter']>;
 
 function inferWifiProtocol (value: BSB_State.IpAddress['address']) {
   if (!value) {
@@ -67,21 +27,6 @@ function inferWifiProtocol (value: BSB_State.IpAddress['address']) {
   }
 
   return undefined;
-}
-
-function mapMatterStatus (value: BSB_State.MatterCommissioningState['status']) {
-  switch (value) {
-    case BSB_State.MatterCommissioningStatus.NEVER_STARTED:
-      return 'never_started';
-    case BSB_State.MatterCommissioningStatus.STARTED:
-      return 'started';
-    case BSB_State.MatterCommissioningStatus.COMPLETED_SUCCESSFULLY:
-      return 'completed_successfully';
-    case BSB_State.MatterCommissioningStatus.FAILED:
-      return 'failed';
-    default:
-      return undefined;
-  }
 }
 
 export const useStateStreamStore = defineStore('stateStream', () => {
@@ -102,7 +47,7 @@ export const useStateStreamStore = defineStore('stateStream', () => {
   const showResourceLimitErrorBanner = ref(false);
 
   const stream = shallowRef(new LocalStateStream(
-    { addr: barUrl, token: apiStore.apiKey || '' },
+    { addr: barUrl, HTTPAccessPassword: apiStore.apiKey || '' },
     {
       timeout: Number(configStore.get('stateStreamTimeout')),
       dataTimeout: Number(configStore.get('stateStreamDataTimeout')),
@@ -128,12 +73,12 @@ export const useStateStreamStore = defineStore('stateStream', () => {
     }
   }
 
-  function applyPowerUpdate (payload: BSB_State.Power) {
+  function applyPowerUpdate (payload: PowerUpdate) {
     const known = payload.known;
 
     const nextPower = known
       ? {
-        state: known.batteryStatus ? BSB_State.BatteryStatus[known.batteryStatus] : undefined,
+        state: known.batteryStatus ?? undefined,
         battery_charge: known.batteryChargePercent ?? 0,
         battery_voltage: known.batteryVoltageMv ?? 0,
         battery_current: known.batteryCurrentMa ?? 0,
@@ -157,7 +102,7 @@ export const useStateStreamStore = defineStore('stateStream', () => {
       return;
     }
 
-    const brightness = payload.manual?.brightness;
+    const brightness = payload.manual?.brightness ?? undefined;
     if (brightness !== undefined) {
       brightnessStore.displayBrightness = { value: brightness };
     } else {
@@ -174,31 +119,25 @@ export const useStateStreamStore = defineStore('stateStream', () => {
     }
   }
 
-  function applyWifiUpdate (payload: BSB_State.Wifi) {
-    const nextStateKey = Object.keys(payload).filter(key => key !== 'ipAddresses')[0] as keyof Omit<BSB_State.Wifi, 'ipAddresses'>;
+  function applyWifiUpdate (payload: WifiUpdate) {
     const connected = payload.connected;
     const ipAddresses = Array.isArray(payload.ipAddresses) ? payload.ipAddresses : [];
     const primaryIp = ipAddresses.find(e => e.address);
     const previousIpConfig = wifiStore.wifi?.ip_config;
     const address = primaryIp ? primaryIp.address : undefined;
-
-    // FW-883: reconnecting still reports connected state
-    let _nextStateKey = nextStateKey as typeof nextStateKey | 'reconnecting';
-    if (nextStateKey === 'connected' && connected?.status === BSB_State.WifiConnectionStatus.RECONNECTING) {
-      _nextStateKey = 'reconnecting';
-    }
+    const nextStateKey = connected?.status ?? (payload.unknown ? 'unknown' : 'disconnected');
 
     const nextWifiState = {
-      state: _nextStateKey,
+      state: nextStateKey,
       ssid: connected?.ssid,
       bssid: connected?.bssid,
       channel: connected?.channel,
       rssi: connected?.rssi,
-      security: mapWifiSecurity(connected?.security),
+      security: connected?.security ?? undefined,
       ip_config: primaryIp
         ? {
-          ip_method: mapWifiMethod(primaryIp.method) ?? previousIpConfig?.ip_method,
-          ip_type: mapWifiProtocol(primaryIp.protocol) ?? inferWifiProtocol(address) ?? previousIpConfig?.ip_type,
+          ip_method: primaryIp.method ?? previousIpConfig?.ip_method,
+          ip_type: primaryIp.protocol ?? inferWifiProtocol(address) ?? previousIpConfig?.ip_type,
           address,
           gateway: primaryIp.gateway,
           mask: primaryIp.netmask
@@ -218,7 +157,7 @@ export const useStateStreamStore = defineStore('stateStream', () => {
     }
   }
 
-  function applyUpdateCheck (payload: BSB_Update.CheckState) {
+  function applyUpdateCheck (payload: CheckStateUpdate) {
     firmwareStore.autoUpdate.isChecking = false;
 
     if (payload.available) {
@@ -232,13 +171,13 @@ export const useStateStreamStore = defineStore('stateStream', () => {
 
     firmwareStore.autoUpdate.availableVersion = null;
 
-    if (reason === BSB_Update.CheckError.NOT_AVAILABLE) {
+    if (reason === 'not_available') {
       firmwareStore.autoUpdate.status = 'not_available';
       firmwareStore.autoUpdate.isAllowed = true;
       return;
     }
 
-    if (reason === BSB_Update.CheckError.FAILURE) {
+    if (reason === 'failure') {
       firmwareStore.autoUpdate.status = 'failure';
       firmwareStore.autoUpdate.isAllowed = false;
       return;
@@ -253,14 +192,14 @@ export const useStateStreamStore = defineStore('stateStream', () => {
     }
   }
 
-  function applyMatterUpdate (payload: BSB_State.Matter) {
+  function applyMatterUpdate (payload: MatterUpdate) {
     const state = payload.state;
 
     matterStore.matterCommissioning = {
       fabricCount: payload.fabricCount ?? 0,
       latestStatus: state
         ? {
-          value: mapMatterStatus(state.status),
+          value: state.status ?? undefined,
           timestamp: (state.timestamp ?? 0) as NonNullable<SmartHomePairingInfo['latest_pairing_status']>['timestamp']
         }
         : undefined

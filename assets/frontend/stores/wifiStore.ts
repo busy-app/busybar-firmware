@@ -95,7 +95,7 @@ export const useWifiStore = defineStore('wifi', () => {
       deviceStore.clearRefreshInterval();
     }
     stateStreamStore.doCheckConnectionOnStreamDataStale = false;
-    return await deviceStore.busyBar.WifiConnect({ ...params, timeout: 0 })
+    return await deviceStore.busyBar.WifiConnect(params, { timeout: 0 })
       .catch(async error => {
         await handleHTTPError(error, 'Couldn\'t connect to WiFi network', false, 0);
         return false;

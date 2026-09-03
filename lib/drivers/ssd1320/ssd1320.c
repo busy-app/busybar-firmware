@@ -43,7 +43,7 @@ typedef enum {
 
 static const uint8_t display_init_table_ssd1320[] = {
     /* clang-format off */
-    0,  Cmd1320_DisplayOff, 
+    0,  Cmd1320_DisplayOff,
     1,  Cmd1320_DisplayClockDiv, 0x22,
     1,  Cmd1320_MultiplexRatio, 0x4F,
     1,  Cmd1320_DisplayOffset, 0x78,
@@ -52,12 +52,12 @@ static const uint8_t display_init_table_ssd1320[] = {
     0,  Cmd1320_ComOutputScanDirNormal,
     1,  Cmd1320_SegPinsHardwareConfig, 0x32,
     1,  Cmd1320_ContrastControl, 0x27,
-    1,  Cmd1320_PrechargeVoltage, 0x10,
-    1,  Cmd1320_PhaseLength, 0x42,
+    1,  Cmd1320_PrechargeVoltage, 0x0C,
+    1,  Cmd1320_PhaseLength, 0x62,
     1,  Cmd1320_VCOMHDeselectLevel, 0x30,
     1,  Cmd1320_IREFSelect, 0x10,
     3,  Cmd1320_DisplayEnhancement, 0xD5, 0xF0, 0x21,
-    15, Cmd1320_GrayScaleTable,0x00, 0x02, 0x04, 0x06, 0x09, 0x0D, 0x11, 0x15, 0x19, 0x1E, 0x24, 0x2A, 0x31, 0x38, 0x3F,
+    15, Cmd1320_GrayScaleTable, 0x02, 0x04, 0x07, 0x0A, 0x0E, 0x12, 0x16, 0x1B, 0x1F, 0x24, 0x29, 0x2F, 0x34, 0x3A, 0x3F,
     1,  Cmd1320_MemoryMode, 0x00,
     0,  Cmd1320_DisplayModeNormal,
     0,  Cmd1320_DisplayModeAllOff,
@@ -120,6 +120,16 @@ void ssd1320_set_contrast(uint8_t contrast) {
     uint8_t contrast_cmd[2] = {Cmd1320_ContrastControl, contrast};
     ssd1320_send_command(
         &furi_hal_spi_bus_handle_back_display, contrast_cmd, sizeof(contrast_cmd));
+}
+
+void ssd1320_set_grayscale_table(const SSD1320GrayscaleTable* grayscale_table) {
+    uint8_t grayscale_table_cmd[sizeof(grayscale_table->data) + 1];
+
+    grayscale_table_cmd[0] = Cmd1320_GrayScaleTable;
+    memcpy(&grayscale_table_cmd[1], grayscale_table->data, sizeof(grayscale_table->data));
+
+    ssd1320_send_command(
+        &furi_hal_spi_bus_handle_back_display, grayscale_table_cmd, sizeof(grayscale_table_cmd));
 }
 
 void ssd1320_draw(const uint8_t* buf) {

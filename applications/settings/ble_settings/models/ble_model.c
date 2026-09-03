@@ -13,7 +13,7 @@ struct BleModel {
     FuriMutex* lock;
     BleState state;
     FuriPubSubSubscription* ble_subscription;
-    FuriPubSubSubscription* device_name_subscription;
+    FuriStateSub* device_name_subscription;
     FuriTimer* pairing_timer;
 
     BleModelStateCallback callback;
@@ -61,8 +61,9 @@ BleModel* ble_model_alloc(void) {
     BleModel* model = malloc(sizeof(BleModel));
 
     model->device_name = furi_record_open(RECORD_DEVICE_NAME);
-    model->device_name_subscription = furi_pubsub_subscribe(
-        device_name_get_pubsub(model->device_name),
+    model->device_name_subscription = furi_state_get_subscribe(
+        device_name_get_state(model->device_name),
+        NULL,
         ble_model_on_device_name_change_callback,
         model);
 
@@ -86,8 +87,7 @@ void ble_model_free(BleModel* model) {
     model->callback = NULL;
 
     furi_timer_free(model->pairing_timer);
-    furi_pubsub_unsubscribe(
-        device_name_get_pubsub(model->device_name), model->device_name_subscription);
+    furi_state_unsubscribe(model->device_name_subscription);
     furi_pubsub_unsubscribe(ble_get_pubsub(model->ble), model->ble_subscription);
     furi_mutex_free(model->lock);
     furi_record_close(RECORD_BLE);
@@ -133,19 +133,25 @@ void ble_model_set_state_callback(BleModel* model, BleModelStateCallback callbac
 void ble_model_start(BleModel* model) {
     furi_assert(model);
     bool result = ble_start(model->ble);
-    furi_assert(result);
+    if(!result) {
+        FURI_LOG_W(TAG, "Start failed");
+    }
     furi_timer_start(model->pairing_timer, M_TO_MS(BLE_PAIRING_TIMEOUT_MIN));
 }
 
 void ble_model_stop(BleModel* model) {
     furi_assert(model);
     bool result = ble_stop(model->ble);
-    furi_assert(result);
+    if(!result) {
+        FURI_LOG_W(TAG, "Stop failed");
+    }
     furi_timer_stop(model->pairing_timer);
 }
 
 void ble_model_forget(BleModel* model) {
     furi_assert(model);
     bool result = ble_forget(model->ble);
-    furi_assert(result);
+    if(!result) {
+        FURI_LOG_W(TAG, "Forget failed");
+    }
 }

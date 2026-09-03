@@ -80,7 +80,7 @@ On-device debugging requires a supported SWD probe. `fbt` auto-detects the attac
 - `doxygen` — generate the documentation. The `doxy` target additionally opens the generated documentation in a web browser.
 - `vscode_dist`, `subl_dist` — generate project configuration for VS Code and Sublime Text respectively.
 
-A number of specialized targets are also available, including `sdk_tree`, `update_bundle`, `openapi_dist`, `openapi_spec`, `crypto_provision`, `crypto_wipe`, `mqtt_provision`, `mqtt_wipe`, `api_table` and `launch_app`. Run `./fbt -h` for the full list.
+A number of specialized targets are also available, including `sdk_tree`, `update_bundle`, `update_cacert`, `openapi_dist`, `openapi_spec`, `crypto_provision`, `crypto_wipe`, `mqtt_provision`, `mqtt_wipe`, `api_table` and `launch_app`. Run `./fbt -h` for the full list.
 
 # Flashing over USB {#flashing-usb}
 

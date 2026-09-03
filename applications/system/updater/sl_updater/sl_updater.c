@@ -13,6 +13,9 @@
 #endif
 
 #include <storage/storage.h>
+#ifdef SRV_LOG_STORAGE
+#include <log_storage/log_storage.h>
+#endif
 
 #define TAG "SlUpdater"
 
@@ -468,6 +471,11 @@ static SlUpdaterStatus
     instance->bootloader_mode = mode;
     instance->bootloader_state = Si917BootloaderStateInit;
 
+#ifdef SRV_LOG_STORAGE
+    LogStorage* log_storage = furi_record_open(RECORD_LOG_STORAGE);
+    log_storage_suspend_remote(log_storage);
+#endif
+
     instance->serial_handle = furi_hal_serial_control_acquire(FuriHalSerialIdUsart2);
 
     furi_hal_serial_init(instance->serial_handle, 115200);
@@ -492,6 +500,11 @@ static SlUpdaterStatus
     furi_hal_serial_set_rx_callback(instance->serial_handle, NULL, NULL);
     furi_hal_serial_control_release(instance->serial_handle);
     instance->serial_handle = NULL;
+
+#ifdef SRV_LOG_STORAGE
+    log_storage_resume_remote(log_storage);
+    furi_record_close(RECORD_LOG_STORAGE);
+#endif
 
     return status;
 }

@@ -1,6 +1,7 @@
 #include "power_cli.h"
 
 #include <furi_hal.h>
+#include <furi_hal_nvm.h>
 #include <cli/cli_command.h>
 #include <cli/args.h>
 #include <toolbox/property.h>
@@ -107,13 +108,16 @@ static void power_cli_charger_on_off(PipeSide* pipe, FuriString* args) {
 static void power_cli_charger_limit(PipeSide* pipe, FuriString* args) {
     UNUSED(pipe);
 
+    bool debug_enabled = furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug);
+
     bool args_error = true;
     int value = 0;
+    int lower_bound = debug_enabled ? 30 : 50;
 
     Power* power = furi_record_open(RECORD_POWER);
 
     if(args_read_int_and_trim(args, &value)) {
-        if((value >= 50) && (value <= 100)) {
+        if((value >= lower_bound) && (value <= 100)) {
             args_error = false;
             power_set_charge_limit(power, value);
         }
@@ -123,7 +127,10 @@ static void power_cli_charger_limit(PipeSide* pipe, FuriString* args) {
 
     if(args_error) {
         cli_print_usage("power ch_limit", "<percentage>", furi_string_get_cstr(args));
-        printf("\r\n    percentage: 50..100");
+        printf(
+            "\r\n    percentage: %d..100%s",
+            lower_bound,
+            debug_enabled ? "" : " (enable debug to extend range)");
     }
 }
 

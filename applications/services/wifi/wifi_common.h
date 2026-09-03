@@ -22,6 +22,10 @@ extern "C" {
 /** MAC address length in bytes. */
 #define HW_ADDRESS_LEN     (6U)
 
+#define WIFI_IP4_ADDR_FORMAT "%hhu.%hhu.%hhu.%hhu"
+#define WIFI_IP4_ADDR_SPREAD(addr) \
+    (addr)->bytes[0], (addr)->bytes[1], (addr)->bytes[2], (addr)->bytes[3]
+
 /**
  * @brief The string key for Wifi instance access
  *
@@ -109,6 +113,7 @@ typedef struct {
     WifiIpv4 address;
     WifiIpv4 gateway;
     WifiIpv4 mask;
+    WifiIpv4 dns;
 } WifiIpv4Settings;
 
 /** Union which represents IPv6 as byte, uint16_t, and uint32_t sequences */

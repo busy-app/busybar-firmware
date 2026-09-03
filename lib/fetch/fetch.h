@@ -6,6 +6,8 @@
 
 #include "fetch_common.h"
 
+#include <toolbox/tls_config.h>
+
 /** Maximum number of additional request headers. */
 #define FETCH_HEADERS_COUNT_MAX (10)
 
@@ -56,6 +58,7 @@ typedef struct {
     const char* method; /**< Pointer to the HTTP method string. */
     FetchRequestHeaders headers; /**< Request headers (optional). */
     FetchRequestBody body; /**< Request body (optional).*/
+    TlsConfig tls_config; /**< TLS configuration (optional). */
 } FetchRequest;
 
 /**

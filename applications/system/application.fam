@@ -4,6 +4,7 @@ App(
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
         "apps_menu",
+        "js_app_launcher",
         "message",
         "system_apps_on_start",
         "system_apps_cli",

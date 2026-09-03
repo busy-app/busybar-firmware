@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ble.h"
-#include "ble_common.h"
+#include "ble_log.h"
 #include "ble_command_engine.h"
 #include "service/ble_service.h"
 #include "service/ble_service_config.h"
@@ -10,26 +10,16 @@
 #include <furi.h>
 
 #if !defined(BSB_MCU_SI917)
-
 #include "streaming/ble_streaming.h"
-#include <api_lock.h>
-
-typedef struct {
-    BleIntercomFrameHeader header;
-    uint8_t data[];
-} BleCommand;
-
 #else
 #include "worker/ble_worker.h"
 #endif
 
 typedef enum {
-    BleEventTypeInitOnStart = (1 << 0),
-    BleEventTypeEnableOnStart = (1 << 1),
-    BleEventTypeApiCommand = (1 << 2),
-    BleEventTypeFrameReceived = (1 << 3),
-    BleEventTypeIntercomInit = (1 << 4),
-    BleEventTypeIntercomDeinit = (1 << 5),
+    BleEventTypeFrameReceived = (1 << 0),
+    BleEventTypeFrameLost = (1 << 1),
+    BleEventTypeIntercomInit = (1 << 2),
+    BleEventTypeIntercomDeinit = (1 << 3),
 } BleEventType;
 
 typedef void (
@@ -42,7 +32,7 @@ struct Ble {
     BleIntercomFrameGeneric mailbox;
     BleCommandEngine* engine;
 
-    FuriMessageQueue* message_queue;
+    FuriMessageQueue* service_queue;
     FuriEventLoop* event_loop;
     Intercom* intercom;
     IntercomChannel* intercom_ch;
@@ -53,10 +43,6 @@ struct Ble {
 #if !defined(BSB_MCU_SI917)
     BleStreaming* streaming;
     FuriPubSub* on_status_change;
-    FuriApiLock current_command_api_lock;
-    FuriMutex* current_command_lock;
-    BleCommand* current_command;
-    size_t current_command_size;
 #else
     BleWorker* worker;
 #endif

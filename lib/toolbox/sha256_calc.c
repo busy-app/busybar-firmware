@@ -3,6 +3,7 @@
 #include <storage/filesystem_api_defines.h>
 #include <storage/storage.h>
 #include <mbedtls/sha256.h>
+#include <toolbox/hex.h>
 
 #define SHA256_MAX_SIZE_CHUNK 1024 * 32 //32kb
 
@@ -49,16 +50,31 @@ bool sha256_string_calc_file(
     const char* path,
     FuriString* output,
     FS_Error* file_error) {
-    const size_t hash_size = 32;
-    unsigned char hash[hash_size];
-    bool result = sha256_calc_file(file, path, hash, file_error);
+    uint8_t raw_bytes[32];
+    bool result = sha256_calc_file(file, path, raw_bytes, file_error);
+    if(!result) return false;
 
-    if(result) {
-        furi_string_set(output, "");
-        for(size_t i = 0; i < hash_size; i++) {
-            furi_string_cat_printf(output, "%02x", hash[i]);
-        }
-    }
+    hex_bytes_to_string(raw_bytes, sizeof(raw_bytes), output);
+    return true;
+}
 
-    return result;
+void sha256_calc_buffer(const uint8_t* buffer, size_t size, unsigned char output[32]) {
+    furi_check(buffer);
+    furi_check(output);
+
+    mbedtls_sha256_context* sha256_ctx = malloc(sizeof(mbedtls_sha256_context));
+    mbedtls_sha256_init(sha256_ctx);
+    mbedtls_sha256_starts(sha256_ctx, 0);
+    mbedtls_sha256_update(sha256_ctx, buffer, size);
+    mbedtls_sha256_finish(sha256_ctx, output);
+    free(sha256_ctx);
+}
+
+void sha256_string_calc_buffer(const uint8_t* buffer, size_t size, FuriString* output) {
+    furi_check(buffer);
+    furi_check(output);
+
+    uint8_t raw_bytes[32];
+    sha256_calc_buffer(buffer, size, raw_bytes);
+    hex_bytes_to_string(raw_bytes, sizeof(raw_bytes), output);
 }

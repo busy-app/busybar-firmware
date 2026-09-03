@@ -4,85 +4,11 @@ fwenv = FW_ENV
 import os
 from SCons.Util import splitext
 from fbt.version import get_git_commit_unix_timestamp
-import requests
-import hashlib
-import shutil
-import os
-
-def strip_pem_comments(path):
-    """Remove the curl bundle header and per-cert name labels; keep only PEM blocks."""
-    in_cert = False
-    out_lines = []
-    with open(path) as f:
-        for line in f:
-            line = line.rstrip("\r\n")
-            if line == "-----BEGIN CERTIFICATE-----":
-                in_cert = True
-                out_lines.append(line)
-            elif line == "-----END CERTIFICATE-----":
-                in_cert = False
-                out_lines.append(line)
-                out_lines.append("")  # blank line between certs
-            elif in_cert:
-                out_lines.append(line)
-    while out_lines and out_lines[-1] == "":
-        out_lines.pop()
-    with open(path, "w") as f:
-        f.write("\n".join(out_lines) + "\n")
-
-
-def sha256sum(filename):
-    try:
-        with open(filename, "rb") as f:
-            return hashlib.file_digest(f, "sha256").hexdigest()
-    except OSError:
-        return None
-
-
-def download_file(build_output, src_tree_file, *_, src_url, src_url_sha256, **__):
-    try:
-        expected_sha = requests.get(src_url_sha256, timeout=10)
-        expected_sha.raise_for_status()
-        expected_sha = expected_sha.text.split(" ")[0]
-
-        if sha256sum(src_tree_file) == expected_sha:
-            print(f"File is up to date: {src_tree_file}")
-            shutil.copy(src_tree_file, build_output)
-            strip_pem_comments(build_output)
-            return True
-
-        file = requests.get(src_url, timeout=10)
-        file.raise_for_status()
-
-        with open(build_output, "wb") as f:
-            f.write(file.content)
-
-        if sha256sum(build_output) != expected_sha:
-            raise Exception(f"Downloaded file does not match digest: {src_tree_file}")
-
-        # Copy the unstripped file back so the next build can verify SHA against it.
-        # This leaves a dirty working tree in CI — commit or reset the file afterward.
-        shutil.copy(build_output, src_tree_file)
-        print(
-            f"WARNING: {src_tree_file} has been updated from {src_url}. Commit the change."
-        )
-        strip_pem_comments(build_output)
-        return True
-
-    except requests.RequestException:
-        # Network unavailable — fall back to the existing source-tree cert if present.
-        if os.path.exists(src_tree_file):
-            print(f"Network unavailable; using existing cert: {src_tree_file}")
-            shutil.copy(src_tree_file, build_output)
-            strip_pem_comments(build_output)
-            return True
-        print(f"Failed to download cert and no local copy found: {src_tree_file}")
-        return False
-
 
 fwenv.SetDefault(RESOURCES_ROOT=fwenv.Dir("${BUILD_DIR}/resources"))
+fwenv.SetDefault(CACERT_FILENAME="cacert.pem")
 
-fw_assets_env = fwenv.Clone(tools=["bsb_assets"])
+fw_assets_env = fwenv.Clone(tools=["bsb_assets","bsb_certs"])
 
 
 def convert_sounds(src_dir, dst_dir):
@@ -187,24 +113,16 @@ def convert_web_assets(src_dir, dst_dir):
     return converted
 
 def update_certs(src_dir, dst_dir):
-    cert_file = File(src_dir + "ca/cacert.pem")
-    cert_file_downloaded = fwenv.File("${BUILD_DIR}/cacert.pem")
+    cert_filename = fwenv['CACERT_FILENAME']
+    source_file = fwenv.Dir(src_dir).Dir("ca").File(cert_filename)
+    target_file = dst_dir.Dir("ca").File(cert_filename)
 
-    SRC_URL = "https://curl.se/ca/cacert.pem"
-    SRC_URL_SHA256 = "https://curl.se/ca/cacert.pem.sha256"
-    fw_assets_env.Command(
-        target=cert_file_downloaded,
-        source=cert_file,
-        action=lambda target, source, **_: not download_file(
-            target[0].rfile().abspath,
-            source[0].rfile().abspath,
-            src_url=SRC_URL,
-            src_url_sha256=SRC_URL_SHA256,
-        ),
-    )
-    fw_assets_env.AlwaysBuild(cert_file_downloaded)
+#   print(f"Source file {source_file}, type: {type(source_file)}")
+#   print(f"Target file: {target_file}, type: {type(target_file)}")
 
-    return [fw_assets_env.Install(dst_dir.Dir("ca"), cert_file_downloaded)]
+    fw_assets_env.CertStripCopy(target=target_file, source=source_file)
+    fw_assets_env.AlwaysBuild(target_file)
+    return [target_file]
 
 def openapi_merge(src_dir, dst_file):
     src_files = fwenv.GlobRecursive("*.yaml", src_dir)

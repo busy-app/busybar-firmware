@@ -9,10 +9,13 @@ tests that live in the display/ subdirectory.
 from __future__ import annotations
 
 import time
+from collections.abc import Callable, Iterator
 
+import allure
 import pytest
 import requests
 
+from clients.api import MintedAccessToken, SettingsAPI
 from utils.busy_timer import (
     WORK_CARD_UUID,
     STATE_SETTLE_S,
@@ -21,6 +24,29 @@ from utils.busy_timer import (
     set_snapshot,
     wait_for_snapshot_type,
 )
+
+
+@pytest.fixture
+def access_token_factory(
+    settings_api: SettingsAPI,
+) -> Iterator[Callable[[str], MintedAccessToken]]:
+    """Mint tokens and revoke only the tokens created by the current test."""
+    created_short_ids: list[str] = []
+
+    def mint(name: str) -> MintedAccessToken:
+        token = settings_api.mint_access_token(name)
+        created_short_ids.append(token.short_id)
+        return token
+
+    yield mint
+
+    with allure.step("Revoke tokens created by the test"):
+        for short_id in reversed(created_short_ids):
+            response = settings_api.revoke_access_token_raw(short_id)
+            assert response.status_code in (200, 404), (
+                f"Failed to clean up token {short_id!r}: "
+                f"HTTP {response.status_code}, body={response.text!r}"
+            )
 
 
 @pytest.fixture

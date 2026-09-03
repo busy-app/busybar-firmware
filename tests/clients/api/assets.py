@@ -12,9 +12,9 @@ Endpoints:
 
 from __future__ import annotations
 
-import requests
 from typing import Any
 
+import requests
 from pydantic import BaseModel, field_validator
 
 from .base import BaseAPI
@@ -67,6 +67,7 @@ class DisplayElement(BaseModel):
     font: str | None = None
     color: str | None = None
     display: str | None = None
+    z_index: int | None = None
 
 
 class DisplayDrawRequest(BaseModel):
@@ -75,6 +76,12 @@ class DisplayDrawRequest(BaseModel):
     application_name: str
     priority: int | None = None
     elements: list[DisplayElement]
+
+
+class DisplayDeleteRequest(BaseModel):
+    """Optional request body for selective DELETE /api/display/draw."""
+
+    element_ids: list[str]
 
 
 # === API Client ===
@@ -185,7 +192,61 @@ class AssetsAPI(BaseAPI):
 
     def clear_display_by_app(self, app_name: str) -> requests.Response:
         """Clear display elements belonging to a specific app_name."""
-        return self.delete_raw("/api/display/draw", params={"application_name": app_name})
+        return self.delete_raw(
+            "/api/display/draw", params={"application_name": app_name}
+        )
+
+    def clear_display_elements(
+        self,
+        element_ids: list[str],
+        app_name: str | None = None,
+    ) -> AssetResultResponse:
+        """Delete selected display elements and validate a successful response."""
+        request = DisplayDeleteRequest(element_ids=element_ids)
+        params = {"application_name": app_name} if app_name is not None else None
+        return self.delete(
+            "/api/display/draw",
+            AssetResultResponse,
+            params=params,
+            json=request.model_dump(),
+        )
+
+    def clear_display_elements_response(
+        self,
+        element_ids: list[str],
+        app_name: str | None = None,
+    ) -> requests.Response:
+        """Delete selected elements and return the raw response for error checks."""
+        request = DisplayDeleteRequest(element_ids=element_ids)
+        params = {"application_name": app_name} if app_name is not None else None
+        return self.delete_raw(
+            "/api/display/draw",
+            params=params,
+            json=request.model_dump(),
+        )
+
+    def clear_display_raw(
+        self,
+        data: Any,
+        app_name: str | None = None,
+    ) -> requests.Response:
+        """Send a custom display deletion body for contract validation."""
+        params = {"application_name": app_name} if app_name is not None else None
+        return self.delete_raw("/api/display/draw", params=params, json=data)
+
+    def clear_display_body_response(
+        self,
+        body: str,
+        app_name: str | None = None,
+    ) -> requests.Response:
+        """Send a raw JSON string to validate display deletion parsing."""
+        params = {"application_name": app_name} if app_name is not None else None
+        return self.delete_raw(
+            "/api/display/draw",
+            params=params,
+            data=body,
+            headers={"Content-Type": "application/json"},
+        )
 
     # === Audio ===
 

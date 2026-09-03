@@ -14,6 +14,7 @@
 
 struct Dialog {
     Widget base;
+    lv_obj_t* icon;
     lv_obj_t* text_cont;
     lv_obj_t* text_main;
     lv_obj_t* text_sub;
@@ -82,12 +83,15 @@ static void dialog_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj
     Dialog* instance = (Dialog*)obj;
     lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_OFF);
 
+    instance->icon = lv_image_create(obj);
+    lv_obj_add_flag(instance->icon, LV_OBJ_FLAG_HIDDEN);
+
     instance->text_cont = lv_obj_create(obj);
     lv_obj_set_style_pad_all(instance->text_cont, 0, LV_PART_MAIN);
 
     instance->text_main = lv_obj_class_create_obj(MY_TEXT_CLASS, instance->text_cont);
     lv_obj_class_init_obj(instance->text_main);
-    lv_label_set_long_mode(instance->text_main, LV_LABEL_LONG_MODE_WRAP);
+    lv_label_set_long_mode(instance->text_main, LV_LABEL_LONG_MODE_DOTS);
     lv_label_set_text(instance->text_main, "");
 
     instance->text_sub = lv_obj_class_create_obj(MY_TEXT_SUB_CLASS, instance->text_cont);
@@ -113,10 +117,12 @@ static void dialog_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj
 
         lv_obj_set_size(instance->options_cont, LV_PCT(100), LV_SIZE_CONTENT);
     } else {
+        lv_obj_set_style_margin_right(instance->icon, 2, LV_PART_MAIN);
         lv_obj_set_flex_flow(instance->text_cont, LV_FLEX_FLOW_COLUMN);
         lv_obj_set_flex_align(
             instance->text_cont, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
         lv_obj_set_size(instance->text_cont, LV_PCT(100), LV_PCT(100));
+        lv_obj_set_flex_grow(instance->text_cont, 1);
 
         lv_obj_set_size(instance->options_cont, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
         lv_obj_set_style_pad_row(instance->options_cont, -2, LV_PART_MAIN);
@@ -253,6 +259,16 @@ void dialog_set_callback(Dialog* instance, DialogCallback callback, void* contex
 
     instance->callback = callback;
     instance->context = context;
+}
+
+void dialog_set_icon(Dialog* instance, const char* icon_source) {
+    furi_check(instance);
+    if(icon_source) {
+        lv_image_set_src(instance->icon, icon_source);
+        lv_obj_remove_flag(instance->icon, LV_OBJ_FLAG_HIDDEN);
+    } else {
+        lv_obj_add_flag(instance->icon, LV_OBJ_FLAG_HIDDEN);
+    }
 }
 
 // LVGL class descriptors

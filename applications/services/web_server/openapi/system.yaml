@@ -168,7 +168,7 @@ paths:
                   path:
                     type: string
                     description: Full path to the written log file
-                    example: "/ext/dump.txt"
+                    example: "/ext/log.txt"
                 required:
                   - result
                   - path

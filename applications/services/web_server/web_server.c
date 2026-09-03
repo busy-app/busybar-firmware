@@ -6,12 +6,18 @@
 #include <netstat/netstat.h>
 #include <toolbox/path.h>
 #include <discovery/discovery.h>
+#include <device_name/device_name.h>
+#include <furi_hal_version.h>
 
 #define TAG "HttpSrv"
 
 typedef struct {
     HttpHandlersList_t handlers;
     struct mg_mgr mgr; // Event manager
+
+    DeviceName* device_name;
+    FuriString* service_name;
+    DiscoveryServiceInfo discovery_declaration;
 } WebServer;
 
 static WebServer srv = {0};
@@ -194,7 +200,8 @@ static void http_upload_poll_callback(struct mg_connection* conn) {
 void http_upload_start(
     struct mg_connection* conn,
     struct mg_http_message* msg,
-    const char* file_path) {
+    const char* file_path,
+    bool append) {
     // Create upload context
     HttpUploadCtx* upload_ctx = malloc(sizeof(HttpUploadCtx));
     upload_ctx->len_remain = msg->body.len;
@@ -208,7 +215,9 @@ void http_upload_start(
     conn_ctx->raw.on_poll = http_upload_poll_callback;
     conn_ctx->context = upload_ctx;
 
-    http_fs_get()->rm(file_path); // Delete file if it exists
+    if(!append) {
+        http_fs_get()->rm(file_path); // Delete file if it exists
+    }
     FuriString* dir_path = furi_string_alloc();
     path_extract_dirname(file_path, dir_path);
     http_fs_get()->mkd(furi_string_get_cstr(dir_path));
@@ -536,27 +545,51 @@ bool http_handle_headers(
     return handled;
 }
 
-static void web_srv_discovery_txt(DiscoveryRequest* request, void* context) {
-    UNUSED(context);
+static bool web_srv_discovery_txt(size_t index, FuriString* txt_out, void* context) {
+    furi_assert(txt_out);
+    furi_assert(context);
+    WebServer* server = context;
 
-    discovery_request_feed_txt(request, "path=/");
+    if(index == 0) {
+        furi_string_printf(txt_out, "path=/");
+        return true;
+
+    } else if(index == 1) {
+        FuriString* device_name = furi_string_alloc();
+        device_name_get(server->device_name, device_name);
+        furi_string_printf(txt_out, "name=%s", furi_string_get_cstr(device_name));
+        furi_string_free(device_name);
+        return true;
+
+    } else {
+        return false;
+    }
 }
 
 static void web_srv_discovery_init(WebServer* server) {
     furi_assert(server);
 
+    server->device_name = furi_record_open(RECORD_DEVICE_NAME);
     Discovery* discovery = furi_record_open(RECORD_DISCOVERY);
 
-    static const DiscoveryInfo discovery_info = {
-        .name = "httpd",
-        .service = "_http",
-        .transport = DiscoveryTransportTcp,
-        .port = 80,
-        .txt = web_srv_discovery_txt,
-    };
-    discovery_service_add(discovery, &discovery_info, &srv);
+    server->service_name = furi_string_alloc_set_str("busybar-");
 
-    furi_record_close(RECORD_DISCOVERY);
+    const uint8_t* usb_mac = furi_hal_version_get_usb_mac();
+    for(size_t i = 0; i < FURI_HAL_VERSION_MAC_LENGTH; i++) {
+        furi_string_cat_printf(server->service_name, "%02hhx", usb_mac[i]);
+    }
+
+    server->discovery_declaration = (DiscoveryServiceInfo){
+        .name = furi_string_get_cstr(server->service_name),
+        .service = "_http",
+        .txt_callback = web_srv_discovery_txt,
+        .transport_type = DiscoveryTransportTypeTcp,
+        .port = 80,
+    };
+
+    if(!discovery_add_service(discovery, &server->discovery_declaration, server)) {
+        FURI_LOG_E(TAG, "Failed to register network discovery service");
+    }
 }
 
 int32_t web_srv_start(void* p) {

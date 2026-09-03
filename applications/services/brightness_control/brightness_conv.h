@@ -1,5 +1,6 @@
 #pragma once
 #include <light_sensor/light_sensor.h>
+#include <light_sensor/light_sensor_common.h>
 #include <front_display/front_display.h>
 #include <back_display/back_display.h>
 #if defined(SRV_STATUS_LIGHTS)
@@ -12,9 +13,9 @@ typedef struct UserBrightness {
     uint8_t val;
 } UserBrightness;
 
-/// Brightness value used internally (0-10)
+/// Brightness value used internally (0-1)
 typedef struct InternalBrightness {
-    uint8_t val;
+    float val;
 } InternalBrightness;
 
 /// Clamp and convert an integer to user brightness.

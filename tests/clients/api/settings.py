@@ -6,6 +6,10 @@ Endpoints:
 - POST /api/name
 - GET /api/access
 - POST /api/access
+- GET /api/access/tokens
+- POST /api/access/tokens
+- DELETE /api/access/tokens
+- DELETE /api/access/tokens/{short_id}
 - GET /api/display/brightness
 - POST /api/display/brightness
 - GET /api/audio/volume
@@ -35,6 +39,28 @@ class AccessResponse(BaseModel):
 
     mode: Literal["disabled", "enabled", "key"]
     key_valid: bool
+
+
+class StoredAccessToken(BaseModel):
+    """Access-token metadata returned by the list endpoint."""
+
+    short_id: str
+    display_id: str
+    name: str
+    created_at: str
+    last_used_at: str
+
+
+class MintedAccessToken(StoredAccessToken):
+    """New token returned once by the mint endpoint."""
+
+    token: str
+
+
+class AccessTokensResponse(BaseModel):
+    """Response from GET /api/access/tokens."""
+
+    tokens: list[StoredAccessToken]
 
 
 class BrightnessResponse(BaseModel):
@@ -71,6 +97,12 @@ class SetNameRequest(BaseModel):
     name: str
 
 
+class CreateAccessTokenRequest(BaseModel):
+    """Request for POST /api/access/tokens."""
+
+    name: str
+
+
 # === API Client ===
 
 
@@ -85,6 +117,12 @@ class SettingsAPI(BaseAPI):
     Access endpoints:
     - GET /api/access - Get access settings
     - POST /api/access - Set access settings
+
+    Access-token endpoints:
+    - GET /api/access/tokens - List token metadata
+    - POST /api/access/tokens - Mint a token
+    - DELETE /api/access/tokens/{short_id} - Revoke one token
+    - DELETE /api/access/tokens - Revoke all tokens
 
     Display brightness:
     - GET /api/display/brightness - Get brightness
@@ -141,6 +179,54 @@ class SettingsAPI(BaseAPI):
             params["key"] = key
         return self.post_raw("/api/access", params=params, data=b"")
 
+    # === Access tokens ===
+
+    def list_access_tokens(self, **kwargs) -> AccessTokensResponse:
+        """List access-token metadata without exposing full token values."""
+        return self.get("/api/access/tokens", AccessTokensResponse, **kwargs)
+
+    def list_access_tokens_raw(self, **kwargs):
+        """List access tokens and return the raw response."""
+        return self.get_raw("/api/access/tokens", **kwargs)
+
+    def mint_access_token(self, name: str, **kwargs) -> MintedAccessToken:
+        """Mint a new access token. Its full value is returned only once."""
+        req = CreateAccessTokenRequest(name=name)
+        return self.post(
+            "/api/access/tokens",
+            MintedAccessToken,
+            json=req.model_dump(),
+            **kwargs,
+        )
+
+    def mint_access_token_raw(self, **kwargs):
+        """Mint an access token and return the raw response."""
+        return self.post_raw("/api/access/tokens", **kwargs)
+
+    def revoke_access_token(self, short_id: str, **kwargs) -> SettingsResultResponse:
+        """Revoke an access token by its short ID."""
+        return self.delete(
+            f"/api/access/tokens/{short_id}",
+            SettingsResultResponse,
+            **kwargs,
+        )
+
+    def revoke_access_token_raw(self, short_id: str, **kwargs):
+        """Revoke one access token and return the raw response."""
+        return self.delete_raw(f"/api/access/tokens/{short_id}", **kwargs)
+
+    def revoke_all_access_tokens(self, **kwargs) -> SettingsResultResponse:
+        """Revoke all access tokens."""
+        return self.delete(
+            "/api/access/tokens",
+            SettingsResultResponse,
+            **kwargs,
+        )
+
+    def revoke_all_access_tokens_raw(self, **kwargs):
+        """Revoke all access tokens and return the raw response."""
+        return self.delete_raw("/api/access/tokens", **kwargs)
+
     # === Brightness ===
 
     def get_brightness(self) -> BrightnessResponse:
@@ -154,7 +240,12 @@ class SettingsAPI(BaseAPI):
         Args:
             value: Brightness value (0-100 or "auto")
         """
-        return self.post("/api/display/brightness", SettingsResultResponse, params={"value": value}, data=b"")
+        return self.post(
+            "/api/display/brightness",
+            SettingsResultResponse,
+            params={"value": value},
+            data=b"",
+        )
 
     # === Volume ===
 
@@ -169,7 +260,12 @@ class SettingsAPI(BaseAPI):
         Args:
             volume: Volume level (0-100)
         """
-        return self.post("/api/audio/volume", SettingsResultResponse, params={"volume": volume}, data=b"")
+        return self.post(
+            "/api/audio/volume",
+            SettingsResultResponse,
+            params={"volume": volume},
+            data=b"",
+        )
 
     def set_volume_raw(self, volume: int):
         """Set volume and return raw response (for error testing)."""

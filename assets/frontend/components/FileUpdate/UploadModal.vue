@@ -21,9 +21,9 @@
         v-if="!firmwareStore.fileUpdate.firmwareFile"
         v-model="firmwareStore.fileUpdate.firmwareFile"
         data-id="modal-update-firmware-file-upload"
-        accept=".tar,.tgz"
+        accept=".tgz"
         class="w-full h-[400px] rounded-xl"
-        label="Upload Firmware file (.tar/.tgz)"
+        label="Upload Firmware file (.tgz)"
         description="Drag and drop to upload"
         :ui="{
           icon: 'size-6',
@@ -65,7 +65,7 @@
             square
             size="lg"
             class="p-2.5"
-            @click="firmwareStore.fileUpdate.firmwareFile = null"
+            @click="() => { firmwareStore.fileUpdate.firmwareFile = null; }"
           />
         </div>
       </div>

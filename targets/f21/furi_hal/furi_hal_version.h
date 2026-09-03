@@ -7,7 +7,6 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <string.h>
 #include <version/version.h>
 #include <furi.h>
 #include <furi_hal_flash_otp.h>
@@ -16,8 +15,9 @@
 extern "C" {
 #endif
 
-#define FURI_HAL_VERSION_NAME_LENGTH       8
+#define FURI_HAL_VERSION_NAME_LENGTH       (8)
 #define FURI_HAL_VERSION_ARRAY_NAME_LENGTH (FURI_HAL_VERSION_NAME_LENGTH + 1)
+#define FURI_HAL_VERSION_MAC_LENGTH        (6)
 
 /** Device Colors (from OTP2 hw_color, matches HWColor in bsbotp.py) */
 typedef enum {
@@ -146,7 +146,8 @@ const char* furi_hal_version_get_name_ptr(void);
 
 /** Get USB MAC address
  *
- * @return     pointer to USB MAC address
+ * @return     pointer to USB MAC address array
+ *             (length of `FURI_HAL_VERSION_MAC_LENGTH`)
  */
 const uint8_t* furi_hal_version_get_usb_mac(void);
 

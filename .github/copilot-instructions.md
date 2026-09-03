@@ -44,3 +44,7 @@ When reviewing a pull request:
 - Do not invent issues. If unsure, phrase as a question rather than a finding.
 - Be specific: quote or paraphrase the exact code rather than describing it vaguely.
 - Leave a top-level summary comment stating the overall verdict and any cross-cutting observations.
+
+## Additional Notes
+
+- Keep in mind that this project uses a specialized malloc implementation which provides zeroed memory, refuses 0-byte allocations, and aborts on allocation failure. This may affect how you reason about memory safety and error handling.

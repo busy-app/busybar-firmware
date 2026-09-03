@@ -3,7 +3,7 @@
 
 #include "ble_event_handlers.h"
 
-#include "../../ble_common.h"
+#include "../../ble_log.h"
 
 #define TAG "BleEvent"
 
@@ -27,6 +27,7 @@ bool ble_event_handler_dummy(size_t data_size, void* data, void* context) {
 static const BleWorkerEventHandler event_handlers[BleIncomingNwpEventTypeCount] = {
     [BleIncomingNwpEventTypeUnknown] = ble_event_handler_dummy,
     [BleIncomingNwpEventTypeExit] = ble_event_handler_cmd_exit,
+    [BleIncomingNwpEventTypeForgetPaired] = ble_event_handler_cmd_forget_paired,
     [BleIncomingNwpEventTypeConnected] = ble_event_handler_gap_connected,
     [BleIncomingNwpEventTypeDisconnected] = ble_event_handler_gap_disconnected,
     [BleIncomingNwpEventTypePhyUpdateComplete] = ble_event_handler_gap_phy_update_complete,

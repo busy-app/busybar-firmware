@@ -1,10 +1,20 @@
+#include "apps_menu.h"
 #include "apps_menu_i.h"
 #include "scenes/apps_menu_scenes.h"
+#include "app_list.h"
 
 #include <storage/storage.h>
 #include <gui/modules/submenu.h>
+#include <js_app_launcher/js_app_launcher.h>
 
 #define TAG "AppsMenu"
+
+#define APPS_MENU_APP_ID          "apps_menu"
+#define APPS_MENU_ARG_RESET       "reset"
+#define APPS_MENU_ARG_SKIP_MENU   "-s"
+#define APPS_MENU_ACTIVE_APP_NONE ""
+
+#define APPS_MENU_JS_APPS_ENABLE_FLAG_PATH APP_DATA_PATH("js_apps_enabled")
 
 static bool apps_menu_thread_signal_callback(uint32_t signal, void* arg, void* context) {
     UNUSED(arg);
@@ -75,25 +85,40 @@ static bool apps_menu_gui_input_callback(const InputEvent* event, void* context)
     return consumed;
 }
 
-static AppsMenu* apps_menu_alloc(void* launching_application) {
+static AppsMenuMode apps_menu_get_mode(const char* arg_str) {
+    AppsMenuMode mode = AppsMenuModeResume;
+
+    if(arg_str != NULL) {
+        if(strcmp(APPS_MENU_ARG_RESET, arg_str) == 0) {
+            mode = AppsMenuModeShowMenu;
+        }
+    }
+
+    return mode;
+}
+
+static bool apps_menu_has_active_application(const AppsMenuSettings* settings) {
+    return strnlen(settings->active_application, sizeof(settings->active_application)) > 0;
+}
+
+static AppsMenu* apps_menu_alloc(void* arg) {
     FuriThread* thread = furi_thread_get_current();
+    const AppsMenuMode mode = apps_menu_get_mode(arg);
 
     AppsMenuSettings settings;
     apps_menu_settings_load(&settings);
 
-    if(launching_application) {
-        strcpy(settings.active_application, "");
-        apps_menu_settings_save(&settings);
-    } else if(strnlen(settings.active_application, sizeof(settings.active_application)) > 0) {
-        Desktop* desktop = furi_record_open(RECORD_DESKTOP);
-        desktop_replace_current_app(desktop, settings.active_application, "-s");
-        furi_record_close(RECORD_DESKTOP);
-        return NULL;
+    if(mode == AppsMenuModeShowMenu) {
+        apps_menu_set_active_application(&settings, APPS_MENU_ACTIVE_APP_NONE);
+
+    } else if(apps_menu_has_active_application(&settings)) {
+        if(apps_menu_start_application(settings.active_application, true)) {
+            return NULL;
+        }
     }
 
     AppsMenu* instance = malloc(sizeof(*instance));
 
-    instance->launching_application = launching_application;
     instance->settings = settings;
 
     instance->event_loop = furi_event_loop_alloc();
@@ -144,7 +169,7 @@ static AppsMenu* apps_menu_alloc(void* launching_application) {
             instance->back_container, instance->back_scene_window, 1);
     });
 
-    if(instance->launching_application) {
+    if(mode == AppsMenuModeShowMenu) {
         static const uint32_t scenes[] = {AppsMenuSceneIdStart, AppsMenuSceneIdMain};
         scene_manager_next_scenes(instance->scene_manager, scenes, COUNT_OF(scenes));
     } else {
@@ -185,10 +210,86 @@ void apps_menu_send_custom_event(AppsMenu* app, AppsMenuCustomEvent event) {
     furi_check(furi_message_queue_put(app->event_queue, &event, FuriWaitForever) == FuriStatusOk);
 }
 
-int32_t apps_menu_app(void* argument) {
-    UNUSED(argument);
+void apps_menu_set_active_application(AppsMenuSettings* settings, const char* app_id) {
+    furi_assert(settings);
+    furi_assert(app_id);
 
-    AppsMenu* instance = apps_menu_alloc(argument);
+    strlcpy(settings->active_application, app_id, sizeof(settings->active_application));
+    apps_menu_settings_save(settings);
+}
+
+bool apps_menu_start_application(const char* app_id, bool is_skip_menu) {
+    bool success = false;
+
+    const char* id;
+    const char* args;
+
+    if(apps_list_contains(app_id)) {
+        id = app_id;
+        args = is_skip_menu ? APPS_MENU_ARG_SKIP_MENU : NULL;
+
+    } else if(apps_menu_is_js_apps_enabled()) {
+        id = JS_APP_LAUNCHER_APP_ID;
+        args = app_id;
+
+    } else {
+        id = NULL;
+        args = NULL;
+    }
+
+    if(id != NULL) {
+        Desktop* desktop = furi_record_open(RECORD_DESKTOP);
+
+        if(desktop_replace_current_app(desktop, id, args)) {
+            success = true;
+        }
+
+        furi_record_close(RECORD_DESKTOP);
+    }
+
+    return success;
+}
+
+bool apps_menu_is_js_apps_enabled(void) {
+    bool is_enabled = false;
+
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+
+    FileInfo file_info;
+    if(storage_common_stat(storage, APPS_MENU_JS_APPS_ENABLE_FLAG_PATH, &file_info) == FSE_OK) {
+        if((file_info.flags & FSF_DIRECTORY) == 0) {
+            is_enabled = true;
+        }
+    }
+
+    furi_record_close(RECORD_STORAGE);
+
+    return is_enabled;
+}
+
+bool apps_menu_start(AppsMenuMode mode) {
+    bool success;
+    const char* args;
+
+    if(mode == AppsMenuModeResume) {
+        args = NULL;
+    } else if(mode == AppsMenuModeShowMenu) {
+        args = APPS_MENU_ARG_RESET;
+    } else {
+        furi_crash("Invalid AppsMenuMode value");
+    }
+
+    Desktop* desktop = furi_record_open(RECORD_DESKTOP);
+    success = desktop_replace_current_app(desktop, APPS_MENU_APP_ID, args);
+    furi_record_close(RECORD_DESKTOP);
+
+    return success;
+}
+
+int32_t apps_menu_app(void* arg) {
+    UNUSED(arg);
+
+    AppsMenu* instance = apps_menu_alloc(arg);
 
     if(instance) {
         furi_event_loop_run(instance->event_loop);

@@ -19,7 +19,7 @@ static void updater_settings_state_callback(const void* item, void* context);
 
 static void power_pubsub_callback(const void* message, void* context);
 static void audio_pubsub_callback(const void* message, void* context);
-static void device_name_pubsub_callback(const void* message, void* context);
+static void device_name_state_callback(const void* message, void* context);
 static void matter_pubsub_callback(const void* message, void* context);
 static void input_event_pubsub_callback(const void* message, void* context);
 static void busy_timer_pubsub_callback(const void* message, void* context);
@@ -49,8 +49,8 @@ void state_publisher_subscribe(StatePublisher* instance) {
     }
     {
         instance->device_name = furi_record_open(RECORD_DEVICE_NAME);
-        FuriPubSub* pubsub = device_name_get_pubsub(instance->device_name);
-        furi_pubsub_subscribe(pubsub, device_name_pubsub_callback, instance);
+        FuriState* state_device_name = device_name_get_state(instance->device_name);
+        furi_state_subscribe(state_device_name, device_name_state_callback, instance);
     }
     {
         Wifi* wifi = furi_record_open(RECORD_WIFI);
@@ -399,17 +399,12 @@ static BSB_State_StateUpdate* collect_device_name(const char* name) {
     return update;
 }
 
-static void device_name_pubsub_callback(const void* message, void* context) {
+static void device_name_state_callback(const void* item, void* context) {
     StatePublisher* instance = context;
-    const DeviceNameEvent* event = message;
+    const DeviceNameInfo* device_name_info = item;
 
-    if(event->type == DeviceNameEventTypeNameChanged) {
-        BSB_State_StateUpdate* update = collect_device_name(event->name_changed.name);
-
-        state_publisher_schedule_state_update(instance, update, StreamFlagAll);
-    } else {
-        furi_assert(false);
-    }
+    BSB_State_StateUpdate* update = collect_device_name(device_name_info->name);
+    state_publisher_schedule_state_update(instance, update, StreamFlagAll);
 }
 
 static void matter_pubsub_callback(const void* message, void* context) {

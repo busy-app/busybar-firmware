@@ -11,6 +11,7 @@
         "-Wextra",
         "-Werror",
         "-Wundef",
+        "-Wno-error=attributes",
         "-Wno-error=deprecated-declarations",
         "-Wno-address-of-packed-member",
         "-Wredundant-decls",
@@ -110,6 +111,7 @@
         "lwip",
         "netstat",
         "cjson",
+        "jerryscript",
         "lvgl",
         "network",
         "mongoose",
@@ -139,7 +141,9 @@
         "anim_file",
         "utz",
         "fetch",
-        "storage_utils"
+        "storage_utils",
+        "js_app",
+        "xpm"
     ],
     "fw_modules": [
         "fw_elf",
@@ -160,7 +164,8 @@
         "cli",
         "upload_resources",
         "u5_updater",
-        "provisioning"
+        "provisioning",
+        "update_cacert"
     ],
     "extra_target_meta": {
         "debug_tags": [

@@ -3,7 +3,6 @@
 #include <power/power_service/power.h>
 
 #include <gui/modules/dialog.h>
-#include <gui/modules/image.h>
 
 typedef enum {
     FirmwareSettingsDialogSceneEventInstall = FirmwareSettingsEventSceneEventsStart,
@@ -11,9 +10,7 @@ typedef enum {
 } FirmwareSettingsDialogSceneEvent;
 
 typedef struct {
-    FlexLayout* front_layout;
     Dialog* front_dialog;
-
     Dialog* back_dialog;
 } FirmwareSettingsDialogScene;
 
@@ -38,23 +35,10 @@ static void firmware_settings_dialog_scene_on_enter(void* context) {
 
     with_gui(instance->gui, {
         /* front layout setup */
-        scene->front_layout = flex_layout_alloc(instance->front_scene_window, FlexLayoutTypeRow);
-        flex_layout_set_spacing(scene->front_layout, 2);
-        flex_layout_set_align(
-            scene->front_layout,
-            FlexLayoutAlignStart,
-            FlexLayoutAlignCenter,
-            FlexLayoutAlignCenter);
-
-        Image* front_image = image_alloc(flex_layout_get_base(scene->front_layout));
-        image_set_source(front_image, THIS_IMG_PATH("download_front_8x8.image"));
-        widget_set_size_content(image_get_base(front_image));
-
-        scene->front_dialog = dialog_alloc(flex_layout_get_base(scene->front_layout));
-        flex_layout_set_child_widget_grow(
-            scene->front_layout, dialog_get_base(scene->front_dialog), 1);
+        scene->front_dialog = dialog_alloc(instance->front_scene_window);
         dialog_set_callback(
             scene->front_dialog, firmware_settings_dialog_scene_option_callback, instance);
+        dialog_set_icon(scene->front_dialog, THIS_IMG_PATH("download_front_8x8.image"));
         dialog_set_text(scene->front_dialog, "Update available");
         dialog_set_options(scene->front_dialog, "Install", "Cancel");
         dialog_set_option_colors(
@@ -78,8 +62,8 @@ static void firmware_settings_dialog_scene_on_exit(void* context) {
     FirmwareSettingsDialogScene* scene = firmware_settings_dialog_scene_get(instance);
 
     with_gui(instance->gui, {
+        dialog_free(scene->front_dialog);
         dialog_free(scene->back_dialog);
-        flex_layout_free(scene->front_layout);
     });
 }
 

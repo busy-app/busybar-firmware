@@ -46,15 +46,9 @@ jobs:
 
       - name: 'Flash firmware'
         id: flashing
-        run: |
-          set -euo pipefail
-          source scripts/toolchain/fbtenv.sh
-          python3 scripts/testops.py power reboot
-          python3 scripts/testops.py wait -t 20
-          python3 scripts/testops.py debug 1
-          python3 scripts/testops.py format --no-confirm
-          python3 scripts/testops.py update-fw busybar-f${{ inputs.target }}-update.tgz -r 3 --connect-timeout 10
-          python3 scripts/testops.py wait -t 320
+        uses: ./.github/actions/flash-device
+        with:
+          bundle: busybar-f${{ inputs.target }}-update.tgz
 
       - name: 'Check that both cores are available (post-flash)'
         if: steps.flashing.outcome == 'success'

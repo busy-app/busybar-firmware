@@ -58,6 +58,7 @@ from utils.busy_timer import (
     set_snapshot,
     wait_for_snapshot_type,
 )
+from .display_helpers import back_pixel as _back_pixel
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -137,12 +138,6 @@ def _set_busy_snapshot(
         wait_for_snapshot_type(
             api_session, web_base_url, snapshot_type, propagate=propagate
         )
-
-
-def _back_pixel(data: bytes, x: int, y: int) -> int:
-    idx = y * 160 + x
-    byte = data[idx // 2]
-    return byte & 0x0F if idx % 2 == 0 else (byte >> 4) & 0x0F
 
 
 def _back_region_pixels(

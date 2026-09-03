@@ -1,11 +1,11 @@
 App(
     appid="discovery",
     name="DiscoverySrv",
-    apptype=FlipperAppType.STARTUP,
-    entry_point="discovery_on_system_start",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="discovery_srv",
     stack_size=2 * 1024,
     targets=["f20", "f21", "f22"],
     cdefines=["SRV_DISCOVERY"],
     requires=["device_name"],
-    order=50,
+    order=165,
 )

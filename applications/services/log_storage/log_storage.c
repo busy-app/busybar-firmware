@@ -1,100 +1,269 @@
 #include "log_storage.h"
+#include "log_storage_local_i.h"
+#include "log_storage_remote_i.h"
 
 #include <storage/storage.h>
-#include <string.h>
+#include <device_info/device_info.h>
 
-#define LOG_STORAGE_LOG_BUFFER_SIZE (8u * 1024u)
-#define LOG_STORAGE_LOCK_TIMEOUT_MS 1500u
+#include <toolbox/api_lock.h>
+
+#define LOG_STORAGE_MESSAGE_QUEUE_SIZE (4u)
+
+#define LOG_STORAGE_DUMP_DEVICE_INFO_HEADER "[------ Device Info ------]\r\n"
+#define LOG_STORAGE_DUMP_U5_SECTION_HEADER  "\r\n[------ STM32U5 ------]\r\n"
+#define LOG_STORAGE_DUMP_917_SECTION_HEADER "\r\n[------ SiWG917 ------]\r\n"
 
 struct LogStorage {
-    FuriMutex* lock;
+    LogStorageLocal local;
+    LogStorageRemote remote;
 
-    uint8_t log_buffer[LOG_STORAGE_LOG_BUFFER_SIZE];
-    size_t head_idx;
-    size_t bytes_count;
+    FuriEventLoop* event_loop;
+    FuriMessageQueue* message_queue;
+
+    Storage* storage;
 };
 
-static void log_storage_on_log(const uint8_t* data, size_t size, void* context) {
+typedef enum {
+    LogStorageMessageTypeDump,
+    LogStorageMessageTypeSuspend,
+    LogStorageMessageTypeResume,
+
+    LogStorageMessageTypesCount,
+} LogStorageMessageType;
+
+typedef struct {
+    const char* dump_path;
+    bool* is_successful;
+} LogStorageMessageDump;
+
+typedef union {
+    LogStorageMessageDump as_dump;
+} LogStorageMessageData;
+
+typedef struct {
+    FuriApiLock api_lock;
+    LogStorageMessageType type;
+    LogStorageMessageData data;
+} LogStorageMessage;
+
+typedef void (*LogStorageMessageHandler)(LogStorage* instance, const LogStorageMessage* message);
+
+static void log_storage_do_dump(LogStorage* instance, const LogStorageMessage* message);
+static void log_storage_do_remote_suspend(LogStorage* instance, const LogStorageMessage* message);
+static void log_storage_do_remote_resume(LogStorage* instance, const LogStorageMessage* message);
+
+static const LogStorageMessageHandler log_storage_handlers[] = {
+    [LogStorageMessageTypeDump] = log_storage_do_dump,
+    [LogStorageMessageTypeSuspend] = log_storage_do_remote_suspend,
+    [LogStorageMessageTypeResume] = log_storage_do_remote_resume,
+};
+
+static_assert(COUNT_OF(log_storage_handlers) == LogStorageMessageTypesCount);
+
+static bool log_storage_file_write_all(File* file, const void* data, size_t size) {
+    bool is_successful;
+    if(storage_file_write(file, data, size) == size) {
+        is_successful = true;
+    } else {
+        FURI_LOG_E(TAG, "Failed to write log data to file");
+        is_successful = false;
+    }
+
+    return is_successful;
+}
+
+static void
+    log_storage_device_info_callback(const char* key, const char* value, bool last, void* context) {
+    furi_assert(key);
+    furi_assert(value);
+    furi_assert(context);
+
+    UNUSED(last);
+
+    furi_string_cat_printf(context, "%s: %s\r\n", key, value);
+}
+
+static bool log_storage_dump_device_info(File* file) {
+    DeviceInfo* device_info = furi_record_open(RECORD_DEVICE_INFO);
+
+    FuriString* string = furi_string_alloc();
+    device_info_query(device_info, log_storage_device_info_callback, '_', string);
+    bool is_successful =
+        log_storage_file_write_all(file, furi_string_get_cstr(string), furi_string_size(string));
+    furi_string_free(string);
+
+    furi_record_close(RECORD_DEVICE_INFO);
+    return is_successful;
+}
+
+static bool log_storage_dump_base(LogStorageBase* base, File* file) {
+    bool is_successful = false;
+    do {
+        LogStorageBaseSnapshot snapshot;
+        log_storage_base_internal_snapshot(base, &snapshot);
+
+        is_successful = true;
+        for(size_t i = 0; i < COUNT_OF(snapshot.chunks); i++) {
+            const LogStorageBaseSnapshotChunk* chunk = &snapshot.chunks[i];
+
+            if(chunk->length == 0) {
+                continue;
+            }
+
+            if(!log_storage_file_write_all(file, chunk->data, chunk->length)) {
+                is_successful = false;
+                break;
+            }
+        }
+    } while(false);
+
+    return is_successful;
+}
+
+static void log_storage_do_dump(LogStorage* instance, const LogStorageMessage* message) {
+    const char* path = message->data.as_dump.dump_path;
+    File* file = storage_file_alloc(instance->storage);
+
+    bool is_successful = false;
+    if(storage_file_open(file, path, FSAM_WRITE, FSOM_CREATE_ALWAYS)) {
+        do {
+            size_t length;
+
+            length = strlen(LOG_STORAGE_DUMP_DEVICE_INFO_HEADER);
+            if(!log_storage_file_write_all(file, LOG_STORAGE_DUMP_DEVICE_INFO_HEADER, length)) {
+                break;
+            }
+
+            if(!log_storage_dump_device_info(file)) {
+                break;
+            }
+
+            length = strlen(LOG_STORAGE_DUMP_U5_SECTION_HEADER);
+            if(!log_storage_file_write_all(file, LOG_STORAGE_DUMP_U5_SECTION_HEADER, length)) {
+                break;
+            }
+
+            log_storage_local_internal_flush(&instance->local);
+            if(!log_storage_dump_base(&instance->local.base, file)) {
+                break;
+            }
+
+            length = strlen(LOG_STORAGE_DUMP_917_SECTION_HEADER);
+            if(!log_storage_file_write_all(file, LOG_STORAGE_DUMP_917_SECTION_HEADER, length)) {
+                break;
+            }
+
+            log_storage_remote_internal_flush(&instance->remote);
+            if(!log_storage_dump_base(&instance->remote.base, file)) {
+                break;
+            }
+
+            FURI_LOG_I(TAG, "Log dump saved to %s", path);
+
+            is_successful = true;
+        } while(false);
+    } else {
+        FURI_LOG_E(TAG, "Failed to open file %s", path);
+    }
+
+    storage_file_free(file);
+    *message->data.as_dump.is_successful = is_successful;
+}
+
+static void log_storage_do_remote_suspend(LogStorage* instance, const LogStorageMessage* message) {
+    UNUSED(message);
+
+    log_storage_remote_internal_suspend(&instance->remote);
+}
+
+static void log_storage_do_remote_resume(LogStorage* instance, const LogStorageMessage* message) {
+    UNUSED(message);
+
+    log_storage_remote_internal_resume(&instance->remote);
+}
+
+static void log_storage_message_queue_callback(FuriEventLoopObject* object, void* context) {
     LogStorage* instance = context;
 
-    if(size >= LOG_STORAGE_LOG_BUFFER_SIZE) return;
-    if(furi_mutex_acquire(instance->lock, furi_ms_to_ticks(LOG_STORAGE_LOCK_TIMEOUT_MS)) !=
-       FuriStatusOk) {
-        return;
-    }
+    furi_assert(object == instance->message_queue);
 
-    size_t space_till_wrap = MIN(LOG_STORAGE_LOG_BUFFER_SIZE - instance->head_idx, size);
-    memcpy(&instance->log_buffer[instance->head_idx], data, space_till_wrap);
-    if(size > space_till_wrap) {
-        memcpy(instance->log_buffer, &data[space_till_wrap], size - space_till_wrap);
-    }
+    LogStorageMessage message;
+    furi_check(
+        furi_message_queue_get(instance->message_queue, &message, FuriWaitForever) ==
+        FuriStatusOk);
 
-    instance->head_idx = (instance->head_idx + size) % LOG_STORAGE_LOG_BUFFER_SIZE;
-    instance->bytes_count = MIN(instance->bytes_count + size, LOG_STORAGE_LOG_BUFFER_SIZE);
+    log_storage_handlers[message.type](instance, &message);
 
-    furi_check(furi_mutex_release(instance->lock) == FuriStatusOk);
+    api_lock_unlock(message.api_lock);
+}
+
+static void log_storage_send_message(LogStorage* instance, LogStorageMessage* message) {
+    message->api_lock = api_lock_alloc_locked();
+    furi_check(
+        furi_message_queue_put(instance->message_queue, message, FuriWaitForever) == FuriStatusOk);
+    api_lock_wait_unlock_and_free(message->api_lock);
 }
 
 bool log_storage_dump(LogStorage* instance, const char* path) {
     furi_check(instance);
 
-    if(furi_mutex_acquire(instance->lock, furi_ms_to_ticks(LOG_STORAGE_LOCK_TIMEOUT_MS)) !=
-       FuriStatusOk) {
-        return false;
-    }
+    bool is_successful;
+    LogStorageMessage message = {
+        .type = LogStorageMessageTypeDump,
+        .data.as_dump =
+            {
+                .dump_path = path ?: LOG_STORAGE_DUMP_DEFAULT_FILE_PATH,
+                .is_successful = &is_successful,
+            },
+    };
 
-    /* create log snapshot */
-    size_t bytes_count = instance->bytes_count;
-    size_t start_idx = (instance->head_idx + LOG_STORAGE_LOG_BUFFER_SIZE - bytes_count) %
-                       LOG_STORAGE_LOG_BUFFER_SIZE;
-    uint8_t* log_snapshot = malloc(bytes_count > 0 ? bytes_count : 1);
-
-    size_t space_till_wrap = MIN(LOG_STORAGE_LOG_BUFFER_SIZE - start_idx, bytes_count);
-    memcpy(log_snapshot, &instance->log_buffer[start_idx], space_till_wrap);
-    if(bytes_count > space_till_wrap) {
-        memcpy(
-            &log_snapshot[space_till_wrap], instance->log_buffer, bytes_count - space_till_wrap);
-    }
-
-    furi_check(furi_mutex_release(instance->lock) == FuriStatusOk);
-
-    /* trim leading (only in case of wrapping) */
-    size_t begin = 0;
-    if(bytes_count == LOG_STORAGE_LOG_BUFFER_SIZE) {
-        const uint8_t* new_line = memchr(log_snapshot, '\n', bytes_count);
-        begin = new_line ? (size_t)(new_line - log_snapshot) + 1 : bytes_count;
-    }
-
-    /* trim trailing (log entries are printed in multiple TX calls) */
-    const uint8_t* new_line = memrchr(log_snapshot + begin, '\n', bytes_count - begin);
-    size_t end = new_line ? (size_t)(new_line - log_snapshot) + 1 : begin;
-
-    /* save log dump to file */
-    size_t length = end - begin;
-    Storage* storage = furi_record_open(RECORD_STORAGE);
-    bool is_successful = storage_simply_write_entire_file(
-        storage,
-        path ?: LOG_STORAGE_DUMP_DEFAULT_FILE_PATH,
-        length ? log_snapshot + begin : log_snapshot,
-        length);
-    if(length == 0) is_successful = true;
-    furi_record_close(RECORD_STORAGE);
-
-    free(log_snapshot);
+    log_storage_send_message(instance, &message);
     return is_successful;
 }
 
-void log_storage_on_system_start(void) {
+void log_storage_suspend_remote(LogStorage* instance) {
+    furi_check(instance);
+
+    LogStorageMessage message = {
+        .type = LogStorageMessageTypeSuspend,
+    };
+
+    log_storage_send_message(instance, &message);
+}
+
+void log_storage_resume_remote(LogStorage* instance) {
+    furi_check(instance);
+
+    LogStorageMessage message = {
+        .type = LogStorageMessageTypeResume,
+    };
+
+    log_storage_send_message(instance, &message);
+}
+
+int32_t log_storage_srv(void* context) {
+    UNUSED(context);
+
     LogStorage* instance = malloc(sizeof(*instance));
 
-    instance->lock = furi_mutex_alloc(FuriMutexTypeNormal);
-    instance->head_idx = 0;
-    instance->bytes_count = 0;
+    instance->event_loop = furi_event_loop_alloc();
+    instance->message_queue =
+        furi_message_queue_alloc(LOG_STORAGE_MESSAGE_QUEUE_SIZE, sizeof(LogStorageMessage));
+
+    furi_event_loop_subscribe_message_queue(
+        instance->event_loop,
+        instance->message_queue,
+        FuriEventLoopEventIn,
+        log_storage_message_queue_callback,
+        instance);
+
+    instance->storage = furi_record_open(RECORD_STORAGE);
+
+    log_storage_local_internal_init(&instance->local, instance->event_loop);
+    log_storage_remote_internal_init(&instance->remote, instance->event_loop);
 
     furi_record_create(RECORD_LOG_STORAGE, instance);
+    furi_event_loop_run(instance->event_loop);
 
-    furi_check(furi_log_add_handler((FuriLogHandler){
-        .callback = log_storage_on_log,
-        .context = instance,
-    }));
+    return 0;
 }

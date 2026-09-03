@@ -16,7 +16,7 @@ on:
       target:
         required: false
         type: string
-        default: '21'
+        default: '22'
       marker_filter:
         required: false
         type: string
@@ -49,7 +49,7 @@ on:
         description: 'Hardware target'
         required: false
         type: string
-        default: '21'
+        default: '22'
 
 permissions:
   contents: read
@@ -58,7 +58,7 @@ permissions:
   id-token: write
 
 env:
-  U5_HW_TARGET: ${{ inputs.target || '21' }}
+  U5_HW_TARGET: ${{ inputs.target || '22' }}
   FIRMWARE_BASE_URL: https://update.busy.app/builds/busybar-firmware
   PYTEST_FAILED_TEST_RETRIES: 1
 
@@ -82,8 +82,10 @@ jobs:
       - name: 'Configure Git and LFS for submodules'
         run: |
           git lfs install --skip-smudge
-          echo "https://x-access-token:${GH_TOKEN}@github.com" > ~/.git-credentials
-          git config credential.helper 'store --file ~/.git-credentials'
+          # Self-hosted runners persist $HOME; keep creds in per-job RUNNER_TEMP.
+          rm -f "$HOME/.git-credentials"
+          echo "https://x-access-token:${GH_TOKEN}@github.com" > "${RUNNER_TEMP}/git-credentials"
+          git config credential.helper "store --file ${RUNNER_TEMP}/git-credentials"
           git config lfs.transfer.maxretries 3
 
       - name: 'Update submodules'
@@ -156,12 +158,9 @@ jobs:
       - name: 'Flash firmware'
         id: flashing
         timeout-minutes: 20
-        run: |
-          set -euo pipefail
-          source scripts/toolchain/fbtenv.sh
-          python3 scripts/testops.py format --no-confirm
-          python3 scripts/testops.py update-fw busybar-f${{ env.U5_HW_TARGET }}-update.tgz -r 3 --connect-timeout 10
-          python3 scripts/testops.py wait -t 260
+        uses: ./.github/actions/flash-device
+        with:
+          bundle: busybar-f${{ env.U5_HW_TARGET }}-update.tgz
 
       - name: 'Sanity check after flashing'
         if: steps.flashing.outcome == 'success'
@@ -169,6 +168,10 @@ jobs:
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
           python3 scripts/testops.py sanity
+          {
+            echo "U5_ELF=/_work/elf/busybar-f${{ env.U5_HW_TARGET }}-firmware.elf"
+            echo "SI917_ELF=/_work/elf/busybar-f${{ env.U5_HW_TARGET }}-sil_firmware.elf"
+          } >> "$GITHUB_ENV"
 
       - name: Set up Python 3.12
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0

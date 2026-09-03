@@ -9,6 +9,7 @@ paths:
         - Updater
       summary: Update firmware
       description: Uploads a firmware update package (TAR file) and initiates the update process.
+      x-local-only: true
       operationId: updateFirmware
       parameters: []
       requestBody:
@@ -156,19 +157,37 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                allOf:
+                  - $ref: "#/components/schemas/Error"
+                  - type: object
+                    properties:
+                      error_code:
+                        type: string
+                        enum: [version_missing, not_available, version_mismatch]
         "409":
           description: Update already in progress
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                allOf:
+                  - $ref: "#/components/schemas/Error"
+                  - type: object
+                    properties:
+                      error_code:
+                        type: string
+                        enum: [busy]
         "503":
           description: Battery too low or installation failed to start
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
+                allOf:
+                  - $ref: "#/components/schemas/Error"
+                  - type: object
+                    properties:
+                      error_code:
+                        type: string
+                        enum: [battery_low]
 
   /api/update/abort_download:
     post:

@@ -4,6 +4,7 @@
 
 #include <furi.h>
 #include <cli/args.h>
+#include <apps_menu/apps_menu.h>
 
 #define TAG "clock"
 
@@ -49,7 +50,9 @@ static void clock_input_queue_callback(FuriEventLoopObject* object, void* contex
     while(furi_message_queue_get(instance->input_queue, &event, 0) == FuriStatusOk) {
         if(event.type == InputTypeShort && event.key == InputKeyBack) {
             if(!scene_manager_handle_back_event(instance->scene_manager)) {
-                desktop_replace_current_app(instance->desktop, "apps_menu", THIS_APP_NAME);
+                if(!apps_menu_start(AppsMenuModeShowMenu)) {
+                    FURI_LOG_E(TAG, "Failed to exit to apps menu");
+                }
             }
         }
     }
@@ -107,7 +110,6 @@ static Clock* clock_alloc(const char* arguments) {
 
     instance->gui = furi_record_open(RECORD_GUI);
     instance->time = furi_record_open(RECORD_TIME);
-    instance->desktop = furi_record_open(RECORD_DESKTOP);
     instance->updater = furi_record_open(RECORD_UPDATER);
 
     instance->timer = furi_event_loop_timer_alloc(
@@ -189,7 +191,6 @@ static void clock_free(Clock* instance) {
     updater_resume_autoupdates(instance->updater);
 
     furi_record_close(RECORD_UPDATER);
-    furi_record_close(RECORD_DESKTOP);
     furi_record_close(RECORD_TIME);
     furi_record_close(RECORD_GUI);
 

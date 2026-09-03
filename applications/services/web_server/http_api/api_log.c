@@ -34,8 +34,8 @@ bool http_api_log_dump_callback(
 
     const char* full_path = NULL;
     FuriString* full_path_builder = NULL;
-    if(filename_length > 0) {
-        if(!http_api_log_filename_is_valid(filename, filename_length)) {
+    if(filename_length >= 0) {
+        if(filename_length == 0 || !http_api_log_filename_is_valid(filename, filename_length)) {
             MG_REPLY_BAD_REQUEST(conn);
             return true;
         }

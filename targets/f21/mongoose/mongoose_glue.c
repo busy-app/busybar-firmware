@@ -196,18 +196,17 @@ static bool fs_rename(const char* from, const char* to) {
 static bool fs_remove(const char* path) {
     FURI_LOG_D(TAG, "fs_remove: %s", path);
     Storage* fs_api = furi_record_open(RECORD_STORAGE);
-    FS_Error error = storage_common_remove(fs_api, path);
+    const bool error = storage_simply_remove(fs_api, path);
     furi_record_close(RECORD_STORAGE);
-    return (error == FSE_OK);
+    return error;
 }
 
 static bool fs_mkdir(const char* path) {
     FURI_LOG_D(TAG, "fs_mkdir: %s", path);
     Storage* fs_api = furi_record_open(RECORD_STORAGE);
-    FS_Error error = storage_common_mkdir(fs_api, path);
+    const bool error = storage_simply_mkpath(fs_api, path);
     furi_record_close(RECORD_STORAGE);
-    FURI_LOG_D(TAG, "fs_mkdir: result=%d", error);
-    return (error == FSE_OK);
+    return error;
 }
 
 static const struct mg_fs mg_fs_flipper = {
