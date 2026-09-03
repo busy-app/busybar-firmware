@@ -29,6 +29,8 @@ jobs:
     steps:
       - name: "Wipe workspace"
         run: |
+          # Self-hosted runners persist $HOME across jobs.
+          rm -f "${HOME}/.git-credentials"
           find ./ -mount -maxdepth 1 -exec rm -rf {} \;
 
       - name: "Checkout code"
@@ -37,6 +39,9 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 2
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Authenticate git for the job"
+        uses: ./.github/actions/authenticate-git
 
       - name: "Build firmware artifacts"
         id: build-fw
