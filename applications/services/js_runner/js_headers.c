@@ -213,24 +213,50 @@ static jerry_value_t headers_get(
     const jerry_call_info_t* call_info,
     const jerry_value_t args[],
     const jerry_length_t args_count) {
-    UNUSED(call_info);
-    UNUSED(args);
-    UNUSED(args_count);
+    HeadersNative* instance =
+        jerry_object_get_native_ptr(call_info->this_value, &headers_native_info);
+    JS_CHECK_INSTANCE();
 
-    // TODO: Implementation
+    JS_CHECK_ARGS_COUNT(1);
+    JS_CHECK_ARG_IS_STRING(JS_ARG(0));
 
-    return jerry_undefined();
+    char* key = js_string_to_c_string(JS_ARG(0));
+    furi_assert(key);
+
+    jerry_value_t result;
+
+    const HttpHeader* item = http_headers_get(instance->headers, key);
+    if(item != NULL) {
+        result = jerry_string_sz(furi_string_get_cstr(item->value));
+    } else {
+        result = jerry_null();
+    }
+
+    free(key);
+    return result;
 }
 
 static jerry_value_t headers_set(
     const jerry_call_info_t* call_info,
     const jerry_value_t args[],
     const jerry_length_t args_count) {
-    UNUSED(call_info);
-    UNUSED(args);
-    UNUSED(args_count);
+    HeadersNative* instance =
+        jerry_object_get_native_ptr(call_info->this_value, &headers_native_info);
+    JS_CHECK_INSTANCE();
 
-    // TODO: Implementation
+    JS_CHECK_ARGS_COUNT(2);
+    JS_CHECK_ARG_IS_STRING(JS_ARG(0));
+    JS_CHECK_ARG_IS_STRING(JS_ARG(1));
+
+    char* key = js_string_to_c_string(JS_ARG(0));
+    furi_assert(key);
+    char* value = js_string_to_c_string(JS_ARG(1));
+    furi_assert(value);
+
+    http_headers_set(instance->headers, key, value);
+
+    free(key);
+    free(value);
 
     return jerry_undefined();
 }
@@ -280,28 +306,26 @@ jerry_value_t js_headers_alloc(jerry_value_t response, const char* data, size_t 
     jerry_value_t constructor = jerry_object_get_sz(global_obj, "Headers");
     furi_check(jerry_value_is_function(constructor));
 
-    jerry_value_t obj = jerry_construct(constructor, NULL, 0);
+    jerry_value_t this_value = jerry_construct(constructor, NULL, 0);
 
     jerry_value_free(constructor);
     jerry_value_free(global_obj);
 
-    HeadersNative* headers_native = jerry_object_get_native_ptr(obj, &headers_native_info);
-    furi_assert(headers_native);
+    HeadersNative* instance = jerry_object_get_native_ptr(this_value, &headers_native_info);
+    furi_assert(instance);
 
-    if(!http_headers_parse(headers_native->headers, data, data_size)) {
-        jerry_value_free(obj);
+    if(!http_headers_parse(instance->headers, data, data_size)) {
+        jerry_value_free(this_value);
         return jerry_throw_sz(JERRY_ERROR_COMMON, "Error parsing headers");
     }
-
-    uint32_t status = http_headers_get_status(headers_native->headers);
+    // TODO: Separate Response and Headers
+    uint32_t status = http_headers_get_status(instance->headers);
     js_set_property(response, "status", jerry_number((double)status));
     js_set_property(
-        response,
-        "statusText",
-        jerry_string_sz(http_headers_get_status_text(headers_native->headers)));
+        response, "statusText", jerry_string_sz(http_headers_get_status_text(instance->headers)));
     js_set_property(response, "ok", jerry_boolean(status / 100 == 2));
 
-    return obj;
+    return this_value;
 }
 
 static void headers_free_cb(void* native_p, jerry_object_native_info_t* info_p) {
