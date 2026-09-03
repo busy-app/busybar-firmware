@@ -85,7 +85,9 @@ static void timer_indicator_apply_progress_animation(TimerIndicator* instance) {
     if(config->anim_path) {
         instance->progress_anim = anim_player_alloc(&instance->base);
         anim_player_set_source_ex(
-            instance->progress_anim, config->anim_path, AnimPlayerOptionAllowSubpixelTranslation);
+            instance->progress_anim,
+            config->anim_path,
+            AnimPlayerOptionIntermediateInternalBuffer);
     }
 }
 

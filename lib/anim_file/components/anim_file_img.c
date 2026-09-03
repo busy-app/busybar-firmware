@@ -12,6 +12,10 @@ void anim_file_img_init(AnimFile* anim, uint8_t* cutout_buffer, size_t width, si
     const AnimFileHeader* file_hdr = &anim->meta.header;
     AnimFileImg* img = &anim->img;
 
+    if((width != anim->meta.info.width) || (height != anim->meta.info.height)) {
+        furi_check(anim->options & AnimFileOptionIntermediateInternalBuffer);
+    }
+
     if(!img->buffer_a.data) {
         furi_assert(!img->buffer_b.data);
         furi_assert(!img->buffer_persistent.data);
@@ -31,7 +35,7 @@ void anim_file_img_init(AnimFile* anim, uint8_t* cutout_buffer, size_t width, si
             .filled_bytes = 0,
             .content = AnimFileBufferContentUninitialized,
         };
-        if(anim->options & AnimFileOptionAllowSubpixelTranslation) {
+        if(anim->options & AnimFileOptionIntermediateInternalBuffer) {
             img->buffer_persistent = (AnimFileBuffer){
                 .data = malloc(bytes),
                 .max_bytes = bytes,
@@ -313,7 +317,7 @@ static AnimFileBuffer* anim_file_img_step_disperse(
     furi_assert(source->content == AnimFileBufferContentFullColor);
     AnimFileImg* img = &anim->img;
 
-    bool cutout_requested = anim->options & AnimFileOptionAllowSubpixelTranslation;
+    bool cutout_requested = anim->options & AnimFileOptionIntermediateInternalBuffer;
     bool margin_needed = cutout_requested;
 
     AnimFileBuffer* destination = cutout_requested ? &img->buffer_persistent : &img->buffer_cutout;
@@ -388,7 +392,7 @@ static AnimFileBuffer* anim_file_img_step_cut(
     furi_assert(frame_hdr);
     furi_assert(source);
 
-    if(!(anim->options & AnimFileOptionAllowSubpixelTranslation)) {
+    if(!(anim->options & AnimFileOptionIntermediateInternalBuffer)) {
         furi_assert(source->content == AnimFileBufferContentCut);
         return source;
     }

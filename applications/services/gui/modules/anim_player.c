@@ -9,8 +9,8 @@
 #define MY_CLASS (&anim_player_lvgl_class)
 
 static_assert(
-    (size_t)AnimPlayerOptionAllowSubpixelTranslation ==
-    (size_t)AnimFileOptionAllowSubpixelTranslation);
+    (size_t)AnimPlayerOptionIntermediateInternalBuffer ==
+    (size_t)AnimFileOptionIntermediateInternalBuffer);
 static_assert((size_t)AnimPlayerOptionMAX == (size_t)AnimFileOptionMAX);
 
 // ==================

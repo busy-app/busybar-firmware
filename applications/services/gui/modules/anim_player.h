@@ -13,7 +13,7 @@ extern "C" {
 
 typedef enum {
     AnimPlayerOptionNone = 0,
-    AnimPlayerOptionAllowSubpixelTranslation =
+    AnimPlayerOptionIntermediateInternalBuffer =
         (1
          << 0), //<! Allow subpixel movement of resulting images (using @c anim_player_set_offset)
     AnimPlayerOptionMAX,

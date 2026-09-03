@@ -71,7 +71,7 @@ void anim_file_free(AnimFile* anim) {
     anim_file_img_deinit(anim);
     anim_file_mask_deinit(anim);
     storage_file_free(anim->file);
-    if(anim->meta.sections) free(anim->meta.sections);
+    free(anim->meta.sections);
     free(anim);
 }
 
@@ -136,7 +136,7 @@ void anim_file_set_offset(AnimFile* anim, float x, float y) {
     furi_check(anim);
 
     if((fabsf(x) > DSP_EPSILON) || (fabsf(y) > DSP_EPSILON)) {
-        furi_check(anim->options & AnimFileOptionAllowSubpixelTranslation);
+        furi_check(anim->options & AnimFileOptionIntermediateInternalBuffer);
     }
 
     anim_file_img_set_cutout(anim, -x, -y);

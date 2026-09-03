@@ -40,7 +40,6 @@ typedef struct {
     int cutout_x;
     int cutout_y;
     float cutout_kernel[ANIM_FILE_IMG_KERNEL_SZ][ANIM_FILE_IMG_KERNEL_SZ];
-    bool force_cut_operation;
 } AnimFileImg;
 
 void anim_file_img_init(AnimFile* anim, uint8_t* cutout_buffer, size_t width, size_t height);

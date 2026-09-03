@@ -55,7 +55,7 @@ int32_t anim_test_app(void* arg) {
         anim_player_set_source(tracks, TRACKS_PATH);
 
         widget_set_max_size(anim_player_get_base(train), 72, 15);
-        anim_player_set_source_ex(train, TRAIN_PATH, AnimPlayerOptionAllowSubpixelTranslation);
+        anim_player_set_source_ex(train, TRAIN_PATH, AnimPlayerOptionIntermediateInternalBuffer);
         anim_player_set_offset(train, -203, 0);
 
         gui_layer_add_input_callback(layer, input_handler, NULL);
