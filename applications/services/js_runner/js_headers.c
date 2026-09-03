@@ -5,11 +5,10 @@
 
 #define TAG "JsHeaders"
 
-typedef struct Headers {
-    size_t ref_count;
-
+typedef struct HeadersNative {
     HttpHeaders* headers;
-} Headers;
+    size_t ref_count;
+} HeadersNative;
 
 typedef enum IterMode {
     IterModePairs,
@@ -18,7 +17,7 @@ typedef enum IterMode {
 } IterMode;
 
 typedef struct HeadersIter {
-    Headers* parent;
+    HeadersNative* parent;
     size_t index;
     jerry_value_t self;
     IterMode mode;
@@ -94,7 +93,8 @@ jerry_value_t headers_iterator_method(
     UNUSED(args);
     UNUSED(args_count);
 
-    Headers* instance = jerry_object_get_native_ptr(call_info->this_value, &headers_native_info);
+    HeadersNative* instance =
+        jerry_object_get_native_ptr(call_info->this_value, &headers_native_info);
     JS_CHECK_INSTANCE();
     HeadersIter* headers_iter = malloc(sizeof(HeadersIter));
     headers_iter->parent = instance;
@@ -137,7 +137,8 @@ jerry_value_t headers_has(
     const jerry_call_info_t* call_info,
     const jerry_value_t args[],
     const jerry_length_t args_count) {
-    Headers* instance = jerry_object_get_native_ptr(call_info->this_value, &headers_native_info);
+    HeadersNative* instance =
+        jerry_object_get_native_ptr(call_info->this_value, &headers_native_info);
     JS_CHECK_INSTANCE();
 
     if(args_count == 0) {
@@ -167,7 +168,8 @@ jerry_value_t headers_foreach(
     const jerry_call_info_t* call_info,
     const jerry_value_t args[],
     const jerry_length_t args_count) {
-    Headers* instance = jerry_object_get_native_ptr(call_info->this_value, &headers_native_info);
+    HeadersNative* instance =
+        jerry_object_get_native_ptr(call_info->this_value, &headers_native_info);
     JS_CHECK_INSTANCE();
 
     if(args_count == 0) {
@@ -237,14 +239,22 @@ static jerry_value_t headers_constructor(
     const jerry_call_info_t* call_info,
     const jerry_value_t args[],
     const jerry_length_t args_count) {
-    UNUSED(call_info);
     UNUSED(args);
     UNUSED(args_count);
 
-    // TODO: Implementation
-
     jerry_value_t obj = call_info->this_value;
 
+    HeadersNative* headers_native = malloc(sizeof(HeadersNative));
+    headers_native->headers = http_headers_alloc();
+    headers_native->ref_count = 1;
+
+    jerry_object_set_native_ptr(obj, &headers_native_info, headers_native);
+
+    js_set_method(obj, "entries", headers_entries);
+    js_set_method(obj, "keys", headers_keys);
+    js_set_method(obj, "values", headers_values);
+    js_set_method(obj, "forEach", headers_foreach);
+    js_set_method(obj, "has", headers_has);
     js_set_method(obj, "get", headers_get);
     js_set_method(obj, "set", headers_set);
 
@@ -265,47 +275,38 @@ void js_setup_headers(void) {
 }
 
 jerry_value_t js_headers_alloc(jerry_value_t response, const char* data, size_t data_size) {
-    Headers* instance = malloc(sizeof(Headers));
-    instance->ref_count = 1;
-    instance->headers = http_headers_alloc();
-    if(!http_headers_parse(instance->headers, data, data_size)) {
-        http_headers_free(instance->headers);
-        free(instance);
+    jerry_value_t global_obj = jerry_current_realm();
+
+    jerry_value_t constructor = jerry_object_get_sz(global_obj, "Headers");
+    furi_check(jerry_value_is_function(constructor));
+
+    jerry_value_t obj = jerry_construct(constructor, NULL, 0);
+
+    jerry_value_free(constructor);
+    jerry_value_free(global_obj);
+
+    HeadersNative* headers_native = jerry_object_get_native_ptr(obj, &headers_native_info);
+    furi_assert(headers_native);
+
+    if(!http_headers_parse(headers_native->headers, data, data_size)) {
+        jerry_value_free(obj);
         return jerry_throw_sz(JERRY_ERROR_COMMON, "Error parsing headers");
     }
 
-    uint32_t status = http_headers_get_status(instance->headers);
+    uint32_t status = http_headers_get_status(headers_native->headers);
     js_set_property(response, "status", jerry_number((double)status));
     js_set_property(
-        response, "statusText", jerry_string_sz(http_headers_get_status_text(instance->headers)));
+        response,
+        "statusText",
+        jerry_string_sz(http_headers_get_status_text(headers_native->headers)));
     js_set_property(response, "ok", jerry_boolean(status / 100 == 2));
-
-    jerry_value_t obj = jerry_object();
-    jerry_object_set_native_ptr(obj, &headers_native_info, instance);
-
-    for(size_t i = 0; i != http_headers_get_header_count(instance->headers); ++i) {
-        const HttpHeader* header = http_headers_get_header(instance->headers, i);
-        jerry_value_t key = jerry_string_sz(furi_string_get_cstr(header->key));
-        jerry_value_t value = jerry_string_sz(furi_string_get_cstr(header->value));
-        jerry_value_free(jerry_object_set(obj, key, value));
-        jerry_value_free(key);
-        jerry_value_free(value);
-    }
-
-    js_set_method(obj, "entries", headers_entries);
-    js_set_method(obj, "keys", headers_keys);
-    js_set_method(obj, "values", headers_values);
-    js_set_method(obj, "forEach", headers_foreach);
-    js_set_method(obj, "has", headers_has);
-    js_set_method(obj, "get", headers_get);
-    js_set_method(obj, "set", headers_set);
 
     return obj;
 }
 
 static void headers_free_cb(void* native_p, jerry_object_native_info_t* info_p) {
     UNUSED(info_p);
-    Headers* instance = native_p;
+    HeadersNative* instance = native_p;
     instance->ref_count -= 1;
     if(instance->ref_count == 0) {
         http_headers_free(instance->headers);

@@ -29,4 +29,3 @@ const HttpHeader* http_headers_get_header(const HttpHeaders* instance, size_t in
 const HttpHeader* http_headers_get(const HttpHeaders* instance, const char* key);
 
 void http_headers_set(HttpHeaders* instance, const char* key, const char* value);
-
