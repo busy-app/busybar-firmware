@@ -24,4 +24,4 @@ void url_free(Url* instance);
 
 bool url_parse(Url* instance, const char* source);
 
-void url_get_part(const Url* instance, UrlPartId part_id, StringSlice* part);
+const StringSlice* url_get_part(const Url* instance, UrlPartId part_id);

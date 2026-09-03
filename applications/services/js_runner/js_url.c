@@ -35,11 +35,10 @@ static jerry_value_t js_url_init(jerry_value_t this_value, const char* url_str) 
     jerry_object_set_native_ptr(this_value, &url_native_info, url_native);
 
     for(uint32_t i = 0; i < COUNT_OF(js_url_part_keys); ++i) {
-        StringSlice slice;
-        url_get_part(url_native, i, &slice);
+        const StringSlice* part = url_get_part(url_native, i);
 
         jerry_value_t prop =
-            jerry_string_external((const jerry_char_t*)slice.first_char, slice.length, NULL);
+            jerry_string_external((const jerry_char_t*)part->first_char, part->length, NULL);
 
         js_set_property(this_value, js_url_part_keys[i], prop);
     }

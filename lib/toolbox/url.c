@@ -37,7 +37,7 @@ static const UrlParseStep url_parse_steps[] = {
     [UrlParseStepIdxProtocol] = {
         .part_id = UrlPartIdProtocol,
         .is_required = true,
-        .delim = NULL,
+        .delim = "",
         .next_step_idxs = (const UrlParseStepIdx[]) {
             UrlParseStepIdxHostname,
             UrlParseStepIdxMax,
@@ -138,27 +138,27 @@ static void url_reset(Url* instance) {
 static void url_calc_compound_parts(Url* instance) {
     for(uint32_t i = 0; i < COUNT_OF(url_compound_parts); ++i) {
         const UrlCompoundPart* cp = &url_compound_parts[i];
-        const uint8_t subparts_count = cp->subparts_count;
+        StringSlice* part = &instance->parts[cp->part_id];
 
-        StringSlice* slice = &instance->parts[cp->part_id];
+        for(uint32_t j = 0, n = 0; j < cp->subparts_count; ++j) {
+            const UrlParseStep* subpart_step = &url_parse_steps[cp->subparts[j]];
+            const StringSlice* subpart = &instance->parts[subpart_step->part_id];
 
-        for(uint32_t j = 0; j < subparts_count; ++j) {
-            const UrlParseStep* subpart = &url_parse_steps[cp->subparts[j]];
-            const StringSlice* subpart_slice = &instance->parts[subpart->part_id];
-
-            if(subpart_slice->length == 0) {
+            if(subpart->length == 0) {
                 continue;
             }
 
-            if(slice->length == 0) {
-                slice->first_char = subpart_slice->first_char;
+            if(n == 0) {
+                part->first_char = subpart->first_char;
             }
 
-            slice->length += subpart_slice->length;
+            part->length += subpart->length;
 
-            if(j < (subparts_count - 1U)) {
-                slice->length += strlen(subpart->delim);
+            if(n != 0) {
+                part->length += strlen(subpart_step->delim);
             }
+
+            n += 1;
         }
     }
 }
@@ -220,7 +220,7 @@ bool url_parse(Url* instance, const char* source_str) {
     }
 
     if(offset == source_len) {
-        // url_calc_compound_parts(instance);
+        url_calc_compound_parts(instance);
         UNUSED(url_calc_compound_parts);
         success = true;
     }
@@ -228,10 +228,9 @@ bool url_parse(Url* instance, const char* source_str) {
     return success;
 }
 
-void url_get_part(const Url* instance, UrlPartId part_id, StringSlice* part) {
+const StringSlice* url_get_part(const Url* instance, UrlPartId part_id) {
     furi_check(instance);
     furi_check(part_id < UrlPartIdMax);
-    furi_check(part);
 
-    *part = instance->parts[part_id];
+    return &instance->parts[part_id];
 }
