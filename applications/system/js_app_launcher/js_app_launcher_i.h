@@ -18,6 +18,8 @@
 typedef enum {
     JsAppLauncherErrorNone,
     JsAppLauncherErrorLoadFailed,
+    JsAppLauncherErrorSettingsMissing,
+    JsAppLauncherErrorSettingsLoadFailed,
     JsAppLauncherErrorSyntaxError,
     JsAppLauncherErrorProgramCrashed,
     JsAppLauncherErrorMax,
@@ -53,6 +55,7 @@ typedef struct {
 typedef enum {
     JsAppLauncherCustomEventIndexMax = 0x7F,
     JsAppLauncherCustomEventScriptFinished,
+    JsAppLauncherCustomEventSettingsChanged,
 } JsAppLauncherCustomEvent;
 
 void js_app_launcher_send_custom_event(JsAppLauncher* instance, uint32_t event);
