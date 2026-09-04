@@ -3,7 +3,7 @@
     v-model:open="firmwareStore.autoUpdate.modals.success"
     data-id="modal-auto-update-success"
     title="Update completed"
-    :description="`Your BUSY Bar is now running the updated firmware${version ? ` (${version})` : ''}.`"
+    :description="`Your BUSY Bar is now running the latest firmware${version ? ` (${version})` : ''}.`"
     :images="{
       light: updateCompletedImage,
       dark: updateCompletedImageDark

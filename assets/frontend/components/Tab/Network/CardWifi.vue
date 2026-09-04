@@ -267,6 +267,7 @@
           <UInput
             v-model="connectModel.ssid"
             name="ssid"
+            autocomplete="off"
             size="xl"
             placeholder="Enter SSID"
             variant="subtle"
@@ -304,7 +305,8 @@
       >
         <UInput
           v-model="connectModel.password"
-          name="password"
+          name="wifi-password"
+          autocomplete="off"
           size="xl"
           variant="soft"
           :ui="{ base: 'ring-1 ring-glass bg-accented/50' }"
