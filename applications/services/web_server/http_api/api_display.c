@@ -21,19 +21,45 @@
 #define XPM_API_MAX_COLORS_COUNT    32u
 #define XPM_API_MAX_CHARS_PER_PIXEL 4u
 
+#define FIELD_MISSING_ERROR(field_name)            ".%s is required", (field_name)
+#define FIELD_XOR_ERROR(field_names)               ".{%s}: exactly one of these must be present", (field_names)
+#define FIELD_INVALID_ERROR_NO_DETAILS(field_name) ".%s value is invalid", (field_name)
+#define FIELD_INVALID_ERROR(field_name, expectation) \
+    ".%s value is invalid; must %s", (field_name), (expectation)
+
+static size_t api_display_draw_parse_enum(
+    const char* txt_value,
+    const char* const* options,
+    size_t option_cnt,
+    const char* field_key,
+    FuriString* error) {
+    size_t value = value_index_string(txt_value, options, option_cnt);
+    if(value == option_cnt) {
+        furi_string_cat_printf(error, FIELD_INVALID_ERROR(field_key, "be one of: "));
+        for(size_t i = 0; i < option_cnt; i++) {
+            if(!options[i]) continue;
+            furi_string_cat_printf(error, "\"%s\"", options[i]);
+            if(i != option_cnt - 1) furi_string_cat_str(error, ", ");
+        }
+    }
+    return value;
+}
+
 static bool api_display_draw_parse_text_element(
     CanvasElement* canvas_element,
     const char* app_name,
     struct mg_str json_element,
     FuriString* error) {
     UNUSED(app_name);
-    UNUSED(error);
 
     bool result = false;
     do {
         canvas_element->type = CanvasElementTypeText;
         canvas_element->text.text_str = mg_json_get_str(json_element, "$.text");
-        if(!canvas_element->text.text_str) break;
+        if(!canvas_element->text.text_str) {
+            furi_string_cat_printf(error, FIELD_MISSING_ERROR("text"));
+            break;
+        }
 
         canvas_element->text.color = (Color)COLOR_MAKE_HEXA(0xFFFFFFFF);
 
@@ -67,11 +93,13 @@ static bool api_display_draw_parse_text_element(
         const char* font_path =
             value_index_map_string(font_names, font_paths, COUNT_OF(font_names), font_name);
         if(!font_path) {
+            furi_string_cat_printf(error, FIELD_INVALID_ERROR_NO_DETAILS("font"));
             free(font_name);
             break;
         }
         if(strcmp(font_path, font_paths[0]) == 0 && strcmp(font_name, font_names[0]) != 0) {
             // Unknown font name mapped to default — reject
+            furi_string_cat_printf(error, FIELD_INVALID_ERROR_NO_DETAILS("font"));
             free(font_name);
             break;
         }
@@ -82,27 +110,45 @@ static bool api_display_draw_parse_text_element(
         if(color_hex) {
             bool color_parsed = color_parse_hexa_string(color_hex, &canvas_element->text.color);
             free(color_hex);
-            if(!color_parsed) break;
+            if(!color_parsed) {
+                furi_string_cat_printf(
+                    error, FIELD_INVALID_ERROR("color", "be in #RRGGBBAA format"));
+                break;
+            }
         }
 
         double number;
         if(mg_json_get_num(json_element, "$.width", &number)) {
-            if(number < __DBL_EPSILON__) break; // <= 0
+            if(number < __DBL_EPSILON__) { // <= 0
+                furi_string_cat_printf(error, FIELD_INVALID_ERROR("width", "be >= 1"));
+                break;
+            }
             canvas_element->text.width = (size_t)number;
         }
 
         if(mg_json_get_num(json_element, "$.scroll_rate", &number)) {
-            if(number < -__DBL_EPSILON__) break; // < 0
+            if(number < -__DBL_EPSILON__) { // < 0
+                furi_string_cat_printf(error, FIELD_INVALID_ERROR("scroll_rate", "be >= 0"));
+                break;
+            }
             canvas_element->text.scroll_rate_cpm = (size_t)number;
         }
 
         if(mg_json_get_num(json_element, "$.scroll_start_delay", &number)) {
-            if(number < -__DBL_EPSILON__) break; // < 0
+            if(number < -__DBL_EPSILON__) { // < 0
+                furi_string_cat_printf(
+                    error, FIELD_INVALID_ERROR("scroll_start_delay", "be >= 0"));
+                break;
+            }
             canvas_element->text.scroll_start_delay = (size_t)number;
         }
 
         if(mg_json_get_num(json_element, "$.scroll_repeat_delay", &number)) {
-            if(number < -__DBL_EPSILON__) break; // < 0
+            if(number < -__DBL_EPSILON__) { // < 0
+                furi_string_cat_printf(
+                    error, FIELD_INVALID_ERROR("scroll_repeat_delay", "be >= 0"));
+                break;
+            }
             canvas_element->text.scroll_repeat_delay = (size_t)number;
         }
 
@@ -129,35 +175,49 @@ static bool api_display_draw_parse_countdown_element(
             bool color_parsed =
                 color_parse_hexa_string(color_hex, &canvas_element->countdown.color);
             free(color_hex);
-            if(!color_parsed) break;
+            if(!color_parsed) {
+                furi_string_cat_printf(
+                    error, FIELD_INVALID_ERROR("color", "be in #RRGGBBAA format"));
+                break;
+            }
         }
 
         // numeric representation in string: JS and mg_json have precision issues
         // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER
         char* timestamp_str = mg_json_get_str(json_element, "$.timestamp");
-        if(!timestamp_str) break;
+        if(!timestamp_str) {
+            furi_string_cat_printf(error, FIELD_MISSING_ERROR("timestamp"));
+            break;
+        }
         canvas_element->countdown.timestamp = atoll(timestamp_str);
         free(timestamp_str);
 
         char* direction_str = mg_json_get_str(json_element, "$.direction");
-        if(!direction_str) break;
+        if(!direction_str) {
+            furi_string_cat_printf(error, FIELD_MISSING_ERROR("direction"));
+            break;
+        }
         static const char* const direction_lut[CountdownDirectionMAX] = {
             [CountdownDirectionTimeLeft] = "time_left",
             [CountdownDirectionTimeSince] = "time_since",
         };
-        size_t direction_temp =
-            value_index_string(direction_str, direction_lut, COUNT_OF(direction_lut));
+        size_t direction_temp = api_display_draw_parse_enum(
+            direction_str, direction_lut, COUNT_OF(direction_lut), "direction", error);
         free(direction_str);
         if(direction_temp >= CountdownDirectionMAX) break;
         canvas_element->countdown.direction = direction_temp;
 
         char* hours_str = mg_json_get_str(json_element, "$.show_hours");
-        if(!hours_str) break;
+        if(!hours_str) {
+            furi_string_cat_printf(error, FIELD_MISSING_ERROR("show_hours"));
+            break;
+        }
         static const char* const hours_lut[CountdownShowHourMAX] = {
             [CountdownShowHourWhenNonZero] = "when_non_zero",
             [CountdownShowHourAlways] = "always",
         };
-        size_t hours_temp = value_index_string(hours_str, hours_lut, COUNT_OF(hours_lut));
+        size_t hours_temp = api_display_draw_parse_enum(
+            hours_str, hours_lut, COUNT_OF(hours_lut), "show_hours", error);
         free(hours_str);
         if(hours_temp >= CountdownShowHourMAX) break;
         canvas_element->countdown.hours = hours_temp;
@@ -171,7 +231,8 @@ static bool api_display_draw_parse_image_path(
     FuriString** file_path,
     const char* app_name,
     struct mg_str json_element,
-    CanvasElementType type) {
+    CanvasElementType type,
+    FuriString* error) {
     furi_check((type == CanvasElementTypeImage) || (type == CanvasElementTypeAnimPlayer));
     bool is_animated = type == CanvasElementTypeAnimPlayer;
 
@@ -181,7 +242,10 @@ static bool api_display_draw_parse_image_path(
     char* stock = mg_json_get_str(json_element, "$.stock_path");
 
     do {
-        if(uploaded && stock) break;
+        if(uploaded && stock) {
+            furi_string_cat_printf(error, FIELD_XOR_ERROR("path,stock_path"));
+            break;
+        }
 
         if(uploaded) {
             *file_path =
@@ -189,6 +253,8 @@ static bool api_display_draw_parse_image_path(
             if(!mg_path_is_sane(mg_str(furi_string_get_cstr(*file_path)))) {
                 furi_string_free(*file_path);
                 *file_path = NULL;
+                furi_string_cat_printf(
+                    error, FIELD_INVALID_ERROR("path", "be clean, without path escape sequences"));
                 break;
             }
             result = true;
@@ -205,13 +271,18 @@ static bool api_display_draw_parse_image_path(
                 }
             }
 
-            if(!image_name || *image_name == '\0') break;
+            if(!image_name || *image_name == '\0') {
+                furi_string_cat_printf(error, FIELD_INVALID_ERROR_NO_DETAILS("stock_path"));
+                break;
+            }
 
             *file_path = furi_string_alloc_printf(
                 is_animated ? SHARED_ANIM_PATH("%s") : SHARED_IMG_PATH("%s"), image_name);
             result = true;
             break;
         }
+
+        furi_string_cat_printf(error, FIELD_XOR_ERROR("path,stock_path"));
     } while(0);
 
     if(uploaded) free(uploaded);
@@ -223,16 +294,16 @@ static bool
     api_display_validate_image(const char* file_path, GuiDisplayId display, FuriString* error) {
     lv_image_header_t header;
     if(lv_image_decoder_get_info(file_path, &header) != LV_RESULT_OK) {
-        furi_string_printf(error, "Failed to decode image %s.", file_path);
+        furi_string_cat_printf(error, ": failed to decode image %s", file_path);
         return false;
     }
 
     const GuiDisplayParameters* display_parameters = gui_display_get_parameters(display);
 
     if(header.w > display_parameters->width || header.h > display_parameters->height) {
-        furi_string_printf(
+        furi_string_cat_printf(
             error,
-            "Image %s exceeds display dimensions %zux%zu.",
+            ": image %s exceeds display dimensions %zux%zu.",
             file_path,
             display_parameters->width,
             display_parameters->height);
@@ -253,11 +324,18 @@ static bool api_display_draw_parse_image_element(
         canvas_element->type = CanvasElementTypeImage;
 
         long opacity = mg_json_get_long(json_element, "$.opacity", 100);
-        if(opacity < 0 || opacity > 100) break;
+        if(opacity < 0 || opacity > 100) {
+            furi_string_cat_printf(error, FIELD_INVALID_ERROR("opacity", "be in range [0; 100]"));
+            break;
+        }
         canvas_element->image.opacity = opacity * 255 / 100;
 
         if(!api_display_draw_parse_image_path(
-               &canvas_element->image.file_path, app_name, json_element, canvas_element->type))
+               &canvas_element->image.file_path,
+               app_name,
+               json_element,
+               canvas_element->type,
+               error))
             break;
 
         if(!api_display_validate_image(
@@ -286,21 +364,28 @@ static bool api_display_draw_parse_xpm_element(
 
     do {
         long opacity = mg_json_get_long(json_element, "$.opacity", 100);
-        if(opacity < 0 || opacity > 100) break;
+        if(opacity < 0 || opacity > 100) {
+            furi_string_cat_printf(error, FIELD_INVALID_ERROR("opacity", "be in range [0; 100]"));
+            break;
+        }
 
         data_str = mg_json_get_str(json_element, "$.data");
-        if(!data_str) break;
+        if(!data_str) {
+            furi_string_cat_printf(error, FIELD_MISSING_ERROR("data"));
+            break;
+        }
 
         xpm = xpm_alloc(data_str);
         if(!xpm_decode_header(xpm)) {
-            furi_string_printf(error, "Failed to parse XPM header.");
+            furi_string_cat_printf(error, FIELD_INVALID_ERROR("data", "have valid XPM header"));
             break;
         }
 
         XpmHeaderData header = xpm_get_header_data(xpm);
         if(header.colors_count > XPM_API_MAX_COLORS_COUNT ||
            header.chars_per_pixel > XPM_API_MAX_CHARS_PER_PIXEL) {
-            furi_string_printf(error, "XPM header values exceed limits.");
+            furi_string_cat_printf(
+                error, FIELD_INVALID_ERROR("data", "have <= 32 colors and <= 4 chars per pixel"));
             break;
         }
 
@@ -308,16 +393,16 @@ static bool api_display_draw_parse_xpm_element(
             gui_display_get_parameters(canvas_element->display);
         if(header.width > display_parameters->width ||
            header.height > display_parameters->height) {
-            furi_string_printf(
-                error,
-                "XPM image exceeds display dimensions %zux%zu.",
-                display_parameters->width,
-                display_parameters->height);
+            furi_string_cat_printf(
+                error, FIELD_INVALID_ERROR("data", "be smaller than the display"));
+            furi_string_cat_printf(
+                error, " (%zux%zu)", display_parameters->width, display_parameters->height);
             break;
         }
 
         if(!xpm_decode_colors(xpm)) {
-            furi_string_printf(error, "Failed to parse XPM color table.");
+            furi_string_cat_printf(
+                error, FIELD_INVALID_ERROR("data", "have valid XPM color table"));
             break;
         }
 
@@ -334,7 +419,8 @@ static bool api_display_draw_parse_xpm_element(
         size_t pixels_buffer_size = 0;
         void* pixels = xpm_decode_pixels(xpm, xpm_format, &pixels_buffer_size);
         if(!pixels) {
-            furi_string_printf(error, "Failed to decode XPM pixel data.");
+            furi_string_cat_printf(
+                error, FIELD_INVALID_ERROR("data", "have valid XPM pixel data"));
             break;
         }
 
@@ -375,7 +461,8 @@ static bool api_display_draw_parse_anim_player_element(
                &canvas_element->anim_player.file_path,
                app_name,
                json_element,
-               CanvasElementTypeAnimPlayer))
+               CanvasElementTypeAnimPlayer,
+               error))
             break;
 
         bool json_bool;
@@ -399,7 +486,10 @@ static bool api_display_draw_parse_anim_player_element(
         }
 
         long opacity = mg_json_get_long(json_element, "$.opacity", 100);
-        if(opacity < 0 || opacity > 100) break;
+        if(opacity < 0 || opacity > 100) {
+            furi_string_cat_printf(error, FIELD_INVALID_ERROR("opacity", "be in range [0; 100]"));
+            break;
+        }
         canvas_element->anim_player.opacity = opacity * 255 / 100;
 
         result = true;
@@ -408,8 +498,10 @@ static bool api_display_draw_parse_anim_player_element(
     return result;
 }
 
-static bool
-    api_display_draw_parse_rect_fill(CanvasElement* canvas_element, struct mg_str json_element) {
+static bool api_display_draw_parse_rect_fill(
+    CanvasElement* canvas_element,
+    struct mg_str json_element,
+    FuriString* error) {
     bool result = false;
 
     do {
@@ -422,9 +514,10 @@ static bool
                 [RectangleFillGradientH] = "gradient_h",
                 [RectangleFillGradientV] = "gradient_v",
             };
-            fill = value_index_string(fill_type, fill_types, COUNT_OF(fill_types));
+            fill = api_display_draw_parse_enum(
+                fill_type, fill_types, COUNT_OF(fill_types), "fill", error);
             free(fill_type);
-            if(fill >= COUNT_OF(fill_types)) break;
+            if(fill >= RectangleFillMax) break;
         }
 
         Color fill_color[2] = {
@@ -435,21 +528,41 @@ static bool
         if(color_hex) {
             color_parsed[0] = color_parse_hexa_string(color_hex, &fill_color[0]);
             free(color_hex);
-            if(!color_parsed[0]) break;
+            if(!color_parsed[0]) {
+                furi_string_cat_printf(
+                    error, FIELD_INVALID_ERROR("fill_colors[0]", "be in #RRGGBBAA format"));
+                break;
+            }
         }
         color_hex = mg_json_get_str(json_element, "$.fill_colors[1]");
         if(color_hex) {
             color_parsed[1] = color_parse_hexa_string(color_hex, &fill_color[1]);
             free(color_hex);
-            if(!color_parsed[1]) break;
+            if(!color_parsed[1]) {
+                furi_string_cat_printf(
+                    error, FIELD_INVALID_ERROR("fill_colors[1]", "be in #RRGGBBAA format"));
+                break;
+            }
         }
 
         if(fill == RectangleFillGradientH || fill == RectangleFillGradientV) {
             // Gradient fill requires two colors or defaults to white and black
-            if(color_parsed[0] != color_parsed[1]) break;
+            if(color_parsed[0] != color_parsed[1]) {
+                furi_string_cat_printf(
+                    error,
+                    FIELD_INVALID_ERROR(
+                        "fill_colors", "have exactly 2 elements with \"gradient_X\" fill value"));
+                break;
+            }
         } else if(fill == RectangleFillSolid) {
             // Solid fill requires only one color or defaults to white
-            if(color_parsed[1]) break;
+            if(color_parsed[1]) {
+                furi_string_cat_printf(
+                    error,
+                    FIELD_INVALID_ERROR(
+                        "fill_colors", "have only one element with \"solid\" fill value"));
+                break;
+            }
         }
 
         canvas_element->rectangle.fill = fill;
@@ -461,21 +574,34 @@ static bool
     return result;
 }
 
-static bool
-    api_display_draw_parse_rect_border(CanvasElement* canvas_element, struct mg_str json_element) {
+static bool api_display_draw_parse_rect_border(
+    CanvasElement* canvas_element,
+    struct mg_str json_element,
+    FuriString* error) {
     bool result = false;
 
     do {
         long border_width = mg_json_get_long(json_element, "$.border_width", 1);
+        if(border_width < 0) {
+            furi_string_cat_printf(error, FIELD_INVALID_ERROR("border_width", "be >= 0"));
+            break;
+        }
         long radius = mg_json_get_long(json_element, "$.radius", 0);
-        if(border_width < 0 || radius < 0) break;
+        if(radius < 0) {
+            furi_string_cat_printf(error, FIELD_INVALID_ERROR("radius", "be >= 0"));
+            break;
+        }
 
         Color border_color = (Color)COLOR_MAKE_HEXA(0xFFFFFFFF);
         char* color_hex = mg_json_get_str(json_element, "$.border_color");
         if(color_hex) {
             bool color_parsed = color_parse_hexa_string(color_hex, &border_color);
             free(color_hex);
-            if(!color_parsed) break;
+            if(!color_parsed) {
+                furi_string_cat_printf(
+                    error, FIELD_INVALID_ERROR("border_color", "be in #RRGGBBAA format"));
+                break;
+            }
         }
 
         canvas_element->rectangle.radius = radius;
@@ -500,18 +626,23 @@ static bool api_display_draw_parse_rectangle_element(
         canvas_element->type = CanvasElementTypeRectangle;
 
         long width = mg_json_get_long(json_element, "$.width", -1);
+        if(width <= 0) {
+            furi_string_cat_printf(error, FIELD_INVALID_ERROR("width", "be >= 1"));
+            break;
+        }
         long height = mg_json_get_long(json_element, "$.height", -1);
-        if(width <= 0 || height <= 0) {
+        if(height <= 0) {
+            furi_string_cat_printf(error, FIELD_INVALID_ERROR("height", "be >= 1"));
             break;
         }
         canvas_element->rectangle.width = width;
         canvas_element->rectangle.height = height;
 
-        if(!api_display_draw_parse_rect_fill(canvas_element, json_element)) {
+        if(!api_display_draw_parse_rect_fill(canvas_element, json_element, error)) {
             break;
         }
 
-        if(!api_display_draw_parse_rect_border(canvas_element, json_element)) {
+        if(!api_display_draw_parse_rect_border(canvas_element, json_element, error)) {
             break;
         }
 
@@ -544,7 +675,10 @@ static bool api_display_draw_parse_element(
 
     do {
         canvas_element->id = mg_json_get_str(element, "$.id");
-        if(!canvas_element->id) break;
+        if(!canvas_element->id) {
+            furi_string_cat_printf(error, FIELD_MISSING_ERROR("id"));
+            break;
+        }
 
         int32_t temp_val = mg_json_get_long(element, "$.timeout", -1);
         canvas_element->timeout = (temp_val > 0) ? temp_val : 0;
@@ -552,7 +686,10 @@ static bool api_display_draw_parse_element(
         struct mg_str z_index_token = mg_json_get_tok(element, "$.z_index");
         if(z_index_token.buf) {
             int32_t z_index = mg_json_get_long(element, "$.z_index", -1);
-            if(z_index < 0) break;
+            if(z_index < 0) {
+                furi_string_cat_printf(error, FIELD_INVALID_ERROR("z_index", "be >= 0"));
+                break;
+            }
             canvas_element->z_index = z_index;
         } else {
             canvas_element->z_index = *default_z_index;
@@ -583,10 +720,11 @@ static bool api_display_draw_parse_element(
                 [AlignBottomMid] = "bottom_mid",
                 [AlignBottomRight] = "bottom_right",
             };
-            size_t align = value_index_string(alignment, alignments, COUNT_OF(alignments));
+            size_t align = api_display_draw_parse_enum(
+                alignment, alignments, COUNT_OF(alignments), "align", error);
             canvas_element->align = align;
             free(alignment);
-            if(align >= COUNT_OF(alignments)) break;
+            if(align >= AlignMax) break;
         } else {
             canvas_element->align = AlignDefault;
         }
@@ -599,6 +737,8 @@ static bool api_display_draw_parse_element(
             } else if(strcmp(display_id_str, "back") == 0) {
                 canvas_element->display = GuiDisplayIdBack;
             } else {
+                furi_string_cat_printf(
+                    error, FIELD_INVALID_ERROR("display", "be one of: \"front\", \"back\""));
                 free(display_id_str);
                 break;
             }
@@ -606,8 +746,12 @@ static bool api_display_draw_parse_element(
         }
 
         element_type = mg_json_get_str(element, "$.type");
-        if(!element_type) break;
+        if(!element_type) {
+            furi_string_cat_printf(error, FIELD_MISSING_ERROR("type"));
+            break;
+        }
 
+        bool type_valid = false;
         static const ApiDisplayElementTypeAssoc element_parsers[] = {
             {"text", api_display_draw_parse_text_element},
             {"image", api_display_draw_parse_image_element},
@@ -619,8 +763,19 @@ static bool api_display_draw_parse_element(
         for(size_t i = 0; i < COUNT_OF(element_parsers); i++) {
             const ApiDisplayElementTypeAssoc* association = &element_parsers[i];
             if(strcmp(element_type, association->type) == 0) {
+                type_valid = true;
                 success = association->parser(canvas_element, app_name, element, error);
                 break;
+            }
+        }
+
+        if(!type_valid) {
+            furi_string_cat_printf(error, FIELD_INVALID_ERROR("type", "be one of: "));
+            for(size_t i = 0; i < COUNT_OF(element_parsers); i++) {
+                furi_string_cat_printf(error, "\"%s\"", element_parsers[i].type);
+                if(i != COUNT_OF(element_parsers) - 1) {
+                    furi_string_cat_str(error, ", ");
+                }
             }
         }
     } while(0);
@@ -635,7 +790,7 @@ static const struct {
     const char* message;
 } draw_errors[CanvasResultMax] = {
     [CanvasResultOk] = {0, NULL},
-    [CanvasResultBadParameters] = {400, "Bad request"},
+    [CanvasResultBadParameters] = {400, "Unspecified request error"},
     [CanvasResultLowPriority] = {409, "Not drawn due to low priority"},
     [CanvasResultEmptyScreen] = {400, "Nothing to display"},
     [CanvasResultTooManyElements] = {400, "Elements number limit exceeded"},
@@ -746,6 +901,7 @@ static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_m
         size_t elements_count = 0;
         int32_t default_z_index = 0;
         while((offset = mg_json_next(elements_obj, offset, NULL, &element)) > 0) {
+            furi_string_printf(error, "elements[%zu]", elements_count);
             ok = api_display_draw_parse_element(
                 elements_array, app_name, element, error, &default_z_index);
             if(!ok) break;
@@ -757,8 +913,8 @@ static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_m
             }
         }
         if(!ok) {
-            MG_REPLY_ERROR(
-                conn, 400, furi_string_empty(error) ? "Bad Request" : furi_string_get_cstr(error));
+            furi_assert(!furi_string_empty(error));
+            MG_REPLY_ERROR(conn, 400, furi_string_get_cstr(error));
             break;
         }
         if(CanvasElementsArray_size(elements_array) == 0) {
@@ -790,6 +946,7 @@ static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_m
 }
 
 static void api_display_canvas_clear(struct mg_connection* conn, struct mg_http_message* msg) {
+    FuriString* error = furi_string_alloc();
     bool request_valid = false;
     cJSON* body = NULL;
     char** element_ids = NULL;
@@ -814,6 +971,7 @@ static void api_display_canvas_clear(struct mg_connection* conn, struct mg_http_
                 cJSON_ArrayForEach(json_element_id, json_element_ids) {
                     if(!cJSON_IsString(json_element_id)) {
                         all_element_ids_valid = false;
+                        furi_string_printf(error, "element_ids must be an array of strings");
                         break;
                     }
                     element_ids[i] = cJSON_GetStringValue(json_element_id);
@@ -824,7 +982,10 @@ static void api_display_canvas_clear(struct mg_connection* conn, struct mg_http_
             }
 
             cJSON* json_app_name = cJSON_GetObjectItem(body, "application_name");
-            if(json_app_name && !cJSON_IsString(json_app_name)) break;
+            if(json_app_name && !cJSON_IsString(json_app_name)) {
+                furi_string_printf(error, "application_name must be a string");
+                break;
+            }
         }
         char* body_app_name = cJSON_GetStringValue(json_app_name);
 
@@ -832,7 +993,12 @@ static void api_display_canvas_clear(struct mg_connection* conn, struct mg_http_
         int query_app_name_len = mg_http_get_var(
             &msg->query, "application_name", query_app_name_buf, sizeof(query_app_name_buf));
 
-        if((query_app_name_len >= 1) && body_app_name) break;
+        if((query_app_name_len >= 1) && body_app_name) {
+            furi_string_printf(
+                error,
+                "application_name present in both the body and query parameters; exactly one is required");
+            break;
+        }
 
         const char* app_name = (query_app_name_len >= 1) ? query_app_name_buf : body_app_name;
         CanvasSrv* canvas = furi_record_open(RECORD_CANVAS);
@@ -840,16 +1006,27 @@ static void api_display_canvas_clear(struct mg_connection* conn, struct mg_http_
             canvas_delete_elements(canvas, app_name, (const char* const*)element_ids);
         furi_record_close(RECORD_CANVAS);
 
-        if(res != CanvasResultOk) break;
-
-        MG_REPLY_OK(conn);
-        request_valid = true;
+        if(res == CanvasResultOk) {
+            MG_REPLY_OK(conn);
+            request_valid = true;
+        } else if(res == CanvasResultNonexistentElementId) {
+            furi_string_set_str(error, "one of element_ids is non-existent");
+        } else if(res == CanvasResultWrongAppId) {
+            furi_string_set_str(
+                error, "this application_name is currently not displaying anything");
+        } else {
+            furi_crash("no error translation for canvas result");
+        }
     } while(0);
 
     if(element_ids) free(element_ids);
     if(body) cJSON_Delete(body);
 
-    if(!request_valid) MG_REPLY_BAD_REQUEST(conn);
+    if(!request_valid) {
+        MG_REPLY_ERROR(conn, 400, furi_string_get_cstr(error));
+    }
+
+    furi_string_free(error);
 }
 
 static bool api_display_draw_callback(

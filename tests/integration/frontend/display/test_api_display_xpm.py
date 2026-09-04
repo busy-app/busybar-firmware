@@ -136,7 +136,7 @@ class TestXpmBitmapElement:
 
         with allure.step("Verify the missing-data error"):
             assets_api.assert_status(response, 400)
-            assert "Bad Request" in response.text, (
+            assert "elements[0].data is required" in response.text, (
                 f"Unexpected missing-data response: {response.text!r}"
             )
 
@@ -149,37 +149,37 @@ class TestXpmBitmapElement:
             pytest.param(
                 "missing signature",
                 "1 1 1 1\n. c #FFFFFF\n.",
-                "Failed to parse XPM header.",
+                "elements[0].data value is invalid; must have valid XPM header",
                 id="signature",
             ),
             pytest.param(
                 "invalid header",
                 "! XPM2\n1 1 1\n. c #FFFFFF\n.",
-                "Failed to parse XPM header",
+                "elements[0].data value is invalid; must have valid XPM header",
                 id="header",
             ),
             pytest.param(
                 "invalid color",
                 "! XPM2\n1 1 1 1\n. c not-a-color\n.",
-                "Failed to parse XPM color table",
+                "elements[0].data value is invalid; must have valid XPM color table",
                 id="color",
             ),
             pytest.param(
                 "unknown pixel key",
                 "! XPM2\n1 1 1 1\n. c #FFFFFF\nX",
-                "Failed to decode XPM pixel data",
+                "elements[0].data value is invalid; must have valid XPM pixel data",
                 id="pixels",
             ),
             pytest.param(
                 "pixel row shorter than width",
                 xpm_source(3, 1, {".": "c #FFFFFF"}, [".."]),
-                "Failed to decode XPM pixel data",
+                "elements[0].data value is invalid; must have valid XPM pixel data",
                 id="short-row",
             ),
             pytest.param(
                 "empty data",
                 "",
-                "Failed to parse XPM header",
+                "elements[0].data value is invalid; must have valid XPM header",
                 id="empty",
             ),
         ],
@@ -211,42 +211,42 @@ class TestXpmBitmapElement:
                 "33 colors",
                 colors_xpm(33),
                 "front",
-                "XPM header values exceed limits",
+                "elements[0].data value is invalid; must have <= 32 colors and <= 4 chars per pixel",
                 id="colors",
             ),
             pytest.param(
                 "cpp 5",
                 solid_xpm(1, 1, key="ABCDE"),
                 "front",
-                "XPM header values exceed limits",
+                "elements[0].data value is invalid; must have <= 32 colors and <= 4 chars per pixel",
                 id="cpp",
             ),
             pytest.param(
                 "front width 73",
                 solid_xpm(FRONT_DISPLAY_WIDTH + 1, 1),
                 "front",
-                "XPM image exceeds display dimensions",
+                f"elements[0].data value is invalid; must be smaller than the display ({FRONT_DISPLAY_WIDTH}x{FRONT_DISPLAY_HEIGHT})",
                 id="front-width",
             ),
             pytest.param(
                 "back width 161",
                 solid_xpm(BACK_DISPLAY_WIDTH + 1, 1),
                 "back",
-                "XPM image exceeds display dimensions",
+                f"elements[0].data value is invalid; must be smaller than the display ({BACK_DISPLAY_WIDTH}x{BACK_DISPLAY_HEIGHT})",
                 id="back-width",
             ),
             pytest.param(
                 "front height 17",
                 solid_xpm(1, FRONT_DISPLAY_HEIGHT + 1),
                 "front",
-                "XPM image exceeds display dimensions",
+                f"elements[0].data value is invalid; must be smaller than the display ({FRONT_DISPLAY_WIDTH}x{FRONT_DISPLAY_HEIGHT})",
                 id="front-height",
             ),
             pytest.param(
                 "back height 81",
                 solid_xpm(1, BACK_DISPLAY_HEIGHT + 1),
                 "back",
-                "XPM image exceeds display dimensions",
+                f"elements[0].data value is invalid; must be smaller than the display ({BACK_DISPLAY_WIDTH}x{BACK_DISPLAY_HEIGHT})",
                 id="back-height",
             ),
         ],
@@ -326,7 +326,7 @@ class TestXpmBitmapElement:
 
         with allure.step("Verify the opacity validation error"):
             assets_api.assert_status(response, 400)
-            assert "Bad Request" in response.text, (
+            assert "elements[0].opacity value is invalid; must be in range [0; 100]" in response.text, (
                 f"Unexpected invalid-opacity response: {response.text!r}"
             )
 
