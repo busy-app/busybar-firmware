@@ -326,6 +326,36 @@ class TestSelectiveDisplayDeletion:
         with allure.step("Verify status 400 and unchanged canvas"):
             _assert_rejected_without_frame_change(response, before, after)
 
+    @allure.title("DELETE honors application_name from the request body")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_delete_with_wrong_app_name_in_body(
+        self,
+        assets_api: AssetsAPI,
+        streaming_api: StreamingAPI,
+        busy_timer_stopped,
+    ):
+        with allure.step("Draw a stable frame owned by the test application"):
+            before = _draw_and_capture(
+                assets_api,
+                streaming_api,
+                [_solid_rectangle("owned_element", FILL_RED)],
+            )
+            expected = _expected_front_frame([(0, FRONT_DISPLAY_WIDTH, BGR_RED)])
+            assert before == expected, (
+                f"Expected owned frame sha256={_frame_digest(expected)}, "
+                f"got sha256={_frame_digest(before)}"
+            )
+
+        with allure.step("Attempt deletion using another application name in JSON"):
+            response = assets_api.clear_display_raw(
+                {"application_name": _OTHER_APP_NAME}
+            )
+            after = streaming_api.get_screen_bytes(display=0)
+
+        with allure.step("Verify status 400 and unchanged canvas"):
+            _assert_rejected_without_frame_change(response, before, after)
+
     @allure.title("Selective DELETE with a mismatched application_name is rejected")
     @pytest.mark.api
     @pytest.mark.frontend

@@ -823,7 +823,7 @@ static void api_display_canvas_clear(struct mg_connection* conn, struct mg_http_
                 if(!all_element_ids_valid) break;
             }
 
-            cJSON* json_app_name = cJSON_GetObjectItem(body, "application_name");
+            json_app_name = cJSON_GetObjectItem(body, "application_name");
             if(json_app_name && !cJSON_IsString(json_app_name)) break;
         }
         char* body_app_name = cJSON_GetStringValue(json_app_name);
