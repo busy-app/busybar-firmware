@@ -202,3 +202,11 @@ bool http_api_smart_home_callback(
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx);
+
+// Telemetry
+bool http_api_telemetry_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx);

@@ -1,0 +1,40 @@
+App(
+    appid="telemetry",
+    name="TelemetrySrv",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="telemetry_srv",
+    stack_size=4 * 1024,
+    order=210,
+    targets=["f20", "f21", "f22"],
+    sources=[
+        "telemetry.c",
+        "telemetry_collectors.c",
+        "telemetry_settings.c",
+    ],
+    requires=[
+        "storage",
+        "time",
+        "mqtt",
+        "loader",
+        "busy_timer",
+        "canvas",
+        "power_srv",
+        "audio",
+        "brightness_control",
+        "input",
+        "updater",
+        "matter",
+    ],
+    provides=["telemetry_cmd"],
+)
+
+App(
+    appid="telemetry_cmd",
+    name="telemetry",
+    apptype=FlipperAppType.CLICMD,
+    entry_point="cli_command_telemetry",
+    cdefines=["SRV_TELEMETRY"],
+    sources=["telemetry_cli.c"],
+    requires=["telemetry"],
+    targets=["f20", "f21", "f22"],
+)

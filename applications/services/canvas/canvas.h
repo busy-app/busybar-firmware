@@ -191,3 +191,30 @@ CanvasResult
     canvas_delete_elements(CanvasSrv* canvas, const char* app_id, const char* const* element_ids);
 
 CanvasResult canvas_get_app_id(CanvasSrv* canvas, FuriString* string);
+
+/**
+ * @brief Maximum length of the app id stored in CanvasOwnershipInfo.
+ */
+#define CANVAS_OWNER_APP_ID_MAX (64)
+
+/**
+ * @brief Current canvas ownership (which HTTP API application owns the canvas).
+ *
+ * Published as a FuriState (see `canvas_get_ownership_state()`) whenever the
+ * canvas goes from idle to owned, the owner changes, or the canvas is released.
+ */
+typedef struct {
+    bool is_active; /**< Canvas is currently showing content (has an owner) */
+    char app_id[CANVAS_OWNER_APP_ID_MAX + 1]; /**< App id from the draw calls, empty when inactive */
+    size_t priority; /**< Draw priority of the current owner (0 when inactive) */
+} CanvasOwnershipInfo;
+
+/**
+ * @brief Get the canvas ownership FuriState.
+ *
+ * The state stores a `CanvasOwnershipInfo` value.
+ *
+ * @param[in] canvas canvas service instance
+ * @returns FuriState handle
+ */
+FuriState* canvas_get_ownership_state(CanvasSrv* canvas);

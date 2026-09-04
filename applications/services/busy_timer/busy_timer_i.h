@@ -38,6 +38,7 @@ typedef enum {
 
 typedef struct {
     BusyTimerProfileId profile_id;
+    BusyTimerSessionSource source;
 } BusyTimerApiMessageStart;
 
 typedef struct {
@@ -50,6 +51,7 @@ typedef struct {
 
 typedef struct {
     BusyTimerSnapshot snapshot;
+    BusyTimerSessionSource source;
 } BusyTimerApiMessageSetSnapshot;
 
 typedef struct {
@@ -136,6 +138,8 @@ struct BusyTimer {
     uint32_t profile_update_count[BusyTimerProfileIdMax];
     bool is_timer_running;
     bool is_demo_mode_enabled;
+    BusyTimerSessionSource session_source;
+    BusyTimerProfileId active_profile_id;
 };
 
 // busy_timer.c

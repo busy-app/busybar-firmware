@@ -75,6 +75,9 @@ static void busy_timer_smart_home_start_app(BusyTimer* instance) {
     //       The main profile setting will remain unchanged.
     app_config->is_smart_home_enabled = true;
 
+    instance->session_source = BusyTimerSessionSourceIntegrationMatter;
+    instance->active_profile_id = TIMER_SMART_HOME_PROFILE_ID;
+
     busy_timer_start_app(app_config);
     busy_timer_start_internal(instance);
 }

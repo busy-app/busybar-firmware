@@ -21,6 +21,11 @@
  *
  * where `aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee` is a unique session identifier.
  *
+ * Device-scope publishing (see @ref mqtt_publish_device_scope) uses the following format:
+ * - `devices/<device_serial>/up/v1/topic/name` for publishing
+ *
+ * Device-scope topics do NOT require an account to be linked to the device.
+ *
  * The MQTT service API abstracts it so the application must use only the `topic/name` part when interacting with it.
  * This rule also applies to some MQTT message properties such as Response Topic (see below).
  *
@@ -295,6 +300,31 @@ bool mqtt_publish_ex(
     size_t data_size,
     const MqttProperty* props,
     uint32_t props_count);
+
+/**
+ * @brief Publish a message to a device-scope topic on the MQTT broker.
+ *
+ * Device-scope topics use the `devices/<device_serial>/up/v1/topic/name` format and do NOT
+ * require an account to be linked to the device (unlike session-scope publishing, which is
+ * only allowed in the @c MqttStatusConnectedLinked state). Publishing is allowed in both
+ * @c MqttStatusConnectedLinked and @c MqttStatusConnectedNotLinked states.
+ *
+ * @note The caller must provide only the unique topic
+ *       part, e.g. `topic/name` in the above example
+ *
+ * @param[in,out] instance pointer to the MQTT service instance
+ * @param[in] qos enum value from MqttQos corresponding to a QoS level
+ * @param[in] topic C-string containing the specific topic part
+ * @param[in] data pointer to arbitrary data to be published
+ * @param[in] data_size size (or length) of the @p data to be published
+ * @returns @c true if publishing was successful, false otherwise
+ */
+bool mqtt_publish_device_scope(
+    Mqtt* instance,
+    MqttQos qos,
+    const char* topic,
+    const void* data,
+    size_t data_size);
 
 /**
  * @brief Subscribe to a topic on the MQTT broker and start receiving messages.
