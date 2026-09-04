@@ -102,8 +102,12 @@ jobs:
                   fi
 
                   head_sha=$(gh api "/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" | jq -r '.head.sha')
-                  # gh --paginate merges all review pages into one array.
-                  last_copilot_review_sha=$(gh api --paginate "/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/reviews" | jq -r --arg login "${COPILOT_REVIEWER}" '[.[] | select(.user.login == $login and .commit_id != null)] | max_by(.submitted_at) | .commit_id // empty')
+                  # Normalize review pages (gh may merge arrays or emit one per page) to one object per line.
+                  last_copilot_review_sha=$(
+                    gh api --paginate "/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/reviews" |
+                      jq -c '.[]?' |
+                      jq -s -r --arg login "${COPILOT_REVIEWER}" '[.[] | select(.user.login == $login and .commit_id != null)] | max_by(.submitted_at) | .commit_id // empty'
+                  )
                   if [ -n "${last_copilot_review_sha}" ] && [ "${last_copilot_review_sha}" = "${head_sha}" ]; then
                     echo "Copilot already reviewed the current head ${head_sha}; skipping"
                     exit 0
