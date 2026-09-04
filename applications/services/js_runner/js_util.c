@@ -141,6 +141,24 @@ bool js_object_has_property(jerry_value_t object, const char* key) {
     return result;
 }
 
+jerry_value_t js_object_get_nested_property(
+    jerry_value_t object,
+    const char* const keys[],
+    size_t nesting_count) {
+    jerry_value_t current_level = jerry_value_copy(object);
+    for(size_t i = 0; i != nesting_count; ++i) {
+        if(js_object_has_property(current_level, keys[i])) {
+            jerry_value_t prop = jerry_object_get_sz(current_level, keys[i]);
+            jerry_value_free(current_level);
+            current_level = prop;
+        } else {
+            jerry_value_free(current_level);
+            return jerry_undefined();
+        }
+    }
+    return current_level;
+}
+
 jerry_value_t js_rejected_promise(const char* msg) {
     jerry_value_t ret = jerry_promise();
     // The following code will print "true" on nodejs and "false" on our implementation

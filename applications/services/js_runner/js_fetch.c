@@ -78,6 +78,16 @@ static RequestParseResult parse_request(jerry_value_t obj) {
             }
         }
 
+        {
+            const char* const use_device_key_keys[] = {"dispatcher", "connect", "useDeviceKey"};
+            jerry_value_t use_device_key_val = js_object_get_nested_property(
+                obj, use_device_key_keys, COUNT_OF(use_device_key_keys));
+            if(jerry_value_to_boolean(use_device_key_val)) {
+                request.tls_config.client_cert_info.type = TlsClientCertTypeDevice;
+            }
+            jerry_value_free(use_device_key_val);
+        }
+
         if(js_object_has_property(obj, "headers")) {
             jerry_value_t headers_val = jerry_object_get_sz(obj, "headers");
             // TODO instance of Headers
