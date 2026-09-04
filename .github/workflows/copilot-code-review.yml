@@ -1,0 +1,120 @@
+name: "Request Copilot code review"
+
+on:
+    pull_request:
+        types: [opened, ready_for_review, review_requested]
+
+concurrency:
+    group: copilot-code-review-${{ github.event.pull_request.number }}
+    cancel-in-progress: false
+
+env:
+    # Service account that stands in for Copilot. When a review is requested from
+    # this account, or a PR is opened/marked ready for review, we request the
+    # actual Copilot code review using this account's token, so AI-credit usage is
+    # attributed to the service account rather than to individual developers.
+    SERVICE_ACCOUNT_LOGIN: furippa
+    # GitHub login of the Copilot code review bot.
+    COPILOT_REVIEWER: "copilot-pull-request-reviewer[bot]"
+    # Remove the service account from requested reviewers after Copilot review is
+    # dispatched, so pull requests are not left waiting on an account that never
+    # submits a review itself. Set to 'false' to keep the account listed.
+    REMOVE_SERVICE_ACCOUNT_AFTER_DISPATCH: "true"
+
+jobs:
+    request_copilot_review:
+        runs-on: ubuntu-latest
+        if: ${{ !github.event.pull_request.head.repo.fork }}
+        steps:
+            - name: "Request Copilot code review"
+              env:
+                  API_TOKEN: ${{ secrets.COPILOT_REVIEW_PAT }}
+                  PR_NUMBER: ${{ github.event.pull_request.number }}
+                  PR_ACTION: ${{ github.event.action }}
+                  PR_DRAFT: ${{ github.event.pull_request.draft }}
+                  REQUESTED_REVIEWER: ${{ github.event.requested_reviewer.login }}
+              run: |
+                  set -euo pipefail
+
+                  api() {
+                    local method="$1" path="$2" data="${3:-}"
+                    local args=(-sS -X "${method}" -H "Authorization: Bearer ${API_TOKEN}" -H "Accept: application/vnd.github+json")
+                    if [ -n "${data}" ]; then
+                      args+=(-d "${data}")
+                    fi
+                    curl "${args[@]}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}${path}"
+                  }
+
+                  if [ -z "${API_TOKEN}" ]; then
+                    echo "::warning::Secret COPILOT_REVIEW_PAT is not configured; skipping Copilot review request"
+                    exit 0
+                  fi
+
+                  # Decide whether this event should trigger a review.
+                  case "${PR_ACTION}" in
+                    review_requested)
+                      if [ "${REQUESTED_REVIEWER}" != "${SERVICE_ACCOUNT_LOGIN}" ]; then
+                        echo "Review requested from '${REQUESTED_REVIEWER}', not the service account '${SERVICE_ACCOUNT_LOGIN}'; skipping"
+                        exit 0
+                      fi
+                      echo "Review requested from ${SERVICE_ACCOUNT_LOGIN}; dispatching Copilot review (drafts honored for explicit requests)"
+                      ;;
+                    opened)
+                      if [ "${PR_DRAFT}" = "true" ]; then
+                        echo "PR opened as draft; skipping (will be reviewed when marked ready for review)"
+                        exit 0
+                      fi
+                      echo "PR opened as ready for review; dispatching Copilot review"
+                      ;;
+                    ready_for_review)
+                      echo "PR marked ready for review; dispatching Copilot review"
+                      ;;
+                    *)
+                      echo "Ignoring pull_request action '${PR_ACTION}'"
+                      exit 0
+                      ;;
+                  esac
+
+                  # Skip if a Copilot review is already pending for this PR.
+                  requested=$(api GET "/requested_reviewers" | jq -r '.users[]?.login')
+                  if [ -n "${requested}" ] && printf '%s\n' "${requested}" | grep -qxF "${COPILOT_REVIEWER}"; then
+                    echo "Copilot review is already requested; skipping"
+                    exit 0
+                  fi
+
+                  # Skip if Copilot already reviewed the current head revision.
+                  head_sha=$(api GET "" | jq -r '.head.sha')
+                  last_copilot_review_sha=$(api GET "/reviews" | jq -r --arg login "${COPILOT_REVIEWER}" '[.[] | select(.user.login == $login and .commit_id != null)] | max_by(.submitted_at) | .commit_id // empty')
+                  if [ -n "${last_copilot_review_sha}" ] && [ "${last_copilot_review_sha}" = "${head_sha}" ]; then
+                    echo "Copilot already reviewed the current head ${head_sha}; skipping"
+                    exit 0
+                  fi
+
+                  # Dispatch the Copilot code review by requesting the Copilot bot as a reviewer.
+                  payload=$(jq -nc --arg reviewer "${COPILOT_REVIEWER}" '{reviewers: [$reviewer]}')
+                  http_code=$(curl -sS -o /tmp/copilot-review-response.json -w '%{http_code}' \
+                    -X POST \
+                    -H "Authorization: Bearer ${API_TOKEN}" \
+                    -H "Accept: application/vnd.github+json" \
+                    "https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/requested_reviewers" \
+                    -d "${payload}")
+                  if [ "${http_code}" != "201" ]; then
+                    echo "::error::Failed to request Copilot review (HTTP ${http_code})"
+                    cat /tmp/copilot-review-response.json
+                    exit 1
+                  fi
+                  echo "Copilot code review requested for PR #${PR_NUMBER}"
+
+                  # Optionally clear the service account so the PR is not left awaiting a reviewer that never reviews.
+                  if [ "${REMOVE_SERVICE_ACCOUNT_AFTER_DISPATCH}" = "true" ]; then
+                    payload=$(jq -nc --arg reviewer "${SERVICE_ACCOUNT_LOGIN}" '{reviewers: [$reviewer]}')
+                    if curl -sS -X DELETE \
+                      -H "Authorization: Bearer ${API_TOKEN}" \
+                      -H "Accept: application/vnd.github+json" \
+                      "https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/requested_reviewers" \
+                      -d "${payload}" >/dev/null; then
+                      echo "${SERVICE_ACCOUNT_LOGIN} removed from requested reviewers"
+                    else
+                      echo "::warning::Could not remove ${SERVICE_ACCOUNT_LOGIN} from requested reviewers"
+                    fi
+                  fi
