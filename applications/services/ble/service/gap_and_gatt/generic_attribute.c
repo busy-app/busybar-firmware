@@ -14,7 +14,7 @@ static bool ble_service_generic_attribute_init(void* object) {
 }
 
 //==========================================================
-static const BleCharacteristicDescriptor generic_attribute_service_characteristics[] = {
+static const BleCharacteristicConfig generic_attribute_service_characteristics[] = {
     {
         .intercom_index = BleGenericAttributeCharacterServiceChanged,
         .name = "Service Changed",
@@ -27,7 +27,7 @@ static const BleCharacteristicDescriptor generic_attribute_service_characteristi
     },
 };
 
-const BleServiceDescriptor ble_service_generic_attribute = {
+const BleServiceConfig ble_service_generic_attribute = {
     .name = "Generic Attribute",
 #if defined(BSB_MCU_SI917)
     .uuid = {.Char_UUID_16 = 0x1801},
@@ -35,7 +35,6 @@ const BleServiceDescriptor ble_service_generic_attribute = {
 #endif
     .init = ble_service_generic_attribute_init,
     .index = BleServiceIndexGenericAttribute,
-    .init_method = BleServiceInitMethodRemote,
     .char_count = COUNT_OF(generic_attribute_service_characteristics),
-    .char_descriptors = generic_attribute_service_characteristics,
+    .char_configs = generic_attribute_service_characteristics,
 };

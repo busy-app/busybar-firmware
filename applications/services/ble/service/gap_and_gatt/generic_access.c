@@ -1,6 +1,6 @@
 #include "generic_access_i.h"
 
-static const BleCharacteristicDescriptor generic_access_service_characteristics[] = {
+static const BleCharacteristicConfig generic_access_service_characteristics[] = {
     {
         .intercom_index = BleGenericAccessCharacterDeviceName,
         .name = "Device Name",
@@ -21,7 +21,7 @@ static const BleCharacteristicDescriptor generic_access_service_characteristics[
     },
 };
 
-const BleServiceDescriptor ble_service_generic_access = {
+const BleServiceConfig ble_service_generic_access = {
     .name = "Generic Access",
 #if defined(BSB_MCU_SI917)
     .uuid = {.Char_UUID_16 = 0x1800},
@@ -30,7 +30,6 @@ const BleServiceDescriptor ble_service_generic_access = {
     .init = ble_service_generic_access_init,
     .run = ble_service_generic_access_run,
     .index = BleServiceIndexGenericAccess,
-    .init_method = BleServiceInitMethodRemote,
     .char_count = COUNT_OF(generic_access_service_characteristics),
-    .char_descriptors = generic_access_service_characteristics,
+    .char_configs = generic_access_service_characteristics,
 };
