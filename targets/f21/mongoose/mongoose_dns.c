@@ -6,6 +6,12 @@
 
 #define TAG "MongooseDns"
 
+#if defined(MONGOOSE_DNS_DEBUG)
+#define MONGOOSE_DNS_TRACE(...) FURI_LOG_D(TAG, __VA_ARGS__)
+#else
+#define MONGOOSE_DNS_TRACE(...)
+#endif
+
 #define DEFAULT_DNS_SERVER "udp://8.8.8.8:53"
 
 // ====================
@@ -80,7 +86,7 @@ static void mongoose_dns_apply(struct mg_mgr* mgr, uint32_t address) {
     if(mgr->dns4.c) mg_close_conn(mgr->dns4.c);
     mgr->dns4.c = NULL;
 
-    FURI_LOG_T(TAG, "Applied DNS %s to mg_mgr 0x%p", mgr->dns4.url, mgr);
+    MONGOOSE_DNS_TRACE("Applied DNS %s to mg_mgr 0x%p", mgr->dns4.url, mgr);
 }
 
 // ==========
