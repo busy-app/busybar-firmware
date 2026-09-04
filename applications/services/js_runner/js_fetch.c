@@ -6,7 +6,7 @@
 #include "js_response.h"
 
 #include <fetch/fetch.h>
-#include <toolbox/http_response.h>
+#include <http/http_response.h>
 
 #define TAG                     "JsFetch"
 #define FETCH_THREAD_STACK_SIZE (10 * 1024)

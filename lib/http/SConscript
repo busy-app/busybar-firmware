@@ -1,0 +1,26 @@
+Import("env")
+
+env.Append(
+    CPPPATH=[
+        Dir(".").srcnode(),
+    ],
+    LINT_SOURCES=[
+        Dir(".").srcnode(),
+    ],
+    SDK_HEADERS=[
+        File("http_headers.h"),
+        File("http_response.h"),
+    ],
+)
+
+libenv = env.Clone(FW_LIB_NAME="http")
+libenv.ApplyLibFlags()
+
+sources = [
+    "http_headers.c",
+    "http_response.c",
+]
+
+lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
+libenv.Install("${LIB_DIST_DIR}", lib)
+Return("lib")

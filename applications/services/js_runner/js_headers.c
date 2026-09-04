@@ -1,5 +1,5 @@
 #include "js_headers.h"
-#include <toolbox/http_headers.h>
+#include <http/http_headers.h>
 
 #define TAG "JsHeaders"
 
