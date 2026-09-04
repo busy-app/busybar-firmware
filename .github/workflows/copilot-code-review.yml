@@ -117,6 +117,10 @@ jobs:
                     exit 0
                   fi
 
+                  # Remove the service account first: GitHub blocks reviewer removal
+                  # while a Copilot review is in flight.
+                  cleanup_service_account
+
                   # Request the Copilot code review.
                   payload=$(jq -nc --arg reviewer "${COPILOT_REVIEWER}" '{reviewers: [$reviewer]}')
                   if err=$(printf '%s' "${payload}" | gh api -X POST --input - "/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/requested_reviewers" 2>&1); then
