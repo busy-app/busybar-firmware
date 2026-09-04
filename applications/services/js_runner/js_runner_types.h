@@ -89,8 +89,10 @@ typedef struct JsRunnerApp {
     FuriEventFlag* is_idle; ///< This flag is set if no script is being run
 
     FuriEventLoop* event_loop;
-    _Atomic bool should_terminate; ///< Flag to terminate JS busy loops
     FuriMessageQueue* command_queue;
+
+    bool script_evaluation_done; ///< Indicates that the initial evaluation of the script has completed
+    _Atomic bool should_terminate; ///< Flag to terminate JS busy loops
     atomic_flag is_execution_handle_taken;
     JsRunnerExecutionHandle* execution_handle;
 

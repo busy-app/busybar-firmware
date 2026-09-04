@@ -63,7 +63,8 @@ static bool has_active_interval(JsRunnerAppInterval* instance) {
 }
 
 static bool app_has_background_tasks(JsRunnerApp* app) {
-    return has_active_interval(&app->interval) || has_active_fetch(&app->fetch);
+    return !app->script_evaluation_done || has_active_interval(&app->interval) ||
+           has_active_fetch(&app->fetch);
 }
 
 void js_runner_app_stop_if_done(JsRunnerApp* app) {
@@ -207,6 +208,7 @@ static void js_runner_app_init(JsRunnerApp* app, const AppThreadParams* params) 
     app->app_id = params->app_id;
     app->thread = furi_thread_get_current();
     app->command_queue = params->command_queue;
+    app->script_evaluation_done = false;
     app->should_terminate = false;
     atomic_flag_clear(&app->is_execution_handle_taken);
     app->execution_handle = NULL;
@@ -611,6 +613,8 @@ static void run_file_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
         return;
     }
 
+    app->script_evaluation_done = false;
+
     bool unlocked = false;
     JsRunnerError ret = JsRunnerErrorNone;
     Storage* storage = furi_record_open(RECORD_STORAGE);
@@ -673,6 +677,7 @@ static void run_file_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
                         app_terminate_from_app_thread(app);
                     }
                     js_run_jobs();
+                    app->script_evaluation_done = true;
                     js_runner_app_stop_if_done(app);
                     jerry_value_free(result);
                 }
@@ -708,6 +713,8 @@ static void run_snippet_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
         unlock_with_result(cmd, JsRunnerErrorResource);
         return;
     }
+
+    app->script_evaluation_done = false;
 
     bool unlocked = false;
     JsRunnerError ret = JsRunnerErrorNone;
@@ -756,6 +763,7 @@ static void run_snippet_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
             }
             jerry_value_free(result);
             js_run_jobs();
+            app->script_evaluation_done = true;
             js_runner_app_stop_if_done(app);
         }
     } while(false);
