@@ -9,7 +9,7 @@ static void http_header_clear(HttpHeader header);
 M_ARRAY_DEF(HttpHeaderArray, HttpHeader, M_OPEXTEND(M_POD_OPLIST, CLEAR(http_header_clear)));
 
 typedef struct HttpHeaders {
-    HttpHeaderArray_t headers;
+    HttpHeaderArray_t items;
 } HttpHeaders;
 
 static void http_header_clear(HttpHeader header) {
@@ -87,7 +87,7 @@ static bool parse_headers_list(HttpHeaders* headers, const char* data, size_t da
                     .value = furi_string_alloc_printf(
                         "%.*s", value_end_i - value_begin_i, data + value_begin_i),
                 };
-                HttpHeaderArray_push_back(headers->headers, header);
+                HttpHeaderArray_push_back(headers->items, header);
 
                 key_begin_i = i + 1;
                 state = ParseStateKey;
@@ -104,8 +104,8 @@ static bool parse_headers_list(HttpHeaders* headers, const char* data, size_t da
 static HttpHeader* http_headers_find_by_key(const HttpHeaders* instance, const char* key) {
     HttpHeader* result = NULL;
 
-    for(uint32_t i = 0; i < HttpHeaderArray_size(instance->headers); ++i) {
-        HttpHeader* hdr = HttpHeaderArray_get(instance->headers, i);
+    for(uint32_t i = 0; i < HttpHeaderArray_size(instance->items); ++i) {
+        HttpHeader* hdr = HttpHeaderArray_get(instance->items, i);
         if(furi_string_cmpi(hdr->key, key) == 0) {
             result = hdr;
         }
@@ -116,32 +116,32 @@ static HttpHeader* http_headers_find_by_key(const HttpHeaders* instance, const c
 
 HttpHeaders* http_headers_alloc(void) {
     HttpHeaders* instance = malloc(sizeof(HttpHeaders));
-    HttpHeaderArray_init(instance->headers);
+    HttpHeaderArray_init(instance->items);
     return instance;
 }
 
 void http_headers_free(HttpHeaders* instance) {
     furi_check(instance);
 
-    HttpHeaderArray_clear(instance->headers);
+    HttpHeaderArray_clear(instance->items);
     free(instance);
 }
 
 bool http_headers_parse(HttpHeaders* instance, const char* data, size_t data_len) {
     furi_check(instance);
     furi_check(data);
-
     return parse_headers_list(instance, data, data_len);
 }
 
-size_t http_headers_get_header_count(const HttpHeaders* instance) {
+size_t http_headers_get_count(const HttpHeaders* instance) {
     furi_check(instance);
-    return HttpHeaderArray_size(instance->headers);
+    return HttpHeaderArray_size(instance->items);
 }
 
-const HttpHeader* http_headers_get_header(const HttpHeaders* instance, size_t index) {
+const HttpHeader* http_headers_get_by_index(const HttpHeaders* instance, size_t index) {
     furi_check(instance);
-    return HttpHeaderArray_cget(instance->headers, index);
+    furi_check(index < HttpHeaderArray_size(instance->items));
+    return HttpHeaderArray_cget(instance->items, index);
 }
 
 const HttpHeader* http_headers_get(const HttpHeaders* instance, const char* key) {
@@ -161,7 +161,7 @@ void http_headers_set(HttpHeaders* instance, const char* key, const char* value)
             .key = furi_string_alloc_set(key),
             .value = furi_string_alloc_set(value),
         };
-        HttpHeaderArray_push_back(instance->headers, new_header);
+        HttpHeaderArray_push_back(instance->items, new_header);
 
     } else {
         furi_string_set(header->key, key);

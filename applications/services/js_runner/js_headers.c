@@ -38,11 +38,11 @@ jerry_value_t headers_iter_next(
     HeadersIter* instance =
         jerry_object_get_native_ptr(call_info->this_value, &headers_iter_native_info);
     JS_CHECK_INSTANCE();
-    if(instance->index == http_headers_get_header_count(instance->parent->headers)) {
+    if(instance->index == http_headers_get_count(instance->parent->headers)) {
         return js_iterator_result(true, jerry_undefined());
     } else {
         const HttpHeader* header =
-            http_headers_get_header(instance->parent->headers, instance->index);
+            http_headers_get_by_index(instance->parent->headers, instance->index);
         instance->index += 1;
         jerry_value_t result = 0; // Suppress "may be uninitialized" warning
         switch(instance->mode) {
@@ -167,8 +167,8 @@ jerry_value_t headers_foreach(
     jerry_value_t this_value = args_count == 1 ? jerry_undefined() : jerry_value_copy(JS_ARG(1));
     jerry_value_t result = jerry_undefined();
 
-    for(size_t i = 0; i != http_headers_get_header_count(instance->headers); ++i) {
-        const HttpHeader* header = http_headers_get_header(instance->headers, i);
+    for(size_t i = 0; i != http_headers_get_count(instance->headers); ++i) {
+        const HttpHeader* header = http_headers_get_by_index(instance->headers, i);
 
         jerry_value_t call_args[3] = {
             [0] = jerry_string_sz(furi_string_get_cstr(header->value)),
