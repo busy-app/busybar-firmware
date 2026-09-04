@@ -20,10 +20,13 @@ jobs:
     request_copilot_review:
         runs-on: ubuntu-latest
         if: ${{ !github.event.pull_request.head.repo.fork }}
+        permissions:
+            pull-requests: write
         steps:
             - name: "Request Copilot code review"
               env:
                   GH_TOKEN: ${{ secrets.COPILOT_REVIEW_PAT }}
+                  ACTIONS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   PR_NUMBER: ${{ github.event.pull_request.number }}
                   PR_ACTION: ${{ github.event.action }}
                   PR_DRAFT: ${{ github.event.pull_request.draft }}
@@ -32,13 +35,14 @@ jobs:
                   set -euo pipefail
 
                   # Unlist the service account (idempotent; also used from EXIT trap).
+                  # Uses GITHUB_TOKEN: the service account's own token cannot unrequest itself.
                   cleanup_service_account() {
                     if [ "${REMOVE_SERVICE_ACCOUNT_AFTER_DISPATCH}" != "true" ] || [ "${service_account_requested}" != "true" ] || [ "${cleanup_done}" = "true" ]; then
                       return 0
                     fi
                     cleanup_done=true
                     payload=$(jq -nc --arg reviewer "${SERVICE_ACCOUNT_LOGIN}" '{reviewers: [$reviewer]}')
-                    if ! err=$(printf '%s' "${payload}" | gh api -X DELETE --input - "/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/requested_reviewers" 2>&1); then
+                    if ! err=$(printf '%s' "${payload}" | GH_TOKEN="${ACTIONS_TOKEN}" gh api -X DELETE --input - "/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/requested_reviewers" 2>&1); then
                       echo "::warning::Could not remove ${SERVICE_ACCOUNT_LOGIN} from requested reviewers"
                       printf '%s\n' "${err}"
                     else
