@@ -281,7 +281,7 @@ static void arraybuffer_free_callback(
     UNUSED(user_p);
     JS_TRACE("free arraybuffer");
     if(arraybuffer_user_p) {
-        JsRunnerExternalDataDestructor destructor = user_p;
+        JsRunnerExternalDataDestructor destructor = arraybuffer_user_p;
         destructor(buffer_p, arraybuffer_user_p);
     }
 }
