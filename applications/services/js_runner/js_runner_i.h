@@ -6,15 +6,11 @@
 #pragma once
 #include "js_runner.h"
 #include "js_util.h"
+#include "js_runner_types.h"
 #include <furi/furi.h>
 #include <storage/storage.h>
 #include <path.h>
 #include <fetch/fetch.h>
-
-#include <m-dict.h>
-#include <m-array.h>
-
-#include <stdatomic.h>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
@@ -33,74 +29,11 @@
 #define MAX_FETCH_MESSAGES    32
 #define MAX_COMMAND_MESSAGES  4
 
+#define APP_THREAD_STACK_SIZE 2048
+
+#define JS_RUNNER_APP_FLAG_IDLE 1
+
 #define PTR_HASH(p) ((size_t)(p))
-
-typedef enum ChildStatus {
-    ChildStatusNotYet,
-    ChildStatusRunning,
-    ChildStatusDone
-} ChildStatus;
-
-#define JS_RUNNER_MAX_SCRIPT_SIZE (250 * 1024)
-
-typedef struct IntervalContext {
-    bool once;
-    FuriEventLoopTimer* timer;
-    jerry_value_t callback;
-} IntervalContext;
-
-M_DICT_DEF2(IntervalDict, uint32_t, M_DEFAULT_OPLIST, IntervalContext, M_POD_OPLIST);
-ARRAY_DEF(ByteArray, uint8_t);
-
-typedef struct JsRunnerAppConsole {
-    JsRunnerConsoleOutCallback callback;
-    void* callback_context;
-} JsRunnerAppConsole;
-
-typedef struct JsRunnerAppInterval {
-    IntervalDict_t intervals;
-    uint32_t last_id;
-} JsRunnerAppInterval;
-
-typedef struct JsFetch JsFetch;
-ARRAY_DEF(FetchArray, JsFetch*, M_PTR_OPLIST);
-typedef struct JsRunnerAppFetch {
-    FetchArray_t fetches;
-    FuriMessageQueue* event_queue;
-} JsRunnerAppFetch;
-
-typedef enum JsRunnerAppCommandType {
-    JsRunnerAppCommandTypeInvalid,
-    JsRunnerAppCommandTypeAbort,
-
-    JsRunnerAppCommandTypeMax,
-} JsRunnerAppCommandType;
-
-typedef struct JsRunnerApp {
-    FuriString* app_id;
-    FuriThread* thread;
-
-    size_t heap_size;
-    void* jrs_context;
-    FuriEventLoop* event_loop;
-    FuriString* root_path;
-    _Atomic bool should_terminate;
-    FuriMessageQueue* command_queue;
-
-    JsRunnerAppConsole console;
-    JsRunnerAppInterval interval;
-    JsRunnerAppFetch fetch;
-} JsRunnerApp;
-
-typedef struct JsRunner {
-    FuriEventLoop* event_loop;
-    FuriMessageQueue* message_queue;
-} JsRunner;
-
-typedef struct JsRunnerStaticContext {
-    atomic_flag is_running;
-    JsRunnerApp* volatile app;
-} JsRunnerStaticContext;
 
 extern JsRunnerStaticContext js_runner_static_context;
 
@@ -135,10 +68,15 @@ void js_runner_thread_context_free(void);
 void* js_runner_thread_context_get(void);
 
 /** @brief Get root path of the current JS app (folder containg entry point).
- * This function is used by jerryscript glue. */
-void js_runner_get_root_path(FuriString* path);
+ * This function is used by jerryscript glue.
+ *
+ * @return true if root path (and file operations) is available, false otherwise */
+bool js_runner_get_root_path(FuriString* path);
 
 void js_runner_add_fetch_thread(JsRunnerApp* app, JsFetch* fetch);
 void js_runner_del_fetch_thread(JsRunnerApp* app, JsFetch* fetch);
 
 const char* js_runner_app_get_id(const JsRunnerApp* app);
+
+void js_runner_byte_array_destructor(void* object, void* user_p);
+void js_runner_heap_destructor(void* object, void* user_p);

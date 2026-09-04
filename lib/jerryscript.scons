@@ -42,6 +42,7 @@ libenv.AppendUnique(
         "JERRY_BUILTIN_WEAKREF=1",
         "JERRY_MODULE_SYSTEM=1",
         "JERRY_VM_HALT=1",
+        "JERRY_ERROR_MESSAGES=1",
     ],
     CPPPATH=[],
     CPPFLAGS=[
