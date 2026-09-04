@@ -1,7 +1,8 @@
 name: "Request Copilot code review"
 
 on:
-    pull_request_target:
+    # pull_request_target:
+    pull_request:
         types: [opened, ready_for_review, review_requested]
 
 concurrency:
@@ -22,23 +23,13 @@ jobs:
         steps:
             - name: "Request Copilot code review"
               env:
-                  API_TOKEN: ${{ secrets.COPILOT_REVIEW_PAT }}
+                  GH_TOKEN: ${{ secrets.COPILOT_REVIEW_PAT }}
                   PR_NUMBER: ${{ github.event.pull_request.number }}
                   PR_ACTION: ${{ github.event.action }}
                   PR_DRAFT: ${{ github.event.pull_request.draft }}
                   REQUESTED_REVIEWER: ${{ github.event.requested_reviewer.login }}
               run: |
                   set -euo pipefail
-
-                  # Fail on HTTP errors; keep response body for diagnostics.
-                  api() {
-                    local method="$1" path="$2" data="${3:-}"
-                    local args=(-sS --fail-with-body -X "${method}" -H "Authorization: Bearer ${API_TOKEN}" -H "Accept: application/vnd.github+json")
-                    if [ -n "${data}" ]; then
-                      args+=(-d "${data}")
-                    fi
-                    curl "${args[@]}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}${path}"
-                  }
 
                   # Unlist the service account (idempotent; also used from EXIT trap).
                   cleanup_service_account() {
@@ -47,18 +38,15 @@ jobs:
                     fi
                     cleanup_done=true
                     payload=$(jq -nc --arg reviewer "${SERVICE_ACCOUNT_LOGIN}" '{reviewers: [$reviewer]}')
-                    if curl -sS --fail-with-body -X DELETE \
-                      -H "Authorization: Bearer ${API_TOKEN}" \
-                      -H "Accept: application/vnd.github+json" \
-                      "https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/requested_reviewers" \
-                      -d "${payload}" >/dev/null; then
-                      echo "${SERVICE_ACCOUNT_LOGIN} removed from requested reviewers"
-                    else
+                    if ! err=$(printf '%s' "${payload}" | gh api -X DELETE --input - "/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/requested_reviewers" 2>&1); then
                       echo "::warning::Could not remove ${SERVICE_ACCOUNT_LOGIN} from requested reviewers"
+                      printf '%s\n' "${err}"
+                    else
+                      echo "${SERVICE_ACCOUNT_LOGIN} removed from requested reviewers"
                     fi
                   }
 
-                  if [ -z "${API_TOKEN}" ]; then
+                  if [ -z "${GH_TOKEN}" ]; then
                     echo "::warning::Secret COPILOT_REVIEW_PAT is not configured; skipping Copilot review request"
                     exit 0
                   fi
@@ -96,7 +84,8 @@ jobs:
                   fi
                   trap cleanup_service_account EXIT
 
-                  requested=$(api GET "/requested_reviewers" | jq -r '.users[]?.login')
+                  # gh fails (non-zero) on HTTP errors, so a bad response cannot look like empty data.
+                  requested=$(gh api "/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/requested_reviewers" | jq -r '.users[]?.login')
                   if [ -n "${requested}" ]; then
                     if printf '%s\n' "${requested}" | grep -qxF "${COPILOT_REVIEWER}"; then
                       copilot_requested=true
@@ -112,20 +101,9 @@ jobs:
                     exit 0
                   fi
 
-                  # Reviews are paginated; scan all pages.
-                  head_sha=$(api GET "" | jq -r '.head.sha')
-                  : > /tmp/copilot-reviews.ndjson
-                  page=1
-                  while : ; do
-                    page_data=$(api GET "/reviews?per_page=100&page=${page}")
-                    page_count=$(printf '%s' "${page_data}" | jq 'length')
-                    printf '%s' "${page_data}" | jq -c '.[]' >> /tmp/copilot-reviews.ndjson
-                    if [ "${page_count}" -lt 100 ]; then
-                      break
-                    fi
-                    page=$((page + 1))
-                  done
-                  last_copilot_review_sha=$(jq -s -r --arg login "${COPILOT_REVIEWER}" '[.[] | select(.user.login == $login and .commit_id != null)] | max_by(.submitted_at) | .commit_id // empty' /tmp/copilot-reviews.ndjson)
+                  head_sha=$(gh api "/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}" | jq -r '.head.sha')
+                  # gh --paginate merges all review pages into one array.
+                  last_copilot_review_sha=$(gh api --paginate "/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/reviews" | jq -r --arg login "${COPILOT_REVIEWER}" '[.[] | select(.user.login == $login and .commit_id != null)] | max_by(.submitted_at) | .commit_id // empty')
                   if [ -n "${last_copilot_review_sha}" ] && [ "${last_copilot_review_sha}" = "${head_sha}" ]; then
                     echo "Copilot already reviewed the current head ${head_sha}; skipping"
                     exit 0
@@ -133,18 +111,13 @@ jobs:
 
                   # Request the Copilot code review.
                   payload=$(jq -nc --arg reviewer "${COPILOT_REVIEWER}" '{reviewers: [$reviewer]}')
-                  http_code=$(curl -sS -o /tmp/copilot-review-response.json -w '%{http_code}' \
-                    -X POST \
-                    -H "Authorization: Bearer ${API_TOKEN}" \
-                    -H "Accept: application/vnd.github+json" \
-                    "https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/requested_reviewers" \
-                    -d "${payload}")
-                  if [ "${http_code}" != "201" ]; then
-                    echo "::error::Failed to request Copilot review (HTTP ${http_code})"
-                    cat /tmp/copilot-review-response.json
-                    if [ "${http_code}" = "403" ]; then
+                  if err=$(printf '%s' "${payload}" | gh api -X POST --input - "/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/requested_reviewers" 2>&1); then
+                    echo "Copilot code review requested for PR #${PR_NUMBER}"
+                  else
+                    echo "::error::Failed to request Copilot review"
+                    printf '%s\n' "${err}"
+                    if printf '%s' "${err}" | grep -q "HTTP 403"; then
                       echo "::error::Make sure the COPILOT_REVIEW_PAT secret (owner: ${SERVICE_ACCOUNT_LOGIN}) is a fine-grained PAT with 'Pull requests: Read and write' on this repository, and that ${SERVICE_ACCOUNT_LOGIN} has access to Copilot code review."
                     fi
                     exit 1
                   fi
-                  echo "Copilot code review requested for PR #${PR_NUMBER}"
