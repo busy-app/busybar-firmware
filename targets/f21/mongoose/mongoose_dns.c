@@ -80,7 +80,7 @@ static void mongoose_dns_apply(struct mg_mgr* mgr, uint32_t address) {
     if(mgr->dns4.c) mg_close_conn(mgr->dns4.c);
     mgr->dns4.c = NULL;
 
-    FURI_LOG_D(TAG, "Applied DNS %s to mg_mgr 0x%p", mgr->dns4.url, mgr);
+    FURI_LOG_T(TAG, "Applied DNS %s to mg_mgr 0x%p", mgr->dns4.url, mgr);
 }
 
 // ==========
