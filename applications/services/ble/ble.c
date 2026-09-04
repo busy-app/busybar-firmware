@@ -19,11 +19,15 @@ void ble_set_service_post_process_callback(Ble* ble, BleServicePostProcessCallba
     ble->service_post_process_callback = callback;
 }
 
-static void
-    ble_check_invoke_service_process_result(Ble* instance, BleServiceObject* service, bool result) {
-    UNUSED(instance);
-    UNUSED(service);
-    UNUSED(result);
+static void ble_check_invoke_service_process_result(
+    Ble* instance,
+    const BleServiceObjectResult* service_result) {
+    furi_assert(instance);
+    furi_assert(service_result);
+
+    BleServiceObject* service = service_result->service;
+    bool result = service_result->result;
+
 #if !defined(BSB_MCU_SI917)
     if(!result && !ble_service_is_ready(service)) {
         FuriString* buf = furi_string_alloc();
@@ -70,12 +74,10 @@ static void ble_event_loop_msg_queue_handler(FuriEventLoopObject* object, void* 
     Ble* ble = context;
     furi_assert(object == ble->service_queue);
 
-    BleServiceObject* service = NULL;
-    if(furi_message_queue_get(ble->service_queue, &service, FuriWaitForever) == FuriStatusOk) {
-        bool result = ble_service_process(service);
-        ble_check_invoke_service_process_result(ble, service, result);
-    } else
-        BLE_LOG_W("Unable to get message from queue!");
+    BleServiceObjectMessage* message = NULL;
+    furi_check(furi_message_queue_get(ble->service_queue, &message, 0) == FuriStatusOk);
+    BleServiceObjectResult result = ble_service_process(message);
+    ble_check_invoke_service_process_result(ble, &result);
 }
 
 static void ble_custom_event_callback(uint32_t events, void* context) {
@@ -158,7 +160,7 @@ static Ble* ble_alloc() {
         instance->event_loop, ble_custom_event_callback, instance);
 
     instance->service_queue =
-        furi_message_queue_alloc(BleServiceIndexCount, sizeof(BleServiceObject*));
+        furi_message_queue_alloc(BleServiceIndexCount, sizeof(BleServiceObjectMessage*));
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
         instance->service_queue,

@@ -22,7 +22,9 @@ bool ble_service_generic_access_init(void* object) {
     return true;
 }
 
-bool ble_service_generic_access_run(void* object) {
+bool ble_service_generic_access_run(void* object, size_t data_size, const void* data) {
     UNUSED(object);
+    UNUSED(data_size);
+    UNUSED(data);
     return true;
 }

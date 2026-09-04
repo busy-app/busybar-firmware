@@ -65,7 +65,10 @@ bool ble_service_battery_init(void* object) {
     return true;
 }
 
-bool ble_service_battery_run(void* object) {
+bool ble_service_battery_run(void* object, size_t data_size, const void* data) {
+    UNUSED(data_size);
+    UNUSED(data);
+
     furi_assert(object);
     BleServiceObject* instance = object;
 
