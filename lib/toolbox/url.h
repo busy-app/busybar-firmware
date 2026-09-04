@@ -8,6 +8,10 @@
 
 #include "slice.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @brief Url opaque type.
  */
@@ -72,3 +76,7 @@ bool url_parse(Url* instance, const char* source);
  * @returns pointer to the string slice representing the requested part
  */
 const StringSlice* url_get_part(const Url* instance, UrlPartId part_id);
+
+#ifdef __cplusplus
+}
+#endif
