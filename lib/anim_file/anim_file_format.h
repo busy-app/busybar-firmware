@@ -1,38 +1,6 @@
 /**
  * @brief Structures describing the file format
  * 
- * Terminology:
- *   - Display Frame: an image that's displayed on the screen for one frame time
- *   - File Frame: one encoded frame. One file frame might be shown for several
- *     consecutive display frames.
- *   - Section: User-selectable named range of display frame indices.
- *   - Chunk: part of the file. There's a Sections chunk and a Frames chunk.
- * 
- * Visualized buffer types and conversion pipeline:
- * 
- * +---------+  anim_file_img_decode   +--------+   anim_file_img_unpack 
- * | Encoded | ----------------------> | Packed | -----------------------\
- * +---------+                         +--------+                        |
- *  Maybe RLE                      Maybe non-ARGB8888                    |
- *                                                                       |
- * /---------------------------------------------------------------------/
- * |
- * |     +-------+  anim_file_img_cut_part   +--------+  given to application
- * \---> | Sheet | ------------------------> | Cutout | ---------------------->
- *       +-------+                           +--------+
- *      Maybe bigger
- *      than target
- * 
- * Buffer types:
- *   - Cutout buffer: Just the rectangular cutout that the application needs.
- *   - Sheet buffer: Plain Bgra8888 buffer that LVGL accepts directly, but may
- *     be larger, while the application needs just a rectangular part of the
- *     entire picture.
- *   - Packed buffer: Color format other than Bgra8888 (Bgr888 or Gray4). Has to
- *     be converted into Bgra8888 (unpacked).
- *   - Encoded buffer: Either RLE-encoded or plain packed buffer. RLE has to be
- *     decoded into a Packed buffer.
- * 
  * Visualized file layout:
  * 
  * +----------------+
@@ -48,9 +16,13 @@
  * +----------------+-----------------+---------------------+
  * |     Frames     |    File Frame   | AnimFileFrameHeader |
  * |     chunk      |                 +---------------------+
- * |                |                 | Encoded frame data  |
+ * |                |                 | Encoded mask data   |
+ * |                |                 +---------------------+
+ * |                |                 | Encoded pixel data  |
  * |                +-----------------+---------------------+
  * |                |    File Frame   | AnimFileFrameHeader |
+ * |                |                 +---------------------+
+ * |                |                 | Encoded mask data   |
  * |                |                 +---------------------+
  * |                |                 | Encoded frame data  |
  * |                +-----------------+---------------------+
@@ -58,11 +30,10 @@
  * |                +-----------------+---------------------+
  * |                |    File Frame   | AnimFileFrameHeader |
  * |                |                 +---------------------+
+ * |                |                 | Encoded mask data   |
+ * |                |                 +---------------------+
  * |                |                 | Encoded frame data  |
  * +----------------+-----------------+---------------------+
- * 
- * There must always be a section named "default", covering the entire range of
- * Display Frames.
  * 
  * All integers are little-endian.
  */
@@ -105,51 +76,79 @@ typedef struct FURI_PACKED {
     uint8_t height;
     AnimFileColorFormat color_format;
 
+    uint16_t max_mask_length;
+    uint16_t max_pixel_length;
     uint8_t fps;
-    uint16_t max_encoded_length;
     uint8_t _unused[1];
 
     uint32_t sections_chunk_length;
     uint32_t frames_chunk_length;
 
     uint32_t section_count;
-    uint32_t file_frame_count;
-    uint32_t display_frame_count;
+    uint32_t frame_count;
 } AnimFileHeader;
 
-// Busybar Image Container speciallY Crafted for file Length Eradication, ver. 0
-#define ANIM_FILE_HEADER_SIGNATURE "bicycle0"
+// Busybar Image Container speciallY Crafted for file Length Eradication, major ver. 1
+#define ANIM_FILE_HEADER_SIGNATURE "bicycle1"
 
 /**
  * @brief Descriptor of one Section
  */
 typedef struct FURI_PACKED {
-    uint32_t start; //<! Index of the first Display Frame (inclusive)
-    uint32_t end; //<! Index of the last Display Frame (inclusive)
-    uint32_t frame_offs; //<! File offset of the first File Frame in this Section
-    uint8_t
-        duration_override; //<! In case the Section starts in the middle of a File Frame that spans multiple Display Frames, this field will indicate the adjusted duration of the affected File Frame
+    uint32_t start; //<! Index of the first Frame (inclusive)
+    uint32_t end; //<! Index of the last Frame (inclusive)
+    uint32_t frame_offs; //<! File offset of the first Frame in this Section
     char name[]; //<! NUL-terminated
 } AnimFileSection;
 
 /**
- * @brief Encoding mode of one File Frame
+ * @brief Encoding mode of Frame Mask
  */
 typedef enum FURI_PACKED {
-    AnimFileFrameEncodingRaw, //<! Plain pixels encoded according to `AnimFileColorFormat`
-    AnimFileFrameEncodingRle, //<! Run-length encoding of `Raw` data implemented by `toolbox/rle_encode`. `blk_size` parameter is 3 for `Bgr888`, 1 for `Gray4`, and 4 for `Bgra8888`
-    AnimFileFrameEncodingMAX,
-} AnimFileFrameEncoding;
-static_assert(sizeof(AnimFileFrameEncoding) == sizeof(uint8_t));
+    AnimFileMaskEncodingFullyBlack, //<! No mask data. Fully black mask: none of the pixels are present, frame is no different from last one
+    AnimFileMaskEncodingFullyWhite, //<! No mask data. Fully white mask: all `width`x`height` pixels are present
+    AnimFileMaskEncodingRleFirstBlack, //<! Binary run-length encoding, first pixel is black
+    AnimFileMaskEncodingRleFirstWhite, //<! Binary run-length encoding, first pixel is white
+    AnimFileMaskEncodingBitmap, //<! Binary bitmap
+    AnimFileMaskEncodingMAX,
+} AnimFileMaskEncoding;
+static_assert(sizeof(AnimFileMaskEncoding) == sizeof(uint8_t));
+
+/**
+ * @brief Encoding mode of Frame Pixels
+ */
+typedef enum FURI_PACKED {
+    AnimFilePixelEncodingRaw, //<! Plain pixels encoded according to `AnimFileColorFormat`
+    AnimFilePixelEncodingRle, //<! Run-length encoding of `Raw` data implemented by `toolbox/rle_encode`. `blk_size` parameter is 3 for `Bgr888`, 1 for `Gray4`, and 4 for `Bgra8888`
+    AnimFilePixelEncodingQoiLike, //<! QOI-like (without header and footer); hash and difference based. https://qoiformat.org/qoi-specification.pdf
+    AnimFilePixelEncodingMAX,
+} AnimFilePixelEncoding;
+static_assert(sizeof(AnimFilePixelEncoding) == sizeof(uint8_t));
+
+#define ANIM_FILE_QOI_OP_RGB         0xfe
+#define ANIM_FILE_QOI_OP_RGBA        0xff
+#define ANIM_FILE_QOI_SHORT_TAG_MASK 0xC0
+#define ANIM_FILE_QOI_SHORT_OP_INDEX 0x00
+#define ANIM_FILE_QOI_SHORT_OP_DIFF  0x40
+#define ANIM_FILE_QOI_SHORT_OP_LUMA  0x80
+#define ANIM_FILE_QOI_SHORT_OP_RUN   0xC0
 
 /**
  * @brief Header of one File Frame
  */
 typedef struct FURI_PACKED {
-    AnimFileFrameEncoding encoding;
-    uint8_t duration; //<! How many Display Frames to show this File Frame for
-    uint16_t encoded_length; //<! Length of encoded frame data following this header
+    uint8_t joint_encoding; //<! `PixelEncoding` in bottom 4 bits, `MaskEncoding` in top 4 bits
+    uint16_t mask_length; //<! Length of encoded mask data following this header (in bits)
+    uint16_t pixel_length; //<! Length of encoded pixel data following the mask data (in bytes)
 } AnimFileFrameHeader;
+
+static inline AnimFilePixelEncoding anim_file_px_encoding(uint8_t joint_encoding) {
+    return joint_encoding & 0xF;
+}
+
+static inline AnimFileMaskEncoding anim_file_mask_encoding(uint8_t joint_encoding) {
+    return (joint_encoding & 0xF0) >> 4;
+}
 
 #ifdef __cplusplus
 }

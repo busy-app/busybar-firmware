@@ -8,6 +8,11 @@
 #define TAG      "AnimPlayer"
 #define MY_CLASS (&anim_player_lvgl_class)
 
+static_assert(
+    (size_t)AnimPlayerOptionIntermediateInternalBuffer ==
+    (size_t)AnimFileOptionIntermediateInternalBuffer);
+static_assert((size_t)AnimPlayerOptionMAX == (size_t)AnimFileOptionMAX);
+
 // ==================
 // Internal functions
 // ==================
@@ -91,7 +96,7 @@ static void anim_player_lvgl_event(lv_event_t* event) {
         int32_t width = lv_obj_get_width(lv_base);
         int32_t height = lv_obj_get_height(lv_base);
 
-        anim_player_resize_canvas(player, width, height);
+        if((width > 0) && (height > 0)) anim_player_resize_canvas(player, width, height);
     }
 }
 
@@ -131,8 +136,12 @@ Widget* anim_player_get_base(AnimPlayer* instance) {
     return (Widget*)instance;
 }
 
-bool anim_player_set_source(AnimPlayer* instance, const char* file_path) {
+bool anim_player_set_source_ex(
+    AnimPlayer* instance,
+    const char* file_path,
+    AnimPlayerOption options) {
     furi_check(instance);
+    furi_check(options < AnimPlayerOptionMAX);
 
     bool path_given = !!file_path;
     bool has_previous_path = !!instance->file_path;
@@ -151,7 +160,8 @@ bool anim_player_set_source(AnimPlayer* instance, const char* file_path) {
 
         if(!path_given) break;
         instance->file_path = strdup(file_path);
-        instance->file = anim_file_alloc(instance->storage, file_path);
+        // direct reinterpretation of enum types is safe thanks to `static_assert`s in the beginning of the file
+        instance->file = anim_file_alloc(instance->storage, file_path, (AnimFileOption)options);
         if(!instance->file) break;
 
         AnimFileInfo info = anim_file_info(instance->file);
@@ -174,6 +184,10 @@ bool anim_player_set_source(AnimPlayer* instance, const char* file_path) {
     }
 
     return loaded_successfully;
+}
+
+bool anim_player_set_source(AnimPlayer* instance, const char* file_path) {
+    return anim_player_set_source_ex(instance, file_path, AnimPlayerOptionNone);
 }
 
 bool anim_player_set_offset(AnimPlayer* instance, float x, float y) {

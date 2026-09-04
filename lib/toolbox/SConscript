@@ -26,6 +26,7 @@ env.Append(
         File("tls_config.h"),
         File("value_index.h"),
         File("http_headers.h"),
+        File("bit_q.h"),
     ],
 )
 
@@ -50,6 +51,7 @@ sources = [
     "tls_config.c",
     "value_index.c",
     "http_headers.c",
+    "bit_q.c",
 ]
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)

@@ -28,6 +28,14 @@ def copy_action(target, source, env):
     shutil.copyfile(src, dst)
 
 
+def _script_dep_emitter(script_var):
+    def emitter(target, source, env):
+        env.Depends(target, env.File(env[script_var]))
+        return (target, source)
+
+    return emitter
+
+
 def generate(env):
     env.SetDefault(
         AUDIO_CONVERTER=env.Real("${FBT_SCRIPT_DIR}/audio.py"),
@@ -66,6 +74,7 @@ def generate(env):
                     ],
                     "${AUDIOCOMSTR}",
                 ),
+                emitter=_script_dep_emitter("AUDIO_CONVERTER"),
             ),
             "AnimationConverter": Builder(
                 action=Action(
@@ -84,6 +93,7 @@ def generate(env):
                     ],
                     "${ANIMCOMSTR}",
                 ),
+                emitter=_script_dep_emitter("ANIM_CONVERTER"),
             ),
             "FontConverter": Builder(
                 action=Action(
@@ -97,6 +107,7 @@ def generate(env):
                     ],
                     "${FONTCOMSTR}",
                 ),
+                emitter=_script_dep_emitter("FONT_CONVERTER"),
             ),
             "ImageConverter": Builder(
                 action=Action(
@@ -114,6 +125,7 @@ def generate(env):
                     ],
                     "${IMAGECONVCOMSTR}",
                 ),
+                emitter=_script_dep_emitter("IMAGE_CONVERTER"),
             ),
             "ImageHeaderGenerator": Builder(
                 action=Action(
@@ -137,6 +149,7 @@ def generate(env):
                     ],
                     "${SWAGGERCOMSTR}",
                 ),
+                emitter=_script_dep_emitter("SWAGGER_GENERATOR"),
             ),
             "Gzip": Builder(
                 action=Action(
@@ -163,6 +176,7 @@ def generate(env):
                     ],
                     "${OPENAPICOMSTR}",
                 ),
+                emitter=_script_dep_emitter("OPENAPI_GENERATOR"),
             ),
         }
     )

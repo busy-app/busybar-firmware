@@ -11,6 +11,14 @@
 extern "C" {
 #endif
 
+typedef enum {
+    AnimPlayerOptionNone = 0,
+    AnimPlayerOptionIntermediateInternalBuffer =
+        (1
+         << 0), //<! Allow subpixel movement of resulting images (using @c anim_player_set_offset)
+    AnimPlayerOptionMAX,
+} AnimPlayerOption;
+
 typedef struct AnimPlayer AnimPlayer;
 
 /**
@@ -41,12 +49,29 @@ Widget* anim_player_get_base(AnimPlayer* instance);
 /**
  * @brief Loads the animation file at the specified path
  * 
+ * If the provided `path` matches the previous given `path` which was successful,
+ * nothing is reloaded.
+ * 
  * @param[in,out] instance Widget instance
  * @param[in] path File path
  * 
  * @returns `true` = operation successful
  */
 bool anim_player_set_source(AnimPlayer* instance, const char* path);
+
+/**
+ * @brief Loads the animation file at the specified path
+ * 
+ * If the provided `path` matches the previous given `path` which was successful,
+ * nothing is reloaded.
+ * 
+ * @param[in,out] instance Widget instance
+ * @param[in] path File path
+ * @param[in] options Bitmask of options (see @c AnimPlayerOption documentation)
+ * 
+ * @returns `true` = operation successful
+ */
+bool anim_player_set_source_ex(AnimPlayer* instance, const char* path, AnimPlayerOption options);
 
 /**
  * @brief Moves the animation within its widget's viewport

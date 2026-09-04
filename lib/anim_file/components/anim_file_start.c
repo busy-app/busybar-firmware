@@ -1,11 +1,11 @@
-#include <anim_file_i.h>
+#include <anim_file_i_struct.h>
 
 static void anim_file_start_set_requested(AnimFile* anim, const AnimFileRange* requested) {
     furi_assert(anim);
     furi_assert(requested);
 
     bool wait_for_last = requested->flags & AnimFilePlayFlagFinishCurrent;
-    bool on_last_frame = anim_file_seq_disp_frame_idx(anim) == anim->start.active.end;
+    bool on_last_frame = anim_file_seq_frame_idx(anim) == anim->start.active.end;
 
     if(wait_for_last && !on_last_frame) {
         anim->start.pending = *requested;
@@ -47,7 +47,6 @@ void anim_file_start_set_precomputed(
         .end = section->end,
         .flags = flags,
         .start_offset = section->frame_offs,
-        .start_duration_override = section->duration_override,
     };
     anim_file_start_set_requested(anim, &range);
 }
