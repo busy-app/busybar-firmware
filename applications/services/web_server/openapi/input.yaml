@@ -45,4 +45,34 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /api/input/switch:
+    get:
+      tags:
+        - Input
+      summary: Get switch position
+      description: |
+        Current position of the mode switch as seen by the firmware, i.e. the position that selects the running app.
+        A position injected with POST /api/input is reported here even though the physical switch has not moved;
+        the physical position is picked up again when the switch is moved.
+        "unknown" is returned only briefly after boot, before the position has been determined.
+        The full state snapshot of /api/status/ws carries the same position as a SwitchEvent.
+      operationId: getInputSwitch
+      responses:
+        "200":
+          description: Current switch position
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InputSwitchResponse"
+
 schemas:
+  InputSwitchResponse:
+    type: object
+    properties:
+      position:
+        type: string
+        example: "busy"
+        enum: ["busy", "custom", "off", "apps", "settings", "unknown"]
+        description: Mode switch position
+    required:
+      - position

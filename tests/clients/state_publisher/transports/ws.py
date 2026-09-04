@@ -27,6 +27,9 @@ class WsStateTransport:
     def enable(self) -> None:
         self.ws.send_text('{"enable":true}')
 
+    def send_all(self) -> None:
+        self.ws.send_text('{"send":"all"}')
+
     def read_frame(self, timeout: float = 6.0) -> bytes:
         deadline = time.monotonic() + timeout
         last_error: Exception | None = None

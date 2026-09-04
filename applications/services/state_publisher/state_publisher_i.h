@@ -81,6 +81,7 @@ struct StatePublisher {
     FuriState* state_brightness;
     FuriState* state_time_settings;
     FuriState* state_wifi;
+    FuriState* state_switch_pos;
 
     FuriMutex* transports_mutex;
     Transport transports[MAX_TRANSPORTS];

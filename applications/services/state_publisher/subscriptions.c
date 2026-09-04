@@ -76,6 +76,10 @@ void state_publisher_subscribe(StatePublisher* instance) {
         furi_pubsub_subscribe(input_pubsub, input_event_pubsub_callback, instance);
     }
     {
+        Input* input = furi_record_open(RECORD_INPUT);
+        instance->state_switch_pos = input_get_switch_pos(input);
+    }
+    {
         instance->busy_timer = furi_record_open(RECORD_BUSY_TIMER);
         FuriPubSub* pubsub = busy_timer_get_pubsub(instance->busy_timer);
         furi_pubsub_subscribe(pubsub, busy_timer_pubsub_callback, instance);
@@ -488,6 +492,25 @@ static void input_event_pubsub_callback(const void* message, void* context) {
     state_publisher_schedule_state_update(instance, update, StreamFlagAll);
 }
 
+static BSB_State_StateUpdate* collect_switch_position(InputSwitchPosition position) {
+    BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
+
+    static const BSB_Input_SwitchPosition lookup[] = {
+        [InputSwitchPositionBusy] = BSB_Input_SwitchPosition_BUSY,
+        [InputSwitchPositionStatus] = BSB_Input_SwitchPosition_CUSTOM,
+        [InputSwitchPositionOff] = BSB_Input_SwitchPosition_OFF,
+        [InputSwitchPositionApps] = BSB_Input_SwitchPosition_APPS,
+        [InputSwitchPositionSettings] = BSB_Input_SwitchPosition_SETTINGS,
+    };
+    static_assert(COUNT_OF(lookup) == InputSwitchPositionMAX);
+
+    update->which_state = BSB_State_StateUpdate_input_tag;
+    update->state.input.which_event = BSB_Input_InputEvent_switch_event_tag;
+    update->state.input.event.switch_event.position = lookup[position];
+
+    return update;
+}
+
 static void busy_timer_pubsub_callback(const void* message, void* context) {
     const BusyTimerEvent* event = message;
     StatePublisher* instance = context;
@@ -835,6 +858,13 @@ BSB_State_State* state_publisher_collect_all(StatePublisher* instance) {
         WifiInfo wifi_info;
         furi_state_get(instance->state_wifi, &wifi_info);
         StateUpdatePtrArray_push_back(updates, collect_wifi_info(&wifi_info));
+    }
+    {
+        InputSwitchPosition position;
+        furi_state_get(instance->state_switch_pos, &position);
+        if(position != InputSwitchPositionMAX) {
+            StateUpdatePtrArray_push_back(updates, collect_switch_position(position));
+        }
     }
     {
         BSB_State_StateUpdate* update = NULL;

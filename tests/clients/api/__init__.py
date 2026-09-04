@@ -105,6 +105,7 @@ from .input import (
     InputAPI,
     InputErrorResponse,
     InputKeyRequest,
+    InputSwitchResponse,
 )
 
 # Streaming API
@@ -197,6 +198,7 @@ __all__ = [
     "InputAPI",
     "InputKeyRequest",
     "InputErrorResponse",
+    "InputSwitchResponse",
     "StreamingAPI",
     "UpdateAPI",
     "UpdateStatusResponse",

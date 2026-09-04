@@ -4,8 +4,10 @@ import allure
 import pytest
 
 from clients.api import InputAPI
+from clients.state_pb import input_pb2
 from clients.state_publisher import StatePublisherWebSocket, state_update_kinds
 from utils.simple_websocket import websocket_upgrade, websocket_url
+from utils.input_helpers import wait_for_switch_position
 
 
 @allure.feature("5. Web Frontend")
@@ -74,3 +76,39 @@ class TestStatePublisherRegressions:
                     break
 
         assert "input" in seen_update_kinds
+
+    @allure.title("/api/status/ws send=all snapshot includes the switch position")
+    def test_status_ws_send_all_includes_switch_position(
+        self, web_base_url, input_api: InputAPI
+    ):
+        assert input_pb2 is not None, "generated protobuf bindings are required"
+        initial_position = input_api.get_switch().position
+
+        try:
+            with allure.step("Inject switch position: apps"):
+                assert input_api.send_key("apps").status_code == 200
+                wait_for_switch_position(input_api, "apps")
+
+            with StatePublisherWebSocket(web_base_url) as state_ws:
+                state_ws.enable()
+                state_ws.send_all()
+
+                deadline = time.monotonic() + 6.0
+                positions: list[int] = []
+                while time.monotonic() < deadline and not positions:
+                    state = state_ws.read_state(
+                        timeout=max(0.1, deadline - time.monotonic())
+                    )
+                    positions = [
+                        update.payload.switch_event.position
+                        for update in state.updates
+                        if update.kind == "input"
+                        and update.payload.WhichOneof("event") == "switch_event"
+                    ]
+
+            with allure.step("Verify the snapshot carries the injected position"):
+                assert positions == [input_pb2.SwitchPosition.Value("APPS")]
+        finally:
+            if initial_position in InputAPI.SWITCH_POSITIONS:
+                input_api.send_key(initial_position)
+                wait_for_switch_position(input_api, initial_position)

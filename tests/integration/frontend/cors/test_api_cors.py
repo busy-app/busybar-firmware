@@ -41,6 +41,7 @@ API_ENDPOINTS = [
     ("/api/display/draw", "POST"),
     ("/api/display/draw", "DELETE"),
     ("/api/input", "POST"),
+    ("/api/input/switch", "GET"),
     ("/api/log_dump", "POST"),
     ("/api/name", "GET"),
     ("/api/name", "POST"),
