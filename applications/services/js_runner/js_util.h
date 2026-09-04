@@ -151,7 +151,7 @@ void js_log_exception(const char* tag, const char* msg, jerry_value_t exception)
 /**
  * @brief Create an external ArrayBuffer referencing ByteArray's data.
  *
- * Ownership of the ByteArray is transferred to jerryscript/
+ * Ownership of the ByteArray is transferred to jerryscript.
  *
  * @param array pointer to ByteArray (heap-allocated).
  * @return a JS ArrayBuffer object.

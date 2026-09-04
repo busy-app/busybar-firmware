@@ -69,10 +69,12 @@ static bool app_has_background_tasks(JsRunnerApp* app) {
 void js_runner_app_stop_if_done(JsRunnerApp* app) {
     if(!app_has_background_tasks(app)) {
         JS_TRACE("No more tasks");
-        furi_event_flag_set(app->is_idle, JS_RUNNER_APP_FLAG_IDLE);
         JsRunnerExecutionHandle* handle = app->execution_handle;
-        if(handle->termination_callback) {
-            handle->termination_callback(handle, handle->termination_callback_context);
+        JsRunnerTerminationCallback termination_callback = handle->termination_callback;
+        void* callback_context = handle->termination_callback_context;
+        furi_event_flag_set(app->is_idle, JS_RUNNER_APP_FLAG_IDLE);
+        if(termination_callback) {
+            termination_callback(callback_context);
         }
     }
 }
