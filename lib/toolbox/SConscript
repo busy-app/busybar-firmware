@@ -15,6 +15,8 @@ env.Append(
         File("dsp.h"),
         File("float_tools.h"),
         File("hex.h"),
+        File("http_headers.h"),
+        File("http_response.h"),
         File("md5_calc.h"),
         File("path.h"),
         File("profiler.h"),
@@ -27,7 +29,6 @@ env.Append(
         File("tls_config.h"),
         File("url.h"),
         File("value_index.h"),
-        File("http_headers.h"),
         File("get_line.h"),
     ],
 )
@@ -42,6 +43,8 @@ sources = [
     "dsp.c",
     "float_tools.c",
     "hex.c",
+    "http_headers.c",
+    "http_response.c",
     "md5_calc.c",
     "path.c",
     "profiler.c",
@@ -53,7 +56,6 @@ sources = [
     "tls_config.c",
     "url.c",
     "value_index.c",
-    "http_headers.c",
     "get_line.c",
 ]
 

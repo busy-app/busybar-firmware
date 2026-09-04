@@ -275,6 +275,20 @@ static jerry_value_t headers_constructor(
     return jerry_undefined();
 }
 
+static jerry_value_t js_headers_construct(void) {
+    jerry_value_t global_obj = jerry_current_realm();
+
+    jerry_value_t constructor = jerry_object_get_sz(global_obj, "Headers");
+    furi_check(jerry_value_is_function(constructor));
+
+    jerry_value_t this_value = jerry_construct(constructor, NULL, 0);
+
+    jerry_value_free(constructor);
+    jerry_value_free(global_obj);
+
+    return this_value;
+}
+
 void js_setup_headers(void) {
     jerry_value_t global_obj = jerry_current_realm();
 
@@ -288,32 +302,18 @@ void js_setup_headers(void) {
     jerry_value_free(global_obj);
 }
 
-jerry_value_t js_headers_alloc(jerry_value_t response, const char* data, size_t data_size) {
-    jerry_value_t global_obj = jerry_current_realm();
+jerry_value_t js_headers_alloc(StringSlice headers_text) {
+    jerry_value_t obj = js_headers_construct();
 
-    jerry_value_t constructor = jerry_object_get_sz(global_obj, "Headers");
-    furi_check(jerry_value_is_function(constructor));
-
-    jerry_value_t this_value = jerry_construct(constructor, NULL, 0);
-
-    jerry_value_free(constructor);
-    jerry_value_free(global_obj);
-
-    HeadersNative* instance = jerry_object_get_native_ptr(this_value, &headers_native_info);
+    HeadersNative* instance = jerry_object_get_native_ptr(obj, &headers_native_info);
     furi_assert(instance);
 
-    if(!http_headers_parse(instance->headers, data, data_size)) {
-        jerry_value_free(this_value);
-        return jerry_throw_sz(JERRY_ERROR_COMMON, "Error parsing headers");
+    if(!http_headers_parse(instance->headers, headers_text.first_char, headers_text.length)) {
+        jerry_value_free(obj);
+        obj = jerry_throw_sz(JERRY_ERROR_COMMON, "Error parsing headers");
     }
-    // TODO: Separate Response and Headers
-    uint32_t status = http_headers_get_status(instance->headers);
-    js_set_property(response, "status", jerry_number((double)status));
-    js_set_property(
-        response, "statusText", jerry_string_sz(http_headers_get_status_text(instance->headers)));
-    js_set_property(response, "ok", jerry_boolean(status / 100 == 2));
 
-    return this_value;
+    return obj;
 }
 
 static void headers_free_cb(void* native_p, jerry_object_native_info_t* info_p) {

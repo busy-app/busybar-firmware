@@ -6,6 +6,7 @@
 #include "js_response.h"
 
 #include <fetch/fetch.h>
+#include <toolbox/http_response.h>
 
 #define TAG                     "JsFetch"
 #define FETCH_THREAD_STACK_SIZE (10 * 1024)
@@ -350,11 +351,17 @@ static jerry_value_t body_used_getter(
 }
 
 static jerry_value_t create_response(JsFetch* instance, SizedBuffer headers) {
-    jerry_value_t response = js_response_construct();
+    HttpResponse http_response = {0};
+    if(!http_response_parse(&http_response, headers.buffer, headers.size)) {
+        // Log error, but continue with blank HTTP response
+        FURI_LOG_E(TAG, "Failed to parse response");
+    }
+
+    jerry_value_t response = js_response_alloc(http_response.status, http_response.status_text);
     jerry_object_set_native_ptr(response, &js_fetch_response_native_info, instance);
 
+    jerry_value_t headers_val = js_headers_alloc(http_response.headers);
     jerry_value_t readable_stream = js_readable_stream_alloc(instance);
-    jerry_value_t headers_val = js_headers_alloc(response, headers.buffer, headers.size);
 
     js_set_property(response, "headers", headers_val);
     js_set_property(response, "body", readable_stream);
