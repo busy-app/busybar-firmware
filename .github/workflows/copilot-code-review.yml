@@ -9,16 +9,13 @@ concurrency:
     cancel-in-progress: false
 
 env:
-    # Service account that stands in for Copilot. When a review is requested from
-    # this account, or a PR is opened/marked ready for review, we request the
-    # actual Copilot code review using this account's token, so AI-credit usage is
-    # attributed to the service account rather than to individual developers.
+    # Review requests to this account trigger a Copilot review; its token
+    # (COPILOT_REVIEW_PAT) is used so AI credits are attributed to it.
     SERVICE_ACCOUNT_LOGIN: furippa
-    # GitHub login of the Copilot code review bot.
+    # Login of the Copilot code review bot.
     COPILOT_REVIEWER: "copilot-pull-request-reviewer[bot]"
-    # Remove the service account from requested reviewers after Copilot review is
-    # dispatched, so pull requests are not left waiting on an account that never
-    # submits a review itself. Set to 'false' to keep the account listed.
+    # Remove the service account from requested reviewers after dispatch so PRs are
+    # not left waiting on a reviewer that never reviews. 'false' to keep it listed.
     REMOVE_SERVICE_ACCOUNT_AFTER_DISPATCH: "true"
 
 jobs:
@@ -36,10 +33,7 @@ jobs:
               run: |
                   set -euo pipefail
 
-                  # API helper against the Pull Requests endpoints. HTTP 4xx/5xx
-                  # responses fail the call (like `curl --fail`) while the response
-                  # body is still emitted for diagnostics, so an API error can never
-                  # be mistaken for successful (empty) data.
+                  # Fail on HTTP errors (like `curl --fail`), keeping the body for diagnostics.
                   api() {
                     local method="$1" path="$2" data="${3:-}"
                     local args=(-sS --fail-with-body -X "${method}" -H "Authorization: Bearer ${API_TOKEN}" -H "Accept: application/vnd.github+json")
@@ -49,10 +43,7 @@ jobs:
                     curl "${args[@]}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}${path}"
                   }
 
-                  # Remove the service account from requested reviewers when it is
-                  # still listed and cleanup is enabled, so the PR is not left
-                  # waiting on an account that never submits a review itself.
-                  # Runs on every handled path (dispatch and dedup skips).
+                  # Unlist the service account if still requested (all handled paths).
                   cleanup_service_account() {
                     if [ "${REMOVE_SERVICE_ACCOUNT_AFTER_DISPATCH}" != "true" ] || [ "${service_account_requested}" != "true" ]; then
                       return 0
@@ -74,7 +65,6 @@ jobs:
                     exit 0
                   fi
 
-                  # Decide whether this event should trigger a review.
                   case "${PR_ACTION}" in
                     review_requested)
                       if [ "${REQUESTED_REVIEWER}" != "${SERVICE_ACCOUNT_LOGIN}" ]; then
@@ -99,7 +89,6 @@ jobs:
                       ;;
                   esac
 
-                  # Fetch the currently requested reviewers (also used by cleanup).
                   requested=$(api GET "/requested_reviewers" | jq -r '.users[]?.login')
                   copilot_requested=false
                   service_account_requested=false
@@ -112,15 +101,14 @@ jobs:
                     fi
                   fi
 
-                  # Skip if a Copilot review is already pending for this PR.
+                  # Avoid duplicates: skip if Copilot is pending or already reviewed this head.
                   if [ "${copilot_requested}" = "true" ]; then
                     echo "Copilot review is already requested; skipping"
                     cleanup_service_account
                     exit 0
                   fi
 
-                  # Skip if Copilot already reviewed the current head revision.
-                  # The reviews endpoint is paginated, so look through every page.
+                  # Reviews are paginated; scan all pages before deciding.
                   head_sha=$(api GET "" | jq -r '.head.sha')
                   : > /tmp/copilot-reviews.ndjson
                   page=1
@@ -140,7 +128,7 @@ jobs:
                     exit 0
                   fi
 
-                  # Dispatch the Copilot code review by requesting the Copilot bot as a reviewer.
+                  # Request the Copilot code review.
                   payload=$(jq -nc --arg reviewer "${COPILOT_REVIEWER}" '{reviewers: [$reviewer]}')
                   http_code=$(curl -sS -o /tmp/copilot-review-response.json -w '%{http_code}' \
                     -X POST \
@@ -154,9 +142,10 @@ jobs:
                     if [ "${http_code}" = "403" ]; then
                       echo "::error::Make sure the COPILOT_REVIEW_PAT secret (owner: ${SERVICE_ACCOUNT_LOGIN}) is a fine-grained PAT with 'Pull requests: Read and write' on this repository, and that ${SERVICE_ACCOUNT_LOGIN} has access to Copilot code review."
                     fi
+                    # Do not leave the PR waiting on the service account after a failed dispatch.
+                    cleanup_service_account
                     exit 1
                   fi
                   echo "Copilot code review requested for PR #${PR_NUMBER}"
 
-                  # Clear the service account so the PR is not left awaiting a reviewer that never reviews.
                   cleanup_service_account
