@@ -36,13 +36,37 @@ jobs:
               run: |
                   set -euo pipefail
 
+                  # API helper against the Pull Requests endpoints. HTTP 4xx/5xx
+                  # responses fail the call (like `curl --fail`) while the response
+                  # body is still emitted for diagnostics, so an API error can never
+                  # be mistaken for successful (empty) data.
                   api() {
                     local method="$1" path="$2" data="${3:-}"
-                    local args=(-sS -X "${method}" -H "Authorization: Bearer ${API_TOKEN}" -H "Accept: application/vnd.github+json")
+                    local args=(-sS --fail-with-body -X "${method}" -H "Authorization: Bearer ${API_TOKEN}" -H "Accept: application/vnd.github+json")
                     if [ -n "${data}" ]; then
                       args+=(-d "${data}")
                     fi
                     curl "${args[@]}" "https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}${path}"
+                  }
+
+                  # Remove the service account from requested reviewers when it is
+                  # still listed and cleanup is enabled, so the PR is not left
+                  # waiting on an account that never submits a review itself.
+                  # Runs on every handled path (dispatch and dedup skips).
+                  cleanup_service_account() {
+                    if [ "${REMOVE_SERVICE_ACCOUNT_AFTER_DISPATCH}" != "true" ] || [ "${service_account_requested}" != "true" ]; then
+                      return 0
+                    fi
+                    payload=$(jq -nc --arg reviewer "${SERVICE_ACCOUNT_LOGIN}" '{reviewers: [$reviewer]}')
+                    if curl -sS --fail-with-body -X DELETE \
+                      -H "Authorization: Bearer ${API_TOKEN}" \
+                      -H "Accept: application/vnd.github+json" \
+                      "https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/requested_reviewers" \
+                      -d "${payload}" >/dev/null; then
+                      echo "${SERVICE_ACCOUNT_LOGIN} removed from requested reviewers"
+                    else
+                      echo "::warning::Could not remove ${SERVICE_ACCOUNT_LOGIN} from requested reviewers"
+                    fi
                   }
 
                   if [ -z "${API_TOKEN}" ]; then
@@ -75,18 +99,44 @@ jobs:
                       ;;
                   esac
 
-                  # Skip if a Copilot review is already pending for this PR.
+                  # Fetch the currently requested reviewers (also used by cleanup).
                   requested=$(api GET "/requested_reviewers" | jq -r '.users[]?.login')
-                  if [ -n "${requested}" ] && printf '%s\n' "${requested}" | grep -qxF "${COPILOT_REVIEWER}"; then
+                  copilot_requested=false
+                  service_account_requested=false
+                  if [ -n "${requested}" ]; then
+                    if printf '%s\n' "${requested}" | grep -qxF "${COPILOT_REVIEWER}"; then
+                      copilot_requested=true
+                    fi
+                    if printf '%s\n' "${requested}" | grep -qxF "${SERVICE_ACCOUNT_LOGIN}"; then
+                      service_account_requested=true
+                    fi
+                  fi
+
+                  # Skip if a Copilot review is already pending for this PR.
+                  if [ "${copilot_requested}" = "true" ]; then
                     echo "Copilot review is already requested; skipping"
+                    cleanup_service_account
                     exit 0
                   fi
 
                   # Skip if Copilot already reviewed the current head revision.
+                  # The reviews endpoint is paginated, so look through every page.
                   head_sha=$(api GET "" | jq -r '.head.sha')
-                  last_copilot_review_sha=$(api GET "/reviews" | jq -r --arg login "${COPILOT_REVIEWER}" '[.[] | select(.user.login == $login and .commit_id != null)] | max_by(.submitted_at) | .commit_id // empty')
+                  : > /tmp/copilot-reviews.ndjson
+                  page=1
+                  while : ; do
+                    page_data=$(api GET "/reviews?per_page=100&page=${page}")
+                    page_count=$(printf '%s' "${page_data}" | jq 'length')
+                    printf '%s' "${page_data}" | jq -c '.[]' >> /tmp/copilot-reviews.ndjson
+                    if [ "${page_count}" -lt 100 ]; then
+                      break
+                    fi
+                    page=$((page + 1))
+                  done
+                  last_copilot_review_sha=$(jq -s -r --arg login "${COPILOT_REVIEWER}" '[.[] | select(.user.login == $login and .commit_id != null)] | max_by(.submitted_at) | .commit_id // empty' /tmp/copilot-reviews.ndjson)
                   if [ -n "${last_copilot_review_sha}" ] && [ "${last_copilot_review_sha}" = "${head_sha}" ]; then
                     echo "Copilot already reviewed the current head ${head_sha}; skipping"
+                    cleanup_service_account
                     exit 0
                   fi
 
@@ -101,20 +151,12 @@ jobs:
                   if [ "${http_code}" != "201" ]; then
                     echo "::error::Failed to request Copilot review (HTTP ${http_code})"
                     cat /tmp/copilot-review-response.json
+                    if [ "${http_code}" = "403" ]; then
+                      echo "::error::Make sure the COPILOT_REVIEW_PAT secret (owner: ${SERVICE_ACCOUNT_LOGIN}) is a fine-grained PAT with 'Pull requests: Read and write' on this repository, and that ${SERVICE_ACCOUNT_LOGIN} has access to Copilot code review."
+                    fi
                     exit 1
                   fi
                   echo "Copilot code review requested for PR #${PR_NUMBER}"
 
-                  # Optionally clear the service account so the PR is not left awaiting a reviewer that never reviews.
-                  if [ "${REMOVE_SERVICE_ACCOUNT_AFTER_DISPATCH}" = "true" ]; then
-                    payload=$(jq -nc --arg reviewer "${SERVICE_ACCOUNT_LOGIN}" '{reviewers: [$reviewer]}')
-                    if curl -sS -X DELETE \
-                      -H "Authorization: Bearer ${API_TOKEN}" \
-                      -H "Accept: application/vnd.github+json" \
-                      "https://api.github.com/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/requested_reviewers" \
-                      -d "${payload}" >/dev/null; then
-                      echo "${SERVICE_ACCOUNT_LOGIN} removed from requested reviewers"
-                    else
-                      echo "::warning::Could not remove ${SERVICE_ACCOUNT_LOGIN} from requested reviewers"
-                    fi
-                  fi
+                  # Clear the service account so the PR is not left awaiting a reviewer that never reviews.
+                  cleanup_service_account
