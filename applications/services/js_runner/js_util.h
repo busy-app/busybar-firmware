@@ -5,6 +5,7 @@
 #pragma once
 #include "js_runner_types.h"
 #include <furi/core/string.h>
+#include <toolbox/sized_buffer.h>
 
 #define JS_CHECK_ARGS_COUNT(n)                                                             \
     do {                                                                                   \
@@ -166,9 +167,19 @@ void js_log_exception(const char* tag, const char* msg, jerry_value_t exception)
 /**
  * @brief Create an external ArrayBuffer referencing ByteArray's data.
  *
- * Ownership of the ByteArray is transferred to jerryscript/
+ * Ownership of the ByteArray is transferred to jerryscript.
  *
  * @param array pointer to ByteArray (heap-allocated).
  * @return a JS ArrayBuffer object.
  */
 jerry_value_t js_arraybuffer_from_byte_array(ByteArray_t* array);
+
+/**
+ * @brief Create an external ArrayBuffer referencing SizedBuffer's data.
+ *
+ * Ownership of the buffer is transferred to jerryscript.
+ *
+ * @param buffer data to build an ArrayBuffer from.
+ * @return a JS ArrayBuffer object.
+ */
+jerry_value_t js_arraybuffer_from_sized_buffer(SizedBuffer buffer);

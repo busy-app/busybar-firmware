@@ -57,7 +57,7 @@ typedef struct JsRunnerRunResult {
     JsRunnerExecutionHandle* handle;
 } JsRunnerRunResult;
 
-typedef void (*JsRunnerTerminationCallback)(JsRunnerExecutionHandle* handle, void* context);
+typedef void (*JsRunnerTerminationCallback)(void* context);
 
 /** @brief Allocate a Javascript execution context.
  *

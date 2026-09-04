@@ -26,10 +26,7 @@ static void js_app_launcher_scene_run_console_out_callback(
     }
 }
 
-static void js_app_launcher_scene_run_terminated_callback(
-    JsRunnerExecutionHandle* exec_handle,
-    void* context) {
-    UNUSED(exec_handle);
+static void js_app_launcher_scene_run_terminated_callback(void* context) {
     furi_assert(context);
 
     JsAppLauncher* instance = context;

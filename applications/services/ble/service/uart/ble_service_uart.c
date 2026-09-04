@@ -42,7 +42,7 @@ static bool ble_service_uart_init(void* object) {
     return true;
 }
 
-static const BleCharacteristicDescriptor nordic_uart_service_characteristics[] = {
+static const BleCharacteristicConfig nordic_uart_service_characteristics[] = {
     {
         .intercom_index = BleUartCharacteristicIndexRx,
         .name = "Uart Rx",
@@ -77,23 +77,22 @@ static const BleCharacteristicDescriptor nordic_uart_service_characteristics[] =
 
 //==========================================================
 
-const BleServiceDescriptor ble_service_config_nordic_uart = {
+const BleServiceConfig ble_service_config_nordic_uart = {
     .name = "Nordic UART",
 #if defined(BSB_MCU_SI917)
     .uuid = {.Char_UUID_128 = UART_SERVICE_UUID},
     .uuid_size = 16,
 #endif
     .index = BleServiceIndexNordicUart,
-    .init_method = BleServiceInitMethodRemote,
     .char_count = COUNT_OF(nordic_uart_service_characteristics),
-    .char_descriptors = nordic_uart_service_characteristics,
+    .char_configs = nordic_uart_service_characteristics,
     .init = ble_service_uart_init,
 };
 
 //==========================================================
 //==========================================================
 
-static const BleCharacteristicDescriptor hm10_uart_service_characteristics[] = {
+static const BleCharacteristicConfig hm10_uart_service_characteristics[] = {
     {
         .intercom_index = BleUartCharacteristicIndexRx,
         .name = "HM10 Rx",
@@ -118,15 +117,14 @@ static const BleCharacteristicDescriptor hm10_uart_service_characteristics[] = {
 
 //==========================================================
 
-const BleServiceDescriptor ble_service_config_hm10_uart = {
+const BleServiceConfig ble_service_config_hm10_uart = {
     .name = "HM10 UART",
 #if defined(BSB_MCU_SI917)
     .uuid = {.Char_UUID_128 = HM10_UART_SERVICE_UUID},
     .uuid_size = 16,
 #endif
     .index = BleServiceIndexHm10Uart,
-    .init_method = BleServiceInitMethodRemote,
     .char_count = COUNT_OF(hm10_uart_service_characteristics),
-    .char_descriptors = hm10_uart_service_characteristics,
+    .char_configs = hm10_uart_service_characteristics,
     .init = ble_service_uart_init,
 };

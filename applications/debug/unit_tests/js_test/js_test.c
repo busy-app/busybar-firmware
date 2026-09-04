@@ -278,8 +278,7 @@ MU_TEST(js_tests_handle) {
     furi_record_close(RECORD_JS_RUNNER);
 }
 
-static void terminate_callback(JsRunnerExecutionHandle* handle, void* context) {
-    UNUSED(handle);
+static void terminate_callback(void* context) {
     bool* done = context;
     *done = true;
 }

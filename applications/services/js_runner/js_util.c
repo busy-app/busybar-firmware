@@ -209,3 +209,7 @@ jerry_value_t js_arraybuffer_from_byte_array(ByteArray_t* array) {
     destructor->byte_array = array;
     return jerry_arraybuffer_external(ByteArray_get(*array, 0), size, destructor);
 }
+
+jerry_value_t js_arraybuffer_from_sized_buffer(SizedBuffer buffer) {
+    return jerry_arraybuffer_external(buffer.buffer, buffer.size, js_runner_heap_destructor);
+}
