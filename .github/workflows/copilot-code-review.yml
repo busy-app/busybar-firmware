@@ -40,13 +40,13 @@ jobs:
                     if [ "${REMOVE_SERVICE_ACCOUNT_AFTER_DISPATCH}" != "true" ] || [ "${service_account_requested}" != "true" ] || [ "${cleanup_done}" = "true" ]; then
                       return 0
                     fi
-                    cleanup_done=true
                     payload=$(jq -nc --arg reviewer "${SERVICE_ACCOUNT_LOGIN}" '{reviewers: [$reviewer]}')
                     if ! err=$(printf '%s' "${payload}" | GH_TOKEN="${ACTIONS_TOKEN}" gh api -X DELETE --input - "/repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/requested_reviewers" 2>&1); then
                       echo "::warning::Could not remove ${SERVICE_ACCOUNT_LOGIN} from requested reviewers"
                       printf '%s\n' "${err}"
                     else
                       echo "${SERVICE_ACCOUNT_LOGIN} removed from requested reviewers"
+                      cleanup_done=true
                     fi
                   }
 
