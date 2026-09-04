@@ -168,7 +168,31 @@ void cli_command_free_blocks(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(args);
     UNUSED(context);
 
-    memmgr_heap_printf_free_blocks();
+    MemmgrHeapBlockInfo* info = memmgr_heap_get_free_blocks_info();
+    size_t total_free = 0;
+    size_t max_free = 0;
+    for(size_t i = 0; i < info->free_blocks; i++) {
+        size_t used_size = 0;
+        if(i < info->free_blocks - 1) {
+            used_size = info->blocks[i + 1].addr - (info->blocks[i].addr + info->blocks[i].size);
+        }
+        printf(
+            "0x%p\tFree: %lu \tUsed: %lu\r\n",
+            (void*)info->blocks[i].addr,
+            (uint32_t)info->blocks[i].size,
+            (uint32_t)used_size);
+
+        total_free += info->blocks[i].size;
+        if(info->blocks[i].size > max_free) {
+            max_free = info->blocks[i].size;
+        }
+    }
+    uint32_t fragmentation = total_free > 0 ? (100 - (max_free * 100 / total_free)) : 0;
+    printf(
+        "\r\nLargest free block: %lu\r\nFragmentation: %lu%%\r\n",
+        (uint32_t)max_free,
+        fragmentation);
+    free(info);
 }
 
 void cli_command_echo(PipeSide* pipe, FuriString* args, void* context) {
