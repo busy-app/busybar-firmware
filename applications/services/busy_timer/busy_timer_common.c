@@ -26,6 +26,10 @@ void busy_timer_common_serialize_app_config(cJSON* json, const BusyAppConfig* ap
         busy_bar_settings_json,
         KEY_COMMON_BUSY_BAR_SETTINGS_TRIGGER_SMART_HOME,
         app_config->is_smart_home_enabled);
+    cJSON_AddBoolToObject(
+        busy_bar_settings_json,
+        KEY_COMMON_BUSY_BAR_SETTINGS_SHOW_WORK_TIME,
+        app_config->is_show_work_time_enabled);
 }
 
 void busy_timer_common_serialize_infinite_config(cJSON* json) {
@@ -87,6 +91,15 @@ bool busy_timer_common_deserialize_app_config(const cJSON* json, BusyAppConfig* 
         }
 
         app_config->is_smart_home_enabled = cJSON_IsTrue(item);
+
+        item = cJSON_GetObjectItem(json, KEY_COMMON_BUSY_BAR_SETTINGS_SHOW_WORK_TIME);
+        if(item == NULL) {
+            app_config->is_show_work_time_enabled = BUSY_APP_IS_SHOW_WORK_TIME_ENABLED_DEFAULT;
+        } else if(!cJSON_IsBool(item)) {
+            break;
+        } else {
+            app_config->is_show_work_time_enabled = cJSON_IsTrue(item);
+        }
 
         success = true;
     } while(false);

@@ -13,6 +13,7 @@ from utils.busy_timer import (
     next_timestamp,
     wait_for_snapshot_type,
 )
+from utils.wait import wait_for
 
 BUSY_THEME_ANIMS = {
     "back_soon": "back_soon_72x16.anim",
@@ -31,6 +32,7 @@ DEFAULT_BUSY_SETTINGS = {
     "theme": "busy",
     "show_work_phase_only": False,
     "trigger_smart_home": False,
+    "show_work_time": True,
 }
 
 
@@ -86,6 +88,37 @@ def _interval_snapshot(timestamp_ms: int, settings: dict) -> dict:
         },
         "snapshot_timestamp_ms": timestamp_ms,
     }
+
+
+def _profile_payload(
+    profile,
+    timestamp_ms: int,
+    *,
+    title: str | None = None,
+    busy_bar_settings: dict | None = None,
+) -> dict:
+    return {
+        "sort_order": profile.sort_order,
+        "title": title or profile.title,
+        "id": profile.id,
+        "timer_settings": profile.timer_settings,
+        "busy_bar_settings": (
+            busy_bar_settings
+            if busy_bar_settings is not None
+            else profile.busy_bar_settings.model_dump()
+        ),
+        "profile_timestamp_ms": timestamp_ms,
+    }
+
+
+def _wait_for_profile_title(busy_api: BusyAPI, slot: str, title: str):
+    return wait_for(
+        f'BUSY profile "{slot}" title {title!r}',
+        lambda: busy_api.get_profile(slot),
+        lambda profile: profile.title == title,
+        timeout=5.0,
+        interval=0.1,
+    )
 
 
 def _front_frame_has_content(frame: bytes) -> bool:
@@ -157,6 +190,7 @@ class TestBusySnapshotAPI:
                     "theme": "busy",
                     "show_work_phase_only": False,
                     "trigger_smart_home": False,
+                    "show_work_time": True,
                 },
             },
             "snapshot_timestamp_ms": 0,
@@ -205,6 +239,10 @@ class TestBusyProfileAPI:
         assert "type" in response.timer_settings
         assert response.timer_settings["type"] in ["INFINITE", "SIMPLE", "INTERVAL"]
         assert response.busy_bar_settings is not None
+        assert isinstance(response.busy_bar_settings.show_work_time, bool), (
+            "Expected show_work_time to be bool, got "
+            f"{response.busy_bar_settings.show_work_time!r}"
+        )
 
     @allure.title("GET /api/busy/profiles/custom")
     @pytest.mark.api
@@ -216,6 +254,10 @@ class TestBusyProfileAPI:
         assert response.title
         assert response.id
         assert response.timer_settings is not None
+        assert isinstance(response.busy_bar_settings.show_work_time, bool), (
+            "Expected show_work_time to be bool, got "
+            f"{response.busy_bar_settings.show_work_time!r}"
+        )
 
     @allure.title("PUT /api/busy/profiles/custom")
     @pytest.mark.api
@@ -224,10 +266,12 @@ class TestBusyProfileAPI:
         """Test PUT /api/busy/profiles/custom accepts valid profile data"""
         # Save original
         original = busy_api.get_profile("custom")
+        test_timestamp_ms = original.profile_timestamp_ms + 1
+        test_title = f"show_work_time_off_{test_timestamp_ms}"
 
         test_profile = {
             "sort_order": 0,
-            "title": "test_profile",
+            "title": test_title,
             "id": original.id,
             "timer_settings": {
                 "type": "SIMPLE",
@@ -237,29 +281,91 @@ class TestBusyProfileAPI:
                 "theme": "busy",
                 "show_work_phase_only": False,
                 "trigger_smart_home": False,
+                "show_work_time": False,
             },
-            "profile_timestamp_ms": 0,
+            "profile_timestamp_ms": test_timestamp_ms,
         }
 
         try:
             with allure.step("Set test profile"):
                 response = busy_api.set_profile_raw("custom", test_profile)
-                assert response.status_code == 200
+                assert (
+                    response.status_code == 200
+                ), f"Expected 200, got {response.status_code}: {response.text[:200]}"
 
-            with allure.step("Verify profile is readable after PUT"):
-                updated = busy_api.get_profile("custom")
-                assert updated.timer_settings is not None
+            with allure.step("Verify the disabled value round-trips"):
+                updated = _wait_for_profile_title(busy_api, "custom", test_title)
+                assert updated.busy_bar_settings.show_work_time is False, (
+                    "Expected show_work_time=False, got "
+                    f"{updated.busy_bar_settings.show_work_time!r}"
+                )
+                assert (
+                    updated.timer_settings["type"] == "SIMPLE"
+                ), f"Expected SIMPLE, got {updated.timer_settings!r}"
         finally:
             with allure.step("Restore original profile"):
-                restore_data = {
-                    "sort_order": original.sort_order,
-                    "title": original.title,
-                    "id": original.id,
-                    "timer_settings": original.timer_settings,
-                    "busy_bar_settings": original.busy_bar_settings.model_dump(),
-                    "profile_timestamp_ms": original.profile_timestamp_ms,
-                }
-                busy_api.set_profile_raw("custom", restore_data)
+                current = busy_api.get_profile("custom")
+                restore_data = _profile_payload(
+                    original,
+                    current.profile_timestamp_ms + 1,
+                )
+                restore_response = busy_api.set_profile_raw("custom", restore_data)
+                assert restore_response.status_code == 200, (
+                    "Failed to restore the custom profile: "
+                    f"{restore_response.status_code}: {restore_response.text[:200]}"
+                )
+                _wait_for_profile_title(busy_api, "custom", original.title)
+
+    @allure.title("PUT /api/busy/profiles/custom accepts legacy busy bar settings")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_busy_profile_put_custom_without_show_work_time(
+        self, busy_api: BusyAPI
+    ):
+        """Test that an omitted show_work_time value defaults to true."""
+        original = busy_api.get_profile("custom")
+        legacy_settings = original.busy_bar_settings.model_dump()
+        legacy_settings.pop("show_work_time")
+        test_timestamp_ms = original.profile_timestamp_ms + 1
+        test_title = f"legacy_show_work_time_{test_timestamp_ms}"
+
+        test_profile = _profile_payload(
+            original,
+            test_timestamp_ms,
+            title=test_title,
+            busy_bar_settings=legacy_settings,
+        )
+
+        try:
+            with allure.step("Set a profile without show_work_time"):
+                response = busy_api.set_profile_raw("custom", test_profile)
+                assert (
+                    response.status_code == 200
+                ), f"Expected 200, got {response.status_code}: {response.text[:200]}"
+
+            with allure.step("Verify the firmware emits the default value"):
+                _wait_for_profile_title(busy_api, "custom", test_title)
+                raw_response = busy_api.get_profile_raw("custom")
+                assert (
+                    raw_response.status_code == 200
+                ), f"Expected 200, got {raw_response.status_code}: {raw_response.text[:200]}"
+                raw_settings = raw_response.json()["busy_bar_settings"]
+                assert (
+                    raw_settings.get("show_work_time") is True
+                ), f"Expected show_work_time=True, got {raw_settings!r}"
+        finally:
+            with allure.step("Restore original profile"):
+                current = busy_api.get_profile("custom")
+                restore_data = _profile_payload(
+                    original,
+                    current.profile_timestamp_ms + 1,
+                )
+                restore_response = busy_api.set_profile_raw("custom", restore_data)
+                assert restore_response.status_code == 200, (
+                    "Failed to restore the custom profile: "
+                    f"{restore_response.status_code}: {restore_response.text[:200]}"
+                )
+                _wait_for_profile_title(busy_api, "custom", original.title)
 
     @allure.title("GET /api/busy/profiles/{invalid_slot}")
     @pytest.mark.api
@@ -599,6 +705,7 @@ class TestBusySnapshotRegressions:
                 "theme": "on_call",
                 "show_work_phase_only": True,
                 "trigger_smart_home": False,
+                "show_work_time": False,
             }
         )
         body = _simple_snapshot(next_timestamp(api_session, web_base_url), settings)

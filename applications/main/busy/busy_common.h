@@ -10,6 +10,7 @@
 #define BUSY_APP_THEME_NAME_CUSTOM_DEFAULT         "keep_out"
 #define BUSY_APP_IS_SMART_HOME_ENABLED_DEFAULT     (true)
 #define BUSY_APP_IS_SHOW_WORK_ONLY_ENABLED_DEFAULT (false)
+#define BUSY_APP_IS_SHOW_WORK_TIME_ENABLED_DEFAULT (true)
 
 /**
  * @brief Maximum length of a theme name.
@@ -28,4 +29,7 @@ typedef struct {
     /** Blank the front display in non-work states if @c true,
      *  regular behaviour otherwise */
     bool is_show_work_only_enabled;
+    /** Show the remaining time throughout work if @c true,
+     *  limit it to countdown and adjustment feedback otherwise */
+    bool is_show_work_time_enabled;
 } BusyAppConfig;
