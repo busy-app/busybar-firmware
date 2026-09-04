@@ -131,7 +131,7 @@ static bool ble_service_process_input_frame(BleServiceObject* instance) {
 }
 
 BleServiceObject* ble_service_alloc(
-    const BleServiceDescriptor* service_config,
+    const BleServiceConfig* service_config,
     FuriMessageQueue* message_queue,
     IntercomChannel* intercom_ch) {
     furi_assert(service_config);
@@ -153,7 +153,7 @@ BleServiceObject* ble_service_alloc(
     if(service_config->char_count) {
         instance->chars = malloc(sizeof(BleCharacteristicObject*) * service_config->char_count);
         for(size_t i = 0; i < service_config->char_count; i++) {
-            const BleCharacteristicDescriptor* config = &service_config->char_descriptors[i];
+            const BleCharacteristicConfig* config = &service_config->char_configs[i];
             BleCharacteristicObject* ble_char = ble_characteristic_alloc(config, instance);
             instance->chars[config->intercom_index] = ble_char;
         }

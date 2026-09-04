@@ -14,7 +14,7 @@
 
 struct BleServiceObject {
     bool ready;
-    const BleServiceDescriptor* config;
+    const BleServiceConfig* config;
     BleCharacteristicObject** chars;
 
     FuriMessageQueue* message_queue;
