@@ -1,0 +1,9 @@
+{
+  "format_version": 1,
+  "id": "app.busy.weather",
+  "name": "Weather",
+  "version": "0.1.0",
+  "description": "Weather forecast",
+  "author": "Flipper FZCO",
+  "debug": false
+}
