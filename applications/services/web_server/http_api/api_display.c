@@ -64,7 +64,10 @@ static bool api_display_draw_parse_text_element(
         canvas_element->text.color = (Color)COLOR_MAKE_HEXA(0xFFFFFFFF);
 
         char* font_name = mg_json_get_str(json_element, "$.font");
-        if(!font_name) break;
+        if(!font_name) {
+            furi_string_cat_printf(error, FIELD_MISSING_ERROR("font"));
+            break;
+        }
 
         static const char* const font_names[] = {
             "tiny",
@@ -119,7 +122,7 @@ static bool api_display_draw_parse_text_element(
 
         double number;
         if(mg_json_get_num(json_element, "$.width", &number)) {
-            if(number < __DBL_EPSILON__) { // <= 0
+            if(number < 1.0) {
                 furi_string_cat_printf(error, FIELD_INVALID_ERROR("width", "be >= 1"));
                 break;
             }
@@ -394,7 +397,7 @@ static bool api_display_draw_parse_xpm_element(
         if(header.width > display_parameters->width ||
            header.height > display_parameters->height) {
             furi_string_cat_printf(
-                error, FIELD_INVALID_ERROR("data", "be smaller than the display"));
+                error, FIELD_INVALID_ERROR("data", "be no larger than the display"));
             furi_string_cat_printf(
                 error, " (%zux%zu)", display_parameters->width, display_parameters->height);
             break;
@@ -702,7 +705,10 @@ static bool api_display_draw_parse_element(
             free(disp_until);
         }
 
-        if((canvas_element->timeout > 0) && (canvas_element->display_until > 0)) break;
+        if((canvas_element->timeout > 0) && (canvas_element->display_until > 0)) {
+            furi_string_cat_printf(error, FIELD_XOR_ERROR("timeout,display_until"));
+            break;
+        }
 
         canvas_element->x = mg_json_get_long(element, "$.x", 0);
         canvas_element->y = mg_json_get_long(element, "$.y", 0);
@@ -913,7 +919,6 @@ static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_m
             }
         }
         if(!ok) {
-            furi_assert(!furi_string_empty(error));
             MG_REPLY_ERROR(conn, 400, furi_string_get_cstr(error));
             break;
         }
@@ -955,13 +960,22 @@ static void api_display_canvas_clear(struct mg_connection* conn, struct mg_http_
         cJSON* json_app_name = NULL;
         if(msg->body.buf && msg->body.len) {
             body = cJSON_ParseWithLength(msg->body.buf, msg->body.len);
-            if(!body) break;
-            if(!cJSON_IsObject(body)) break;
+            if(!body) {
+                furi_string_printf(error, "body contains malformed JSON");
+                break;
+            }
+            if(!cJSON_IsObject(body)) {
+                furi_string_printf(error, "body JSON must be an object");
+                break;
+            }
 
             cJSON* json_element_ids = cJSON_GetObjectItem(body, "element_ids");
 
             if(json_element_ids) {
-                if(!cJSON_IsArray(json_element_ids)) break;
+                if(!cJSON_IsArray(json_element_ids)) {
+                    furi_string_printf(error, "element_ids must be an array of strings");
+                    break;
+                }
 
                 bool all_element_ids_valid = true;
                 element_ids = malloc(sizeof(char*) * (cJSON_GetArraySize(json_element_ids) + 1));
@@ -979,9 +993,12 @@ static void api_display_canvas_clear(struct mg_connection* conn, struct mg_http_
                 }
 
                 if(!all_element_ids_valid) break;
+            } else {
+                furi_string_printf(error, "element_ids field not present");
+                break;
             }
 
-            cJSON* json_app_name = cJSON_GetObjectItem(body, "application_name");
+            json_app_name = cJSON_GetObjectItem(body, "application_name");
             if(json_app_name && !cJSON_IsString(json_app_name)) {
                 furi_string_printf(error, "application_name must be a string");
                 break;
