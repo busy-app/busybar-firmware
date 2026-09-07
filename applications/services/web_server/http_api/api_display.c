@@ -993,9 +993,6 @@ static void api_display_canvas_clear(struct mg_connection* conn, struct mg_http_
                 }
 
                 if(!all_element_ids_valid) break;
-            } else {
-                furi_string_printf(error, "element_ids field not present");
-                break;
             }
 
             json_app_name = cJSON_GetObjectItem(body, "application_name");
