@@ -147,6 +147,9 @@ jerry_value_t js_object_get_nested_property(
     size_t nesting_count) {
     jerry_value_t current_level = jerry_value_copy(object);
     for(size_t i = 0; i != nesting_count; ++i) {
+        if(jerry_value_is_exception(current_level)) {
+            return current_level;
+        }
         if(js_object_has_property(current_level, keys[i])) {
             jerry_value_t prop = jerry_object_get_sz(current_level, keys[i]);
             jerry_value_free(current_level);

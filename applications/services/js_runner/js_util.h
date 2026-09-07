@@ -86,7 +86,7 @@ bool js_object_has_property(jerry_value_t object, const char* key);
  * Example: get object.foo.bar.baz
  *
  * const char* const keys[] = {"foo", "bar", "baz"};
- * jerry_value_t baz_value = js_object_get_nested_property(object, keys, 3)
+ * jerry_value_t baz_value = js_object_get_nested_property(object, keys, 3);
  *
  * @param object root object.
  * @param keys array of property names for each nesting level.
