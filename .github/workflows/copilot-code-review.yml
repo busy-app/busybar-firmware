@@ -1,9 +1,8 @@
 name: "Request Copilot code review"
 
 on:
-    # pull_request_target:
-    pull_request:
-        types: [opened, ready_for_review, review_requested]
+    pull_request_target:
+        types: [ready_for_review, review_requested]
 
 concurrency:
     group: copilot-code-review-${{ github.event.pull_request.number }}
