@@ -93,7 +93,6 @@ static void mongoose_dns_apply(struct mg_mgr* mgr, uint32_t address) {
     mgr->dns4.c = NULL;
 
     MONGOOSE_DNS_TRACE("Applied DNS %s to mg_mgr 0x%p", mgr->dns4.url, mgr);
-
 }
 
 // ==========

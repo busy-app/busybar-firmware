@@ -2,7 +2,9 @@
 
 #include <wifi/wifi_util.h>
 #include <path.h>
-#include <toolbox/http_headers.h>
+
+#include <http/http_response.h>
+#include <http/http_headers.h>
 
 MU_TEST(misc_tests_ipv6_format) {
     char buf[40];
@@ -70,52 +72,83 @@ MU_TEST(misc_tests_path_normalize) {
     check_path_normalize("a/../../../", "../..", true);
 }
 
-#define CHECK_HEADER(index, k, v)                                             \
-    do {                                                                      \
-        const HttpHeader* __header = http_headers_get_header(headers, index); \
-        mu_assert_string_eq(k, furi_string_get_cstr(__header->key));          \
-        mu_assert_string_eq(v, furi_string_get_cstr(__header->value));        \
+#define CHECK_HEADER_BY_INDEX(index, k, v)                                      \
+    do {                                                                        \
+        const HttpHeader* __header = http_headers_get_by_index(headers, index); \
+        mu_assert_string_eq(k, furi_string_get_cstr(__header->key));            \
+        mu_assert_string_eq(v, furi_string_get_cstr(__header->value));          \
     } while(false)
 
+#define CHECK_HEADER(k, v)                                             \
+    do {                                                               \
+        const HttpHeader* __header = http_headers_get(headers, k);     \
+        mu_assert_not_null(__header);                                  \
+        mu_assert_string_eq(k, furi_string_get_cstr(__header->key));   \
+        mu_assert_string_eq(v, furi_string_get_cstr(__header->value)); \
+    } while(false)
+
+typedef struct {
+    const char* key;
+    const char* value;
+} HttpHeaderTest;
+
+static const HttpHeaderTest misc_test_http_headers[] = {
+    [0] = {"Server", "nginx/1.18.0"},
+    [1] = {"Date", "Tue, 28 Jul 2026 13:17:26 GMT"},
+    [2] = {"Content-Type", "text/html"},
+    [3] = {"Content-Length", "4592"},
+    [4] = {"Last-Modified", "Tue, 09 Apr 2024 06:23:39 GMT"},
+    [5] = {"Connection", "close"},
+    [6] = {"Accept-Ranges", "bytes"},
+};
+
 MU_TEST(misc_tests_http_headers) {
-    const char* request = "HTTP/1.1 200 OK\r\n"
-                          "Server: nginx/1.18.0\r\n"
-                          "Date: Tue, 28 Jul 2026 13:17:26 GMT\r\n"
-                          "Content-Type: text/html\r\n"
-                          "Content-Length: 4592  \r\n"
-                          "Last-Modified:    Tue, 09 Apr 2024 06:23:39 GMT\r\n"
-                          "Connection:  close \r\n"
-                          "Accept-Ranges: bytes\r\n"
-                          "\r\n";
+    FuriString* response_str = furi_string_alloc_set("HTTP/1.1 200 OK\r\n");
+
+    for(uint32_t i = 0; i < COUNT_OF(misc_test_http_headers); ++i) {
+        const HttpHeaderTest* test = &misc_test_http_headers[i];
+        furi_string_cat_printf(response_str, "%s: %s\r\n", test->key, test->value);
+    }
+
+    furi_string_cat(response_str,"\r\n");
+
+    HttpResponse response;
+    mu_check(http_response_parse(&response, furi_string_get_cstr(response_str), furi_string_size(response_str)));
+    mu_assert_int_eq(200, response.status);
+    mu_assert_mem_eq("OK", response.status_text.first_char, response.status_text.length);
 
     HttpHeaders* headers = http_headers_alloc();
     mu_check(headers);
-    mu_check(http_headers_parse(headers, request, strlen(request)));
-    mu_assert_int_eq(200, http_headers_get_status(headers));
-    mu_assert_string_eq("OK", http_headers_get_status_text(headers));
-    mu_assert_int_eq(7, http_headers_get_header_count(headers));
+    mu_check(http_headers_parse(headers, response.headers.first_char, response.headers.length));
+    mu_assert_int_eq(COUNT_OF(misc_test_http_headers), http_headers_get_count(headers));
 
-    CHECK_HEADER(0, "Server", "nginx/1.18.0");
-    CHECK_HEADER(1, "Date", "Tue, 28 Jul 2026 13:17:26 GMT");
-    CHECK_HEADER(2, "Content-Type", "text/html");
-    CHECK_HEADER(3, "Content-Length", "4592");
-    CHECK_HEADER(4, "Last-Modified", "Tue, 09 Apr 2024 06:23:39 GMT");
-    CHECK_HEADER(5, "Connection", "close");
-    CHECK_HEADER(6, "Accept-Ranges", "bytes");
+    for(uint32_t i = 0; i < COUNT_OF(misc_test_http_headers); ++i) {
+        const HttpHeaderTest* test = &misc_test_http_headers[i];
+        CHECK_HEADER(test->key, test->value);
+    }
+
+    for(uint32_t i = 0; i < COUNT_OF(misc_test_http_headers); ++i) {
+        const HttpHeaderTest* test = &misc_test_http_headers[i];
+        CHECK_HEADER_BY_INDEX(i, test->key, test->value);
+    }
 
     http_headers_free(headers);
+    furi_string_free(response_str);
 }
 
 MU_TEST(misc_tests_http_headers_min) {
     const char* request = "HTTP/7.2 239 \r\n"
                           "\r\n";
 
+    HttpResponse response;
+    mu_check(http_response_parse(&response, request, strlen(request)));
+    mu_assert_int_eq(239, response.status);
+    mu_assert_int_eq(0, response.status_text.length);
+
     HttpHeaders* headers = http_headers_alloc();
     mu_check(headers);
-    mu_check(http_headers_parse(headers, request, strlen(request)));
-    mu_assert_int_eq(239, http_headers_get_status(headers));
-    mu_assert_string_eq("", http_headers_get_status_text(headers));
-    mu_assert_int_eq(0, http_headers_get_header_count(headers));
+    mu_check(http_headers_parse(headers, response.headers.first_char, response.headers.length));
+    mu_assert_int_eq(0, http_headers_get_count(headers));
 
     http_headers_free(headers);
 }
