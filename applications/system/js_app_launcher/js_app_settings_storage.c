@@ -86,6 +86,14 @@ static bool js_app_settings_storage_is_valid_string(
     return js_app_settings_validate_value(context->node, value);
 }
 
+static bool js_app_settings_storage_is_valid_value(
+    const SettingProviderSetting* setting,
+    const void* value) {
+    const JsAppSettingsStorageSettingContext* context = setting->context;
+
+    return js_app_settings_validate_value(context->node, value);
+}
+
 /* Serialization */
 
 static bool js_app_settings_storage_color_serialize(
@@ -112,11 +120,15 @@ static bool js_app_settings_storage_time_serialize(
     const SettingProviderSetting* setting,
     const void* value,
     FuriString* string) {
-    UNUSED(setting);
+    const JsAppSettingsStorageSettingContext* context = setting->context;
 
-    js_app_settings_time_format(value, string);
+    bool is_valid = false;
+    if(js_app_settings_validate_value(context->node, value)) {
+        js_app_settings_time_format(value, string);
+        is_valid = true;
+    }
 
-    return true;
+    return is_valid;
 }
 
 static bool js_app_settings_storage_time_deserialize(
@@ -132,12 +144,11 @@ static bool js_app_settings_storage_geo_serialize(
     const SettingProviderSetting* setting,
     const void* value,
     cJSON* json) {
-    UNUSED(setting);
-
+    const JsAppSettingsStorageSettingContext* context = setting->context;
     const JsAppSettingsGeoValue* geo = value;
-    bool is_valid = geo->mode < JsAppSettingsGeoModesCount;
 
-    if(is_valid) {
+    bool is_valid = false;
+    if(js_app_settings_validate_value(context->node, geo)) {
         cJSON_AddStringToObject(json, "mode", js_app_settings_geo_mode_format(geo->mode));
         cJSON_AddStringToObject(json, "name", geo->name);
 
@@ -145,6 +156,8 @@ static bool js_app_settings_storage_geo_serialize(
             cJSON_AddNumberToObject(json, "lat", geo->latitude);
             cJSON_AddNumberToObject(json, "lon", geo->longitude);
         }
+
+        is_valid = true;
     }
 
     return is_valid;
@@ -261,7 +274,7 @@ static void* js_app_settings_storage_build_interface_time(const JsAppSettingsNod
     const JsAppSettingsTimeData* node_data = node->data;
 
     SettingProviderCustomInterface* interface = malloc(sizeof(*interface));
-    interface->is_valid_callback = NULL;
+    interface->is_valid_callback = js_app_settings_storage_is_valid_value;
     interface->serialize_callback = js_app_settings_storage_time_serialize;
     interface->deserialize_callback = js_app_settings_storage_time_deserialize;
     interface->default_value_callback = NULL;
@@ -275,7 +288,7 @@ static void* js_app_settings_storage_build_interface_geo(const JsAppSettingsNode
     const JsAppSettingsGeoData* node_data = node->data;
 
     SettingProviderRawInterface* interface = malloc(sizeof(*interface));
-    interface->is_valid_callback = NULL;
+    interface->is_valid_callback = js_app_settings_storage_is_valid_value;
     interface->serialize_callback = js_app_settings_storage_geo_serialize;
     interface->deserialize_callback = js_app_settings_storage_geo_deserialize;
     interface->default_value = &node_data->default_value;
