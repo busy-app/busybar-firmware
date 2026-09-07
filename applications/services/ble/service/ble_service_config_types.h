@@ -36,11 +36,13 @@ typedef bool (*BleServiceInit)(void* instance);
  * This method is called every time when BleServiceCommandRun is enqueued for
  * the service. Run can be enqueued as a reaction to some logic event happened
  * inside of a service. For example: Battery service has got an event regarding 
- * battery charge level from Power subsystem.
+ * battery charge level from Power subsystem. Also data can be added to call
  * @param[in] instance pointer to BleServiceObject in a generic form
+ * @param[in] data_size size of incoming data
+ * @param[in] data pointer to incoming data
  * @return true when run is done, otherwise false
  */
-typedef bool (*BleServiceRun)(void* instance);
+typedef bool (*BleServiceRun)(void* instance, size_t data_size, const void* data);
 
 /**
  * @brief Characteristic configuration

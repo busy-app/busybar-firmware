@@ -16,6 +16,19 @@
 typedef struct BleServiceObject BleServiceObject;
 
 /**
+ * @brief Opaque BleServiceObjectMessage type declaration.
+ */
+typedef struct BleServiceObjectMessage BleServiceObjectMessage;
+
+/**
+ * @brief Represents service processing result
+ */
+typedef struct {
+    bool result; /**< processing result, true when processing is fine, otherwise false */
+    BleServiceObject* service; /**< pointer to processed service */
+} BleServiceObjectResult;
+
+/**
  * @brief Allocate service instance using predefined config.
  *  
  * @param[in] service_config predefined config which describes service and its internals
@@ -37,10 +50,10 @@ BleServiceObject* ble_service_alloc(
  * 2. Incoming frame for this service was received from the other side
  * 3. Incoming frame was emulated in order to send command (init) to this service
  * 
- * @param[in] instance pointer to the BleServiceObject instance
- * @returns true when processing was fine, otherwise false
+ * @param[in] instance pointer to the BleServiceObjectMessage instance which is used internally
+ * @returns BleServiceObjectResult where information about service processing is stored
  */
-bool ble_service_process(BleServiceObject* instance);
+BleServiceObjectResult ble_service_process(BleServiceObjectMessage* instance);
 
 /**
  * @brief Process intercom frames addressed to the service from other side.

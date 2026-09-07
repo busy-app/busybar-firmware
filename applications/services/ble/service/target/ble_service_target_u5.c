@@ -86,12 +86,10 @@ static bool ble_service_command_handler_run(
     BLE_LOG_D("ble_service_command_handler_run");
 
     UNUSED(frame_type);
-    UNUSED(data_size);
-    UNUSED(data);
 
     bool result = false;
     do {
-        if(instance->config->run && !instance->config->run(instance)) {
+        if(instance->config->run && !instance->config->run(instance, data_size, data)) {
             BLE_LOG_W("%s - run error", instance->config->name);
             break;
         }
