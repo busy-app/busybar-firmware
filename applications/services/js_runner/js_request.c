@@ -18,6 +18,7 @@ static jerry_value_t
             js_copy_property(this_value, url, "method");
             js_copy_property(this_value, url, "headers");
             js_copy_property(this_value, url, "body");
+            js_copy_property(this_value, url, "dispatcher");
         } else {
             result = jerry_throw_sz(JERRY_ERROR_TYPE, "Invalid URL");
             break;
@@ -28,6 +29,7 @@ static jerry_value_t
             js_copy_property(this_value, init, "method");
             js_copy_property(this_value, init, "headers");
             js_copy_property(this_value, init, "body");
+            js_copy_property(this_value, init, "dispatcher");
         }
 
         result = jerry_undefined();
