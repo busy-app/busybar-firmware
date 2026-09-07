@@ -41,10 +41,11 @@ MU_TEST(http_headers_parse_test) {
         furi_string_cat_printf(response_str, "%s: %s\r\n", test->key, test->value);
     }
 
-    furi_string_cat(response_str,"\r\n");
+    furi_string_cat(response_str, "\r\n");
 
     HttpResponse response;
-    mu_check(http_response_parse(&response, furi_string_get_cstr(response_str), furi_string_size(response_str)));
+    mu_check(http_response_parse(
+        &response, furi_string_get_cstr(response_str), furi_string_size(response_str)));
     mu_assert_int_eq(200, response.status);
     mu_assert_mem_eq("OK", response.status_text.first_char, response.status_text.length);
 
