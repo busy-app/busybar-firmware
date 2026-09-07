@@ -7,8 +7,9 @@
 
 #include "scenes/js_app_launcher_scenes.h"
 
-#define INPUT_QUEUE_SIZE (8)
-#define EVENT_QUEUE_SIZE (8)
+#define INPUT_QUEUE_SIZE       (8)
+#define EVENT_QUEUE_SIZE       (8)
+#define EVENT_QUEUE_TIMEOUT_MS (3000)
 
 #define NAV_BAR_HEIGHT (14)
 
@@ -174,6 +175,11 @@ int32_t js_app_launcher_app(void* arg) {
 
 void js_app_launcher_send_custom_event(JsAppLauncher* instance, uint32_t event) {
     furi_assert(instance);
-    furi_check(
-        furi_message_queue_put(instance->event_queue, &event, FuriWaitForever) == FuriStatusOk);
+
+    FuriStatus queue_status =
+        furi_message_queue_put(instance->event_queue, &event, EVENT_QUEUE_TIMEOUT_MS);
+
+    if(queue_status != FuriStatusOk) {
+        FURI_LOG_E(TAG, "Failed to put an item into event queue.");
+    }
 }

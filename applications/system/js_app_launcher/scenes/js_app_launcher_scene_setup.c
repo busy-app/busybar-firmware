@@ -233,8 +233,7 @@ static void js_app_launcher_scene_setup_value_changed(VarItem* item, void* conte
         js_app_settings_storage_get_value(item_context->setting), var_item_get_value(item));
     furi_mutex_release(data->settings_mutex);
 
-    uint32_t event = JsAppLauncherCustomEventSettingsChanged;
-    furi_message_queue_put(instance->event_queue, &event, 0);
+    js_app_launcher_send_custom_event(instance, JsAppLauncherCustomEventSettingsChanged);
 }
 
 static void js_app_launcher_scene_setup_on_enter(void* context) {
