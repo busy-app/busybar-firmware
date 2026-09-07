@@ -1,5 +1,5 @@
 #include <anim_file_i_struct.h>
-#include <toolbox/bit_q.h>
+#include <toolbox/bit_queue.h>
 
 #define SHORT_RUN_BITS  3
 #define LONG_RUN_BITS   8
@@ -65,13 +65,13 @@ static void anim_file_mask_iterate_rle(
 
     size_t current_idx = 0;
     bool current_is_white = first_is_white;
-    BitQ bit_q;
-    bit_q_init(&bit_q, mask->mask_buffer, frame->mask_length);
+    BitQ bit_queue;
+    bit_queue_init(&bit_queue, mask->mask_buffer, frame->mask_length);
 
-    while(!bit_q_end(&bit_q)) {
-        size_t run_length = bit_q_read(&bit_q, SHORT_RUN_BITS);
+    while(!bit_queue_end(&bit_queue)) {
+        size_t run_length = bit_queue_read(&bit_queue, SHORT_RUN_BITS);
         if(run_length == LONG_RUN_MARKER) {
-            run_length = bit_q_read(&bit_q, LONG_RUN_BITS);
+            run_length = bit_queue_read(&bit_queue, LONG_RUN_BITS);
         }
 
         if(current_is_white) {
@@ -121,11 +121,11 @@ static void anim_file_mask_iterate_bitmap(
     const size_t height = file_hdr->height;
 
     size_t current_idx = 0;
-    BitQ bit_q;
-    bit_q_init(&bit_q, mask->mask_buffer, frame->mask_length);
+    BitQ bit_queue;
+    bit_queue_init(&bit_queue, mask->mask_buffer, frame->mask_length);
 
-    while(!bit_q_end(&bit_q)) {
-        bool pixel = bit_q_read(&bit_q, 1);
+    while(!bit_queue_end(&bit_queue)) {
+        bool pixel = bit_queue_read(&bit_queue, 1);
 
         if(pixel) {
             size_t y = current_idx / width;

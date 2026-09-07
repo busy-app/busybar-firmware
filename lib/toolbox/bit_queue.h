@@ -23,11 +23,11 @@ typedef struct {
     size_t bit_pos_total;
 } BitQ;
 
-void bit_q_init(BitQ* bit_q, const uint8_t* buffer, size_t size_bits);
+void bit_queue_init(BitQ* bit_queue, const uint8_t* buffer, size_t size_bits);
 
-size_t bit_q_read(BitQ* bit_q, size_t width);
+size_t bit_queue_read(BitQ* bit_queue, size_t width);
 
-bool bit_q_end(BitQ* bit_q);
+bool bit_queue_end(BitQ* bit_queue);
 
 #ifdef __cplusplus
 }
