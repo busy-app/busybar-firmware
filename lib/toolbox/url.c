@@ -112,9 +112,21 @@ static const UrlCompoundPart url_compound_parts[] = {
 
 /* clang-format on */
 
+static void url_reset(Url* instance) {
+    for(uint32_t i = 0; i < COUNT_OF(instance->parts); ++i) {
+        instance->parts[i] = (const StringSlice){
+            .first_char = "",
+            .length = 0,
+        };
+    }
+}
+
 Url* url_alloc(void) {
     Url* instance = malloc(sizeof(Url));
+
     instance->source = furi_string_alloc();
+    url_reset(instance);
+
     return instance;
 }
 
@@ -123,15 +135,6 @@ void url_free(Url* instance) {
 
     furi_string_free(instance->source);
     free(instance);
-}
-
-static void url_reset(Url* instance) {
-    for(uint32_t i = 0; i < COUNT_OF(instance->parts); ++i) {
-        instance->parts[i] = (const StringSlice){
-            .first_char = "",
-            .length = 0,
-        };
-    }
 }
 
 static void url_calc_compound_parts(Url* instance) {
@@ -171,7 +174,7 @@ bool url_parse(Url* instance, const char* source_str) {
     furi_check(instance);
     furi_check(source_str);
 
-    bool success = false;
+    bool success = true;
     url_reset(instance);
 
     FuriString* source = instance->source;
@@ -191,7 +194,7 @@ bool url_parse(Url* instance, const char* source_str) {
             const UrlParseStepIdx next_step_idx = next_step_idxs[i];
             step_idx = next_step_idx;
 
-            size_t part_idx, next_delim_len;
+            size_t part_idx, new_offset;
 
             if(next_step_idx != UrlParseStepIdxMax) {
                 const UrlParseStep* next_step = &url_parse_steps[next_step_idx];
@@ -201,23 +204,32 @@ bool url_parse(Url* instance, const char* source_str) {
                 if(part_idx == FURI_STRING_FAILURE) {
                     if(next_step->is_required) {
                         step_idx = UrlParseStepIdxMax;
+                        success = false;
                         break;
                     }
 
                     continue;
                 }
 
-                next_delim_len = strlen(next_delim);
+                new_offset = part_idx + strlen(next_delim);
+
+                if(new_offset == source_len) {
+                    step_idx = UrlParseStepIdxMax;
+                    if(next_step->is_required) {
+                        success = false;
+                        break;
+                    }
+                }
 
             } else {
                 part_idx = source_len;
-                next_delim_len = 0;
+                new_offset = source_len;
             }
 
             part->first_char = furi_string_get_cstr(source) + offset;
             part->length = part_idx - offset;
 
-            offset = part_idx + next_delim_len;
+            offset = new_offset;
             break;
         }
 
@@ -228,9 +240,8 @@ bool url_parse(Url* instance, const char* source_str) {
         }
     }
 
-    if(offset == source_len) {
+    if(success) {
         url_calc_compound_parts(instance);
-        success = true;
     }
 
     return success;

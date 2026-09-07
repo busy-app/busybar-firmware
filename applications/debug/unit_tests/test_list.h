@@ -32,6 +32,7 @@ extern "C" {
 #include "js_test/js_test.h"
 #include "xpm_test/xpm_test.h"
 #include "http_test/http_test.h"
+#include "url_test/url_test.h"
 #undef TEST_FUNCTION_DECLS
 
 typedef int (*TestCallback)(void);
@@ -58,6 +59,7 @@ static TestCallback unit_test_callbacks[] = {
 #include "js_test/js_test.h"
 #include "xpm_test/xpm_test.h"
 #include "http_test/http_test.h"
+#include "url_test/url_test.h"
 #undef TEST_FUNCTION_REFS
 };
 
