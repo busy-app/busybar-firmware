@@ -133,8 +133,8 @@
 // #define MBEDTLS_PK_WRITE_C
 #define MBEDTLS_PK_PARSE_C
 //Additional verification options
-#define MBEDTLS_X509_CRL_PARSE_C // For checking certificate revocation lists
-#define MBEDTLS_X509_CSR_PARSE_C // For parsing certificate requests
+#define MBEDTLS_X509_CRL_PARSE_C        // For checking certificate revocation lists
+#define MBEDTLS_X509_CSR_PARSE_C        // For parsing certificate requests
 #define MBEDTLS_X509_RSASSA_PSS_SUPPORT // Required for some sites
 //Enable SNI (Server Name Indication)
 #define MBEDTLS_SSL_SERVER_NAME_INDICATION
