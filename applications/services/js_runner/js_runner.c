@@ -75,8 +75,9 @@ void js_runner_app_stop_if_done(JsRunnerApp* app) {
     if(!app_has_background_tasks(app)) {
         JS_TRACE("No more tasks");
         JsRunnerExecutionHandle* handle = app->execution_handle;
-        JsRunnerTerminationCallback termination_callback = handle->termination_callback;
-        void* callback_context = handle->termination_callback_context;
+        JsRunnerTerminationCallback termination_callback = handle ? handle->termination_callback :
+                                                                    NULL;
+        void* callback_context = handle ? handle->termination_callback_context : NULL;
         furi_event_flag_set(app->is_idle, JS_RUNNER_APP_FLAG_IDLE);
         if(termination_callback) {
             termination_callback(callback_context);
@@ -112,7 +113,7 @@ static void fetch_event_queue_callback(FuriEventLoopObject* object, void* contex
 
 typedef void (*CommandQueueHandler)(JsRunnerApp* app, JsRunnerAppCommand* cmd);
 
-static void send_comand_message(JsRunnerContextHandle* handle, const JsRunnerAppCommand* message);
+static void send_command_message(JsRunnerContextHandle* handle, const JsRunnerAppCommand* message);
 
 static void abort_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd);
 static void run_file_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd);
@@ -503,7 +504,7 @@ JsRunnerRunResult js_runner_run(
                 },
         };
 
-        send_comand_message(handle, &cmd);
+        send_command_message(handle, &cmd);
         if(result != JsRunnerErrorNone) {
             execution_handle_free(exec_handle);
             exec_handle = NULL;
@@ -543,7 +544,7 @@ JsRunnerRunResult js_runner_run_snippet(
                 },
         };
 
-        send_comand_message(handle, &cmd);
+        send_command_message(handle, &cmd);
         if(result != JsRunnerErrorNone) {
             execution_handle_free(exec_handle);
             exec_handle = NULL;
@@ -803,7 +804,8 @@ static void app_terminate_from_another_thread(JsRunnerApp* app) {
     }
 }
 
-static void send_comand_message(JsRunnerContextHandle* handle, const JsRunnerAppCommand* message) {
+static void
+    send_command_message(JsRunnerContextHandle* handle, const JsRunnerAppCommand* message) {
     furi_check(
         furi_message_queue_put(handle->command_queue, message, FuriWaitForever) == FuriStatusOk);
 
