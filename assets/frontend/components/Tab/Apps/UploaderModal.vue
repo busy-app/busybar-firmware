@@ -22,51 +22,38 @@
     </template>
 
     <template #body>
-      <template v-if="!file">
-        <div @click="fileInput?.click()">
-          <UFileUpload
-            v-model="file"
-            data-id="modal-uploader-app-file-upload"
-            accept=".tgz"
-            :interactive="false"
-            class="h-[396px] w-full"
-            label="Add app file (.tgz)"
-            description="Drag and drop to upload"
-            :ui="{
-              base: 'bg-transparent border-solid rounded-2xl cursor-pointer transition-colors data-[dragging=true]:bg-transparent data-[dragging=true]:border-accented',
-              label: 'text-lg mt-4',
-              description: 'text-sm mt-1',
-              actions: 'mt-6',
-            }"
-          >
-            <template #leading>
-              <div class="flex size-12 items-center justify-center rounded-full bg-accented/25">
-                <UIcon
-                  name="i-bi-upload"
-                  class="size-6"
-                />
-              </div>
-            </template>
+      <UFileUpload
+        v-if="!file"
+        v-model="file"
+        data-id="modal-uploader-app-file-upload"
+        accept=".tgz"
+        class="h-[396px] w-full"
+        label="Add app file (.tgz)"
+        description="Drag and drop to upload"
+        :ui="{
+          base: 'bg-transparent border-solid rounded-2xl cursor-pointer transition-colors data-[dragging=true]:bg-transparent data-[dragging=true]:border-accented',
+          label: 'text-lg mt-4',
+          description: 'text-sm mt-1',
+          actions: 'mt-6',
+        }"
+      >
+        <template #leading>
+          <div class="flex size-12 items-center justify-center rounded-full bg-accented/25">
+            <UIcon
+              name="i-bi-upload"
+              class="size-6"
+            />
+          </div>
+        </template>
 
-            <template #actions>
-              <UButton
-                data-id="modal-uploader-app-select-file-button"
-                label="Select file"
-                color="neutral"
-              />
-            </template>
-          </UFileUpload>
-        </div>
-
-        <input
-          ref="fileInput"
-          data-id="modal-uploader-app-file-input"
-          type="file"
-          accept=".tgz"
-          class="sr-only"
-          @change="selectFile"
-        >
-      </template>
+        <template #actions>
+          <UButton
+            data-id="modal-uploader-app-select-file-button"
+            label="Select file"
+            color="neutral"
+          />
+        </template>
+      </UFileUpload>
 
       <div
         v-else-if="failed"
@@ -216,7 +203,6 @@ let uploadController: AbortController | null = null;
 const toast = useToast();
 
 const file = ref<File | null>(null);
-const fileInput = useTemplateRef<HTMLInputElement>('fileInput');
 
 const appPackage = ref<AppPackage>();
 const uploading = ref(false);
@@ -224,13 +210,6 @@ const progress = ref(0);
 const failed = ref(false);
 
 const confirming = computed(() => !!appPackage.value && !uploading.value && !failed.value);
-
-function selectFile (event: Event) {
-  const input = event.target as HTMLInputElement;
-
-  file.value = input.files?.[0] ?? null;
-  input.value = '';
-}
 
 function removeFile () {
   file.value = null;

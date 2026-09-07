@@ -1,28 +1,30 @@
 <template>
-  <component
-    :is="currentAppView.component"
-    v-if="currentAppView"
-    v-bind="currentAppView.props"
-    @back="openApp = undefined"
-  />
-  <TabAppsCard
-    v-else
-    @add="showAddAppModal = true"
-  >
-    <TabAppsAppCard
-      v-for="app in apps"
-      :key="app.manifest.id"
-      :data-id="`apps-section-app-${app.manifest.id}`"
-      :title="app.manifest.name"
-      :icon="app.icon"
-      @click="openApp = app.manifest.id"
+  <div>
+    <component
+      :is="currentAppView.component"
+      v-if="currentAppView"
+      v-bind="currentAppView.props"
+      @back="openApp = undefined"
     />
-  </TabAppsCard>
+    <TabAppsCard
+      v-else
+      @add="showAddAppModal = true"
+    >
+      <TabAppsAppCard
+        v-for="app in apps"
+        :key="app.manifest.id"
+        :data-id="`apps-section-app-${app.manifest.id}`"
+        :title="app.manifest.name"
+        :icon="app.icon"
+        @click="openApp = app.manifest.id"
+      />
+    </TabAppsCard>
 
-  <TabAppsUploaderModal
-    v-model:open="showAddAppModal"
-    @uploaded="onAppUploaded"
-  />
+    <TabAppsUploaderModal
+      v-model:open="showAddAppModal"
+      @uploaded="onAppUploaded"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
