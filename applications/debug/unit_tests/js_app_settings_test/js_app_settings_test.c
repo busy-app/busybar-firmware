@@ -340,6 +340,9 @@ MU_TEST(js_app_settings_test_time_codec) {
         "1:2:3",
         "09:30x",
         "24:00",
+        " 9:30",
+        "+9:30",
+        "09:+1",
     };
 
     for(size_t i = 0; i < COUNT_OF(invalid); i++) {

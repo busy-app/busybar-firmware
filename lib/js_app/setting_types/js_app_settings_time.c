@@ -2,6 +2,39 @@
 
 #include <inttypes.h>
 
+static bool js_app_settings_time_parse_digits(const char* digits, unsigned int* value) {
+    unsigned char high_digit = digits[0];
+    unsigned char low_digit = digits[1];
+
+    bool is_valid;
+    if((is_valid = isdigit(high_digit) && isdigit(low_digit))) {
+        *value = (high_digit - '0') * 10 + (low_digit - '0');
+    }
+
+    return is_valid;
+}
+
+static bool js_app_settings_time_parse_fields(const char* string, unsigned int* fields) {
+    bool is_valid = false;
+    for(;; fields++, string += strlen(":")) {
+        if(!js_app_settings_time_parse_digits(string, fields)) {
+            break;
+        }
+
+        string += strlen("XX");
+        if(*string == '\0') {
+            is_valid = true;
+            break;
+        }
+
+        if(*string != ':') {
+            break;
+        }
+    }
+
+    return is_valid;
+}
+
 bool js_app_settings_time_parse(const char* string, JsAppSettingsTimeValue* value) {
     furi_check(string);
     furi_check(value);
@@ -15,22 +48,15 @@ bool js_app_settings_time_parse(const char* string, JsAppSettingsTimeValue* valu
             break;
         }
 
-        unsigned int hours = 0;
-        unsigned int minutes = 0;
-        unsigned int seconds = 0;
-
-        int parsed_length = 0;
-        if(has_seconds) {
-            sscanf(string, "%2u:%2u:%2u%n", &hours, &minutes, &seconds, &parsed_length);
-        } else {
-            sscanf(string, "%2u:%2u%n", &hours, &minutes, &parsed_length);
+        /* hours, minutes, seconds */
+        unsigned int fields[3] = {0};
+        if(!js_app_settings_time_parse_fields(string, fields)) {
+            break;
         }
 
-        if((size_t)parsed_length == length) {
-            if(utz_time_init_checked(hours, minutes, seconds, &value->time)) {
-                value->has_seconds = has_seconds;
-                is_format_valid = true;
-            }
+        if(utz_time_init_checked(fields[0], fields[1], fields[2], &value->time)) {
+            value->has_seconds = has_seconds;
+            is_format_valid = true;
         }
     } while(false);
 
