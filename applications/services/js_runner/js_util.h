@@ -92,7 +92,7 @@ bool js_object_has_property(jerry_value_t object, const char* key);
  * @param keys array of property names for each nesting level.
  * @param nesting_count number of entries in the keys array.
  *
- * @return the value of the nested property or undefined if any property lookup failed.
+ * @return the value of the nested property or undefined if any property lookup failed. Exceptions thrown by any member lookup are propagated.
  */
 jerry_value_t js_object_get_nested_property(
     jerry_value_t object,

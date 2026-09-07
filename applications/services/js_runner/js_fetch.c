@@ -87,6 +87,7 @@ static RequestParseResult parse_request(jerry_value_t obj) {
                     .tag = RequestParseResultTypeError,
                     .error = js_get_exception_string(use_device_key_val),
                 };
+                jerry_value_free(use_device_key_val);
                 break;
             }
             if(jerry_value_to_boolean(use_device_key_val)) {
