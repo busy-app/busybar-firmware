@@ -5,6 +5,7 @@
 #include "js_local_storage.h"
 #include "js_url.h"
 #include "js_headers.h"
+#include "js_request.h"
 #include "js_response.h"
 #include "js_stubs.h"
 
@@ -384,6 +385,7 @@ static int32_t app_thread_callback(void* context) {
     js_setup_interval_methods();
     js_setup_url();
     js_setup_headers();
+    js_setup_request();
     js_setup_response();
     js_setup_fetch();
     js_setup_local_storage();

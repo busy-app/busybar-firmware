@@ -604,8 +604,6 @@ void js_fetch_abort(JsFetch* instance) {
 }
 
 void js_setup_fetch(void) {
-    js_setup_request();
-
     jerry_value_t global_obj = jerry_current_realm();
     js_set_method(global_obj, "fetch", fetch);
     jerry_value_free(global_obj);

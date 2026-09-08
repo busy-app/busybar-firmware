@@ -111,10 +111,10 @@ FuriString* js_get_exception_string(jerry_value_t exception) {
     FuriString* result;
     if(!jerry_value_is_null(val)) {
         jerry_value_t str = jerry_value_to_string(val);
-        jerry_value_free(str);
 
         result = js_string_to_furi_string(str);
         furi_assert(result);
+        jerry_value_free(str);
 
     } else {
         result = furi_string_alloc_set("Out of memory - increase script heap size");
