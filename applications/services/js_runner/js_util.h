@@ -21,13 +21,6 @@
         }                                                                      \
     } while(false)
 
-#define JS_CHECK_ARG_IS_STRING(arg)                                              \
-    do {                                                                         \
-        if(!jerry_value_is_string(arg)) {                                        \
-            return jerry_throw_sz(JERRY_ERROR_TYPE, "String argument required"); \
-        }                                                                        \
-    } while(false)
-
 #define JS_CHECK_ARG_IS_FUNCTION(arg)                                              \
     do {                                                                           \
         if(!jerry_value_is_function(arg)) {                                        \

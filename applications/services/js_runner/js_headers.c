@@ -3,8 +3,6 @@
 
 #define TAG "JsHeaders"
 
-#define MSG_TO_STRING_FAILED "Cannot convert argument to a string"
-
 typedef struct HeadersNative {
     HttpHeaders* headers;
     size_t ref_count;
@@ -142,14 +140,19 @@ jerry_value_t headers_has(
     JS_CHECK_INSTANCE();
     JS_CHECK_ARGS_COUNT(1);
 
-    char* key = js_value_to_c_string(JS_ARG(0));
-    if(key == NULL) {
-        return jerry_throw_sz(JERRY_ERROR_TYPE, MSG_TO_STRING_FAILED);
+    jerry_value_t arg_key = jerry_value_to_string(JS_ARG(0));
+    if(jerry_value_is_exception(arg_key)) {
+        return arg_key;
     }
+
+    char* key = js_value_to_c_string(arg_key);
+    furi_check(key);
 
     const bool has_key = (http_headers_get(instance->headers, key) != NULL);
 
+    jerry_value_free(arg_key);
     free(key);
+
     return jerry_boolean(has_key);
 }
 
@@ -208,10 +211,13 @@ static jerry_value_t headers_get(
     JS_CHECK_INSTANCE();
     JS_CHECK_ARGS_COUNT(1);
 
-    char* key = js_value_to_c_string(JS_ARG(0));
-    if(key == NULL) {
-        return jerry_throw_sz(JERRY_ERROR_TYPE, MSG_TO_STRING_FAILED);
+    jerry_value_t arg_key = jerry_value_to_string(JS_ARG(0));
+    if(jerry_value_is_exception(arg_key)) {
+        return arg_key;
     }
+
+    char* key = js_value_to_c_string(arg_key);
+    furi_check(key);
 
     jerry_value_t result;
 
@@ -222,7 +228,9 @@ static jerry_value_t headers_get(
         result = jerry_null();
     }
 
+    jerry_value_free(arg_key);
     free(key);
+
     return result;
 }
 
@@ -235,19 +243,26 @@ static jerry_value_t headers_set(
     JS_CHECK_INSTANCE();
     JS_CHECK_ARGS_COUNT(2);
 
-    char* key = js_value_to_c_string(JS_ARG(0));
-    if(key == NULL) {
-        return jerry_throw_sz(JERRY_ERROR_TYPE, MSG_TO_STRING_FAILED);
+    jerry_value_t arg_key = jerry_value_to_string(JS_ARG(0));
+    if(jerry_value_is_exception(arg_key)) {
+        return arg_key;
     }
 
-    char* value = js_value_to_c_string(JS_ARG(1));
-    if(value == NULL) {
-        free(key);
-        return jerry_throw_sz(JERRY_ERROR_TYPE, MSG_TO_STRING_FAILED);
+    jerry_value_t arg_value = jerry_value_to_string(JS_ARG(1));
+    if(jerry_value_is_exception(arg_value)) {
+        return arg_value;
     }
+
+    char* key = js_value_to_c_string(arg_key);
+    furi_check(key);
+
+    char* value = js_value_to_c_string(arg_value);
+    furi_check(arg_value);
 
     http_headers_set(instance->headers, key, value);
 
+    jerry_value_free(arg_key);
+    jerry_value_free(arg_value);
     free(key);
     free(value);
 

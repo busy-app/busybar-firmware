@@ -29,7 +29,7 @@ static jerry_value_t js_url_init(jerry_value_t this_value, const char* url_str) 
 
     if(!url_parse(url_native, url_str)) {
         url_free(url_native);
-        return jerry_throw_sz(JERRY_ERROR_COMMON, "Invalid URL");
+        return jerry_throw_sz(JERRY_ERROR_TYPE, "Invalid URL");
     }
 
     jerry_object_set_native_ptr(this_value, &url_native_info, url_native);
@@ -58,12 +58,18 @@ static jerry_value_t url_constructor(
     }
 
     JS_CHECK_ARGS_COUNT(1);
-    JS_CHECK_ARG_IS_STRING(JS_ARG(0));
 
-    char* url_str = js_string_to_c_string(JS_ARG(0));
-    furi_assert(url_str);
+    jerry_value_t arg_url = jerry_value_to_string(JS_ARG(0));
+    if(jerry_value_is_exception(arg_url)) {
+        return arg_url;
+    }
+
+    char* url_str = js_string_to_c_string(arg_url);
+    furi_check(url_str);
 
     const jerry_value_t result = js_url_init(this_value, url_str);
+
+    jerry_value_free(arg_url);
     free(url_str);
 
     return result;
