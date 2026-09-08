@@ -1,4 +1,4 @@
-import type { StorageListElement, DisplayDrawParams } from '@busy-app/busy-lib';
+import type { AnimationElement, DisplayElement, ImageElement, StorageListElement } from '@busy-app/busy-lib';
 import { defineStore } from 'pinia';
 import {
   DRAW_TOOL_DISPLAY_APPLICATION_NAME,
@@ -17,11 +17,14 @@ type DrawToolStatusDirectoryFile = {
   size: number;
 };
 
-type DrawToolStatusGalleryFile = DrawToolStatusDirectoryFile & {
-  path: string;
+type DrawToolStatusPreview = {
   kind: DrawToolStatusKind;
   previewUrl: string | null;
   animation: DecodedAnimation | null;
+};
+
+type DrawToolStatusGalleryFile = DrawToolStatusDirectoryFile & DrawToolStatusPreview & {
+  path: string;
 };
 
 const TEMP_FILE_NAMES = new Set([DRAW_TOOL_TEMP_FILE_NAME, DRAW_TOOL_TEMP_ANIMATION_FILE_NAME]);
@@ -38,8 +41,12 @@ function createStatusFilePath (fileName: string) {
   return `${DRAW_TOOL_SAVE_DIR}/${fileName}`;
 }
 
-function createDisplayElement (fileName: string) {
-  const base = {
+function hasLoadedPreview (file: DrawToolStatusPreview) {
+  return !!file.previewUrl || !!file.animation;
+}
+
+function createDisplayElement (fileName: string): ImageElement | AnimationElement {
+  const base: Omit<DisplayElement, 'type'> = {
     id: '0',
     timeout: 0,
     align: 'top_left',
@@ -53,14 +60,17 @@ function createDisplayElement (fileName: string) {
       ...base,
       type: 'animation',
       path: fileName,
-      loop: true
+      loop: true,
+      await_previous_end: false,
+      opacity: 100
     };
   }
 
   return {
     ...base,
     type: 'image',
-    path: fileName
+    path: fileName,
+    opacity: 100
   };
 }
 
@@ -88,23 +98,34 @@ export const useDrawToolStore = defineStore('drawTool', () => {
     return file instanceof Blob ? file : new Blob([file], { type: mimeType });
   }
 
-  async function loadStatusPreview (file: DrawToolStatusDirectoryFile): Promise<Pick<DrawToolStatusGalleryFile, 'kind' | 'previewUrl' | 'animation'>> {
+  async function loadStatusPreview (file: DrawToolStatusDirectoryFile): Promise<DrawToolStatusPreview> {
     const kind = getStatusFileKind(file.name);
-    const blob = await readStatusFile(createStatusFilePath(file.name));
 
-    if (kind === 'animation') {
+    try {
+      const blob = await readStatusFile(createStatusFilePath(file.name));
+
+      if (kind === 'animation') {
+        return {
+          kind,
+          previewUrl: null,
+          animation: decodeAnimation(await blob.arrayBuffer())
+        };
+      }
+
+      return {
+        kind,
+        previewUrl: URL.createObjectURL(blob),
+        animation: null
+      };
+    } catch (error) {
+      console.warn(`Couldn't load preview for ${file.name}`, error);
+
       return {
         kind,
         previewUrl: null,
-        animation: decodeAnimation(await blob.arrayBuffer())
+        animation: null
       };
     }
-
-    return {
-      kind,
-      previewUrl: URL.createObjectURL(blob),
-      animation: null
-    };
   }
 
   function revokeStatusPreview (file: Pick<DrawToolStatusGalleryFile, 'previewUrl'>) {
@@ -121,7 +142,7 @@ export const useDrawToolStore = defineStore('drawTool', () => {
     const nextGalleryFiles = await Promise.all(nextDirectoryFiles.map(async file => {
       const existingFile = currentGalleryFilesByName.get(file.name);
 
-      if (existingFile && file.size >= 0 && existingFile.size === file.size) {
+      if (existingFile && file.size >= 0 && existingFile.size === file.size && hasLoadedPreview(existingFile)) {
         return existingFile;
       }
 
@@ -228,16 +249,30 @@ export const useDrawToolStore = defineStore('drawTool', () => {
     }
   }
 
-  async function clearStatusDisplay () {
+  async function requestClearStatusDisplay () {
     const deviceStore = useDeviceStore();
 
+    return deviceStore.busyBar.DisplayClear({
+      application_name: DRAW_TOOL_DISPLAY_APPLICATION_NAME
+    });
+  }
+
+  async function clearStatusDisplay () {
     try {
-      await deviceStore.busyBar.DisplayClear({
-        application_name: DRAW_TOOL_DISPLAY_APPLICATION_NAME
-      });
+      await requestClearStatusDisplay();
     } catch (error) {
       await handleHTTPError(error, 'Couldn\'t clear existing status display', true);
       throw error;
+    }
+  }
+
+  async function tryClearStatusDisplay () {
+    try {
+      await requestClearStatusDisplay();
+
+      return true;
+    } catch {
+      return false;
     }
   }
 
@@ -254,7 +289,7 @@ export const useDrawToolStore = defineStore('drawTool', () => {
       application_name: DRAW_TOOL_DISPLAY_APPLICATION_NAME,
       elements: [createDisplayElement(fileName)],
       priority: DRAW_TOOL_DISPLAY_PRIORITY
-    } as DisplayDrawParams)
+    })
       .catch(async error => {
         if (isDisplayPriorityConflict(error)) {
           notifyDisplayPriorityConflict();
@@ -291,16 +326,36 @@ export const useDrawToolStore = defineStore('drawTool', () => {
     downloadFile(blob, fileName);
   }
 
-  async function deleteStatusFiles (fileNames: string[]) {
+  async function tryRemoveStatusFile (path: string): Promise<unknown> {
     const deviceStore = useDeviceStore();
+
+    try {
+      await deviceStore.busyBar.StorageRemove({ path }, { timeout: 0 });
+
+      return null;
+    } catch (error) {
+      return error;
+    }
+  }
+
+  async function deleteStatusFiles (fileNames: string[]) {
+    let hasClearedStatusDisplay = false;
 
     for (const fileName of [...new Set(fileNames)]) {
       const fullPath = createStatusFilePath(fileName);
+      let error = await tryRemoveStatusFile(fullPath);
 
-      await deviceStore.busyBar.StorageRemove({ path: fullPath }, { timeout: 0 })
-        .catch(async error => {
-          await handleHTTPError(error, `Couldn't delete ${fullPath}`, false, 0);
-        });
+      if (error && getStatusFileKind(fileName) === 'animation' && !hasClearedStatusDisplay) {
+        hasClearedStatusDisplay = true;
+
+        if (await tryClearStatusDisplay()) {
+          error = await tryRemoveStatusFile(fullPath);
+        }
+      }
+
+      if (error) {
+        await handleHTTPError(error, `Couldn't delete ${fullPath}`, false, 0);
+      }
     }
 
     await refreshStatusDirectory({ silent: true });

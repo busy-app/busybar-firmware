@@ -121,6 +121,12 @@
                 :alt="status.name"
                 class="h-full w-full object-cover [image-rendering:pixelated]"
               >
+              <div
+                v-else
+                class="flex h-full w-full items-center justify-center px-3 text-center text-xs text-muted"
+              >
+                Preview unavailable
+              </div>
 
               <div
                 class="absolute inset-0 rounded-md bg-elevated/90 transition-opacity"
