@@ -65,8 +65,8 @@
         </p>
       </div>
 
-      <div class="w-full flex flex-wrap sm:flex-nowrap items-end justify-between gap-6">
-        <div class="flex flex-wrap md:flex-nowrap gap-4">
+      <div class="w-full flex flex-wrap items-end justify-between gap-4">
+        <div class="flex flex-wrap gap-4">
           <UFormField label="FPS">
             <UInput
               v-model="fpsModel"
@@ -85,13 +85,13 @@
           </UFormField>
         </div>
 
-        <div class="w-full sm:w-fit flex flex-wrap sm:flex-nowrap gap-2">
+        <div class="flex w-full min-w-0 flex-wrap gap-2 sm:w-auto sm:justify-end">
           <UButton
             icon="i-bi-download"
             label="Save animation file"
             color="neutral"
             variant="ghost"
-            class="w-full justify-center sm:justify-start"
+            class="w-full justify-center sm:w-auto"
             @click="composeAndDownload"
           />
           <UButton
@@ -99,7 +99,7 @@
             label="Save to statuses"
             color="neutral"
             variant="outline"
-            class="w-full justify-center sm:justify-start"
+            class="w-full justify-center sm:w-auto"
             :loading="isSavingToStatuses"
             @click="composeAndSaveToStatuses"
           />
@@ -108,7 +108,7 @@
             label="Play on device"
             color="neutral"
             variant="solid"
-            class="w-full justify-center sm:justify-start"
+            class="w-full justify-center sm:w-auto"
             @click="composeAndUpload"
           />
         </div>
