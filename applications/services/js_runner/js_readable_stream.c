@@ -62,8 +62,7 @@ jerry_value_t js_readable_stream_alloc(JsFetch* parent) {
 }
 
 static jerry_value_t chunk_to_uint8array(SizedBuffer data) {
-    // buffer will be released by arraybuffer_free_callback
-    jerry_value_t arraybuffer = jerry_arraybuffer_external(data.buffer, data.size, NULL);
+    jerry_value_t arraybuffer = js_arraybuffer_from_sized_buffer(data);
 
     jerry_value_t uint8array = jerry_typedarray_with_buffer(JERRY_TYPEDARRAY_UINT8, arraybuffer);
     jerry_value_free(arraybuffer);
