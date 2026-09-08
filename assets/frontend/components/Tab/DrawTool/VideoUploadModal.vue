@@ -121,16 +121,24 @@
 
           <div
             v-if="fit === 'cover' && cropRectStyle"
-            class="absolute cursor-move rounded-sm ring-2 ring-white/90 shadow-[0_0_0_9999px_rgba(0,0,0,0.6)]"
-            :class="isDraggingCrop ? 'ring-primary' : ''"
+            class="absolute rounded-sm ring-2 shadow-[0_0_0_9999px_rgba(0,0,0,0.6)] transition-[opacity]"
+            :class="cropRectClass"
             :style="cropRectStyle"
             @pointerdown="handleCropPointerDown"
             @pointermove="handleCropPointerMove"
             @pointerup="handleCropPointerUp"
             @pointercancel="handleCropPointerUp"
           >
-            <span class="pointer-events-none absolute inset-x-0 -top-6 text-center text-xs text-white/80">
-              Drag to choose the visible area
+            <span
+              class="pointer-events-none absolute inset-x-0 -top-6 flex items-center justify-center gap-1 text-center text-xs"
+              :class="isExtracting ? 'text-white/50' : 'text-white/80'"
+            >
+              <UIcon
+                v-if="isExtracting"
+                name="i-ri-restart-line"
+                class="size-3 animate-spin"
+              />
+              {{ isExtracting ? 'Updating preview…' : 'Drag to choose the visible area' }}
             </span>
           </div>
         </div>
@@ -210,6 +218,14 @@ const extractionAbortController = ref<AbortController | null>(null);
 const extractionTimer = ref<ReturnType<typeof setTimeout> | null>(null);
 
 const isDraggingCrop = computed(() => !!cropDrag.value);
+
+const cropRectClass = computed(() => {
+  if (isExtracting.value) {
+    return 'cursor-not-allowed opacity-60 ring-white/40';
+  }
+
+  return isDraggingCrop.value ? 'cursor-grabbing ring-primary' : 'cursor-move ring-white/90';
+});
 
 const cropScalePercent = computed({
   get: () => Math.round(crop.value.scale * 100),
