@@ -844,6 +844,7 @@ int32_t js_runner_srv(void* p) {
 
 static const char* const error_messages[] = {
     [JsRunnerErrorNone] = "OK",
+    [JsRunnerErrorUnknown] = "Unknown error",
     [JsRunnerErrorCannotOpenFile] = "Cannot open file",
     [JsRunnerErrorInvalidFileSize] = "Invalid file size",
     [JsRunnerErrorCannotReadFile] = "Cannot read file",

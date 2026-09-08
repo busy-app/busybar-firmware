@@ -40,6 +40,8 @@ static bool js_app_launcher_scene_run_start_app(JsAppLauncher* instance) {
     JsAppLauncherSceneRun* data =
         scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdRun);
 
+    data->js_error = JsRunnerErrorUnknown;
+
     do {
         JsAppInfo js_info;
 
