@@ -41,11 +41,29 @@
               color="error"
               variant="ghost"
               class="-my-2"
-              @click="() => { filesModel = null; }"
+              @click="() => { filesModel = null; animationOutput = null; previewAnimation = null; }"
             />
           </div>
         </template>
       </UFileUpload>
+
+      <div
+        v-if="previewAnimation"
+        class="flex flex-col gap-2"
+      >
+        <div
+          class="mx-auto w-full overflow-hidden rounded-md bg-neutral-950 ring-1 ring-default"
+          :style="{
+            aspectRatio: `${previewAnimation.width} / ${previewAnimation.height}`,
+            maxWidth: `${previewAnimation.width * 8}px`
+          }"
+        >
+          <AnimationPlayer :animation="previewAnimation" />
+        </div>
+        <p class="text-center text-sm text-muted">
+          {{ previewAnimation.width }}×{{ previewAnimation.height }} · {{ getAnimationDisplayFrameCount(previewAnimation) }} frames · {{ previewAnimation.fps }} fps · {{ bytesToSize(animationOutput?.size) }}
+        </p>
+      </div>
 
       <div class="w-full flex flex-wrap sm:flex-nowrap items-end justify-between gap-6">
         <div class="flex flex-wrap md:flex-nowrap gap-4">
@@ -77,6 +95,15 @@
             @click="composeAndDownload"
           />
           <UButton
+            icon="i-bi-image"
+            label="Save to statuses"
+            color="neutral"
+            variant="outline"
+            class="w-full justify-center sm:justify-start"
+            :loading="isSavingToStatuses"
+            @click="composeAndSaveToStatuses"
+          />
+          <UButton
             icon="i-bi-control-play"
             label="Play on device"
             color="neutral"
@@ -91,12 +118,15 @@
 </template>
 
 <script setup lang="ts">
-import { composeAnimation } from '@/util/seq2anim';
+import { ANIM_FILE_EXTENSION, composeAnimation } from '@/util/seq2anim';
 import type { ColorMode } from '@/util/seq2anim';
+import { decodeAnimation, getAnimationDisplayFrameCount } from '@/util/anim2seq';
+import type { DecodedAnimation } from '@/util/anim2seq';
 import type { DisplayDrawParams } from '@busy-app/busy-lib';
 
 const deviceStore = useDeviceStore();
 const configStore = useConfigStore();
+const dts = useDrawToolStore();
 const animationApplicationName = 'virtual-lan-animation-test';
 
 const filesModel = ref<File[] | null>(null);
@@ -109,6 +139,8 @@ const colorModeOptions = [
 ];
 
 const animationOutput = ref<Blob | null>(null);
+const previewAnimation = ref<DecodedAnimation | null>(null);
+const isSavingToStatuses = ref(false);
 
 async function handleComposeAnimation () {
   if (!filesModel.value || filesModel.value.length === 0) {
@@ -123,6 +155,7 @@ async function handleComposeAnimation () {
       colorMode: colorModeModel.value
     });
     animationOutput.value = animation;
+    previewAnimation.value = decodeAnimation(await animation.arrayBuffer());
     console.debug('Composed animation:', animationOutput.value);
   } catch (error) {
     console.error('Error composing animation:', error);
@@ -142,14 +175,35 @@ async function handleComposeAnimation () {
 async function composeAndDownload () {
   await handleComposeAnimation();
   if (animationOutput.value) {
-    const url = createObjectUrl(animationOutput.value);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'test.anim';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    downloadFile(animationOutput.value, 'test.anim');
+  }
+}
+
+async function composeAndSaveToStatuses () {
+  await handleComposeAnimation();
+
+  if (!animationOutput.value) {
+    return;
+  }
+
+  const fileName = `${createStatusTimestamp()}${ANIM_FILE_EXTENSION}`;
+  const file = new File([animationOutput.value], fileName, { type: 'application/octet-stream' });
+
+  isSavingToStatuses.value = true;
+
+  try {
+    await dts.saveStatusFile(fileName, file);
+    toast.add({
+      title: 'Saved to statuses',
+      description: `${fileName} is available in the Draw tool gallery`,
+      icon: 'i-bi-checkmark-circle',
+      color: 'success',
+      duration: Number(configStore.get('notificationDuration'))
+    });
+  } catch {
+    // request errors are already handled
+  } finally {
+    isSavingToStatuses.value = false;
   }
 }
 
@@ -251,10 +305,6 @@ async function drawAnimation () {
       await handleHTTPError(error, 'Display draw command failed', true);
       throw error;
     });
-}
-
-function createObjectUrl (file: File | Blob): string {
-  return URL.createObjectURL(file);
 }
 
 function saveFps () {

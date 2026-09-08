@@ -65,6 +65,9 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
   const textDraftFontId = ref(DEFAULT_TEXT_FONT_ID);
   const showImageUploadModal = ref(false);
   const imageUploadFile = ref<File | null>(null);
+  const showVideoUploadModal = ref(false);
+  const playheadFrame = ref(0);
+  const isTimelinePlaying = ref(false);
   const showLeaveEditorModal = ref(false);
   const isLeavingEditor = ref(false);
   const statusFileName = ref(DEFAULT_STATUS_FILE_NAME);
@@ -90,6 +93,10 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
   }]);
   const historyIndex = ref(0);
   const hasSavedStatusFile = computed(() => !!savedStatusFilePath.value);
+  const videoShapes = computed(() => shapes.value.filter((shape): shape is VideoShape => shape.type === 'video'));
+  const hasVideoShapes = computed(() => videoShapes.value.length > 0);
+  const timelineFrameCount = computed(() => videoShapes.value.reduce((max, shape) => Math.max(max, shape.frames.length), 0));
+  const timelineFps = computed(() => videoShapes.value[0]?.fps ?? DRAW_TOOL_VIDEO_DEFAULT_FPS);
   const hasEditorContent = computed(() => {
     return !areEditorSnapshotsEqual(defaultEditorSnapshot, createEditorSnapshot());
   });
@@ -236,7 +243,20 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     borderDashSize.value = snapshot.borderDashSize;
     borderGapOffset.value = snapshot.borderGapOffset;
     normalizeBorderSettingsState();
+    applyPlayheadToVideoShapes(playheadFrame.value);
   }
+
+  watch(timelineFrameCount, frameCount => {
+    if (frameCount === 0) {
+      playheadFrame.value = 0;
+      isTimelinePlaying.value = false;
+      return;
+    }
+
+    if (playheadFrame.value >= frameCount) {
+      setPlayheadFrame(0);
+    }
+  });
 
   function clearBackgroundColor () {
     if (isColorFullyTransparent(backgroundColor.value)) {
@@ -807,6 +827,58 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     pushHistorySnapshot();
   }
 
+  function addVideoShape (frames: ImageData[], fps: number, fileName: string) {
+    if (!frames.length) {
+      return;
+    }
+
+    const canvas = createVideoShapeCanvas(frames[0].width, frames[0].height);
+    const videoShape: VideoShape = {
+      id: createShapeId(),
+      type: 'video',
+      fileName,
+      x: 0,
+      y: 0,
+      width: frames[0].width,
+      height: frames[0].height,
+      rotation: 0,
+      frames,
+      fps,
+      canvas
+    };
+
+    blitVideoFrame(videoShape, playheadFrame.value);
+    shapes.value.push(videoShape);
+    selectedShapeId.value = videoShape.id;
+    pushHistorySnapshot();
+  }
+
+  function applyPlayheadToVideoShapes (frame: number) {
+    videoShapes.value.forEach(shape => blitVideoFrame(shape, frame));
+  }
+
+  function setPlayheadFrame (frame: number) {
+    const frameCount = timelineFrameCount.value;
+    const nextFrame = frameCount > 0 ? ((Math.round(frame) % frameCount) + frameCount) % frameCount : 0;
+
+    playheadFrame.value = nextFrame;
+    applyPlayheadToVideoShapes(nextFrame);
+    syncPixelatedDisplay();
+  }
+
+  function stepPlayhead (delta: number) {
+    setPlayheadFrame(playheadFrame.value + delta);
+  }
+
+  function toggleTimelinePlayback () {
+    if (!hasVideoShapes.value) {
+      isTimelinePlaying.value = false;
+      return;
+    }
+
+    isTimelinePlaying.value = !isTimelinePlaying.value;
+  }
+
   function deleteSelectedShape () {
     if (!selectedShapeId.value) {
       return;
@@ -848,6 +920,9 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     textDraftValue.value = DEFAULT_TEXT_VALUE;
     showImageUploadModal.value = false;
     imageUploadFile.value = null;
+    showVideoUploadModal.value = false;
+    playheadFrame.value = 0;
+    isTimelinePlaying.value = false;
     statusFileName.value = DEFAULT_STATUS_FILE_NAME;
     savedStatusFilePath.value = null;
     lastSavedSnapshot.value = null;
@@ -1073,6 +1148,13 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     historyIndex,
     showImageUploadModal,
     imageUploadFile,
+    showVideoUploadModal,
+    playheadFrame,
+    isTimelinePlaying,
+    videoShapes,
+    hasVideoShapes,
+    timelineFrameCount,
+    timelineFps,
     showLeaveEditorModal,
     isLeavingEditor,
     setStageMetrics,
@@ -1098,6 +1180,11 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     addRectangle,
     addText,
     addImageShape,
+    addVideoShape,
+    applyPlayheadToVideoShapes,
+    setPlayheadFrame,
+    stepPlayhead,
+    toggleTimelinePlayback,
     markStatusSaved,
     clearStage,
     resetEditor,

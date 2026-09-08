@@ -1,6 +1,16 @@
 import type { StorageListElement, DisplayDrawParams } from '@busy-app/busy-lib';
 import { defineStore } from 'pinia';
-import { DRAW_TOOL_DISPLAY_APPLICATION_NAME, DRAW_TOOL_DISPLAY_PRIORITY, DRAW_TOOL_SAVE_DIR, DRAW_TOOL_TEMP_FILE_NAME } from '@/util/drawTool';
+import {
+  DRAW_TOOL_DISPLAY_APPLICATION_NAME,
+  DRAW_TOOL_DISPLAY_PRIORITY,
+  DRAW_TOOL_SAVE_DIR,
+  DRAW_TOOL_TEMP_ANIMATION_FILE_NAME,
+  DRAW_TOOL_TEMP_FILE_NAME,
+  getStatusFileKind
+} from '@/util/drawTool';
+import type { DrawToolStatusKind } from '@/util/drawTool';
+import { decodeAnimation } from '@/util/anim2seq';
+import type { DecodedAnimation } from '@/util/anim2seq';
 
 type DrawToolStatusDirectoryFile = {
   name: string;
@@ -9,8 +19,12 @@ type DrawToolStatusDirectoryFile = {
 
 type DrawToolStatusGalleryFile = DrawToolStatusDirectoryFile & {
   path: string;
-  previewUrl: string;
+  kind: DrawToolStatusKind;
+  previewUrl: string | null;
+  animation: DecodedAnimation | null;
 };
+
+const TEMP_FILE_NAMES = new Set([DRAW_TOOL_TEMP_FILE_NAME, DRAW_TOOL_TEMP_ANIMATION_FILE_NAME]);
 
 function getStatusFileSize (file: StorageListElement): number {
   if ('size' in file && typeof file.size === 'number') {
@@ -24,6 +38,32 @@ function createStatusFilePath (fileName: string) {
   return `${DRAW_TOOL_SAVE_DIR}/${fileName}`;
 }
 
+function createDisplayElement (fileName: string) {
+  const base = {
+    id: '0',
+    timeout: 0,
+    align: 'top_left',
+    display: 'front',
+    x: 0,
+    y: 0
+  };
+
+  if (getStatusFileKind(fileName) === 'animation') {
+    return {
+      ...base,
+      type: 'animation',
+      path: fileName,
+      loop: true
+    };
+  }
+
+  return {
+    ...base,
+    type: 'image',
+    path: fileName
+  };
+}
+
 export const useDrawToolStore = defineStore('drawTool', () => {
   const statusDirectoryFiles = ref<DrawToolStatusDirectoryFile[]>([]);
   const statusGalleryFiles = ref<DrawToolStatusGalleryFile[]>([]);
@@ -32,7 +72,7 @@ export const useDrawToolStore = defineStore('drawTool', () => {
   function normalizeDirectoryFiles (files: StorageListElement[]) {
     return files
       .filter((file): file is StorageListElement & { type: 'file' } => file.type === 'file')
-      .filter(file => file.name !== DRAW_TOOL_TEMP_FILE_NAME)
+      .filter(file => !TEMP_FILE_NAMES.has(file.name))
       .map(file => ({
         name: file.name,
         size: getStatusFileSize(file)
@@ -40,21 +80,37 @@ export const useDrawToolStore = defineStore('drawTool', () => {
       .sort((left, right) => right.name.localeCompare(left.name));
   }
 
-  async function downloadStatusPreview (path: string) {
-    const blob = await readStatusFile(path);
-
-    return URL.createObjectURL(blob);
-  }
-
   async function readStatusFile (path: string) {
     const deviceStore = useDeviceStore();
     const file = await deviceStore.busyBar.StorageRead({ path }, { timeout: 0 });
+    const mimeType = getStatusFileKind(path) === 'animation' ? 'application/octet-stream' : 'image/png';
 
-    return file instanceof Blob ? file : new Blob([file], { type: 'image/png' });
+    return file instanceof Blob ? file : new Blob([file], { type: mimeType });
   }
 
-  function revokeStatusPreviewUrl (previewUrl: string) {
-    URL.revokeObjectURL(previewUrl);
+  async function loadStatusPreview (file: DrawToolStatusDirectoryFile): Promise<Pick<DrawToolStatusGalleryFile, 'kind' | 'previewUrl' | 'animation'>> {
+    const kind = getStatusFileKind(file.name);
+    const blob = await readStatusFile(createStatusFilePath(file.name));
+
+    if (kind === 'animation') {
+      return {
+        kind,
+        previewUrl: null,
+        animation: decodeAnimation(await blob.arrayBuffer())
+      };
+    }
+
+    return {
+      kind,
+      previewUrl: URL.createObjectURL(blob),
+      animation: null
+    };
+  }
+
+  function revokeStatusPreview (file: Pick<DrawToolStatusGalleryFile, 'previewUrl'>) {
+    if (file.previewUrl) {
+      URL.revokeObjectURL(file.previewUrl);
+    }
   }
 
   async function syncStatusDirectory (files: StorageListElement[]) {
@@ -69,23 +125,23 @@ export const useDrawToolStore = defineStore('drawTool', () => {
         return existingFile;
       }
 
-      const previewUrl = await downloadStatusPreview(createStatusFilePath(file.name));
+      const preview = await loadStatusPreview(file);
 
       if (existingFile) {
-        revokeStatusPreviewUrl(existingFile.previewUrl);
+        revokeStatusPreview(existingFile);
       }
 
       return {
         ...file,
         path: createStatusFilePath(file.name),
-        previewUrl
+        ...preview
       };
     }));
 
     statusDirectoryFiles.value = nextDirectoryFiles;
     statusGalleryFiles.value
       .filter(file => !nextFileNames.has(file.name))
-      .forEach(file => revokeStatusPreviewUrl(file.previewUrl));
+      .forEach(revokeStatusPreview);
     statusGalleryFiles.value = nextGalleryFiles;
   }
 
@@ -138,6 +194,40 @@ export const useDrawToolStore = defineStore('drawTool', () => {
     }
   }
 
+  async function writeStatusFile (fileName: string, file: File) {
+    const deviceStore = useDeviceStore();
+    const path = createStatusFilePath(fileName);
+
+    try {
+      await deviceStore.busyBar.StorageWrite({ path, file }, { timeout: 0 });
+    } catch (error) {
+      try {
+        await listStatusDirectory();
+      } catch {
+        await ensureStatusDirectoryExists();
+        await deviceStore.busyBar.StorageWrite({ path, file }, { timeout: 0 });
+        return path;
+      }
+
+      throw error;
+    }
+
+    return path;
+  }
+
+  async function saveStatusFile (fileName: string, file: File) {
+    try {
+      const path = await writeStatusFile(fileName, file);
+
+      await refreshStatusDirectory({ silent: true });
+
+      return path;
+    } catch (error) {
+      await handleHTTPError(error, `Couldn't save ${fileName}`, false, 10000);
+      throw error;
+    }
+  }
+
   async function clearStatusDisplay () {
     const deviceStore = useDeviceStore();
 
@@ -152,24 +242,17 @@ export const useDrawToolStore = defineStore('drawTool', () => {
   }
 
   async function showSavedStatusOnBusyBar (fileName: string) {
-    const deviceStore = useDeviceStore();
-
     await clearStatusDisplay();
+
+    return drawStatusOnBusyBar(fileName);
+  }
+
+  async function drawStatusOnBusyBar (fileName: string) {
+    const deviceStore = useDeviceStore();
 
     return deviceStore.busyBar.DisplayDraw({
       application_name: DRAW_TOOL_DISPLAY_APPLICATION_NAME,
-      elements: [
-        {
-          id: '0',
-          timeout: 0,
-          align: 'top_left',
-          display: 'front',
-          x: 0,
-          y: 0,
-          type: 'image',
-          path: fileName
-        }
-      ],
+      elements: [createDisplayElement(fileName)],
       priority: DRAW_TOOL_DISPLAY_PRIORITY
     } as DisplayDrawParams)
       .catch(async error => {
@@ -183,18 +266,29 @@ export const useDrawToolStore = defineStore('drawTool', () => {
       });
   }
 
-  async function downloadStatusFile (fileName: string) {
-    const blob = await readStatusFile(createStatusFilePath(fileName));
-    const objectUrl = URL.createObjectURL(blob);
+  async function showTempAnimationOnBusyBar (animation: Blob) {
+    const deviceStore = useDeviceStore();
+
+    await clearStatusDisplay();
 
     try {
-      const link = document.createElement('a');
-      link.href = objectUrl;
-      link.download = fileName;
-      link.click();
-    } finally {
-      URL.revokeObjectURL(objectUrl);
+      await deviceStore.busyBar.AssetsUpload({
+        application_name: DRAW_TOOL_DISPLAY_APPLICATION_NAME,
+        data: animation,
+        file: DRAW_TOOL_TEMP_ANIMATION_FILE_NAME
+      }, { timeout: 0 });
+    } catch (error) {
+      await handleHTTPError(error, 'Couldn\'t upload animation', true);
+      throw error;
     }
+
+    await drawStatusOnBusyBar(DRAW_TOOL_TEMP_ANIMATION_FILE_NAME);
+  }
+
+  async function downloadStatusFile (fileName: string) {
+    const blob = await readStatusFile(createStatusFilePath(fileName));
+
+    downloadFile(blob, fileName);
   }
 
   async function deleteStatusFiles (fileNames: string[]) {
@@ -218,8 +312,10 @@ export const useDrawToolStore = defineStore('drawTool', () => {
     statusGalleryFiles,
     syncStatusDirectory,
     refreshStatusDirectory,
+    saveStatusFile,
     clearStatusDisplay,
     showSavedStatusOnBusyBar,
+    showTempAnimationOnBusyBar,
     downloadStatusFile,
     deleteStatusFiles
   };

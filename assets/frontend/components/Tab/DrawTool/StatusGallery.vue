@@ -39,7 +39,7 @@
 
         <UButton
           data-id="draw-tool-gallery-download-selected"
-          label="Download PNG"
+          label="Download"
           color="neutral"
           variant="ghost"
           icon="i-bi-download"
@@ -106,12 +106,17 @@
           <article
             v-for="status in statusGalleryFiles"
             :key="status.name"
-            class="relative md:h-16 w-full md:w-72 overflow-hidden rounded-md ring-1 ring-default"
+            class="relative aspect-[72/16] md:aspect-auto md:h-16 w-full md:w-72 overflow-hidden rounded-md ring-1 ring-default"
             @mouseenter="hoveredStatusName = status.name"
             @mouseleave="hoveredStatusName = hoveredStatusName === status.name ? null : hoveredStatusName"
           >
             <div class="h-full w-full overflow-hidden rounded-md bg-neutral-950">
+              <AnimationPlayer
+                v-if="status.animation"
+                :animation="status.animation"
+              />
               <img
+                v-else-if="status.previewUrl"
                 :src="status.previewUrl"
                 :alt="status.name"
                 class="h-full w-full object-cover [image-rendering:pixelated]"
@@ -288,7 +293,7 @@ function selectAllStatuses () {
 function getStatusMenuItems (statusName: string): DropdownMenuItem[] {
   return [
     {
-      label: 'Download PNG',
+      label: getStatusFileKind(statusName) === 'animation' ? 'Download animation' : 'Download PNG',
       icon: 'i-bi-download',
       onClick: () => dts.downloadStatusFile(statusName)
     },

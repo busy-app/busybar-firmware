@@ -26,8 +26,28 @@ export const DRAW_TOOL_EXPORT_PIXEL_SIZE = 8;
 export const DRAW_TOOL_PIXEL_ART_MAX_DIMENSION = 72;
 export const DRAW_TOOL_DISPLAY_APPLICATION_NAME = 'draw_tool';
 export const DRAW_TOOL_TEMP_FILE_NAME = 'temp.png';
+export const DRAW_TOOL_TEMP_ANIMATION_FILE_NAME = 'temp.anim';
 export const DRAW_TOOL_SAVE_DIR = '/ext/user_assets/draw_tool';
 export const DRAW_TOOL_DISPLAY_PRIORITY = 40;
+export const DRAW_TOOL_VIDEO_MAX_DURATION_SECONDS = 15;
+export const DRAW_TOOL_VIDEO_DEFAULT_FPS = 15;
+
+export type DrawToolStatusKind = 'image' | 'animation';
+
+export function getStatusFileKind (fileName: string): DrawToolStatusKind {
+  return /\.anim$/i.test(fileName) ? 'animation' : 'image';
+}
+
+export function createStatusTimestamp (date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+
+  return `${year}-${month}-${day}_${hours}-${minutes}-${seconds}`;
+}
 
 let drawToolShapeIdCounter = 0;
 const pixelArtImageSourceCache = new WeakMap<HTMLImageElement, HTMLCanvasElement>();
@@ -98,7 +118,15 @@ export interface TextShape extends ShapeBase {
   fontId: string;
 }
 
-export type EditorShape = RectShape | ImageShape | TextShape;
+export interface VideoShape extends ShapeBase {
+  type: 'video';
+  fileName: string;
+  frames: ImageData[];
+  fps: number;
+  canvas: HTMLCanvasElement;
+}
+
+export type EditorShape = RectShape | ImageShape | TextShape | VideoShape;
 
 export type FontOption = {
   id: string;
@@ -330,8 +358,66 @@ export function areShapesEqual (left: EditorShape, right: EditorShape): boolean 
       && left.fontId === (right as TextShape).fontId;
   }
 
+  if (left.type === 'video') {
+    return left.fileName === (right as VideoShape).fileName
+      && left.frames === (right as VideoShape).frames
+      && left.fps === (right as VideoShape).fps;
+  }
+
   return left.fileName === (right as ImageShape).fileName
     && left.image === (right as ImageShape).image;
+}
+
+let videoFrameScratchCanvas: HTMLCanvasElement | null = null;
+
+function getVideoFrameScratchContext (width: number, height: number) {
+  if (!videoFrameScratchCanvas) {
+    videoFrameScratchCanvas = document.createElement('canvas');
+  }
+
+  if (videoFrameScratchCanvas.width !== width || videoFrameScratchCanvas.height !== height) {
+    videoFrameScratchCanvas.width = width;
+    videoFrameScratchCanvas.height = height;
+  }
+
+  return videoFrameScratchCanvas.getContext('2d', { willReadFrequently: true });
+}
+
+export function createVideoShapeCanvas (frameWidth: number, frameHeight: number): HTMLCanvasElement {
+  const canvas = document.createElement('canvas');
+
+  canvas.width = frameWidth * DRAW_TOOL_EXPORT_PIXEL_SIZE;
+  canvas.height = frameHeight * DRAW_TOOL_EXPORT_PIXEL_SIZE;
+
+  return canvas;
+}
+
+export function getVideoShapeFrameIndex (shape: Pick<VideoShape, 'frames'>, playheadFrame: number): number {
+  if (!shape.frames.length) {
+    return 0;
+  }
+
+  return ((playheadFrame % shape.frames.length) + shape.frames.length) % shape.frames.length;
+}
+
+export function blitVideoFrame (shape: Pick<VideoShape, 'frames' | 'canvas'>, playheadFrame: number) {
+  const frame = shape.frames[getVideoShapeFrameIndex(shape, playheadFrame)];
+
+  if (!frame) {
+    return;
+  }
+
+  const context = shape.canvas.getContext('2d');
+  const scratchContext = getVideoFrameScratchContext(frame.width, frame.height);
+
+  if (!context || !scratchContext) {
+    return;
+  }
+
+  scratchContext.putImageData(frame, 0, 0);
+  context.imageSmoothingEnabled = false;
+  context.clearRect(0, 0, shape.canvas.width, shape.canvas.height);
+  context.drawImage(scratchContext.canvas, 0, 0, shape.canvas.width, shape.canvas.height);
 }
 
 export function isBorderPixelActive (
@@ -547,6 +633,52 @@ export function getExportImageConfig (shape: ImageShape) {
     draggable: true,
     dragBoundFunc: getDragBoundPosition,
     imageSmoothingEnabled: !isPixelArtImageShape(shape),
+    perfectDrawEnabled: false
+  };
+}
+
+export function getDisplayVideoConfig (shape: VideoShape) {
+  return {
+    x: shape.x,
+    y: shape.y,
+    width: shape.width,
+    height: shape.height,
+    rotation: shape.rotation,
+    image: shape.canvas,
+    listening: false,
+    imageSmoothingEnabled: false,
+    perfectDrawEnabled: false
+  };
+}
+
+export function getExportVideoConfig (shape: VideoShape) {
+  return {
+    id: shape.id,
+    x: shape.x,
+    y: shape.y,
+    width: shape.width,
+    height: shape.height,
+    rotation: shape.rotation,
+    image: shape.canvas,
+    opacity: 1,
+    imageSmoothingEnabled: false,
+    perfectDrawEnabled: false
+  };
+}
+
+export function getVideoConfig (shape: VideoShape) {
+  return {
+    id: shape.id,
+    x: shape.x,
+    y: shape.y,
+    width: shape.width,
+    height: shape.height,
+    rotation: shape.rotation,
+    image: shape.canvas,
+    opacity: 0,
+    draggable: true,
+    dragBoundFunc: getDragBoundPosition,
+    imageSmoothingEnabled: false,
     perfectDrawEnabled: false
   };
 }

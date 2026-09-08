@@ -9,6 +9,13 @@ export interface AnimationMeta {
 
 export type ComposeResult = Blob;
 
+export const ANIM_FILE_SIGNATURE = 'bicycle0';
+export const ANIM_FILE_HEADER_LENGTH = 36;
+export const ANIM_FILE_MAX_FPS = 255;
+export const ANIM_FILE_MAX_DIMENSION = 255;
+export const ANIM_FILE_MAX_FRAME_DURATION = 255;
+export const ANIM_FILE_EXTENSION = '.anim';
+
 /** Compose animation from an array of browser `File` objects. */
 export async function composeAnimation (
   files: File[],
@@ -31,8 +38,6 @@ export async function composeAnimation (
   const width = firstBitmap.width;
   const height = firstBitmap.height;
 
-  const framesData: Uint8Array[] = [];
-
   const canvas = document.createElement('canvas');
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const ctx = canvas.getContext('2d', { willReadFrequently: true } as any) as CanvasRenderingContext2D | null;
@@ -42,28 +47,50 @@ export async function composeAnimation (
   canvas.width = width;
   canvas.height = height;
 
-  async function processFileToFrame (file: File): Promise<Uint8Array> {
+  const frames: ImageData[] = [];
+
+  for (const file of pngFiles) {
     const bitmap = await decodeImageBitmapFromFile(file);
     if (bitmap.width !== width || bitmap.height !== height) {
       throw new Error(`Image ${file.name} dimensions ${bitmap.width}x${bitmap.height} do not match first image ${width}x${height}`);
     }
 
-    if (!ctx) {
-      throw new Error('2D canvas context not available');
-    }
-
     ctx.clearRect(0, 0, width, height);
     ctx.drawImage(bitmap, 0, 0, width, height);
-    const imgData = ctx.getImageData(0, 0, width, height);
-    const rgba = imgData.data; // Uint8ClampedArray, RGBA
-
-    return packFrame(rgba, width, height, meta.colorMode);
+    frames.push(ctx.getImageData(0, 0, width, height));
   }
 
-  for (const f of pngFiles) {
-    const frame = await processFileToFrame(f);
-    framesData.push(frame); // This is raw packed data (BGR or Gray4)
+  return composeAnimationFromFrames(frames, meta);
+}
+
+/** Compose animation from already decoded RGBA frames of identical dimensions. */
+export function composeAnimationFromFrames (
+  frames: ImageData[],
+  meta: AnimationMeta
+): ComposeResult {
+  if (!frames || frames.length === 0) {
+    throw new Error('No frames provided');
   }
+
+  const width = frames[0].width;
+  const height = frames[0].height;
+
+  if (width > ANIM_FILE_MAX_DIMENSION || height > ANIM_FILE_MAX_DIMENSION) {
+    throw new Error(`Frame dimensions ${width}x${height} exceed the ${ANIM_FILE_MAX_DIMENSION}px limit`);
+  }
+
+  const fps = Math.round(meta.fps);
+  if (!Number.isFinite(fps) || fps < 1 || fps > ANIM_FILE_MAX_FPS) {
+    throw new Error(`FPS must be between 1 and ${ANIM_FILE_MAX_FPS}`);
+  }
+
+  const framesData: Uint8Array[] = frames.map((frame, index) => {
+    if (frame.width !== width || frame.height !== height) {
+      throw new Error(`Frame ${index} dimensions ${frame.width}x${frame.height} do not match first frame ${width}x${height}`);
+    }
+
+    return packFrame(frame.data, width, height, meta.colorMode);
+  });
 
   // Encode Frames
   const encodedFrames: FileFrame[] = [];
@@ -75,9 +102,10 @@ export async function composeAnimation (
 
   for (let i = 0; i < framesData.length; i++) {
     const frame = framesData[i];
+    const previousFileFrame = encodedFrames[encodedFrames.length - 1];
 
-    if (lastFrame && areArraysEqual(frame, lastFrame)) {
-      encodedFrames[encodedFrames.length - 1].duration++;
+    if (lastFrame && previousFileFrame && previousFileFrame.duration < ANIM_FILE_MAX_FRAME_DURATION && areArraysEqual(frame, lastFrame)) {
+      previousFileFrame.duration++;
       continue;
     }
 
@@ -130,8 +158,7 @@ export async function composeAnimation (
 
   // Fill section precomputed start info
   const displayFrameStart: Array<{ offset: number; duration: number }> = [];
-  const HEADER_LENGTH = 36;
-  let fileFrameOffs = HEADER_LENGTH + sectionsChunkLen;
+  let fileFrameOffs = ANIM_FILE_HEADER_LENGTH + sectionsChunkLen;
 
   for (const ff of encodedFrames) {
     const ffLen = getFileFrameLength(ff);
@@ -149,14 +176,13 @@ export async function composeAnimation (
   }
 
   // Assemble file
-  const totalSize = HEADER_LENGTH + sectionsChunkLen + framesChunkLen;
+  const totalSize = ANIM_FILE_HEADER_LENGTH + sectionsChunkLen + framesChunkLen;
   const outBuf = new Uint8Array(totalSize);
   const view = new DataView(outBuf.buffer);
 
   // Header
   let ptr = 0;
-  // Signature "bicycle0"
-  const sig = new TextEncoder().encode('bicycle0');
+  const sig = new TextEncoder().encode(ANIM_FILE_SIGNATURE);
   outBuf.set(sig, ptr);
   ptr += 8;
 
@@ -165,7 +191,7 @@ export async function composeAnimation (
   view.setUint8(ptr++, height);
   view.setUint8(ptr++, meta.colorMode === 'rgb888' ? 0 : 1);
 
-  view.setUint8(ptr++, meta.fps);
+  view.setUint8(ptr++, fps);
   view.setUint16(ptr, maxEncodedLen, true);
   ptr += 2;
   view.setUint8(ptr++, 0); // padding
