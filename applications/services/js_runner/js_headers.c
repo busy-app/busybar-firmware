@@ -3,6 +3,8 @@
 
 #define TAG "JsHeaders"
 
+#define MSG_TO_STRING_FAILED "Cannot convert argument to a string"
+
 typedef struct HeadersNative {
     HttpHeaders* headers;
     size_t ref_count;
@@ -138,12 +140,12 @@ jerry_value_t headers_has(
     HeadersNative* instance =
         jerry_object_get_native_ptr(call_info->this_value, &headers_native_info);
     JS_CHECK_INSTANCE();
-
     JS_CHECK_ARGS_COUNT(1);
-    JS_CHECK_ARG_IS_STRING(JS_ARG(0));
 
-    char* key = js_string_to_c_string(JS_ARG(0));
-    furi_assert(key);
+    char* key = js_value_to_c_string(JS_ARG(0));
+    if(key == NULL) {
+        return jerry_throw_sz(JERRY_ERROR_TYPE, MSG_TO_STRING_FAILED);
+    }
 
     const bool has_key = (http_headers_get(instance->headers, key) != NULL);
 
@@ -204,12 +206,12 @@ static jerry_value_t headers_get(
     HeadersNative* instance =
         jerry_object_get_native_ptr(call_info->this_value, &headers_native_info);
     JS_CHECK_INSTANCE();
-
     JS_CHECK_ARGS_COUNT(1);
-    JS_CHECK_ARG_IS_STRING(JS_ARG(0));
 
-    char* key = js_string_to_c_string(JS_ARG(0));
-    furi_assert(key);
+    char* key = js_value_to_c_string(JS_ARG(0));
+    if(key == NULL) {
+        return jerry_throw_sz(JERRY_ERROR_TYPE, MSG_TO_STRING_FAILED);
+    }
 
     jerry_value_t result;
 
@@ -231,15 +233,18 @@ static jerry_value_t headers_set(
     HeadersNative* instance =
         jerry_object_get_native_ptr(call_info->this_value, &headers_native_info);
     JS_CHECK_INSTANCE();
-
     JS_CHECK_ARGS_COUNT(2);
-    JS_CHECK_ARG_IS_STRING(JS_ARG(0));
-    JS_CHECK_ARG_IS_STRING(JS_ARG(1));
 
-    char* key = js_string_to_c_string(JS_ARG(0));
-    furi_assert(key);
-    char* value = js_string_to_c_string(JS_ARG(1));
-    furi_assert(value);
+    char* key = js_value_to_c_string(JS_ARG(0));
+    if(key == NULL) {
+        return jerry_throw_sz(JERRY_ERROR_TYPE, MSG_TO_STRING_FAILED);
+    }
+
+    char* value = js_value_to_c_string(JS_ARG(1));
+    if(value == NULL) {
+        free(key);
+        return jerry_throw_sz(JERRY_ERROR_TYPE, MSG_TO_STRING_FAILED);
+    }
 
     http_headers_set(instance->headers, key, value);
 

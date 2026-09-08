@@ -127,6 +127,15 @@ jerry_value_t js_iterator_result(bool done, jerry_value_t value);
  */
 char* js_string_to_c_string(jerry_value_t value);
 
+/** @brief Convert any value to a character string.
+ *
+ * If the value is already a string, it is used as-is,
+ * otherwise it will be converted using the toString method.
+ *
+ * @return a heap-allocated string or NULL if an exception has occurred.
+ */
+char* js_value_to_c_string(jerry_value_t value);
+
 /** @brief If value is a JS string, return its UTF8 representation.
  *
  * @return a new string or NULL if value is not a JS string.

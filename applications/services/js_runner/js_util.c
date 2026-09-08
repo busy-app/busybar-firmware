@@ -94,6 +94,13 @@ char* js_string_to_c_string(jerry_value_t value) {
     return buffer;
 }
 
+char* js_value_to_c_string(jerry_value_t value) {
+    jerry_value_t value_string = jerry_value_to_string(value);
+    char* buffer = js_string_to_c_string(value_string);
+    jerry_value_free(value_string);
+    return buffer;
+}
+
 FuriString* js_string_to_furi_string(jerry_value_t value) {
     char* buffer = js_string_to_c_string(value);
     if(!buffer) {
