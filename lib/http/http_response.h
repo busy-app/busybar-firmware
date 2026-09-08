@@ -41,6 +41,8 @@ void http_response_init(HttpResponse* instance);
  *       is valid before calling this function.
  *
  * @param[in,out] instance pointer to the instance to be parsed
+ * @param[in] data pointer to the source string (does NOT need to be zero-terminated)
+ * @param[in] data_len length of the source string in bytes
  */
 bool http_response_parse(HttpResponse* instance, const char* data, size_t data_len);
 
