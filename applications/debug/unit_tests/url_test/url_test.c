@@ -18,6 +18,7 @@
     do {                                                             \
         const StringSlice* __part = url_get_part((url), (part_id));  \
         mu_assert_not_null(__part);                                  \
+        mu_assert_int_eq(strlen(ref), __part->length);               \
         mu_assert_mem_eq((ref), __part->first_char, __part->length); \
     } while(false)
 

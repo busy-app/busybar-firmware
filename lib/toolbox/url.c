@@ -49,6 +49,7 @@ static const UrlParseStep url_parse_steps[] = {
         .next_step_idxs = (const UrlParseStepIdx[]) {
             UrlParseStepIdxPort,
             UrlParseStepIdxPathname,
+            UrlParseStepIdxSearch,
             UrlParseStepIdxMax,
         },
     },
@@ -214,8 +215,8 @@ bool url_parse(Url* instance, const char* source_str) {
                 new_offset = part_idx + strlen(next_delim);
 
                 if(new_offset == source_len) {
-                    step_idx = UrlParseStepIdxMax;
                     if(next_step->is_required) {
+                        step_idx = UrlParseStepIdxMax;
                         success = false;
                         break;
                     }
