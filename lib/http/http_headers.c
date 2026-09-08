@@ -122,7 +122,6 @@ HttpHeaders* http_headers_alloc(void) {
 
 void http_headers_free(HttpHeaders* instance) {
     furi_check(instance);
-
     HttpHeaderArray_clear(instance->items);
     free(instance);
 }
@@ -130,6 +129,7 @@ void http_headers_free(HttpHeaders* instance) {
 bool http_headers_parse(HttpHeaders* instance, const char* data, size_t data_len) {
     furi_check(instance);
     furi_check(data);
+    HttpHeaderArray_reset(instance->items);
     return parse_headers_list(instance, data, data_len);
 }
 

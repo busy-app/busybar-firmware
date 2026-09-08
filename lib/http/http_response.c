@@ -65,6 +65,12 @@ static ssize_t
     return result;
 }
 
+void http_response_init(HttpResponse* instance) {
+    instance->status = 0;
+    string_slice_reset(&instance->status_text);
+    string_slice_reset(&instance->headers);
+}
+
 bool http_response_parse(HttpResponse* instance, const char* data, size_t data_len) {
     furi_check(instance);
     furi_check(data);

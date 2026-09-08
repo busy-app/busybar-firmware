@@ -1,5 +1,5 @@
 /**
- * @file http_headers.h
+ * @file http_response.h
  */
 #pragma once
 
@@ -17,6 +17,8 @@ typedef struct {
     StringSlice status_text;
     StringSlice headers;
 } HttpResponse;
+
+void http_response_init(HttpResponse* instance);
 
 bool http_response_parse(HttpResponse* instance, const char* data, size_t data_len);
 

@@ -47,6 +47,7 @@ sources = [
     "property.c",
     "rle_encode.c",
     "sha256_calc.c",
+    "slice.c",
     "strint.c",
     "timers.c",
     "tls_config.c",

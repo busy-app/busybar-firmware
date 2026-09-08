@@ -30,17 +30,12 @@ static jerry_value_t js_response_construct(void) {
 jerry_value_t js_response_alloc(uint32_t status, StringSlice status_text) {
     jerry_value_t response = js_response_construct();
 
-    jerry_value_t status_text_val;
-    if(status_text.first_char != NULL) {
-        status_text_val = jerry_string(
-            (const jerry_char_t*)status_text.first_char, status_text.length, JERRY_ENCODING_CESU8);
-    } else {
-        status_text_val = jerry_string_sz("");
-    }
-    js_set_property(response, "statusText", status_text_val);
-
     jerry_value_t status_val = jerry_number(status);
     js_set_property(response, "status", status_val);
+
+    jerry_value_t status_text_val = jerry_string(
+        (const jerry_char_t*)status_text.first_char, status_text.length, JERRY_ENCODING_CESU8);
+    js_set_property(response, "statusText", status_text_val);
 
     jerry_value_t ok_val = jerry_boolean(status / 100 == 2);
     js_set_property(response, "ok", ok_val);

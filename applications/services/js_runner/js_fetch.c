@@ -369,7 +369,9 @@ static jerry_value_t body_used_getter(
 }
 
 static jerry_value_t create_response(JsFetch* instance, SizedBuffer headers) {
-    HttpResponse http_response = {0};
+    HttpResponse http_response;
+    http_response_init(&http_response);
+
     if(!http_response_parse(&http_response, headers.buffer, headers.size)) {
         // Log error, but continue with blank HTTP response
         FURI_LOG_E(TAG, "Failed to parse response");

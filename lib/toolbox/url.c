@@ -115,10 +115,7 @@ static const UrlCompoundPart url_compound_parts[] = {
 
 static void url_reset(Url* instance) {
     for(uint32_t i = 0; i < COUNT_OF(instance->parts); ++i) {
-        instance->parts[i] = (const StringSlice){
-            .first_char = "",
-            .length = 0,
-        };
+        string_slice_reset(&instance->parts[i]);
     }
 }
 
