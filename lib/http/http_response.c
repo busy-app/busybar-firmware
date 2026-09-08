@@ -1,12 +1,15 @@
 #include "http_response.h"
 
 #include <core/check.h>
+#include <toolbox/strint.h>
 
 #define HTTP_NAME     "HTTP/"
 #define HTTP_NAME_LEN (sizeof(HTTP_NAME) - 1)
 
 #define HTTP_STATUS_TEMPLATE HTTP_NAME "1.0 XXX \r\n"
 #define HTTP_STATUS_LEN_MIN  (sizeof(HTTP_STATUS_TEMPLATE) - 1)
+
+#define HTTP_STATUS_CODE_LEN (3)
 
 static ssize_t
     http_response_parse_status_line(HttpResponse* instance, const char* data, size_t data_len) {
@@ -32,19 +35,20 @@ static ssize_t
         i += 4;
 
         // status-code: 3DIGIT SP
-        char status_code[4];
-        for(ssize_t j = 0; j != 3; ++j) {
-            if(!isdigit((int)data[i + j])) {
-                break;
-            }
-            status_code[j] = data[i + j];
-        }
-        if(data[i + 3] != ' ') {
+        char* status_code_end;
+        if(strint_to_uint32(&data[i], &status_code_end, &instance->status, 10) !=
+           StrintParseNoError) {
             break;
         }
-        status_code[3] = 0;
-        instance->status = atoi(status_code);
-        i += 4;
+        if(status_code_end - &data[i] != HTTP_STATUS_CODE_LEN) {
+            break;
+        }
+        i += HTTP_STATUS_CODE_LEN;
+
+        if(data[i] != ' ') {
+            break;
+        }
+        i += 1;
 
         // reason-phrase
         const char* cr = memchr(data + i, '\r', data_len - i);
