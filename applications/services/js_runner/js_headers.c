@@ -1,7 +1,8 @@
 #include "js_headers.h"
+
 #include <http/http_headers.h>
 
-#define TAG "JsHeaders"
+#define HEADERS_CLASS_NAME "Headers"
 
 typedef struct HeadersNative {
     HttpHeaders* headers;
@@ -163,7 +164,6 @@ jerry_value_t headers_foreach(
     HeadersNative* instance =
         jerry_object_get_native_ptr(call_info->this_value, &headers_native_info);
     JS_CHECK_INSTANCE();
-
     JS_CHECK_ARGS_COUNT(1);
 
     jerry_value_t callback = JS_ARG(0);
@@ -275,22 +275,13 @@ static jerry_value_t headers_constructor(
     const jerry_length_t args_count) {
     UNUSED(args);
     UNUSED(args_count);
-
-    jerry_value_t obj = call_info->this_value;
+    JS_CHECK_CONSTRUCTOR();
 
     HeadersNative* headers_native = malloc(sizeof(HeadersNative));
     headers_native->headers = http_headers_alloc();
     headers_native->ref_count = 1;
 
-    jerry_object_set_native_ptr(obj, &headers_native_info, headers_native);
-
-    js_set_method(obj, "entries", headers_entries);
-    js_set_method(obj, "keys", headers_keys);
-    js_set_method(obj, "values", headers_values);
-    js_set_method(obj, "forEach", headers_foreach);
-    js_set_method(obj, "has", headers_has);
-    js_set_method(obj, "get", headers_get);
-    js_set_method(obj, "set", headers_set);
+    jerry_object_set_native_ptr(call_info->this_value, &headers_native_info, headers_native);
 
     return jerry_undefined();
 }
@@ -298,7 +289,7 @@ static jerry_value_t headers_constructor(
 static jerry_value_t js_headers_construct(void) {
     jerry_value_t global_obj = jerry_current_realm();
 
-    jerry_value_t constructor = jerry_object_get_sz(global_obj, "Headers");
+    jerry_value_t constructor = jerry_object_get_sz(global_obj, HEADERS_CLASS_NAME);
     furi_check(jerry_value_is_function(constructor));
 
     jerry_value_t this_value = jerry_construct(constructor, NULL, 0);
@@ -313,11 +304,19 @@ void js_setup_headers(void) {
     jerry_value_t global_obj = jerry_current_realm();
 
     jerry_value_t constructor = jerry_function_external(headers_constructor);
-    jerry_value_free(jerry_object_set_sz(global_obj, "Headers", constructor));
+    jerry_value_free(jerry_object_set_sz(global_obj, HEADERS_CLASS_NAME, constructor));
 
     jerry_value_t prototype = jerry_object();
-    js_check_and_free(jerry_object_set_proto(constructor, prototype));
-    jerry_value_free(prototype);
+    js_set_method(prototype, "entries", headers_entries);
+    js_set_method(prototype, "keys", headers_keys);
+    js_set_method(prototype, "values", headers_values);
+    js_set_method(prototype, "forEach", headers_foreach);
+    js_set_method(prototype, "has", headers_has);
+    js_set_method(prototype, "get", headers_get);
+    js_set_method(prototype, "set", headers_set);
+
+    js_set_constructor_prototype(constructor, prototype);
+
     jerry_value_free(constructor);
     jerry_value_free(global_obj);
 }
