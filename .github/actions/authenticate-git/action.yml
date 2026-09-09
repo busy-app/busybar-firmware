@@ -1,0 +1,22 @@
+name: Authenticate git for the job
+description: >-
+  Point GIT_CONFIG_GLOBAL at a per-job config with a github.com Authorization
+  extraheader so all git ops in the job authenticate. Uses GH_TOKEN; run after
+  checkout.
+author: hedger
+
+runs:
+  using: composite
+  steps:
+    - name: 'Configure git auth for the job'
+      shell: bash
+      run: |
+        set -euo pipefail
+        # base64 must stay single-line (GNU base64 wraps at 76 cols).
+        if [[ -n "${GH_TOKEN:-}" ]]; then
+          CFG="${RUNNER_TEMP}/git-credentials.config"
+          AUTH="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 | tr -d '\n')"
+          git config --file "$CFG" http.https://github.com/.extraheader "$AUTH"
+          chmod 600 "$CFG"
+          echo "GIT_CONFIG_GLOBAL=${CFG}" >> "${GITHUB_ENV}"
+        fi

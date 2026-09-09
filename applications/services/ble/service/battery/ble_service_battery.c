@@ -3,7 +3,7 @@
 #define TAG "BleBattery"
 
 //==========================================================
-static const BleCharacteristicDescriptor battery_service_characteristics[] = {
+static const BleCharacteristicConfig battery_service_characteristics[] = {
     {
         .intercom_index = BleSrvBatteryCharacterIndexBatteryLevel,
         .name = "Battery Level",
@@ -26,7 +26,7 @@ static const BleCharacteristicDescriptor battery_service_characteristics[] = {
     },
 };
 
-const BleServiceDescriptor ble_service_config_battery = {
+const BleServiceConfig ble_service_config_battery = {
     .name = "Battery Service",
 #if defined(BSB_MCU_SI917)
     .uuid = {.Char_UUID_16 = 0x180F},
@@ -35,7 +35,6 @@ const BleServiceDescriptor ble_service_config_battery = {
     .init = ble_service_battery_init,
     .run = ble_service_battery_run,
     .index = BleServiceIndexBattery,
-    .init_method = BleServiceInitMethodLocal,
     .char_count = COUNT_OF(battery_service_characteristics),
-    .char_descriptors = battery_service_characteristics,
+    .char_configs = battery_service_characteristics,
 };

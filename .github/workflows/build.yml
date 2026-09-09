@@ -35,6 +35,8 @@ jobs:
       - name: 'Wipe workspace'
         run: |
           rm -f /home/runner/.gitconfig
+          # Self-hosted runners persist $HOME across jobs.
+          rm -f "${HOME}/.git-credentials"
           find ./ -mount -maxdepth 1 -exec rm -rf {} \;
 
       - name: 'Configure Git'
@@ -49,9 +51,13 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: 'Authenticate git for the job'
+        uses: ./.github/actions/authenticate-git
+
       - name: 'Bootstrap tooling submodule'
-        run: |
-          timeout 180 git submodule update --init --depth 1 --filter=blob:none fbt_layers/fbtng
+        uses: ./.github/actions/update-submodules
+        with:
+          paths: fbt_layers/fbtng
 
       - name: 'Get commit details'
         id: get-env

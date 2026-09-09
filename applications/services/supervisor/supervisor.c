@@ -582,9 +582,7 @@ static void supervisor_process(FuriEventLoopObject* object, void* context) {
         if(supervisor_get_topmost_warning(instance) == SupervisorWarningTypeBatteryCritical) {
             instance->battery_critical_counter++;
 
-            supervisor_update_time_to_die(
-                instance, SUPERVISOR_BATTERY_TIME_TO_DIE_S - instance->battery_critical_counter);
-
+            size_t time_to_off_seconds;
             if(instance->battery_critical_counter >= SUPERVISOR_BATTERY_TIME_TO_DIE_S) {
                 FURI_LOG_I(TAG, "Battery critical timeout reached");
 
@@ -593,7 +591,14 @@ static void supervisor_process(FuriEventLoopObject* object, void* context) {
 
                     furi_event_loop_timer_stop(instance->battery_critical_timer);
                 }
+
+                time_to_off_seconds = 0;
+            } else {
+                time_to_off_seconds =
+                    SUPERVISOR_BATTERY_TIME_TO_DIE_S - instance->battery_critical_counter;
             }
+
+            supervisor_update_time_to_die(instance, time_to_off_seconds);
         }
         break;
 

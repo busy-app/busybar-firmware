@@ -105,6 +105,7 @@ FuriString* js_string_to_furi_string(jerry_value_t value) {
 }
 
 FuriString* js_get_exception_string(jerry_value_t exception) {
+    furi_check(jerry_value_is_exception(exception));
     jerry_value_t val = jerry_exception_value(exception, false);
     jerry_value_t str = jerry_value_to_string(val);
     FuriString* result = js_string_to_furi_string(str);
@@ -139,6 +140,27 @@ bool js_object_has_property(jerry_value_t object, const char* key) {
     bool result = jerry_value_is_true(has);
     jerry_value_free(has);
     return result;
+}
+
+jerry_value_t js_object_get_nested_property(
+    jerry_value_t object,
+    const char* const keys[],
+    size_t nesting_count) {
+    jerry_value_t current_level = jerry_value_copy(object);
+    for(size_t i = 0; i != nesting_count; ++i) {
+        if(jerry_value_is_exception(current_level)) {
+            return current_level;
+        }
+        if(js_object_has_property(current_level, keys[i])) {
+            jerry_value_t prop = jerry_object_get_sz(current_level, keys[i]);
+            jerry_value_free(current_level);
+            current_level = prop;
+        } else {
+            jerry_value_free(current_level);
+            return jerry_undefined();
+        }
+    }
+    return current_level;
 }
 
 jerry_value_t js_rejected_promise(const char* msg) {
@@ -199,4 +221,16 @@ bool js_value_to_integer(jerry_value_t value, int* result) {
     }
     jerry_value_free(num);
     return ok;
+}
+
+jerry_value_t js_arraybuffer_from_byte_array(ByteArray_t* array) {
+    size_t size = ByteArray_size(*array);
+    JsRunnerByteArrayDestructor* destructor = malloc(sizeof(JsRunnerByteArrayDestructor));
+    destructor->destructor = js_runner_byte_array_destructor;
+    destructor->byte_array = array;
+    return jerry_arraybuffer_external(ByteArray_get(*array, 0), size, destructor);
+}
+
+jerry_value_t js_arraybuffer_from_sized_buffer(SizedBuffer buffer) {
+    return jerry_arraybuffer_external(buffer.buffer, buffer.size, js_runner_heap_destructor);
 }
