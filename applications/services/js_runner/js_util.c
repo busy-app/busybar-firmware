@@ -22,6 +22,24 @@ void js_set_constructor_prototype(jerry_value_t constructor, jerry_value_t proto
     js_set_property(constructor, "prototype", prototype);
 }
 
+jerry_value_t js_object_construct(
+    const char* name,
+    const jerry_value_t args[],
+    const jerry_length_t args_count) {
+    furi_check(name);
+    jerry_value_t global_obj = jerry_current_realm();
+
+    jerry_value_t constructor = jerry_object_get_sz(global_obj, name);
+    furi_check(jerry_value_is_function(constructor));
+
+    jerry_value_t result = jerry_construct(constructor, args, args_count);
+
+    jerry_value_free(constructor);
+    jerry_value_free(global_obj);
+
+    return result;
+}
+
 void js_set_property(jerry_value_t object, const char* name, jerry_value_t property) {
     js_check_and_free(jerry_object_set_sz(object, name, property));
     jerry_value_free(property);

@@ -14,17 +14,7 @@ static jerry_value_t response_constructor(
 }
 
 static jerry_value_t js_response_construct(void) {
-    jerry_value_t global_obj = jerry_current_realm();
-
-    jerry_value_t constructor = jerry_object_get_sz(global_obj, RESPONSE_CLASS_NAME);
-    furi_check(jerry_value_is_function(constructor));
-
-    jerry_value_t result = jerry_construct(constructor, NULL, 0);
-
-    jerry_value_free(constructor);
-    jerry_value_free(global_obj);
-
-    return result;
+    return js_object_construct(RESPONSE_CLASS_NAME, NULL, 0);
 }
 
 jerry_value_t js_response_alloc(uint32_t status, StringSlice status_text) {

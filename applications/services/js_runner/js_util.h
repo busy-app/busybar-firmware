@@ -48,6 +48,21 @@ void js_check_and_free(jerry_value_t value);
  */
 void js_set_constructor_prototype(jerry_value_t constructor, jerry_value_t prototype);
 
+/** @brief Construct an object given the class name
+ *
+ * @p args can be @c NULL if the constructor takes no arguments,
+ * in which case @p args_count must be 0.
+ *
+ * @param name class name as a zero-terminated string
+ * @param args array of arguments to pass to the constructor
+ * @param args_count number of arguments passed to the constructor
+ * @returns constructed object value
+ */
+jerry_value_t js_object_construct(
+    const char* name,
+    const jerry_value_t args[],
+    const jerry_length_t args_count);
+
 /** @brief Set a property in a JS object
  *
  * @param object Object (not freed)
