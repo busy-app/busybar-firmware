@@ -1,5 +1,7 @@
 #pragma once
 
+#include "js_app_settings_storage.h"
+
 #include <furi.h>
 
 #include <gui/gui.h>
@@ -16,6 +18,8 @@
 typedef enum {
     JsAppLauncherErrorNone,
     JsAppLauncherErrorLoadFailed,
+    JsAppLauncherErrorSettingsMissing,
+    JsAppLauncherErrorSettingsLoadFailed,
     JsAppLauncherErrorSyntaxError,
     JsAppLauncherErrorProgramCrashed,
     JsAppLauncherErrorMax,
@@ -44,12 +48,14 @@ typedef struct {
     NavBar* nav_bar;
 
     JsApp* js_app;
+    JsAppSettingsStorage* settings_storage;
     JsAppLauncherError error;
 } JsAppLauncher;
 
 typedef enum {
     JsAppLauncherCustomEventIndexMax = 0x7F,
     JsAppLauncherCustomEventScriptFinished,
+    JsAppLauncherCustomEventSettingsChanged,
 } JsAppLauncherCustomEvent;
 
 void js_app_launcher_send_custom_event(JsAppLauncher* instance, uint32_t event);
