@@ -21,6 +21,14 @@
         }                                                                      \
     } while(false)
 
+#define JS_CHECK_CONSTRUCTOR()                                                          \
+    do {                                                                                \
+        if(!jerry_value_is_object(call_info->this_value)) {                             \
+            return jerry_throw_sz(                                                      \
+                JERRY_ERROR_TYPE, "Class constructor cannot be invoked without 'new'"); \
+        }                                                                               \
+    } while(false)
+
 #define JS_CHECK_ARG_IS_FUNCTION(arg)                                              \
     do {                                                                           \
         if(!jerry_value_is_function(arg)) {                                        \

@@ -2,19 +2,6 @@
 
 #include <toolbox/url.h>
 
-#define TAG "JsUrl"
-
-static const char* const js_url_part_keys[UrlPartIdMax] = {
-    [UrlPartIdHref] = "href",
-    [UrlPartIdOrigin] = "origin",
-    [UrlPartIdProtocol] = "protocol",
-    [UrlPartIdHost] = "host",
-    [UrlPartIdHostname] = "hostname",
-    [UrlPartIdPort] = "port",
-    [UrlPartIdPathname] = "pathname",
-    [UrlPartIdSearch] = "search",
-};
-
 static void url_free_cb(void* native_p, jerry_object_native_info_t* info_p) {
     UNUSED(info_p);
 
@@ -23,6 +10,85 @@ static void url_free_cb(void* native_p, jerry_object_native_info_t* info_p) {
 }
 
 static const jerry_object_native_info_t url_native_info = {.free_cb = url_free_cb};
+
+static jerry_value_t js_url_get(const jerry_call_info_t* call_info, UrlPartId part_id) {
+    Url* url_native = jerry_object_get_native_ptr(call_info->this_value, &url_native_info);
+    furi_assert(url_native);
+    const StringSlice* part = url_get_part(url_native, part_id);
+    return jerry_string((const jerry_char_t*)part->first_char, part->length, JERRY_ENCODING_CESU8);
+}
+
+static jerry_value_t js_url_href_get(
+    const jerry_call_info_t* call_info,
+    const jerry_value_t args[],
+    const jerry_length_t args_count) {
+    UNUSED(args);
+    UNUSED(args_count);
+    return js_url_get(call_info, UrlPartIdHref);
+}
+
+static jerry_value_t js_url_origin_get(
+    const jerry_call_info_t* call_info,
+    const jerry_value_t args[],
+    const jerry_length_t args_count) {
+    UNUSED(args);
+    UNUSED(args_count);
+    return js_url_get(call_info, UrlPartIdOrigin);
+}
+
+static jerry_value_t js_url_protocol_get(
+    const jerry_call_info_t* call_info,
+    const jerry_value_t args[],
+    const jerry_length_t args_count) {
+    UNUSED(args);
+    UNUSED(args_count);
+    return js_url_get(call_info, UrlPartIdProtocol);
+}
+
+static jerry_value_t js_url_host_get(
+    const jerry_call_info_t* call_info,
+    const jerry_value_t args[],
+    const jerry_length_t args_count) {
+    UNUSED(args);
+    UNUSED(args_count);
+    return js_url_get(call_info, UrlPartIdHost);
+}
+
+static jerry_value_t js_url_hostname_get(
+    const jerry_call_info_t* call_info,
+    const jerry_value_t args[],
+    const jerry_length_t args_count) {
+    UNUSED(args);
+    UNUSED(args_count);
+    return js_url_get(call_info, UrlPartIdHostname);
+}
+
+static jerry_value_t js_url_port_get(
+    const jerry_call_info_t* call_info,
+    const jerry_value_t args[],
+    const jerry_length_t args_count) {
+    UNUSED(args);
+    UNUSED(args_count);
+    return js_url_get(call_info, UrlPartIdPort);
+}
+
+static jerry_value_t js_url_pathname_get(
+    const jerry_call_info_t* call_info,
+    const jerry_value_t args[],
+    const jerry_length_t args_count) {
+    UNUSED(args);
+    UNUSED(args_count);
+    return js_url_get(call_info, UrlPartIdPathname);
+}
+
+static jerry_value_t js_url_search_get(
+    const jerry_call_info_t* call_info,
+    const jerry_value_t args[],
+    const jerry_length_t args_count) {
+    UNUSED(args);
+    UNUSED(args_count);
+    return js_url_get(call_info, UrlPartIdSearch);
+}
 
 static jerry_value_t js_url_init(jerry_value_t this_value, const char* url_str) {
     Url* url_native = url_alloc();
@@ -34,15 +100,6 @@ static jerry_value_t js_url_init(jerry_value_t this_value, const char* url_str) 
 
     jerry_object_set_native_ptr(this_value, &url_native_info, url_native);
 
-    for(uint32_t i = 0; i < COUNT_OF(js_url_part_keys); ++i) {
-        const StringSlice* part = url_get_part(url_native, i);
-
-        jerry_value_t prop =
-            jerry_string_external((const jerry_char_t*)part->first_char, part->length, NULL);
-
-        js_set_property(this_value, js_url_part_keys[i], prop);
-    }
-
     return jerry_undefined();
 }
 
@@ -50,13 +107,7 @@ static jerry_value_t url_constructor(
     const jerry_call_info_t* call_info,
     const jerry_value_t args[],
     const jerry_length_t args_count) {
-    jerry_value_t this_value = call_info->this_value;
-
-    if(!jerry_value_is_object(this_value)) {
-        return jerry_throw_sz(
-            JERRY_ERROR_TYPE, "Class constructor URL cannot be invoked without 'new'");
-    }
-
+    JS_CHECK_CONSTRUCTOR();
     JS_CHECK_ARGS_COUNT(1);
 
     jerry_value_t arg_url = jerry_value_to_string(JS_ARG(0));
@@ -67,7 +118,7 @@ static jerry_value_t url_constructor(
     char* url_str = js_string_to_c_string(arg_url);
     furi_check(url_str);
 
-    const jerry_value_t result = js_url_init(this_value, url_str);
+    const jerry_value_t result = js_url_init(call_info->this_value, url_str);
 
     jerry_value_free(arg_url);
     free(url_str);
@@ -82,7 +133,17 @@ void js_setup_url(void) {
     jerry_value_free(jerry_object_set_sz(global_obj, "URL", constructor));
 
     jerry_value_t prototype = jerry_object();
-    js_check_and_free(jerry_object_set_proto(constructor, prototype));
+    js_set_property_getset(prototype, "href", js_url_href_get, NULL);
+    js_set_property_getset(prototype, "origin", js_url_origin_get, NULL);
+    js_set_property_getset(prototype, "protocol", js_url_protocol_get, NULL);
+    js_set_property_getset(prototype, "host", js_url_host_get, NULL);
+    js_set_property_getset(prototype, "hostname", js_url_hostname_get, NULL);
+    js_set_property_getset(prototype, "port", js_url_port_get, NULL);
+    js_set_property_getset(prototype, "pathname", js_url_pathname_get, NULL);
+    js_set_property_getset(prototype, "search", js_url_search_get, NULL);
+    js_set_method(prototype, "toString", js_url_href_get);
+
+    js_check_and_free(jerry_object_set_sz(constructor, "prototype", prototype));
 
     jerry_value_free(prototype);
     jerry_value_free(constructor);
