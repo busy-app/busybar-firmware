@@ -250,6 +250,7 @@ static jerry_value_t headers_set(
 
     jerry_value_t arg_value = jerry_value_to_string(JS_ARG(1));
     if(jerry_value_is_exception(arg_value)) {
+        jerry_value_free(arg_key);
         return arg_value;
     }
 

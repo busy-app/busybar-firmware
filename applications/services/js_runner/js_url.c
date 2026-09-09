@@ -12,9 +12,9 @@ static void url_free_cb(void* native_p, jerry_object_native_info_t* info_p) {
 static const jerry_object_native_info_t url_native_info = {.free_cb = url_free_cb};
 
 static jerry_value_t js_url_get(const jerry_call_info_t* call_info, UrlPartId part_id) {
-    Url* url_native = jerry_object_get_native_ptr(call_info->this_value, &url_native_info);
-    furi_assert(url_native);
-    const StringSlice* part = url_get_part(url_native, part_id);
+    Url* instance = jerry_object_get_native_ptr(call_info->this_value, &url_native_info);
+    JS_CHECK_INSTANCE();
+    const StringSlice* part = url_get_part(instance, part_id);
     return jerry_string((const jerry_char_t*)part->first_char, part->length, JERRY_ENCODING_CESU8);
 }
 
@@ -91,14 +91,14 @@ static jerry_value_t js_url_search_get(
 }
 
 static jerry_value_t js_url_init(jerry_value_t this_value, const char* url_str) {
-    Url* url_native = url_alloc();
+    Url* instance = url_alloc();
 
-    if(!url_parse(url_native, url_str)) {
-        url_free(url_native);
+    if(!url_parse(instance, url_str)) {
+        url_free(instance);
         return jerry_throw_sz(JERRY_ERROR_TYPE, "Invalid URL");
     }
 
-    jerry_object_set_native_ptr(this_value, &url_native_info, url_native);
+    jerry_object_set_native_ptr(this_value, &url_native_info, instance);
 
     return jerry_undefined();
 }

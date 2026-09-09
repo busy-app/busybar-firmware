@@ -14,11 +14,17 @@ static jerry_value_t stubs_constructor_common(
 void js_setup_stubs(void) {
     jerry_value_t global_obj = jerry_current_realm();
 
-    jerry_value_t constructor = jerry_function_external(stubs_constructor_common);
-    jerry_value_free(jerry_object_set_sz(global_obj, "AbortController", constructor));
-    jerry_value_free(jerry_object_set_sz(global_obj, "DOMException", constructor));
-    jerry_value_free(jerry_object_set_sz(global_obj, "FormData", constructor));
+    static const char* stub_class_names[] = {
+        "AbortController",
+        "DOMException",
+        "FormData",
+    };
 
-    jerry_value_free(constructor);
+    for(uint32_t i = 0; i < COUNT_OF(stub_class_names); ++i) {
+        jerry_value_t constructor = jerry_function_external(stubs_constructor_common);
+        js_check_and_free(jerry_object_set_sz(global_obj, stub_class_names[i], constructor));
+        jerry_value_free(constructor);
+    }
+
     jerry_value_free(global_obj);
 }
