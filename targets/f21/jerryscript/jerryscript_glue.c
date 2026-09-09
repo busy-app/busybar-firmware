@@ -52,13 +52,13 @@ int32_t jerry_port_local_tza(double unix_ms) {
 
 jerry_char_t* jerry_port_path_normalize(const jerry_char_t* path_p, jerry_size_t path_size) {
     UNUSED(path_size);
-    FURI_LOG_D(TAG, "Normalize path: %s", path_p);
+    JS_TRACE("Normalize path: %s", path_p);
     FuriString* path_norm = furi_string_alloc();
     path_normalize((const char*)path_p, path_norm, true);
     jerry_char_t* result = malloc(furi_string_size(path_norm) + 1);
     strcpy((char*)result, furi_string_get_cstr(path_norm));
     furi_string_free(path_norm);
-    FURI_LOG_D(TAG, "Normalized: %s", result);
+    JS_TRACE("Normalized: %s", result);
     return result;
 }
 
@@ -67,7 +67,7 @@ void jerry_port_path_free(jerry_char_t* path_p) {
 }
 
 jerry_size_t jerry_port_path_base(const jerry_char_t* path_p) {
-    FURI_LOG_D(TAG, "Path base: %s", path_p);
+    JS_TRACE("Path base: %s", path_p);
     const char* last_slash = strrchr((const char*)path_p, '/');
     if(last_slash) {
         return last_slash - (const char*)path_p + 1;
@@ -76,18 +76,28 @@ jerry_size_t jerry_port_path_base(const jerry_char_t* path_p) {
     }
 }
 
-jerry_char_t* jerry_port_source_read(const char* file_name_p, jerry_size_t* out_size_p) {
-    FURI_LOG_D(TAG, "Source read: %s", file_name_p);
-    FuriString* abs_path_norm = furi_string_alloc();
-    {
-        FuriString* abs_path = furi_string_alloc();
-        js_runner_get_root_path(abs_path);
+static FuriString* get_normalized_root_path(const char* file_name_p) {
+    FuriString* abs_path = furi_string_alloc();
+    if(js_runner_get_root_path(abs_path)) {
         path_append(abs_path, file_name_p);
+        FuriString* abs_path_norm = furi_string_alloc();
         path_normalize(furi_string_get_cstr(abs_path), abs_path_norm, false);
         furi_string_free(abs_path);
+        return abs_path_norm;
+    } else {
+        furi_string_free(abs_path);
+        return NULL;
+    }
+}
+
+jerry_char_t* jerry_port_source_read(const char* file_name_p, jerry_size_t* out_size_p) {
+    JS_TRACE("Source read: %s", file_name_p);
+    FuriString* abs_path_norm = get_normalized_root_path(file_name_p);
+    if(!abs_path_norm) {
+        return NULL;
     }
     const char* abs_path_cstr = furi_string_get_cstr(abs_path_norm);
-    FURI_LOG_D(TAG, "Abs path: %s", abs_path_cstr);
+    JS_TRACE("Abs path: %s", abs_path_cstr);
     Storage* storage = furi_record_open(RECORD_STORAGE);
     File* f = storage_file_alloc(storage);
     jerry_char_t* result = NULL;
