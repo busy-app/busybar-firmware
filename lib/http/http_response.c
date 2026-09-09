@@ -1,7 +1,6 @@
 #include "http_response.h"
 
 #include <core/check.h>
-#include <toolbox/strint.h>
 
 #define HTTP_NAME     "HTTP/"
 #define HTTP_NAME_LEN (sizeof(HTTP_NAME) - 1)
@@ -9,7 +8,46 @@
 #define HTTP_STATUS_TEMPLATE HTTP_NAME "1.0 XXX \r\n"
 #define HTTP_STATUS_LEN_MIN  (sizeof(HTTP_STATUS_TEMPLATE) - 1)
 
+#define HTTP_VERSION_LEN     (3)
 #define HTTP_STATUS_CODE_LEN (3)
+
+#define SPACE_LEN (1)
+
+static bool data_contains_only_digits(const char* data, size_t data_len) {
+    bool contains_digits = true;
+
+    for(uint32_t i = 0; i < data_len; ++i) {
+        if(!isdigit((int)data[i])) {
+            contains_digits = false;
+            break;
+        }
+    }
+
+    return contains_digits;
+}
+
+static bool http_response_is_version_valid(const char* data) {
+    return isdigit((int)data[0]) && ('.' == data[1]) && isdigit((int)data[2]);
+}
+
+static bool http_response_parse_status_code(const char* data, uint32_t* out) {
+    bool success = false;
+
+    do {
+        if(!data_contains_only_digits(data, HTTP_STATUS_CODE_LEN)) {
+            break;
+        }
+
+        char tmp[HTTP_STATUS_CODE_LEN + 1];
+        memcpy(tmp, data, HTTP_STATUS_CODE_LEN);
+        tmp[HTTP_STATUS_CODE_LEN] = '\0';
+
+        *out = atoi(tmp);
+        success = true;
+    } while(false);
+
+    return success;
+}
 
 static ssize_t
     http_response_parse_status_line(HttpResponse* instance, const char* data, size_t data_len) {
@@ -28,19 +66,18 @@ static ssize_t
         i += HTTP_NAME_LEN;
 
         // HTTP version: DIGIT "." DIGIT
-        if(!isdigit((int)data[i + 0]) || data[i + 1] != '.' || !isdigit((int)data[i + 2]) ||
-           data[i + 3] != ' ') {
+        if(!http_response_is_version_valid(&data[i])) {
             break;
         }
-        i += 4;
+        i += HTTP_VERSION_LEN;
+
+        if(data[i] != ' ') {
+            break;
+        }
+        i += SPACE_LEN;
 
         // status-code: 3DIGIT SP
-        char* status_code_end;
-        if(strint_to_uint32(&data[i], &status_code_end, &instance->status, 10) !=
-           StrintParseNoError) {
-            break;
-        }
-        if(status_code_end - &data[i] != HTTP_STATUS_CODE_LEN) {
+        if(!http_response_parse_status_code(&data[i], &instance->status)) {
             break;
         }
         i += HTTP_STATUS_CODE_LEN;
@@ -48,7 +85,7 @@ static ssize_t
         if(data[i] != ' ') {
             break;
         }
-        i += 1;
+        i += SPACE_LEN;
 
         // reason-phrase
         const char* cr = memchr(data + i, '\r', data_len - i);
