@@ -64,7 +64,7 @@
               :items="colorModeOptions"
               class="w-38"
               :ui="{
-                content: 'min-w-max',
+                content: 'min-w-max'
               }"
               @update:model-value="saveColorMode"
             />
