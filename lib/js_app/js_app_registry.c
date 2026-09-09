@@ -11,14 +11,6 @@
 // TODO: Share with assets HTTP API
 #define JS_APPS_PATH EXT_PATH("user_assets")
 
-static bool js_app_registry_is_dir_callback(const char* path, FileInfo* file_info, void* context) {
-    UNUSED(path);
-    UNUSED(context);
-
-    furi_assert(file_info);
-    return file_info_is_dir(file_info);
-}
-
 static void js_app_registry_list_apps_directory(
     DirWalk* dir_walk,
     JsAppRegistryListCallback callback,
@@ -47,7 +39,7 @@ void js_app_registry_list_apps(JsAppRegistryListCallback callback, void* context
 
     DirWalk* dir_walk = dir_walk_alloc(storage);
     dir_walk_set_recursive(dir_walk, false);
-    dir_walk_set_filter_cb(dir_walk, js_app_registry_is_dir_callback, NULL);
+    dir_walk_set_filter_cb(dir_walk, dir_walk_is_dir_callback, NULL);
 
     if(dir_walk_open(dir_walk, JS_APPS_PATH)) {
         js_app_registry_list_apps_directory(dir_walk, callback, context);

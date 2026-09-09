@@ -1,0 +1,47 @@
+tags:
+- name: Apps
+  description: Javascript applications managements
+
+paths:
+  /api/apps/install:
+    post:
+      tags:
+        - Apps
+      summary: Install a Javascript application
+      description: Uploads an application package (TGZ file) and initiates the installation process.
+      x-local-only: true
+      operationId: installApp
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+              description: Javascript application TGZ package.
+      responses:
+        "200":
+          description: Installation initiated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid parameters, invalid package file, or installation preparation failed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "413":
+          description: Application package too large.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "508":
+          description: Failed to save the application package.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"

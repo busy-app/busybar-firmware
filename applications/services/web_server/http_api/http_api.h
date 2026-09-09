@@ -202,3 +202,19 @@ bool http_api_smart_home_callback(
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx);
+
+// Apps
+void* http_api_apps_alloc(void);
+void http_api_apps_free(void* ctx);
+bool http_api_apps_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx);
+bool http_api_apps_hdr_callback_root(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx);

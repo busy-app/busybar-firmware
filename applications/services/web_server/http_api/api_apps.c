@@ -1,0 +1,361 @@
+#include "http_api.h"
+
+#include <furi.h>
+#include <toolbox/timers.h>
+
+#include <storage_utils/temp_file.h>
+
+#include <js_app_installer/js_app_installer_paths.h>
+#include <js_app_installer/js_app_installer.h>
+
+#include <cjson/cJSON.h>
+
+#define TAG "HttpApiApps"
+
+#define MAX_UPLOAD_FILE_SIZE (100 * 1024 * 1024)
+
+#define APP_UPLOAD_IDLE_TIMEOUT_MS 5000
+
+typedef struct {
+    Storage* storage;
+    TempFile* update_file;
+
+    FuriThreadPriority original_thread_priority;
+
+    size_t total_file_size; // Expected total size from Content-Length
+    size_t received_file_size; // Bytes received so far
+
+    bool file_fully_received; // Flag: true if all bytes received and temp file closed
+
+    CoarseTimer timeout_timer;
+} HttpInstallHandlerCtx;
+
+static void api_apps_on_data_cb(struct mg_connection* conn, struct mg_iobuf* io);
+static void api_apps_on_close_cb(struct mg_connection* conn);
+
+static HttpInstallHandlerCtx* alloc_install_context() {
+    HttpInstallHandlerCtx* ctx = malloc(sizeof(HttpInstallHandlerCtx));
+    ctx->storage = furi_record_open(RECORD_STORAGE);
+    ctx->update_file = temp_file_alloc(ctx->storage);
+
+    ctx->original_thread_priority = furi_thread_get_current_priority();
+
+    ctx->total_file_size = 0;
+    ctx->received_file_size = 0;
+    ctx->file_fully_received = false;
+    return ctx;
+}
+
+static void free_install_context(HttpInstallHandlerCtx* ctx) {
+    if(!ctx) return;
+
+    furi_thread_set_current_priority(ctx->original_thread_priority);
+
+    if(ctx->update_file) {
+        temp_file_remove(ctx->update_file);
+        temp_file_free(ctx->update_file);
+        ctx->update_file = NULL;
+    }
+
+    if(ctx->storage) {
+        furi_record_close(RECORD_STORAGE);
+        ctx->storage = NULL;
+    }
+
+    free(ctx);
+}
+
+static const char* const installer_errors[] = {
+    [JsAppInstallerErrorNone] = "OK",
+    [JsAppInstallerErrorUnpack] = "Cannot unpack",
+    [JsAppInstallerErrorManifest] = "Wrong app manifest",
+};
+
+static const char* const installer_error_codes[] = {
+    [JsAppInstallerErrorNone] = "ok",
+    [JsAppInstallerErrorUnpack] = "unpack_error",
+    [JsAppInstallerErrorManifest] = "manifest_error",
+};
+
+static_assert(COUNT_OF(installer_errors) == JsAppInstallerErrorMax);
+static_assert(COUNT_OF(installer_error_codes) == JsAppInstallerErrorMax);
+
+static bool
+    handle_completed_upload(HttpInstallHandlerCtx* install_ctx, struct mg_connection* conn) {
+    FURI_LOG_I(TAG, "upload completed");
+    UNUSED(install_ctx);
+
+    JsAppInstaller* installer = furi_record_open(RECORD_JS_APP_INSTALLER);
+
+    JsAppInstallerStageResult result = js_app_installer_stage(installer);
+
+    cJSON* root = cJSON_CreateObject();
+    int status_code = 200;
+    if(result.error == JsAppInstallerErrorNone) {
+        cJSON_AddStringToObject(root, "result", "OK");
+        cJSON_AddNumberToObject(root, "install_id", result.install_id);
+        cJSON_AddStringToObject(root, "app_id", furi_string_get_cstr(result.app_id));
+        cJSON_AddStringToObject(root, "app_version", furi_string_get_cstr(result.version));
+        if(result.installed_version) {
+            cJSON_AddStringToObject(
+                root, "installed_version", furi_string_get_cstr(result.installed_version));
+        } else {
+            cJSON_AddNullToObject(root, "installed_version");
+        }
+
+        furi_string_free(result.app_id);
+        furi_string_free(result.version);
+        status_code = 200;
+    } else {
+        cJSON_AddStringToObject(root, "error", installer_errors[result.error]);
+        cJSON_AddStringToObject(root, "error_code", installer_error_codes[result.error]);
+        status_code = 400;
+    }
+
+    char* json = cJSON_PrintUnformatted(root);
+
+    mg_http_reply(conn, status_code, DEFAULT_JSON_HEADERS "Connection: close\r\n", json);
+
+    free(json);
+    cJSON_free(root);
+
+    conn->is_draining = 1;
+
+    furi_record_close(RECORD_JS_APP_INSTALLER);
+    return true;
+}
+
+static void api_apps_on_data_cb(struct mg_connection* conn, struct mg_iobuf* io) {
+    ConnectionContext* conn_ctx = (ConnectionContext*)conn->data;
+    HttpInstallHandlerCtx* install_ctx = (HttpInstallHandlerCtx*)conn_ctx->context;
+
+    if(!install_ctx || !install_ctx->update_file) {
+        FURI_LOG_E(TAG, "on_data: Context or file saver invalid/closed. Draining.");
+        MG_REPLY_ERROR_CLOSE(conn, 409, "Update context invalid");
+        mg_iobuf_del(io, 0, io->len); // Consume data to prevent further calls
+        conn->is_draining = 1; // Mark connection to be closed
+        return;
+    }
+
+    install_ctx->timeout_timer = coarse_timer_create(APP_UPLOAD_IDLE_TIMEOUT_MS);
+
+    size_t data_len = io->len;
+    FURI_LOG_T(
+        TAG,
+        "on_data: Received %zu bytes. Total received: %zu / %zu",
+        data_len,
+        install_ctx->received_file_size,
+        install_ctx->total_file_size);
+
+    if(data_len > 0) {
+        if(install_ctx->received_file_size + data_len > install_ctx->total_file_size) {
+            FURI_LOG_E(
+                TAG,
+                "on_data: Received more data than expected. Expected %zu, got %zu more.",
+                install_ctx->total_file_size,
+                (install_ctx->received_file_size + data_len) - install_ctx->total_file_size);
+            MG_REPLY_ERROR_CLOSE(conn, 413, "Payload Too Large");
+            conn->is_draining = 1;
+            mg_iobuf_del(io, 0, io->len);
+            return;
+        }
+
+        if(!temp_file_write(install_ctx->update_file, io->buf, data_len)) {
+            FURI_LOG_E(
+                TAG, "on_data: Failed to write data to temp TAR file. Wrote %zu bytes.", data_len);
+            MG_REPLY_ERROR_CLOSE(conn, 508, "Failed to save update package (write error).");
+            conn->is_draining = 1;
+            mg_iobuf_del(io, 0, io->len);
+            return;
+        }
+
+        install_ctx->received_file_size += data_len;
+    }
+
+    mg_iobuf_del(io, 0, io->len); // Consume all data from buffer
+
+    if(install_ctx->received_file_size >= install_ctx->total_file_size) {
+        FURI_LOG_I(TAG, "on_data: All data received (%zu bytes)", install_ctx->received_file_size);
+        install_ctx->file_fully_received = true;
+
+        temp_file_free(install_ctx->update_file);
+        install_ctx->update_file = NULL;
+
+        if(!handle_completed_upload(install_ctx, conn)) {
+            // Error response already sent by handle_completed_upload
+            FURI_LOG_E(TAG, "on_data: package handling failed.");
+        }
+    }
+}
+
+static void api_apps_on_close_cb(struct mg_connection* conn) {
+    ConnectionContext* conn_ctx = (ConnectionContext*)conn->data;
+    HttpInstallHandlerCtx* install_ctx = (HttpInstallHandlerCtx*)conn_ctx->context;
+
+    FURI_LOG_D(TAG, "on_close");
+
+    if(install_ctx) {
+        free_install_context(install_ctx);
+        conn_ctx->context = NULL;
+    }
+
+    // Clear callbacks
+    conn_ctx->raw.on_data = NULL;
+    conn_ctx->raw.on_poll = NULL;
+    conn_ctx->on_close = NULL;
+}
+
+static void api_apps_on_poll_cb(struct mg_connection* conn) {
+    ConnectionContext* conn_ctx = (void*)conn->data;
+    HttpInstallHandlerCtx* install_ctx = conn_ctx->context;
+    furi_assert(install_ctx);
+
+    if(coarse_timer_is_expired(install_ctx->timeout_timer)) {
+        FURI_LOG_E(TAG, "Connection data timeout (%lu)", conn->id);
+        MG_REPLY_TIMEOUT(conn, "Upload timeout");
+        conn->is_draining = 1; // Force close hanging connection
+    }
+}
+
+static bool api_apps_stage_hdr_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* http_handler_ctx) {
+    UNUSED(http_handler_ctx);
+    ConnectionContext* conn_ctx = (ConnectionContext*)conn->data;
+    HttpInstallHandlerCtx* install_ctx = NULL;
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
+    if(method == HttpMethodOptions) return false; // let MG_EV_HTTP_MSG respond with preflight
+    if(method != HttpMethodPost) {
+        http_reply_405_method_not_allowed(conn, HttpMethodPost, true);
+        conn->is_draining = 1;
+        return true;
+    }
+
+    if(msg->body.len == 0) {
+        FURI_LOG_W(TAG, "on_headers: Content-Length is 0 or missing/invalid. No file to upload?");
+        MG_REPLY_ERROR_CLOSE(conn, 400, "Bad Request");
+        conn->is_draining = 1;
+        return true;
+    }
+
+    install_ctx = alloc_install_context();
+    conn_ctx->raw.on_data = api_apps_on_data_cb;
+    conn_ctx->raw.on_poll = api_apps_on_poll_cb;
+    conn_ctx->on_close = api_apps_on_close_cb;
+    conn_ctx->context = install_ctx;
+
+    install_ctx->timeout_timer = coarse_timer_create(APP_UPLOAD_IDLE_TIMEOUT_MS);
+    install_ctx->total_file_size = msg->body.len;
+    if(install_ctx->total_file_size > MAX_UPLOAD_FILE_SIZE) {
+        FURI_LOG_E(
+            TAG,
+            "on_headers: File size %zu exceeds max %u.",
+            install_ctx->total_file_size,
+            MAX_UPLOAD_FILE_SIZE);
+        MG_REPLY_ERROR_CLOSE(conn, 413, "Payload Too Large");
+        conn->is_draining = 1;
+        return true;
+    }
+    FURI_LOG_I(TAG, "on_headers: Expecting file of size: %zu bytes", install_ctx->total_file_size);
+
+    furi_thread_set_current_priority(FuriThreadPriorityLow);
+
+    if(!temp_file_create(install_ctx->update_file, JS_APP_DOWNLOAD_PATH)) {
+        FURI_LOG_E(
+            TAG, "on_headers: Failed to initialize file saver for: %s", JS_APP_DOWNLOAD_PATH);
+        MG_REPLY_ERROR_CLOSE(conn, 508, "Failed to save update package (file init error).");
+        conn->is_draining = 1;
+        return true;
+    }
+
+    FURI_LOG_I(TAG, "on_headers: Initialized file saver for: %s", JS_APP_DOWNLOAD_PATH);
+
+    mg_iobuf_del(&conn->recv, 0, msg->head.len); // Delete HTTP headers
+    conn->pfn = NULL; // Silence HTTP protocol handler, we'll use MG_EV_READ
+
+    // Also handle possible data in the buffer
+    api_apps_on_data_cb(conn, &conn->recv);
+
+    return true;
+}
+
+static bool api_apps_stage_request_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(path);
+    UNUSED(msg);
+    UNUSED(ctx);
+
+    if(method == HttpMethodOptions) {
+        http_reply_cors_preflight(conn, HttpMethodPost);
+        return true;
+    }
+
+    MG_REPLY_BAD_REQUEST(conn);
+
+    return true;
+}
+
+static const HttpHandler api_apps_handlers[] = {
+    {
+        .uri = "stage",
+        .method = HttpMethodPost,
+        .type = HttpHandlerCustom,
+        .on_request = api_apps_stage_request_callback,
+        .on_headers = api_apps_stage_hdr_callback,
+    },
+};
+
+typedef struct {
+    HttpHandlersList_t handlers;
+} ApiAppsCtx;
+
+void* http_api_apps_alloc(void) {
+    ApiAppsCtx* context = malloc(sizeof(*context));
+    HttpHandlersList_init(context->handlers);
+
+    for(size_t i = COUNT_OF(api_apps_handlers); i > 0; i--) {
+        http_handler_add(context->handlers, &api_apps_handlers[i - 1]);
+    }
+
+    return context;
+}
+
+void http_api_apps_free(void* ctx) {
+    furi_assert(ctx);
+
+    ApiAppsCtx* context = ctx;
+
+    HttpHandlersList_clear(context->handlers);
+    free(context);
+}
+
+bool http_api_apps_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    ApiAppsCtx* context = ctx;
+
+    return http_handle_request(path, method, context->handlers, conn, msg);
+}
+
+bool http_api_apps_hdr_callback_root(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    ApiAppsCtx* context = ctx;
+
+    return http_handle_headers(path, method, context->handlers, conn, msg);
+}
