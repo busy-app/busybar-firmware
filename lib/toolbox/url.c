@@ -224,6 +224,14 @@ bool url_parse(Url* instance, const char* source_str) {
                 new_offset = source_len;
             }
 
+            if(part_idx == offset) {
+                if(step->is_required) {
+                    step_idx = UrlParseStepIdxMax;
+                    success = false;
+                    break;
+                }
+            }
+
             part->first_char = furi_string_get_cstr(source) + offset;
             part->length = part_idx - offset;
 
