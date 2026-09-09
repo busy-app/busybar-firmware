@@ -16,6 +16,12 @@ void js_check_and_free(jerry_value_t val) {
     jerry_value_free(val);
 }
 
+void js_set_constructor_prototype(jerry_value_t constructor, jerry_value_t prototype) {
+    furi_check(jerry_value_is_function(constructor));
+    furi_check(jerry_value_is_object(prototype));
+    js_set_property(constructor, "prototype", prototype);
+}
+
 void js_set_property(jerry_value_t object, const char* name, jerry_value_t property) {
     js_check_and_free(jerry_object_set_sz(object, name, property));
     jerry_value_free(property);

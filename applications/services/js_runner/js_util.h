@@ -41,6 +41,13 @@
  */
 void js_check_and_free(jerry_value_t value);
 
+/** @brief Set a prototype object to be used with a constructor
+ *
+ * @param constructor Constructor function (not freed)
+ * @param prototype Prototype value to set (freed)
+ */
+void js_set_constructor_prototype(jerry_value_t constructor, jerry_value_t prototype);
+
 /** @brief Set a property in a JS object
  *
  * @param object Object (not freed)

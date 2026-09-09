@@ -143,9 +143,8 @@ void js_setup_url(void) {
     js_set_property_getset(prototype, "search", js_url_search_get, NULL);
     js_set_method(prototype, "toString", js_url_href_get);
 
-    js_check_and_free(jerry_object_set_sz(constructor, "prototype", prototype));
+    js_set_constructor_prototype(constructor, prototype);
 
-    jerry_value_free(prototype);
     jerry_value_free(constructor);
     jerry_value_free(global_obj);
 }
