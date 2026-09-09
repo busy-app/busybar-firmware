@@ -5,7 +5,7 @@
 #include "battery/ble_service_battery.h"
 #include "uart/ble_service_uart.h"
 
-const BleServiceDescriptor* service_config[BleServiceIndexCount] = {
+const BleServiceConfig* service_config[BleServiceIndexCount] = {
     [BleServiceIndexGenericAccess] = &ble_service_generic_access,
     [BleServiceIndexGenericAttribute] = &ble_service_generic_attribute,
     [BleServiceIndexDeviceInfo] = &ble_service_config_device_info,

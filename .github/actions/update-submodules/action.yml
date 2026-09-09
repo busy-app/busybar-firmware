@@ -1,0 +1,38 @@
+name: Update submodules
+description: >-
+  Run `git submodule update` on the given paths with the standard shallow/blobless
+  flags and retry with backoff (shared-egress clone throttling comes in waves).
+inputs:
+  paths:
+    description: Space-separated submodule paths to update
+    required: true
+  recursive:
+    description: Recurse into nested submodules (parallel with nproc)
+    required: false
+    default: 'false'
+runs:
+  using: composite
+  steps:
+    - name: 'Update submodules'
+      shell: bash
+      env:
+        SUBMODULE_PATHS: ${{ inputs.paths }}
+        RECURSIVE: ${{ inputs.recursive }}
+      run: |
+        set -euo pipefail
+        read -r -a SUBMODULES <<< "$SUBMODULE_PATHS"
+        ARGS=(--init --depth 1 --filter=blob:none)
+        if [[ "$RECURSIVE" == "true" ]]; then
+          ARGS+=(--recursive --jobs="$(nproc)")
+        fi
+        attempt=0
+        until timeout 180 git submodule update "${ARGS[@]}" "${SUBMODULES[@]}"; do
+          attempt=$((attempt + 1))
+          if (( attempt >= 3 )); then
+            git lfs logs last 2>/dev/null || true
+            echo "submodule update failed after ${attempt} attempts"
+            exit 1
+          fi
+          echo "submodule update attempt ${attempt}/3 failed; retrying in $((attempt * 15))s"
+          sleep "$((attempt * 15))"
+        done

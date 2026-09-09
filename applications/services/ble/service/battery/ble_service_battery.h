@@ -7,4 +7,4 @@ typedef enum {
     BleSrvBatteryCharacterIndexBatteryStatus,
 } BleSrvBatteryCharacterIndex;
 
-extern const BleServiceDescriptor ble_service_config_battery;
+extern const BleServiceConfig ble_service_config_battery;

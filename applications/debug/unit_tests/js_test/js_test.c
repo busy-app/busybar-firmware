@@ -10,6 +10,8 @@
 #define MODULE1_FILE UNIT_TESTS_PATH("mod1.js")
 #define MODULE2_FILE UNIT_TESTS_PATH("mod2.js")
 
+#define HEAP_SIZE 4096
+
 static bool create_file(Storage* storage, const char* path, const char* data) {
     File* file = storage_file_alloc(storage);
     bool result = false;
@@ -56,21 +58,45 @@ static void js_console_cb(
     }
 }
 
+static JsRunnerError run_and_join(
+    const char* path,
+    JsRunnerConsoleOutCallback console_write_cb,
+    void* console_write_context) {
+    JsRunnerError result = JsRunnerErrorNone;
+
+    JsRunner* js_runner = furi_record_open(RECORD_JS_RUNNER);
+    do {
+        JsRunnerContextInitResult context_init_result = js_runner_context_alloc(
+            js_runner, APP_ID, HEAP_SIZE, console_write_cb, console_write_context);
+        if(context_init_result.error != JsRunnerErrorNone) {
+            result = context_init_result.error;
+            break;
+        }
+        do {
+            JsRunnerRunResult run_result =
+                js_runner_run(context_init_result.handle, path, NULL, NULL);
+            if(run_result.error != JsRunnerErrorNone) {
+                result = run_result.error;
+                break;
+            }
+            result = js_runner_join(run_result.handle, FuriWaitForever);
+        } while(false);
+        js_runner_context_free(context_init_result.handle);
+    } while(false);
+    furi_record_close(RECORD_JS_RUNNER);
+    return result;
+}
+
 MU_TEST(js_tests_console) {
     Storage* storage = furi_record_open(RECORD_STORAGE);
     mu_check(create_file(storage, SCRIPT_FILE, "console.log(\"flipppper\");"));
     furi_record_close(RECORD_STORAGE);
 
-    JsRunner* js_runner = furi_record_open(RECORD_JS_RUNNER);
     char buf[64] = {0};
 
-    mu_assert_int_eq(
-        JsRunnerErrorNone,
-        js_runner_run(js_runner, APP_ID, SCRIPT_FILE, 4096, js_console_cb, buf));
+    mu_assert_int_eq(JsRunnerErrorNone, run_and_join(SCRIPT_FILE, js_console_cb, buf));
 
     mu_assert_string_eq("flipppper\n", buf);
-
-    furi_record_close(RECORD_JS_RUNNER);
 }
 
 MU_TEST(js_tests_local_storage) {
@@ -90,12 +116,9 @@ MU_TEST(js_tests_local_storage) {
         "ok = ok && localStorage.key(2) === null;"
         "if(ok) { console.log('OK'); }"));
 
-    JsRunner* js_runner = furi_record_open(RECORD_JS_RUNNER);
     char buf[64] = {0};
 
-    mu_assert_int_eq(
-        JsRunnerErrorNone,
-        js_runner_run(js_runner, APP_ID, SCRIPT_FILE, 4096, js_console_cb, buf));
+    mu_assert_int_eq(JsRunnerErrorNone, run_and_join(SCRIPT_FILE, js_console_cb, buf));
 
     mu_assert_string_eq("OK\n", buf);
 
@@ -114,13 +137,10 @@ MU_TEST(js_tests_local_storage) {
         "ok = ok && localStorage.getItem('storage') === null;"
         "if(ok) { console.log('OK'); }"));
 
-    mu_assert_int_eq(
-        JsRunnerErrorNone,
-        js_runner_run(js_runner, APP_ID, SCRIPT_FILE, 4096, js_console_cb, buf));
+    mu_assert_int_eq(JsRunnerErrorNone, run_and_join(SCRIPT_FILE, js_console_cb, buf));
 
     mu_assert_string_eq("OK\n", buf);
 
-    furi_record_close(RECORD_JS_RUNNER);
     furi_record_close(RECORD_STORAGE);
 }
 
@@ -133,16 +153,11 @@ MU_TEST(js_tests_modules) {
     mu_check(create_file(storage, MODULE2_FILE, "export function hello(arg) {console.log(arg);}"));
     furi_record_close(RECORD_STORAGE);
 
-    JsRunner* js_runner = furi_record_open(RECORD_JS_RUNNER);
     char buf[64] = {0};
 
-    mu_assert_int_eq(
-        JsRunnerErrorNone,
-        js_runner_run(js_runner, APP_ID, MODULE1_FILE, 4096, js_console_cb, buf));
+    mu_assert_int_eq(JsRunnerErrorNone, run_and_join(MODULE1_FILE, js_console_cb, buf));
 
     mu_assert_string_eq("module\nflipper\n", buf);
-
-    furi_record_close(RECORD_JS_RUNNER);
 }
 
 static void interval_test_js_console_cb(
@@ -161,10 +176,7 @@ static void interval_test_js_console_cb(
 }
 
 static int32_t set_interval_thread_cb(void* context) {
-    JsRunner* js_runner = furi_record_open(RECORD_JS_RUNNER);
-    JsRunnerError error =
-        js_runner_run(js_runner, APP_ID, SCRIPT_FILE, 4096, interval_test_js_console_cb, context);
-    furi_record_close(RECORD_JS_RUNNER);
+    JsRunnerError error = run_and_join(SCRIPT_FILE, interval_test_js_console_cb, context);
     FURI_LOG_D("JsTest", "run returned %d", error);
     return error;
 }
@@ -230,11 +242,77 @@ MU_TEST(js_tests_set_interval) {
     mu_check(success);
 }
 
+MU_TEST(js_tests_handle) {
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+    mu_check(create_file(storage, SCRIPT_FILE, "undefined;"));
+    furi_record_close(RECORD_STORAGE);
+
+    JsRunner* instance = furi_record_open(RECORD_JS_RUNNER);
+    JsRunnerContextInitResult result1 =
+        js_runner_context_alloc(instance, APP_ID, HEAP_SIZE, NULL, NULL);
+    mu_assert_int_eq(JsRunnerErrorNone, result1.error);
+    mu_assert_not_null(result1.handle);
+    JsRunnerContextInitResult result2 =
+        js_runner_context_alloc(instance, APP_ID, HEAP_SIZE, NULL, NULL);
+    mu_assert_int_eq(JsRunnerErrorResource, result2.error);
+    mu_assert_null(result2.handle);
+
+    JsRunnerRunResult run_result1 = js_runner_run(result1.handle, SCRIPT_FILE, NULL, NULL);
+    mu_assert_int_eq(JsRunnerErrorNone, run_result1.error);
+    mu_assert_not_null(run_result1.handle);
+
+    JsRunnerRunResult run_result2 = js_runner_run(result1.handle, SCRIPT_FILE, NULL, NULL);
+    mu_assert_int_eq(JsRunnerErrorResource, run_result2.error);
+    mu_assert_null(run_result2.handle);
+
+    mu_assert_int_eq(JsRunnerErrorNone, js_runner_join(run_result1.handle, FuriWaitForever));
+
+    JsRunnerRunResult run_result3 = js_runner_run(result1.handle, SCRIPT_FILE, NULL, NULL);
+    mu_assert_int_eq(JsRunnerErrorNone, run_result3.error);
+    mu_assert_not_null(run_result3.handle);
+
+    mu_assert_int_eq(JsRunnerErrorNone, js_runner_join(run_result3.handle, FuriWaitForever));
+
+    js_runner_context_free(result1.handle);
+
+    furi_record_close(RECORD_JS_RUNNER);
+}
+
+static void terminate_callback(void* context) {
+    bool* done = context;
+    *done = true;
+}
+
+MU_TEST(js_tests_callback) {
+    JsRunner* instance = furi_record_open(RECORD_JS_RUNNER);
+
+    JsRunnerContextInitResult result =
+        js_runner_context_alloc(instance, APP_ID, HEAP_SIZE, NULL, NULL);
+    mu_assert_int_eq(JsRunnerErrorNone, result.error);
+    mu_assert_not_null(result.handle);
+
+    bool done = false;
+    JsRunnerRunResult run_result =
+        js_runner_run_snippet(result.handle, "2+2", false, terminate_callback, &done);
+    mu_assert_int_eq(JsRunnerErrorNone, run_result.error);
+    mu_assert_not_null(run_result.handle);
+
+    mu_assert_int_eq(JsRunnerErrorNone, js_runner_join(run_result.handle, FuriWaitForever));
+
+    mu_check(done);
+
+    js_runner_context_free(result.handle);
+
+    furi_record_close(RECORD_JS_RUNNER);
+}
+
 MU_TEST_SUITE(js_test_suite) {
     MU_RUN_TEST(js_tests_console);
     MU_RUN_TEST(js_tests_modules);
     MU_RUN_TEST(js_tests_set_interval);
     MU_RUN_TEST(js_tests_local_storage);
+    MU_RUN_TEST(js_tests_handle);
+    MU_RUN_TEST(js_tests_callback);
 }
 
 int run_minunit_js_test(void) {
