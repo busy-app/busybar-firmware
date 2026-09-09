@@ -1,6 +1,7 @@
 <template>
   <UButton
     icon="i-bi-arrow-back"
+    aria-label="Back"
     variant="ghost"
     color="neutral"
     square

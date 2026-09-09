@@ -12,11 +12,11 @@
     >
       <TabAppsAppCard
         v-for="app in apps"
-        :key="app.manifest.id"
+        :key="appKey(app)"
         :data-id="`apps-section-app-${app.manifest.id}`"
         :title="app.manifest.name"
         :icon="app.icon"
-        @click="openApp = app.manifest.id"
+        @click="openApp = appKey(app)"
       />
     </TabAppsCard>
 
@@ -36,6 +36,7 @@ import type { AppManifest, AppPackage } from '@/util/readAppPackage';
 interface App {
   manifest: Pick<AppManifest, 'id' | 'name'> & Partial<AppManifest>;
   icon?: string;
+  native?: boolean;
 }
 
 const NATIVE_VIEWS: Record<string, Component> = { weather: markRaw(TabAppsWeather) };
@@ -45,25 +46,29 @@ const toast = useToast();
 const openApp = ref<string>();
 const showAddAppModal = ref(false);
 const apps = ref<App[]>([
-  { manifest: { id: 'weather', name: 'Weather' }, icon: weatherIcon }
+  { manifest: { id: 'weather', name: 'Weather' }, icon: weatherIcon, native: true }
 ]);
 
-const currentApp = computed(() => apps.value.find(app => app.manifest.id === openApp.value));
+const currentApp = computed(() => apps.value.find(app => appKey(app) === openApp.value));
 
 const currentAppView = computed(() => {
   if (!currentApp.value) {
     return undefined;
   }
 
-  const nativeView = NATIVE_VIEWS[currentApp.value.manifest.id];
+  const nativeView = currentApp.value.native ? NATIVE_VIEWS[currentApp.value.manifest.id] : undefined;
 
   return nativeView
     ? { component: nativeView, props: {} }
     : { component: markRaw(TabAppsCustomApp), props: { app: currentApp.value } };
 });
 
+function appKey (app: App) {
+  return `${app.native ? 'native' : 'custom'}-${app.manifest.id}`;
+}
+
 function onAppUploaded (appPackage: AppPackage) {
-  const installedIndex = apps.value.findIndex(app => app.manifest.id === appPackage.manifest.id);
+  const installedIndex = apps.value.findIndex(app => !app.native && app.manifest.id === appPackage.manifest.id);
 
   if (installedIndex === -1) {
     apps.value.push(appPackage);
