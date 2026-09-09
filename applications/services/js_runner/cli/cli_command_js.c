@@ -15,7 +15,7 @@ typedef struct JsCliParams {
 } JsCliParams;
 
 #define CLI_APP_ID        "app.busy.cli"
-#define CLI_APP_HEAP_SIZE 128 * 1024
+#define CLI_APP_HEAP_SIZE 96 * 1024
 
 #define MAX_REPL_LINE_LENGTH 200
 
