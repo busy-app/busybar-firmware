@@ -80,6 +80,7 @@ static bool js_app_launcher_scene_start_on_event(const SceneManagerEvent* event,
         if(event->event == JsAppLauncherSceneStartMenuIdxStart) {
             scene_manager_next_scene(instance->scene_manager, JsAppLauncherSceneIdRun);
         } else if(event->event == JsAppLauncherSceneStartMenuIdxSetup) {
+            with_gui(instance->gui, { nav_bar_push_location(instance->nav_bar, "SETUP"); });
             scene_manager_next_scene(instance->scene_manager, JsAppLauncherSceneIdSetup);
         }
 

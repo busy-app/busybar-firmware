@@ -82,11 +82,21 @@ Color color_hex_to_rgb(uint32_t hex);
 Color color_hexa_to_rgb(uint32_t hexa);
 
 /**
+ * @brief Convert a HEX `"#RRGGBB"` representation to an RGB color
+ *
+ * @param[in] hex Hex value to convert (`"#RRGGBB"`)
+ * @param[out] color_out Color structure to fill
+ *
+ * @return Parsing status (`true` = success)
+ */
+bool color_parse_hex_string(const char* hex, Color* color_out);
+
+/**
  * @brief Convert a HEX `"#RRGGBBAA"` representation to an RGB color
- * 
+ *
  * @param[in] hexa Hex value to convert (`"#RRGGBBAA"`)
  * @param[out] color_out Color structure to fill
- * 
+ *
  * @return Parsing status (`true` = success)
  */
 bool color_parse_hexa_string(const char* hexa, Color* color_out);

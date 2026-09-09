@@ -18,6 +18,30 @@ static const JsAppLauncherErrorDesc js_app_launcher_error_descs[JsAppLauncherErr
                     .back = "Try to restart or reinstall it",
                 },
         },
+    [JsAppLauncherErrorSettingsMissing] =
+        {
+            .primary =
+                {
+                    .front = "This app has\nno settings.",
+                    .back = "No settings",
+                },
+            .auxiliary =
+                {
+                    .back = "Add settings file to the app",
+                },
+        },
+    [JsAppLauncherErrorSettingsLoadFailed] =
+        {
+            .primary =
+                {
+                    .front = "Settings loading\nfailed.",
+                    .back = "Settings loading failed",
+                },
+            .auxiliary =
+                {
+                    .back = "Check the app settings file",
+                },
+        },
     [JsAppLauncherErrorSyntaxError] =
         {
             .primary =
