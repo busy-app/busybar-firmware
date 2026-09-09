@@ -258,7 +258,7 @@ static jerry_value_t headers_set(
     furi_check(key);
 
     char* value = js_value_to_c_string(arg_value);
-    furi_check(arg_value);
+    furi_check(value);
 
     http_headers_set(instance->headers, key, value);
 
