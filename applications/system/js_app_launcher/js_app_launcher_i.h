@@ -1,7 +1,5 @@
 #pragma once
 
-#include "js_app_settings_storage.h"
-
 #include <furi.h>
 
 #include <gui/gui.h>
@@ -12,6 +10,7 @@
 #include <js_runner/js_runner.h>
 
 #include <js_app/js_app.h>
+#include <js_app/js_app_settings_storage.h>
 
 #define TAG "JsAppLauncher"
 
