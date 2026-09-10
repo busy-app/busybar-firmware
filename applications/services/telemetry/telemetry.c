@@ -11,8 +11,6 @@
 #include <audio/audio.h>
 #include <matter/matter.h>
 
-// ===== Event registry =====
-
 typedef struct {
     const char* name;
     TelemetryPriority priority;
@@ -49,8 +47,6 @@ const char* telemetry_event_type_name(TelemetryEventType type) {
     return telemetry_event_info[type].name;
 }
 
-// ===== Ring buffer =====
-
 static cJSON* telemetry_ring_pop(Telemetry* instance) {
     furi_assert(instance->events_count > 0);
 
@@ -62,7 +58,6 @@ static cJSON* telemetry_ring_pop(Telemetry* instance) {
 
 static void telemetry_ring_push(Telemetry* instance, cJSON* event) {
     if(instance->events_count >= TELEMETRY_RING_CAPACITY) {
-        // drop the oldest event
         FURI_LOG_W(TAG, "Telemetry ring buffer full, dropping oldest event");
         cJSON_Delete(telemetry_ring_pop(instance));
         instance->events_dropped++;
@@ -80,8 +75,6 @@ static void telemetry_ring_clear(Telemetry* instance) {
     }
 }
 
-// ===== Event building =====
-
 static cJSON* telemetry_event_create(TelemetryEventType type, cJSON* data) {
     const TelemetryEventInfo* info = &telemetry_event_info[type];
 
@@ -98,8 +91,6 @@ static cJSON* telemetry_event_create(TelemetryEventType type, cJSON* data) {
 
     return event;
 }
-
-// ===== Composite (flush-time) events =====
 
 static void telemetry_add_device_state(Telemetry* instance, cJSON* events) {
     cJSON* d = cJSON_CreateObject();
@@ -159,8 +150,6 @@ static void telemetry_add_input_counts(Telemetry* instance, cJSON* events) {
     cJSON_AddItemToObject(event, "d", d);
     cJSON_AddItemToArray(events, event);
 }
-
-// ===== Flush =====
 
 static bool telemetry_push_allowed(Telemetry* instance) {
     const time_t now_ms = time_get_timestamp_ms();
@@ -231,8 +220,6 @@ static void telemetry_flush(Telemetry* instance, bool is_push) {
     cJSON_Delete(batch);
 }
 
-// ===== Enqueue (telemetry thread only) =====
-
 static void
     telemetry_enqueue(Telemetry* instance, TelemetryEventType type, cJSON* data, bool auto_flush) {
     furi_assert(type < TelemetryEventMax);
@@ -249,7 +236,6 @@ static void
     const TelemetryEventInfo* info = &telemetry_event_info[type];
 
     if(!instance->is_connected && info->priority == TelemetryPriorityLow) {
-        // p0 events are droppable when offline
         instance->events_dropped++;
         if(data) {
             cJSON_Delete(data);
@@ -271,8 +257,6 @@ static void
     }
 }
 
-// ===== API message handlers =====
-
 static void
     telemetry_handle_report_event(Telemetry* instance, const TelemetryApiMessage* message) {
     const TelemetryApiMessageReportEvent* report = &message->data.report_event;
@@ -286,7 +270,6 @@ static void telemetry_handle_mqtt_status(Telemetry* instance, MqttStatus status)
                            (status == MqttStatusConnectedNotLinked);
 
     if(connected && !instance->is_connected) {
-        // (re)connected: report the offline duration, then flush the backlog
         if(instance->has_offline_start) {
             const time_t now_ms = time_get_timestamp_ms();
             cJSON* d = cJSON_CreateObject();
@@ -359,8 +342,6 @@ static void telemetry_handle_get_stats(Telemetry* instance, const TelemetryApiMe
     memcpy(stats->events_by_type, instance->events_by_type, sizeof(stats->events_by_type));
 }
 
-// ===== Event loop =====
-
 static void telemetry_flush_timer_callback(void* context) {
     furi_assert(context);
     Telemetry* instance = context;
@@ -407,8 +388,6 @@ static void telemetry_message_queue_callback(FuriEventLoopObject* object, void* 
         }
     }
 }
-
-// ===== Public API =====
 
 void telemetry_report_event(Telemetry* instance, TelemetryEventType type, cJSON* data) {
     furi_check(instance);
@@ -468,8 +447,6 @@ void telemetry_get_stats(Telemetry* instance, TelemetryStats* stats) {
         furi_message_queue_put(instance->api_queue, &message, FuriWaitForever) == FuriStatusOk);
     api_lock_wait_unlock_and_free(message.lock);
 }
-
-// ===== Startup =====
 
 static void telemetry_report_device_boot(Telemetry* instance) {
     cJSON* d = cJSON_CreateObject();

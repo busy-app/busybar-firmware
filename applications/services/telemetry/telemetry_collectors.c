@@ -81,8 +81,6 @@ static const char* telemetry_wifi_security_to_string(WifiSecurityMode mode) {
     }
 }
 
-// ===== MQTT =====
-
 static void telemetry_mqtt_pubsub_callback(const void* message, void* context) {
     furi_assert(message);
     Telemetry* instance = context;
@@ -115,8 +113,6 @@ static void telemetry_mqtt_pubsub_callback(const void* message, void* context) {
     }
 }
 
-// ===== Loader =====
-
 static void telemetry_loader_pubsub_callback(const void* message, void* context) {
     furi_assert(message);
     Telemetry* instance = context;
@@ -143,8 +139,6 @@ static void telemetry_loader_pubsub_callback(const void* message, void* context)
         break;
     }
 }
-
-// ===== Busy timer =====
 
 static void telemetry_busy_timer_pubsub_callback(const void* message, void* context) {
     furi_assert(message);
@@ -213,8 +207,6 @@ static void telemetry_busy_timer_pubsub_callback(const void* message, void* cont
     }
 }
 
-// ===== Power =====
-
 static void telemetry_power_pubsub_callback(const void* message, void* context) {
     UNUSED(message);
     Telemetry* instance = context;
@@ -225,8 +217,6 @@ static void telemetry_power_pubsub_callback(const void* message, void* context) 
     };
     furi_message_queue_put(instance->api_queue, &api_message, 0);
 }
-
-// ===== Audio =====
 
 static void telemetry_audio_pubsub_callback(const void* message, void* context) {
     Telemetry* instance = context;
@@ -240,8 +230,6 @@ static void telemetry_audio_pubsub_callback(const void* message, void* context) 
         furi_message_queue_put(instance->api_queue, &api_message, 0);
     }
 }
-
-// ===== Brightness =====
 
 static void telemetry_brightness_state_callback(const void* item, void* context) {
     Telemetry* instance = context;
@@ -260,8 +248,6 @@ static void telemetry_brightness_state_callback(const void* item, void* context)
 
     telemetry_report_event(instance, TelemetryEventSettingBrightness, d);
 }
-
-// ===== Input =====
 
 static void telemetry_input_pubsub_callback(const void* message, void* context) {
     furi_assert(message);
@@ -304,8 +290,6 @@ static void telemetry_input_pubsub_callback(const void* message, void* context) 
     }
 }
 
-// ===== Updater =====
-
 static void telemetry_updater_state_callback(const void* item, void* context) {
     Telemetry* instance = context;
 
@@ -326,15 +310,12 @@ static void telemetry_updater_state_callback(const void* item, void* context) {
     telemetry_report_event(instance, TelemetryEventFwUpdate, d);
 }
 
-// ===== Canvas ownership =====
-
 static void telemetry_canvas_ownership_callback(const void* item, void* context) {
     Telemetry* instance = context;
 
     const CanvasOwnershipInfo* info = item;
 
     if(info->is_active) {
-        // New or changed owner: emit canvas.acquire.
         if(!instance->last_canvas_active ||
            (strcmp(instance->last_canvas_app, info->app_id) != 0)) {
             instance->last_canvas_active = true;
@@ -346,7 +327,6 @@ static void telemetry_canvas_ownership_callback(const void* item, void* context)
             telemetry_report_event(instance, TelemetryEventCanvasAcquire, d);
         }
     } else {
-        // Released: emit canvas.release.
         if(instance->last_canvas_active) {
             cJSON* d = cJSON_CreateObject();
             cJSON_AddStringToObject(d, "app", instance->last_canvas_app);
@@ -356,8 +336,6 @@ static void telemetry_canvas_ownership_callback(const void* item, void* context)
         }
     }
 }
-
-// ===== WiFi =====
 
 static void telemetry_wifi_state_callback(const void* item, void* context) {
     Telemetry* instance = context;
@@ -406,35 +384,28 @@ static void telemetry_wifi_action_callback(const void* message, void* context) {
     telemetry_report_event(instance, TelemetryEventNetWifiReconfigure, d);
 }
 
-// ===== Registration =====
-
 void telemetry_collectors_init(Telemetry* instance) {
-    // MQTT
     instance->mqtt_pubsub = mqtt_get_pubsub(instance->mqtt);
     furi_pubsub_subscribe(instance->mqtt_pubsub, telemetry_mqtt_pubsub_callback, instance);
 
-    // Loader
     instance->loader = furi_record_open(RECORD_LOADER);
     instance->loader_pubsub = loader_get_pubsub(instance->loader);
     furi_pubsub_subscribe(instance->loader_pubsub, telemetry_loader_pubsub_callback, instance);
 
-    // Busy timer
     instance->busy_timer = furi_record_open(RECORD_BUSY_TIMER);
     instance->busy_timer_pubsub = busy_timer_get_pubsub(instance->busy_timer);
     furi_pubsub_subscribe(
         instance->busy_timer_pubsub, telemetry_busy_timer_pubsub_callback, instance);
 
-    // Power
     instance->power = furi_record_open(RECORD_POWER);
     instance->power_pubsub = power_get_pubsub(instance->power);
     furi_pubsub_subscribe(instance->power_pubsub, telemetry_power_pubsub_callback, instance);
 
-    // Audio
     instance->audio = furi_record_open(RECORD_AUDIO);
     instance->audio_pubsub = audio_get_pubsub(instance->audio);
     furi_pubsub_subscribe(instance->audio_pubsub, telemetry_audio_pubsub_callback, instance);
 
-    // Brightness (get_subscribe: no initial notification; seed the dedup value)
+    // get_subscribe: no initial notification; seed the dedup value
     instance->brightness_control = furi_record_open(RECORD_BRIGHTNESS_CONTROL);
     instance->brightness_state = brightness_control_get_state(instance->brightness_control);
     BrightnessControlState brightness_state;
@@ -445,19 +416,17 @@ void telemetry_collectors_init(Telemetry* instance) {
         instance);
     instance->last_brightness_value = brightness_state.effective_brightness;
 
-    // Input
     instance->input_pubsub = furi_record_open(RECORD_INPUT_EVENTS);
     furi_pubsub_subscribe(instance->input_pubsub, telemetry_input_pubsub_callback, instance);
 
-    // Updater
     instance->updater = furi_record_open(RECORD_UPDATER);
     instance->updater_state = updater_get_update_state(instance->updater);
     furi_state_subscribe(instance->updater_state, telemetry_updater_state_callback, instance);
 
-    // Matter (used for the device.state snapshot)
+    // only used for the device.state snapshot
     instance->matter = furi_record_open(RECORD_MATTER);
 
-    // Canvas ownership (get_subscribe: no initial notification; seed the dedup value)
+    // get_subscribe: no initial notification; seed the dedup value
     CanvasSrv* canvas = furi_record_open(RECORD_CANVAS);
     instance->canvas_ownership_state = canvas_get_ownership_state(canvas);
     CanvasOwnershipInfo ownership_info;
@@ -469,7 +438,7 @@ void telemetry_collectors_init(Telemetry* instance) {
     instance->last_canvas_active = ownership_info.is_active;
     strlcpy(instance->last_canvas_app, ownership_info.app_id, sizeof(instance->last_canvas_app));
 
-    // Report the current canvas owner once at startup (a draw may predate this service)
+    // a draw may predate this service
     if(ownership_info.is_active) {
         cJSON* d = cJSON_CreateObject();
         cJSON_AddStringToObject(d, "app", ownership_info.app_id);
@@ -477,7 +446,7 @@ void telemetry_collectors_init(Telemetry* instance) {
         telemetry_report_event(instance, TelemetryEventCanvasAcquire, d);
     }
 
-    // WiFi (get_subscribe: no initial notification; seed the dedup value)
+    // get_subscribe: no initial notification; seed the dedup value
     instance->wifi = furi_record_open(RECORD_WIFI);
     instance->wifi_state = wifi_get_state(instance->wifi);
     WifiInfo wifi_info;

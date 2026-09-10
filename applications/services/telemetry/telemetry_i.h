@@ -71,26 +71,22 @@ struct Telemetry {
     FuriEventLoopTimer* flush_timer;
     Mqtt* mqtt;
 
-    // ring buffer of pending event objects
     cJSON* events[TELEMETRY_RING_CAPACITY];
     size_t events_head;
     size_t events_count;
 
-    // connectivity & rate limiting
     bool is_connected;
     time_t offline_start_ms;
     bool has_offline_start;
     time_t last_push_ms;
     bool is_enabled;
 
-    // statistics (events_by_type & aggregates touched on the service thread;
-    // events_dropped is atomic — incremented from foreign threads on queue-full)
+    // service thread state; events_dropped may be written by foreign threads
     uint32_t events_by_type[TelemetryEventMax];
     uint32_t batches_sent;
     uint32_t events_sent;
     _Atomic uint32_t events_dropped;
 
-    // collector handles & state
     Loader* loader;
     FuriPubSub* loader_pubsub;
     BusyTimer* busy_timer;
@@ -112,14 +108,14 @@ struct Telemetry {
     FuriState* wifi_state;
     FuriPubSub* wifi_action_pubsub;
 
-    // canvas ownership dedup (only touched in the canvas state callback)
+    // only touched in the canvas state callback
     bool last_canvas_active;
     char last_canvas_app[CANVAS_OWNER_APP_ID_MAX + 1];
 
-    // wifi state dedup (only touched in the wifi state callback)
+    // only touched in the wifi state callback
     WifiState last_wifi_state;
 
-    // input aggregate counters (touched from the input service thread)
+    // touched from the input service thread
     _Atomic uint32_t input_ok;
     _Atomic uint32_t input_back;
     _Atomic uint32_t input_start;
