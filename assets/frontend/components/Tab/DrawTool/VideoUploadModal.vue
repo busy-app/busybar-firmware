@@ -96,7 +96,7 @@
               :max="100"
               :step="1"
               :disabled="isExtracting"
-              @change="scheduleExtraction"
+              @change="scheduleRender"
             />
           </UFormField>
         </div>
@@ -185,24 +185,27 @@
 import { createAnimationFromFrames } from '@/util/anim2seq';
 import type { DecodedAnimation } from '@/util/anim2seq';
 import {
-  extractVideoFrames,
+  decodeVideoFrames,
   getCoverCropRect,
   loadVideoSource,
+  renderVideoFrames,
   VIDEO_CROP_MIN_SCALE,
   VIDEO_FIT_OPTIONS,
-  VIDEO_FPS_OPTIONS
+  VIDEO_FPS_OPTIONS,
+  VIDEO_FRAME_SUPERSAMPLE
 } from '@/util/videoFrames';
-import type { VideoCropState, VideoFitMode, VideoSource } from '@/util/videoFrames';
+import type { VideoCropState, VideoFitMode, VideoFrameCache, VideoSource } from '@/util/videoFrames';
 
 const isOpen = defineModel<boolean>('open', { default: false });
 
 const es = useDrawToolEditorStore();
 
 const fpsOptions = VIDEO_FPS_OPTIONS.map(value => ({ label: String(value), value }));
-const EXTRACTION_DEBOUNCE_MS = 150;
+const RENDER_DEBOUNCE_MS = 60;
 
 const videoFile = ref<File | null>(null);
 const videoSource = ref<VideoSource | null>(null);
+const frameCache = shallowRef<VideoFrameCache | null>(null);
 const fps = ref<number>(DRAW_TOOL_VIDEO_DEFAULT_FPS);
 const fit = ref<VideoFitMode>('cover');
 const crop = ref<VideoCropState>({ offsetX: 0.5, offsetY: 0.5, scale: 1 });
@@ -215,7 +218,7 @@ const extractionDone = ref(0);
 const extractionTotal = ref(0);
 const errorMessage = ref<string | null>(null);
 const extractionAbortController = ref<AbortController | null>(null);
-const extractionTimer = ref<ReturnType<typeof setTimeout> | null>(null);
+const renderTimer = ref<ReturnType<typeof setTimeout> | null>(null);
 
 const isDraggingCrop = computed(() => !!cropDrag.value);
 
@@ -243,15 +246,15 @@ const cropRect = computed(() => {
 });
 
 const cropRectStyle = computed(() => {
-  if (!videoSource.value || !cropRect.value) {
+  if (!cropRect.value) {
     return null;
   }
 
   return {
-    left: `${(cropRect.value.x / videoSource.value.width) * 100}%`,
-    top: `${(cropRect.value.y / videoSource.value.height) * 100}%`,
-    width: `${(cropRect.value.width / videoSource.value.width) * 100}%`,
-    height: `${(cropRect.value.height / videoSource.value.height) * 100}%`,
+    left: `${cropRect.value.x * 100}%`,
+    top: `${cropRect.value.y * 100}%`,
+    width: `${cropRect.value.width * 100}%`,
+    height: `${cropRect.value.height * 100}%`,
     touchAction: 'none'
   };
 });
@@ -261,9 +264,9 @@ function formatSeconds (seconds: number) {
 }
 
 function abortExtraction () {
-  if (extractionTimer.value) {
-    clearTimeout(extractionTimer.value);
-    extractionTimer.value = null;
+  if (renderTimer.value) {
+    clearTimeout(renderTimer.value);
+    renderTimer.value = null;
   }
 
   extractionAbortController.value?.abort();
@@ -280,6 +283,7 @@ function resetAnimation () {
 function resetVideo () {
   abortExtraction();
   resetAnimation();
+  frameCache.value = null;
   videoSource.value?.release();
   videoSource.value = null;
   videoFile.value = null;
@@ -291,22 +295,46 @@ function close () {
   isOpen.value = false;
 }
 
-function scheduleExtraction () {
-  if (!videoSource.value) {
+function scheduleRender () {
+  if (!frameCache.value) {
     return;
   }
 
-  if (extractionTimer.value) {
-    clearTimeout(extractionTimer.value);
+  if (renderTimer.value) {
+    clearTimeout(renderTimer.value);
   }
 
-  extractionTimer.value = setTimeout(() => {
-    extractionTimer.value = null;
-    runExtraction();
-  }, EXTRACTION_DEBOUNCE_MS);
+  renderTimer.value = setTimeout(() => {
+    renderTimer.value = null;
+    runRender();
+  }, RENDER_DEBOUNCE_MS);
 }
 
-async function runExtraction () {
+function runRender () {
+  const cache = frameCache.value;
+
+  if (!cache) {
+    return;
+  }
+
+  try {
+    const frames = renderVideoFrames(cache, {
+      width: WORKSPACE_WIDTH,
+      height: WORKSPACE_HEIGHT,
+      fit: fit.value,
+      crop: cropRect.value ?? undefined
+    });
+
+    animation.value = createAnimationFromFrames(frames, cache.fps);
+    isTruncated.value = cache.truncated;
+    errorMessage.value = null;
+  } catch (error) {
+    resetAnimation();
+    errorMessage.value = error instanceof Error ? error.message : String(error);
+  }
+}
+
+async function runDecode () {
   const source = videoSource.value;
 
   if (!source) {
@@ -314,7 +342,8 @@ async function runExtraction () {
   }
 
   abortExtraction();
-  errorMessage.value = null;
+  resetAnimation();
+  frameCache.value = null;
 
   const controller = new AbortController();
   extractionAbortController.value = controller;
@@ -323,13 +352,10 @@ async function runExtraction () {
   extractionTotal.value = 0;
 
   try {
-    const result = await extractVideoFrames(source, {
+    const cache = await decodeVideoFrames(source, {
       fps: fps.value,
-      width: WORKSPACE_WIDTH,
-      height: WORKSPACE_HEIGHT,
-      fit: fit.value,
-      crop: cropRect.value ?? undefined,
       maxDurationSeconds: DRAW_TOOL_VIDEO_MAX_DURATION_SECONDS,
+      minWidth: WORKSPACE_WIDTH * VIDEO_FRAME_SUPERSAMPLE,
       signal: controller.signal,
       onProgress: (done, total) => {
         extractionDone.value = done;
@@ -341,8 +367,8 @@ async function runExtraction () {
       return;
     }
 
-    animation.value = createAnimationFromFrames(result.frames, fps.value);
-    isTruncated.value = result.truncated;
+    frameCache.value = cache;
+    runRender();
   } catch (error) {
     if (controller.signal.aborted) {
       return;
@@ -361,6 +387,7 @@ async function runExtraction () {
 async function loadVideo (file: File) {
   abortExtraction();
   resetAnimation();
+  frameCache.value = null;
   videoSource.value?.release();
   videoSource.value = null;
 
@@ -373,7 +400,7 @@ async function loadVideo (file: File) {
     }
 
     videoSource.value = source;
-    await runExtraction();
+    await runDecode();
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : String(error);
   }
@@ -406,8 +433,8 @@ function handleCropPointerMove (event: PointerEvent) {
   }
 
   const bounds = container.getBoundingClientRect();
-  const freeWidth = (source.width - rect.width) / source.width * bounds.width;
-  const freeHeight = (source.height - rect.height) / source.height * bounds.height;
+  const freeWidth = (1 - rect.width) * bounds.width;
+  const freeHeight = (1 - rect.height) * bounds.height;
   const nextOffsetX = freeWidth > 0 ? drag.startOffsetX + (event.clientX - drag.startX) / freeWidth : drag.startOffsetX;
   const nextOffsetY = freeHeight > 0 ? drag.startOffsetY + (event.clientY - drag.startY) / freeHeight : drag.startOffsetY;
 
@@ -429,7 +456,7 @@ function handleCropPointerUp (event: PointerEvent) {
   cropDrag.value = null;
 
   if (drag.startOffsetX !== crop.value.offsetX || drag.startOffsetY !== crop.value.offsetY) {
-    scheduleExtraction();
+    scheduleRender();
   }
 }
 
@@ -448,7 +475,8 @@ watch(videoFile, file => {
   }
 });
 
-watch([fps, fit], scheduleExtraction);
+watch(fps, runDecode);
+watch(fit, scheduleRender);
 
 watch(isOpen, open => {
   if (!open) {
