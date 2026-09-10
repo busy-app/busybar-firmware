@@ -1,6 +1,6 @@
 /**
  * @file telemetry_settings.h
- * @brief Telemetry service settings (user opt-out).
+ * @brief Telemetry service settings (collection consent).
  */
 #pragma once
 
@@ -14,7 +14,7 @@ extern "C" {
 #define TELEMETRY_SETTINGS_VERSION   1
 
 typedef struct {
-    bool is_enabled; /**< Telemetry collection enabled (default true) */
+    bool is_enabled; /**< Telemetry collection enabled (default false) */
 } TelemetrySettings;
 
 void telemetry_settings_load(TelemetrySettings* settings);
