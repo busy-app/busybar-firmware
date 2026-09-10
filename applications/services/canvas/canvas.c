@@ -358,11 +358,12 @@ static CanvasResult canvas_srv_do_draw(
         canvas->app_id = strdup(app_id);
         owner_changed = true;
     }
+    const bool priority_changed = (canvas->priority != priority);
     canvas->priority = priority;
 
     CanvasResult result = canvas_update_all(canvas, elements);
 
-    if(acquired || owner_changed) {
+    if(acquired || owner_changed || priority_changed) {
         canvas_publish_ownership(canvas);
     }
     return result;

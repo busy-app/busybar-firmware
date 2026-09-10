@@ -25,7 +25,10 @@ bool http_api_telemetry_callback(
         bool enabled = false;
 
         do {
-            cJSON* json_root = cJSON_Parse(msg->body.buf);
+            cJSON* json_root = NULL;
+            if(msg->body.buf && msg->body.len) {
+                json_root = cJSON_ParseWithLength(msg->body.buf, msg->body.len);
+            }
 
             if(!cJSON_IsObject(json_root)) {
                 cJSON_Delete(json_root);

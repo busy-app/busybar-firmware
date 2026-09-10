@@ -260,6 +260,7 @@ schemas:
         example: true
     required:
       - enabled
+    additionalProperties: false
     example:
       enabled: true
 

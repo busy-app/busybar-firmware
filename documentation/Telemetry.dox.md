@@ -35,7 +35,7 @@ events.
 | -------- | -------------------------------------------------------------------------------------------- |
 | `schema` | Envelope format version (currently 1)                                                        |
 | `ts`     | Batch creation time, epoch ms                                                                |
-| `events` | Up to 32 events per batch: `t` = type, `ts` = event time (ms), `p` = priority, `d` = payload |
+| `events` | Up to 34 events per batch: up to 32 buffered, plus the flush-time composites `device.state` and `input.counts`; `t` = type, `ts` = event time (ms), `p` = priority, `d` = payload |
 
 ### Priority (`p`)
 
