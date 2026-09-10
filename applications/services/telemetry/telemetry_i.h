@@ -75,11 +75,11 @@ struct Telemetry {
     size_t events_head;
     size_t events_count;
 
-    bool is_connected;
+    _Atomic bool is_connected;
     time_t offline_start_ms;
     bool has_offline_start;
     time_t last_push_ms;
-    bool is_enabled;
+    _Atomic bool is_enabled;
 
     // service thread state; events_dropped may be written by foreign threads
     uint32_t events_by_type[TelemetryEventMax];

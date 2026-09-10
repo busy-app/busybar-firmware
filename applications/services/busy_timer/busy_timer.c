@@ -210,8 +210,8 @@ static void
             {
                 .outcome = outcome,
                 .source = instance->session_source,
-                .time_elapsed_s = instance->time_elapsed_s,
-                .current_interval_index = instance->current_interval_index,
+                .time_elapsed_s = instance->session_time_elapsed_s + instance->time_elapsed_s,
+                .cycles_completed = instance->session_cycles_completed,
             },
     };
 
@@ -367,6 +367,7 @@ static void busy_timer_stop_timer(BusyTimer* instance) {
 
 static void busy_timer_infinite_to_simple(BusyTimer* instance) {
     instance->timer_config.mode = BusyTimerModeSimple;
+    instance->session_time_elapsed_s += instance->time_elapsed_s;
     instance->time_remaining_s = M_TO_S(BUSY_TIMER_TIME_INCREMENT_MN);
     instance->time_elapsed_s = 0;
 
@@ -376,7 +377,13 @@ static void busy_timer_infinite_to_simple(BusyTimer* instance) {
 
 static void
     busy_timer_next_state(BusyTimer* instance, bool is_forced, BusyTimerSessionOutcome outcome) {
-    const char* old_state_name = busy_timer_get_state_name(instance->state);
+    const BusyTimerState old_state = instance->state;
+    const char* old_state_name = busy_timer_get_state_name(old_state);
+
+    if(!is_forced && old_state == BusyTimerStateWork &&
+       instance->timer_config.mode == BusyTimerModeInterval) {
+        instance->session_cycles_completed++;
+    }
 
     instance->current_interval_index = busy_timer_calc_interval_index(instance);
     instance->state = busy_timer_calc_next_state(instance);
@@ -385,6 +392,9 @@ static void
         TAG, "State change: %s -> %s", old_state_name, busy_timer_get_state_name(instance->state));
 
     if(instance->state != BusyTimerStateIdle) {
+        if(old_state != BusyTimerStateIdle) {
+            instance->session_time_elapsed_s += instance->time_elapsed_s;
+        }
         instance->time_elapsed_s = 0;
         instance->time_remaining_s = busy_timer_calc_remaining_time(instance);
 
@@ -585,7 +595,10 @@ static void busy_timer_capture_and_publish_snapshot(BusyTimer* instance) {
     busy_timer_schedule_publish_last_known_snapshot(instance);
 }
 
-static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapshot* snapshot) {
+static void busy_timer_apply_snapshot(
+    BusyTimer* instance,
+    const BusyTimerSnapshot* snapshot,
+    BusyTimerSessionSource source) {
     const time_t snapshot_timestamp_ms = snapshot->timestamp_ms;
 
     if(snapshot_timestamp_ms <= instance->last_known_snapshot.timestamp_ms) {
@@ -597,6 +610,10 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
     const BusyTimerState old_state = instance->state;
 
     busy_timer_stop_timer(instance);
+
+    if(old_state != BusyTimerStateIdle) {
+        busy_timer_notify_session_ended(instance, BusyTimerSessionOutcomeStopped);
+    }
 
     BusyTimerMode new_mode;
     BusyTimerState new_state;
@@ -646,8 +663,21 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
     instance->app_config = snapshot->app_config;
 
     if(new_state != BusyTimerStateIdle) {
-        if(old_state != BusyTimerStateIdle) {
-            busy_timer_notify_session_ended(instance, BusyTimerSessionOutcomeStopped);
+        instance->session_source = source;
+        instance->active_profile_id = BusyTimerProfileIdMax;
+
+        if(type == BusyTimerSnapshotTypeInterval) {
+            const BusyTimerSnapshotInterval* interval = &snapshot->interval;
+            const uint32_t index = interval->state.index;
+            const uint32_t pair_ms = interval->config.work_time_ms + interval->config.rest_time_ms;
+
+            instance->session_time_elapsed_s =
+                MS_TO_S((index / 2) * pair_ms + (index % 2 ? interval->config.work_time_ms : 0));
+            instance->session_cycles_completed = (index + 1) / 2;
+
+        } else {
+            instance->session_time_elapsed_s = 0;
+            instance->session_cycles_completed = 0;
         }
 
         if(!snapshot->common.is_paused) {
@@ -661,10 +691,6 @@ static void busy_timer_apply_snapshot(BusyTimer* instance, const BusyTimerSnapsh
         busy_timer_notify_session_started(instance);
 
     } else {
-        if(old_state != BusyTimerStateIdle) {
-            busy_timer_notify_session_ended(instance, BusyTimerSessionOutcomeStopped);
-        }
-
         busy_timer_notify_state_changed(instance);
         busy_timer_exit_app();
     }
@@ -828,6 +854,9 @@ void busy_timer_apply_profile_settings(BusyTimer* instance, BusyTimerProfileId p
 
 void busy_timer_start_internal(BusyTimer* instance) {
     if(instance->state == BusyTimerStateIdle) {
+        instance->session_time_elapsed_s = 0;
+        instance->session_cycles_completed = 0;
+
         busy_timer_notify_mode_changed(instance);
         busy_timer_next_state(instance, true, BusyTimerSessionOutcomeCompleted);
         busy_timer_notify_session_started(instance);
@@ -900,10 +929,10 @@ static void
     if(instance->state == BusyTimerStateIdle) {
         const BusyTimerProfileId profile_id = data->start.profile_id;
         instance->active_profile_id = profile_id;
+        instance->session_source = data->start.source;
         busy_timer_apply_profile_settings(instance, profile_id);
     }
 
-    instance->session_source = data->start.source;
     busy_timer_start_internal(instance);
 }
 
@@ -1002,7 +1031,8 @@ static void busy_timer_get_run_info_api_message_handler(
     timer_info->state = instance->state;
     timer_info->config = instance->timer_config;
     timer_info->current_interval_idx = instance->current_interval_index;
-    timer_info->time_elapsed_s = instance->time_elapsed_s;
+    timer_info->time_elapsed_s = instance->session_time_elapsed_s + instance->time_elapsed_s;
+    timer_info->cycles_completed = instance->session_cycles_completed;
     timer_info->session_source = instance->session_source;
 }
 
@@ -1017,9 +1047,7 @@ static void busy_timer_set_snapshot_api_message_handler(
     BusyTimer* instance,
     BusyTimerApiMessageData* data) {
     const BusyTimerApiMessageSetSnapshot* set_snapshot = &data->set_snapshot;
-    instance->session_source = set_snapshot->source;
-    instance->active_profile_id = BusyTimerProfileIdMax;
-    busy_timer_apply_snapshot(instance, &set_snapshot->snapshot);
+    busy_timer_apply_snapshot(instance, &set_snapshot->snapshot, set_snapshot->source);
 }
 
 static void

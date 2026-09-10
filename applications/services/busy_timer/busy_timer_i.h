@@ -132,6 +132,8 @@ struct BusyTimer {
     uint32_t current_interval_index;
     uint32_t time_elapsed_s;
     uint32_t time_remaining_s;
+    uint32_t session_time_elapsed_s;
+    uint32_t session_cycles_completed;
     char card_id[BUSY_TIMER_CARD_ID_LEN + 1];
     // <----- Refactor section ends
     uint32_t snapshot_update_count;

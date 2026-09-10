@@ -125,23 +125,54 @@ static void telemetry_add_device_state(Telemetry* instance, cJSON* events) {
     cJSON_AddItemToArray(events, event);
 }
 
-static void telemetry_add_input_counts(Telemetry* instance, cJSON* events) {
-    const uint32_t ok = atomic_exchange(&instance->input_ok, 0);
-    const uint32_t back = atomic_exchange(&instance->input_back, 0);
-    const uint32_t start = atomic_exchange(&instance->input_start, 0);
-    const uint32_t wheel_up = atomic_exchange(&instance->input_wheel_up, 0);
-    const uint32_t wheel_down = atomic_exchange(&instance->input_wheel_down, 0);
+typedef struct {
+    uint32_t ok;
+    uint32_t back;
+    uint32_t start;
+    uint32_t wheel_up;
+    uint32_t wheel_down;
+} TelemetryInputCounts;
 
-    if(ok == 0 && back == 0 && start == 0 && wheel_up == 0 && wheel_down == 0) {
+static void telemetry_input_counts_take(Telemetry* instance, TelemetryInputCounts* counts) {
+    counts->ok = atomic_exchange(&instance->input_ok, 0);
+    counts->back = atomic_exchange(&instance->input_back, 0);
+    counts->start = atomic_exchange(&instance->input_start, 0);
+    counts->wheel_up = atomic_exchange(&instance->input_wheel_up, 0);
+    counts->wheel_down = atomic_exchange(&instance->input_wheel_down, 0);
+}
+
+static void
+    telemetry_input_counts_restore(Telemetry* instance, const TelemetryInputCounts* counts) {
+    atomic_fetch_add(&instance->input_ok, counts->ok);
+    atomic_fetch_add(&instance->input_back, counts->back);
+    atomic_fetch_add(&instance->input_start, counts->start);
+    atomic_fetch_add(&instance->input_wheel_up, counts->wheel_up);
+    atomic_fetch_add(&instance->input_wheel_down, counts->wheel_down);
+}
+
+static void telemetry_input_counts_clear(Telemetry* instance) {
+    atomic_store(&instance->input_ok, 0);
+    atomic_store(&instance->input_back, 0);
+    atomic_store(&instance->input_start, 0);
+    atomic_store(&instance->input_wheel_up, 0);
+    atomic_store(&instance->input_wheel_down, 0);
+}
+
+static void
+    telemetry_add_input_counts(Telemetry* instance, cJSON* events, TelemetryInputCounts* counts) {
+    telemetry_input_counts_take(instance, counts);
+
+    if(counts->ok == 0 && counts->back == 0 && counts->start == 0 && counts->wheel_up == 0 &&
+       counts->wheel_down == 0) {
         return;
     }
 
     cJSON* d = cJSON_CreateObject();
-    cJSON_AddNumberToObject(d, "ok", ok);
-    cJSON_AddNumberToObject(d, "back", back);
-    cJSON_AddNumberToObject(d, "start", start);
-    cJSON_AddNumberToObject(d, "wheel_up", wheel_up);
-    cJSON_AddNumberToObject(d, "wheel_down", wheel_down);
+    cJSON_AddNumberToObject(d, "ok", counts->ok);
+    cJSON_AddNumberToObject(d, "back", counts->back);
+    cJSON_AddNumberToObject(d, "start", counts->start);
+    cJSON_AddNumberToObject(d, "wheel_up", counts->wheel_up);
+    cJSON_AddNumberToObject(d, "wheel_down", counts->wheel_down);
 
     cJSON* event = cJSON_CreateObject();
     cJSON_AddStringToObject(event, "t", "input.counts");
@@ -186,13 +217,16 @@ static void telemetry_flush(Telemetry* instance, bool is_push) {
     cJSON_AddNumberToObject(batch, "ts", (double)time_get_timestamp_ms());
     cJSON* events = cJSON_AddArrayToObject(batch, "events");
 
-    while(instance->events_count > 0) {
-        cJSON_AddItemToArray(events, telemetry_ring_pop(instance));
+    // The ring keeps ownership of the buffered events until the batch is published
+    for(size_t i = 0; i < instance->events_count; i++) {
+        const size_t index = (instance->events_head + i) % TELEMETRY_RING_CAPACITY;
+        cJSON_AddItemReferenceToArray(events, instance->events[index]);
     }
 
+    TelemetryInputCounts input_counts = {0};
     if(!is_push) {
         telemetry_add_device_state(instance, events);
-        telemetry_add_input_counts(instance, events);
+        telemetry_add_input_counts(instance, events, &input_counts);
     }
 
     if(cJSON_GetArraySize(events) == 0) {
@@ -201,21 +235,27 @@ static void telemetry_flush(Telemetry* instance, bool is_push) {
     }
 
     char* json = cJSON_PrintUnformatted(batch);
+    bool published = false;
     if(json) {
         FURI_LOG_I(
             TAG,
             "Publishing %u telemetry events (%zu bytes)",
             cJSON_GetArraySize(events),
             strlen(json));
-        const bool ok = mqtt_publish_device_scope(
+        published = mqtt_publish_device_scope(
             instance->mqtt, TELEMETRY_MQTT_QOS, TELEMETRY_MQTT_TOPIC, json, strlen(json));
-        if(!ok) {
-            FURI_LOG_W(TAG, "Failed to publish telemetry batch");
-        } else {
-            instance->batches_sent++;
-            instance->events_sent += cJSON_GetArraySize(events);
-        }
         free(json);
+    }
+
+    if(published) {
+        while(instance->events_count > 0) {
+            cJSON_Delete(telemetry_ring_pop(instance));
+        }
+        instance->batches_sent++;
+        instance->events_sent += cJSON_GetArraySize(events);
+    } else {
+        FURI_LOG_W(TAG, "Failed to publish telemetry batch");
+        telemetry_input_counts_restore(instance, &input_counts);
     }
     cJSON_Delete(batch);
 }
@@ -268,8 +308,10 @@ static void
 static void telemetry_handle_mqtt_status(Telemetry* instance, MqttStatus status) {
     const bool connected = (status == MqttStatusConnectedLinked) ||
                            (status == MqttStatusConnectedNotLinked);
+    const bool was_connected = instance->is_connected;
+    instance->is_connected = connected;
 
-    if(connected && !instance->is_connected) {
+    if(connected && !was_connected) {
         if(instance->has_offline_start) {
             const time_t now_ms = time_get_timestamp_ms();
             cJSON* d = cJSON_CreateObject();
@@ -282,13 +324,11 @@ static void telemetry_handle_mqtt_status(Telemetry* instance, MqttStatus status)
         telemetry_enqueue(instance, TelemetryEventNetOnline, NULL, false);
         telemetry_flush(instance, true);
 
-    } else if(!connected && instance->is_connected) {
+    } else if(!connected && was_connected) {
         instance->offline_start_ms = time_get_timestamp_ms();
         instance->has_offline_start = true;
         telemetry_enqueue(instance, TelemetryEventNetOffline, NULL, true);
     }
-
-    instance->is_connected = connected;
 }
 
 static void telemetry_handle_power_event(Telemetry* instance) {
@@ -326,6 +366,7 @@ static void telemetry_handle_set_enabled(Telemetry* instance, bool enabled) {
 
     if(!enabled) {
         telemetry_ring_clear(instance);
+        telemetry_input_counts_clear(instance);
     }
 }
 
@@ -424,10 +465,11 @@ void telemetry_set_enabled(Telemetry* instance, bool enabled) {
         .type = TelemetryApiMessageTypeSetEnabled,
         .data.is_enabled = enabled,
     };
+    message.lock = api_lock_alloc_locked();
 
-    // Blocking: the opt-out change must always be applied.
     furi_check(
         furi_message_queue_put(instance->api_queue, &message, FuriWaitForever) == FuriStatusOk);
+    api_lock_wait_unlock_and_free(message.lock);
 }
 
 void telemetry_get_stats(Telemetry* instance, TelemetryStats* stats) {
@@ -495,7 +537,7 @@ static void telemetry_detect_interrupted_timer(Telemetry* instance) {
         cJSON_AddStringToObject(d, "outcome", "interrupted");
         cJSON_AddStringToObject(d, "source", "restored");
         cJSON_AddNumberToObject(d, "duration_s", info.time_elapsed_s);
-        cJSON_AddNumberToObject(d, "cycles", info.current_interval_idx);
+        cJSON_AddNumberToObject(d, "cycles", info.cycles_completed);
 
         telemetry_enqueue(instance, TelemetryEventTimerSessionEnd, d, true);
     }

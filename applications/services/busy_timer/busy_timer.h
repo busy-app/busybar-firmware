@@ -100,7 +100,7 @@ typedef struct {
     BusyTimerSessionOutcome outcome;
     BusyTimerSessionSource source;
     uint32_t time_elapsed_s;
-    uint32_t current_interval_index;
+    uint32_t cycles_completed;
 } BusyTimerEventSessionEnded;
 
 typedef struct {
@@ -122,7 +122,8 @@ typedef struct {
     BusyTimerState state;
     BusyTimerConfig config;
     uint32_t current_interval_idx;
-    uint32_t time_elapsed_s;
+    uint32_t time_elapsed_s; /**< Elapsed time of the current session, in seconds */
+    uint32_t cycles_completed; /**< Completed work intervals of the current session */
     BusyTimerSessionSource session_source;
 } BusyTimerRunInfo;
 

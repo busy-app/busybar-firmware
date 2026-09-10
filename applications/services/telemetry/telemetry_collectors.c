@@ -186,7 +186,7 @@ static void telemetry_busy_timer_pubsub_callback(const void* message, void* cont
         cJSON_AddStringToObject(d, "outcome", telemetry_timer_outcome_to_string(ended->outcome));
         cJSON_AddStringToObject(d, "source", telemetry_timer_source_to_string(ended->source));
         cJSON_AddNumberToObject(d, "duration_s", ended->time_elapsed_s);
-        cJSON_AddNumberToObject(d, "cycles", ended->current_interval_index);
+        cJSON_AddNumberToObject(d, "cycles", ended->cycles_completed);
 
         telemetry_report_event(instance, TelemetryEventTimerSessionEnd, d);
         break;
@@ -256,6 +256,11 @@ static void telemetry_input_pubsub_callback(const void* message, void* context) 
     const InputEvent* event = message;
 
     if(event->type != InputTypePress) {
+        return;
+    }
+
+    // p0 input: skip while disabled or offline, as telemetry_enqueue() would drop it
+    if(!instance->is_enabled || !instance->is_connected) {
         return;
     }
 
