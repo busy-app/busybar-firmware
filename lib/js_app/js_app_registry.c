@@ -4,6 +4,7 @@
 #include <core/check.h>
 
 #include <storage_utils/dir_walk.h>
+#include <storage/storage.h>
 #include <toolbox/path.h>
 
 #define TAG "JsAppRegistry"
@@ -54,8 +55,7 @@ void js_app_registry_list_apps(JsAppRegistryListCallback callback, void* context
 JsApp* js_app_registry_get_app(const char* app_id) {
     furi_check(app_id);
 
-    FuriString* app_path = furi_string_alloc();
-    path_concat(JS_APPS_PATH, app_id, app_path);
+    FuriString* app_path = js_app_registry_get_app_path(app_id);
 
     JsApp* js_app = js_app_alloc();
 
@@ -66,4 +66,10 @@ JsApp* js_app_registry_get_app(const char* app_id) {
 
     furi_string_free(app_path);
     return js_app;
+}
+
+FuriString* js_app_registry_get_app_path(const char* app_id) {
+    FuriString* app_path = furi_string_alloc();
+    path_concat(JS_APPS_PATH, app_id, app_path);
+    return app_path;
 }

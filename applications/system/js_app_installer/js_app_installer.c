@@ -30,7 +30,7 @@ static bool prepare_staging_folder(Storage* storage) {
     return true;
 }
 
-static uint32_t gen_install_id(void) {
+static uint32_t gen_install_key(void) {
     uint32_t result = 0;
     while(result == 0) {
         result = rand();
@@ -60,8 +60,12 @@ static bool
                 if(js_app_get_info(app, &info)) {
                     result->app_id = furi_string_alloc_set(info.manifest.id);
                     result->version = furi_string_alloc_set(info.manifest.version);
-                    instance->staged_install_id = gen_install_id();
-                    result->install_id = instance->staged_install_id;
+                    instance->staged_install_key = gen_install_key();
+                    if(instance->staged_app_path) {
+                        furi_string_free(instance->staged_app_path);
+                    }
+                    instance->staged_app_path = furi_string_alloc_set(path);
+                    result->install_key = instance->staged_install_key;
                     result->error = JsAppInstallerErrorNone;
                     found = true;
                 }
@@ -143,7 +147,62 @@ JsAppInstallerStageResult js_app_installer_stage(JsAppInstaller* instance) {
     return result;
 }
 
-JsAppInstallerError js_app_installer_install(JsAppInstaller* instance, uint32_t install_id) {
+static void handle_install(JsAppInstaller* instance, JsAppInstallerMsg* message) {
+    furi_assert(instance);
+    furi_assert(message);
+
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+    JsAppInstallerError result = JsAppInstallerErrorInstall;
+    bool cleanup = false;
+    do {
+        if(message->install.install_key != instance->staged_install_key) {
+            break;
+        }
+
+        cleanup = true;
+        JsApp* new_app = js_app_alloc();
+        do {
+            if(!js_app_load_from_directory(
+                   new_app, furi_string_get_cstr(instance->staged_app_path))) {
+                break;
+            }
+            JsAppInfo new_app_info;
+            if(!js_app_get_info(new_app, &new_app_info)) {
+                break;
+            }
+            FuriString* target_path = js_app_registry_get_app_path(new_app_info.manifest.id);
+
+            do {
+                if(!storage_simply_remove_recursive(storage, furi_string_get_cstr(target_path))) {
+                    FURI_LOG_E(TAG, "Cannot delete app with id = %s", new_app_info.manifest.id);
+                    break;
+                }
+                if(storage_common_rename(
+                       storage,
+                       furi_string_get_cstr(instance->staged_app_path),
+                       furi_string_get_cstr(target_path)) != FSE_OK) {
+                    FURI_LOG_E(TAG, "Cannot move directory");
+                    break;
+                }
+                result = JsAppInstallerErrorNone;
+            } while(false);
+            furi_string_free(target_path);
+        } while(false);
+        js_app_free(new_app);
+    } while(false);
+
+    if(cleanup) {
+        instance->staged_install_key = 0;
+        furi_string_free(instance->staged_app_path);
+        instance->staged_app_path = NULL;
+        prepare_staging_folder(storage);
+    }
+    furi_record_close(RECORD_STORAGE);
+
+    *message->install.error = result;
+}
+
+JsAppInstallerError js_app_installer_install(JsAppInstaller* instance, uint32_t install_key) {
     JsAppInstallerError result;
 
     JsAppInstallerMsg msg = {
@@ -151,7 +210,7 @@ JsAppInstallerError js_app_installer_install(JsAppInstaller* instance, uint32_t 
         .api_lock = api_lock_alloc_locked(),
         .install =
             {
-                .install_id = install_id,
+                .install_key = install_key,
                 .error = &result,
             },
     };
@@ -162,16 +221,14 @@ JsAppInstallerError js_app_installer_install(JsAppInstaller* instance, uint32_t 
     return result;
 }
 
-static void handle_install(JsAppInstaller* instance, JsAppInstallerMsg* message) {
-    furi_assert(instance);
-    furi_assert(message);
-}
-
 static JsAppInstaller* js_app_installer_alloc(void) {
     JsAppInstaller* instance = malloc(sizeof(JsAppInstaller));
 
     instance->event_loop = furi_event_loop_alloc();
     instance->msg_queue = furi_message_queue_alloc(MAX_MESSAGES, sizeof(JsAppInstallerMsg));
+
+    instance->staged_install_key = 0;
+    instance->staged_app_path = NULL;
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
@@ -189,6 +246,10 @@ static void js_app_installer_free(JsAppInstaller* instance) {
     furi_event_loop_unsubscribe(instance->event_loop, instance->msg_queue);
     furi_message_queue_free(instance->msg_queue);
     furi_event_loop_free(instance->event_loop);
+
+    if(instance->staged_app_path) {
+        furi_string_free(instance->staged_app_path);
+    }
     furi_record_destroy(RECORD_JS_APP_INSTALLER);
     free(instance);
 }

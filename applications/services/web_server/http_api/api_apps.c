@@ -16,6 +16,8 @@
 
 #define APP_UPLOAD_IDLE_TIMEOUT_MS 5000
 
+#define INSTALL_KEY_LEN_MAX 11
+
 typedef struct {
     Storage* storage;
     TempFile* update_file;
@@ -69,12 +71,14 @@ static const char* const installer_errors[] = {
     [JsAppInstallerErrorNone] = "OK",
     [JsAppInstallerErrorUnpack] = "Cannot unpack",
     [JsAppInstallerErrorManifest] = "Wrong app manifest",
+    [JsAppInstallerErrorInstall] = "Installation failed",
 };
 
 static const char* const installer_error_codes[] = {
     [JsAppInstallerErrorNone] = "ok",
     [JsAppInstallerErrorUnpack] = "unpack_error",
     [JsAppInstallerErrorManifest] = "manifest_error",
+    [JsAppInstallerErrorInstall] = "installation_failed",
 };
 
 static_assert(COUNT_OF(installer_errors) == JsAppInstallerErrorMax);
@@ -93,7 +97,7 @@ static bool
     int status_code = 200;
     if(result.error == JsAppInstallerErrorNone) {
         cJSON_AddStringToObject(root, "result", "OK");
-        cJSON_AddNumberToObject(root, "install_id", result.install_id);
+        cJSON_AddNumberToObject(root, "install_key", result.install_key);
         cJSON_AddStringToObject(root, "app_id", furi_string_get_cstr(result.app_id));
         cJSON_AddStringToObject(root, "app_version", furi_string_get_cstr(result.version));
         if(result.installed_version) {
@@ -304,6 +308,47 @@ static bool api_apps_stage_request_callback(
     return true;
 }
 
+static bool api_apps_install_request_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(method);
+    UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
+    bool success = false;
+    do {
+        char install_key_str[INSTALL_KEY_LEN_MAX];
+        int install_key_len =
+            mg_http_get_var(&msg->query, "install_key", install_key_str, INSTALL_KEY_LEN_MAX);
+        if(install_key_len <= 0) {
+            break;
+        }
+        char* endptr = NULL;
+        uint32_t install_key = strtoul(install_key_str, &endptr, 10);
+        if(*endptr) {
+            FURI_LOG_E(TAG, "Invalid install_key: '%s'", install_key_str);
+            break;
+        }
+
+        JsAppInstaller* installer = furi_record_open(RECORD_JS_APP_INSTALLER);
+        JsAppInstallerError error = js_app_installer_install(installer, install_key);
+        success = error == JsAppInstallerErrorNone;
+        furi_record_close(RECORD_JS_APP_INSTALLER);
+    } while(false);
+
+    if(success) {
+        MG_REPLY_OK(conn);
+    } else {
+        MG_REPLY_BAD_REQUEST(conn);
+    }
+
+    return true;
+}
+
 static const HttpHandler api_apps_handlers[] = {
     {
         .uri = "stage",
@@ -311,6 +356,12 @@ static const HttpHandler api_apps_handlers[] = {
         .type = HttpHandlerCustom,
         .on_request = api_apps_stage_request_callback,
         .on_headers = api_apps_stage_hdr_callback,
+    },
+    {
+        .uri = "install",
+        .method = HttpMethodPost,
+        .type = HttpHandlerCustom,
+        .on_request = api_apps_install_request_callback,
     },
 };
 

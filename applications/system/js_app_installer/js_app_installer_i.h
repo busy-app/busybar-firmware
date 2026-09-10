@@ -20,7 +20,7 @@ typedef struct JsAppInstallerMsgStage {
 } JsAppInstallerMsgStage;
 
 typedef struct JsAppInstallerMsgInstall {
-    uint32_t install_id;
+    uint32_t install_key;
 
     JsAppInstallerError* error;
 } JsAppInstallerMsgInstall;
@@ -40,5 +40,6 @@ typedef struct JsAppInstaller {
     FuriEventLoop* event_loop;
     FuriMessageQueue* msg_queue;
 
-    uint32_t staged_install_id;
+    uint32_t staged_install_key;
+    FuriString* staged_app_path;
 } JsAppInstaller;

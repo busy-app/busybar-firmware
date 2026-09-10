@@ -7,6 +7,7 @@
 #pragma once
 
 #include "js_app.h"
+#include <furi/core/string.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -42,6 +43,14 @@ void js_app_registry_list_apps(JsAppRegistryListCallback callback, void* context
  * @returns pointer to a JsApp instance associated with the found app, or @c NULL on failure
  */
 JsApp* js_app_registry_get_app(const char* app_id);
+
+/**
+ * @brief Get installation path for a JavaScript application by its id.
+ *
+ * @param[in] app_id zero-terminated string containing the desired application's ID
+ * @return path in filesystem.
+ */
+FuriString* js_app_registry_get_app_path(const char* app_id);
 
 #ifdef __cplusplus
 }
