@@ -120,7 +120,8 @@ static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
         instance);
 
     if(instance->js_app) {
-        instance->settings_storage = js_app_settings_storage_alloc(app_id);
+        instance->settings_storage =
+            js_app_settings_storage_alloc(app_id, &(JsAppSettingsStorageStatus){});
         scene_manager_next_scene(instance->scene_manager, JsAppLauncherSceneIdStart);
     } else {
         instance->error = JsAppLauncherErrorLoadFailed;

@@ -18,6 +18,21 @@ extern "C" {
 typedef struct JsAppSettingsStorage JsAppSettingsStorage;
 
 /**
+ * @brief Result of building a settings storage.
+ *
+ * Set by js_app_settings_storage_alloc(); every failure status pairs with a
+ * NULL return.
+ */
+typedef enum {
+    JsAppSettingsStorageStatusOk, //!< Storage built.
+    JsAppSettingsStorageStatusSchemaMissing, //!< App has no settings schema.
+    JsAppSettingsStorageStatusSchemaInvalid, //!< Schema is empty or unparsable.
+    JsAppSettingsStorageStatusStorageFailure, //!< Schema could not be read.
+
+    JsAppSettingsStorageStatusesCount,
+} JsAppSettingsStorageStatus;
+
+/**
  * @brief Build a settings storage for an application.
  *
  * Parses the application's settings schema, composes the provider descriptor
@@ -25,10 +40,11 @@ typedef struct JsAppSettingsStorage JsAppSettingsStorage;
  * js_app_settings_storage_load() before reading any.
  *
  * @param[in] app_id Application identifier.
- * @return Allocated storage, or NULL when the application has no settings
- *         schema; failures are logged.
+ * @param[out] status Resulting status.
+ * @return Allocated storage, or NULL on failure; failures are logged.
  */
-JsAppSettingsStorage* js_app_settings_storage_alloc(const char* app_id);
+JsAppSettingsStorage*
+    js_app_settings_storage_alloc(const char* app_id, JsAppSettingsStorageStatus* status);
 
 /**
  * @brief Release a settings storage.
