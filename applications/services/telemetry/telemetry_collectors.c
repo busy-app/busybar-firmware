@@ -485,6 +485,5 @@ void telemetry_collectors_init(Telemetry* instance) {
         instance->wifi_state, &wifi_info, telemetry_wifi_state_callback, instance);
     instance->last_wifi_state = wifi_info.state;
     instance->wifi_action_pubsub = wifi_get_action_pubsub(instance->wifi);
-    furi_pubsub_subscribe(
-        instance->wifi_action_pubsub, telemetry_wifi_action_callback, instance);
+    furi_pubsub_subscribe(instance->wifi_action_pubsub, telemetry_wifi_action_callback, instance);
 }
