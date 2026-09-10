@@ -10,11 +10,14 @@ env.Append(
     SDK_HEADERS=[
         File("api_lock.h"),
         File("argparse.h"),
+        File("bit_queue.h"),
         File("color.h"),
         File("crc32_calc.h"),
         File("dsp.h"),
         File("float_tools.h"),
+        File("get_line.h"),
         File("hex.h"),
+        File("http_headers.h"),
         File("md5_calc.h"),
         File("path.h"),
         File("profiler.h"),
@@ -25,8 +28,6 @@ env.Append(
         File("timer.h"),
         File("tls_config.h"),
         File("value_index.h"),
-        File("http_headers.h"),
-        File("bit_queue.h"),
     ],
 )
 
@@ -35,11 +36,14 @@ libenv.ApplyLibFlags()
 
 sources = [
     "argparse.c",
+    "bit_queue.c",
     "color.c",
     "crc32_calc.c",
     "dsp.c",
     "float_tools.c",
+    "get_line.c",
     "hex.c",
+    "http_headers.c",
     "md5_calc.c",
     "path.c",
     "profiler.c",
@@ -50,8 +54,6 @@ sources = [
     "timers.c",
     "tls_config.c",
     "value_index.c",
-    "http_headers.c",
-    "bit_queue.c",
 ]
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)

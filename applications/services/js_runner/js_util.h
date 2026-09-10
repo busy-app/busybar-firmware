@@ -3,11 +3,9 @@
  * @brief Utility functions for working with JS values
  */
 #pragma once
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wattributes"
-#include <jerryscript.h>
-#pragma GCC diagnostic pop
+#include "js_runner_types.h"
 #include <furi/core/string.h>
+#include <toolbox/sized_buffer.h>
 
 #define JS_CHECK_ARGS_COUNT(n)                                                             \
     do {                                                                                   \
@@ -81,6 +79,24 @@ void js_set_property_getset(
 /** @brief Test if an object has a property with given name */
 bool js_object_has_property(jerry_value_t object, const char* key);
 
+/** @brief Get a value of a property nested under several layers.
+ *
+ * Example: get object.foo.bar.baz
+ *
+ * const char* const keys[] = {"foo", "bar", "baz"};
+ * jerry_value_t baz_value = js_object_get_nested_property(object, keys, 3);
+ *
+ * @param object root object.
+ * @param keys array of property names for each nesting level.
+ * @param nesting_count number of entries in the keys array.
+ *
+ * @return the value of the nested property or undefined if any property lookup failed. Exceptions thrown by any member lookup are propagated.
+ */
+jerry_value_t js_object_get_nested_property(
+    jerry_value_t object,
+    const char* const keys[],
+    size_t nesting_count);
+
 /** @brief Create a return value of an Iterator's next() method.
  *
  * The object has two properties: `done` and `value`.
@@ -150,3 +166,23 @@ FuriString* js_get_exception_string(jerry_value_t exception);
  * @brief Log exception message with ERROR severity
  */
 void js_log_exception(const char* tag, const char* msg, jerry_value_t exception);
+
+/**
+ * @brief Create an external ArrayBuffer referencing ByteArray's data.
+ *
+ * Ownership of the ByteArray is transferred to jerryscript.
+ *
+ * @param array pointer to ByteArray (heap-allocated).
+ * @return a JS ArrayBuffer object.
+ */
+jerry_value_t js_arraybuffer_from_byte_array(ByteArray_t* array);
+
+/**
+ * @brief Create an external ArrayBuffer referencing SizedBuffer's data.
+ *
+ * Ownership of the buffer is transferred to jerryscript.
+ *
+ * @param buffer data to build an ArrayBuffer from.
+ * @return a JS ArrayBuffer object.
+ */
+jerry_value_t js_arraybuffer_from_sized_buffer(SizedBuffer buffer);
