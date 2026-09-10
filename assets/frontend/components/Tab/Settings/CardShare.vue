@@ -21,8 +21,10 @@
 
       <div class="flex items-center self-stretch shrink-0">
         <USwitch
-          v-model="shareDeviceData"
+          :model-value="telemetryStore.enabled ?? true"
+          :disabled="telemetryStore.enabled === undefined || saving"
           data-id="settings-section-share-switch"
+          @update:model-value="onToggle"
         />
       </div>
     </div>
@@ -30,5 +32,24 @@
 </template>
 
 <script setup lang="ts">
-const shareDeviceData = ref(true);
+const telemetryStore = useTelemetryStore();
+
+const saving = ref(false);
+
+async function onToggle (value: boolean) {
+  saving.value = true;
+  await telemetryStore.setTelemetry(value);
+  saving.value = false;
+}
+
+async function init () {
+  await telemetryStore.fetchTelemetry();
+}
+
+onMounted(async () => {
+  await init();
+  window.addEventListener('device-reconnected', init);
+});
+
+onBeforeUnmount(() => window.removeEventListener('device-reconnected', init));
 </script>
