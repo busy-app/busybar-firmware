@@ -48,7 +48,7 @@ static void system_settings_scene_main_on_enter(void* context) {
             instance);
         submenu_add_item(
             data->front_menu,
-            "Telemetry",
+            "Share data",
             NULL,
             SceneEventTelemetry,
             system_settings_scene_main_menu_item_callback,
@@ -65,7 +65,7 @@ static void system_settings_scene_main_on_enter(void* context) {
         data->back_menu = submenu_alloc(instance->back_scene_window);
         submenu_add_item(data->back_menu, "Power", NULL, SceneEventPower, NULL, instance);
         submenu_add_item(data->back_menu, "Debug", NULL, SceneEventDebug, NULL, instance);
-        submenu_add_item(data->back_menu, "Telemetry", NULL, SceneEventTelemetry, NULL, instance);
+        submenu_add_item(data->back_menu, "Share data", NULL, SceneEventTelemetry, NULL, instance);
         submenu_add_item(
             data->back_menu, "Factory reset", NULL, SceneEventFactoryReset, NULL, instance);
         submenu_set_selected_item_index(data->back_menu, data->menu_index);
@@ -105,7 +105,7 @@ static bool system_settings_scene_main_on_event(const SceneManagerEvent* event, 
             consumed = true;
         } else if(event->event == SceneEventTelemetry) {
             scene_manager_next_scene(instance->scene_manager, SceneIdTelemetry);
-            system_settings_push_location(instance, "TELEMETRY");
+            system_settings_push_location(instance, "SHARE DATA");
             consumed = true;
         } else if(event->event == SceneEventFactoryReset) {
             scene_manager_next_scene(instance->scene_manager, SceneIdFactoryResetConfirm);

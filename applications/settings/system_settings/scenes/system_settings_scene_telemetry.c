@@ -47,7 +47,7 @@ static void system_settings_scene_telemetry_fill_var_item_list(
 
     VarItem* telemetry_item = var_item_list_add_selector(
         list,
-        "Telemetry",
+        "Share data",
         NULL,
         telemetry_state_names,
         COUNT_OF(telemetry_state_names),
