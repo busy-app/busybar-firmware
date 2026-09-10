@@ -46,7 +46,7 @@ typedef enum {
  */
 typedef enum {
     TelemetryEventDeviceBoot, /**< Device boot / firmware info (p2) */
-    TelemetryEventFwUpdate, /**< Firmware update completed (p2) */
+    TelemetryEventFwUpdate, /**< Firmware update installation started (p2) */
     TelemetryEventTimerSessionStart, /**< Busy timer session started (p1) */
     TelemetryEventTimerSessionEnd, /**< Busy timer session ended / interrupted (p2) */
     TelemetryEventTimerTheme, /**< BUSY/CUSTOM timer theme changed (p0) */

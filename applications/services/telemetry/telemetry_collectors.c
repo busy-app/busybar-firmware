@@ -300,7 +300,7 @@ static void telemetry_updater_state_callback(const void* item, void* context) {
 
     const UpdaterUpdateState* state = item;
 
-    if(state->event != UpdaterUpdateEventActionDone ||
+    if(state->event != UpdaterUpdateEventActionBegin ||
        state->action != UpdaterUpdateActionInstallationApply) {
         return;
     }
@@ -309,8 +309,7 @@ static void telemetry_updater_state_callback(const void* item, void* context) {
 
     cJSON* d = cJSON_CreateObject();
     cJSON_AddStringToObject(d, "from_version", version ? version_get_version(version) : "");
-    cJSON_AddStringToObject(
-        d, "outcome", state->status == UpdaterStatusOk ? "success" : "failure");
+    cJSON_AddStringToObject(d, "outcome", "started");
 
     telemetry_report_event(instance, TelemetryEventFwUpdate, d);
 }

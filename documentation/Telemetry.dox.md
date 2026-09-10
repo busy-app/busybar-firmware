@@ -57,7 +57,7 @@ events.
 | --------------------------------- | - | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `device.boot`                     | 2 | `serial`, `fw_version`, `fw_hash`, `fw_branch`, `fw_build_date`, `fw_target`, `fw_dirty`, `usb_mac`, `hw_version`                                                                                                              |
 | `device.state`                    | 0 | `charge`, `charging`, `charge_limit`, `matter_fabrics`, `matter_commissioned`, `account_linked`, `dev_mode` (composite, per flush)                                                                                             |
-| `fw.update`                       | 2 | `from_version`, `outcome` (`success`\|`failure`)                                                                                                                                                                               |
+| `fw.update`                       | 2 | `from_version`, `outcome` (`started`)                                                                                                                                                                                          |
 | `timer.session.start`             | 1 | `source` (`device`\|`http_api`\|`integration:matter`\|`integration:mqtt`), `profile`, `theme`, `mode` (`infinite`\|`simple`\|`interval`), `demo`; simple: `duration_ms`; interval: `work_ms`, `rest_ms`, `cycles`, `autostart` |
 | `timer.session.end`               | 2 | `outcome` (`completed`\|`stopped`\|`interrupted`), `source`, `duration_s`, `cycles`                                                                                                                                            |
 | `timer.theme`                     | 0 | `profile`, `theme`                                                                                                                                                                                                             |
@@ -78,3 +78,8 @@ events.
 
 > `device.state` and `input.counts` are composite events generated at flush time
 > and are not part of the per-type enum reported by the `telemetry stats` CLI.
+
+> `fw.update` is emitted when the device reboots into the updater to install a
+> prepared update, so `outcome` is `started` and `from_version` is the firmware
+> being replaced. The firmware that ends up running is reported by the
+> `device.boot` event of the following boot.
