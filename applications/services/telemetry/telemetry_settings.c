@@ -15,7 +15,7 @@ static const SettingProviderSetting telemetry_settings_v1[] = {
             .name = "enabled",
             .interface =
                 &(const SettingProviderBoolInterface){
-                    .default_value = true,
+                    .default_value = false,
                 },
             .field_offset = offsetof(TelemetrySettings, is_enabled),
             .type = SettingProviderSettingTypeBool,

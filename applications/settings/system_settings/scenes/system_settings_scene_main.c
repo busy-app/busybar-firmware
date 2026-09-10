@@ -3,6 +3,7 @@
 
 #include <gui/modules/var_item_list.h>
 #include <gui/modules/submenu.h>
+#include <furi_hal_nvm.h>
 
 typedef enum {
     SceneEventPower = AppEventSceneEventsStart,
@@ -29,6 +30,8 @@ static void system_settings_scene_main_on_enter(void* context) {
     SystemSettings* instance = context;
     SettingsSceneSystem* data = scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
 
+    const bool is_debug_flag_set = furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug);
+
     with_gui(instance->gui, {
         data->front_menu = submenu_alloc(instance->front_scene_window);
 
@@ -46,13 +49,15 @@ static void system_settings_scene_main_on_enter(void* context) {
             SceneEventDebug,
             system_settings_scene_main_menu_item_callback,
             instance);
-        submenu_add_item(
-            data->front_menu,
-            "Share data",
-            NULL,
-            SceneEventTelemetry,
-            system_settings_scene_main_menu_item_callback,
-            instance);
+        if(is_debug_flag_set) {
+            submenu_add_item(
+                data->front_menu,
+                "Share data",
+                NULL,
+                SceneEventTelemetry,
+                system_settings_scene_main_menu_item_callback,
+                instance);
+        }
         submenu_add_item(
             data->front_menu,
             "Factory reset",
@@ -65,7 +70,10 @@ static void system_settings_scene_main_on_enter(void* context) {
         data->back_menu = submenu_alloc(instance->back_scene_window);
         submenu_add_item(data->back_menu, "Power", NULL, SceneEventPower, NULL, instance);
         submenu_add_item(data->back_menu, "Debug", NULL, SceneEventDebug, NULL, instance);
-        submenu_add_item(data->back_menu, "Share data", NULL, SceneEventTelemetry, NULL, instance);
+        if(is_debug_flag_set) {
+            submenu_add_item(
+                data->back_menu, "Share data", NULL, SceneEventTelemetry, NULL, instance);
+        }
         submenu_add_item(
             data->back_menu, "Factory reset", NULL, SceneEventFactoryReset, NULL, instance);
         submenu_set_selected_item_index(data->back_menu, data->menu_index);
