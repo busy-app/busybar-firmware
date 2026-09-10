@@ -24,6 +24,7 @@ App(
         "input",
         "updater",
         "matter",
+        "wifi",
     ],
     provides=["telemetry_cmd"],
 )

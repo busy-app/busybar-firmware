@@ -11,6 +11,7 @@
 
 #include <mqtt/mqtt.h>
 #include <canvas/canvas.h>
+#include <wifi/wifi.h>
 #include <loader/loader.h>
 #include <busy_timer/busy_timer.h>
 #include <power/power_service/power.h>
@@ -107,10 +108,16 @@ struct Telemetry {
     Matter* matter;
     FuriPubSub* mqtt_pubsub;
     FuriState* canvas_ownership_state;
+    Wifi* wifi;
+    FuriState* wifi_state;
+    FuriPubSub* wifi_action_pubsub;
 
     // canvas ownership dedup (only touched in the canvas state callback)
     bool last_canvas_active;
     char last_canvas_app[CANVAS_OWNER_APP_ID_MAX + 1];
+
+    // wifi state dedup (only touched in the wifi state callback)
+    WifiState last_wifi_state;
 
     // input aggregate counters (touched from the input service thread)
     _Atomic uint32_t input_ok;

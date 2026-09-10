@@ -60,6 +60,27 @@ static const char* telemetry_switch_position_to_string(InputKey key) {
     }
 }
 
+static const char* telemetry_wifi_security_to_string(WifiSecurityMode mode) {
+    switch(mode) {
+    case WifiSecurityModeOpen:
+        return "open";
+    case WifiSecurityModeWpa:
+        return "wpa";
+    case WifiSecurityModeWpa2:
+        return "wpa2";
+    case WifiSecurityModeWep:
+        return "wep";
+    case WifiSecurityModeWpaWpa2Mixed:
+        return "wpa_wpa2_mixed";
+    case WifiSecurityModeWpa3:
+        return "wpa3";
+    case WifiSecurityModeWpa3Transition:
+        return "wpa3_transition";
+    default:
+        return "unknown";
+    }
+}
+
 // ===== MQTT =====
 
 static void telemetry_mqtt_pubsub_callback(const void* message, void* context) {
@@ -336,6 +357,55 @@ static void telemetry_canvas_ownership_callback(const void* item, void* context)
     }
 }
 
+// ===== WiFi =====
+
+static void telemetry_wifi_state_callback(const void* item, void* context) {
+    Telemetry* instance = context;
+
+    const WifiInfo* info = item;
+    const WifiState state = info->state;
+
+    if(state == instance->last_wifi_state) {
+        return;
+    }
+
+    const WifiState prev_state = instance->last_wifi_state;
+    instance->last_wifi_state = state;
+
+    if(state == WifiStateConnected) {
+        cJSON* d = cJSON_CreateObject();
+        cJSON_AddStringToObject(
+            d, "security", telemetry_wifi_security_to_string(info->security_mode));
+        cJSON_AddBoolToObject(d, "reconnect", prev_state == WifiStateReconnecting);
+        telemetry_report_event(instance, TelemetryEventNetWifiConnect, d);
+
+    } else if(state == WifiStateDisconnected) {
+        const char* reason = "unknown";
+        if(prev_state == WifiStateDisconnecting) {
+            reason = "requested";
+        } else if(prev_state == WifiStateConnecting) {
+            reason = "connect_failed";
+        } else if(prev_state == WifiStateReconnecting) {
+            reason = "connection_lost";
+        }
+
+        cJSON* d = cJSON_CreateObject();
+        cJSON_AddStringToObject(d, "reason", reason);
+        telemetry_report_event(instance, TelemetryEventNetWifiDisconnect, d);
+    }
+}
+
+static void telemetry_wifi_action_callback(const void* message, void* context) {
+    furi_assert(message);
+    Telemetry* instance = context;
+
+    const WifiAction action = *(const WifiAction*)message;
+
+    cJSON* d = cJSON_CreateObject();
+    cJSON_AddStringToObject(d, "action", action == WifiActionConnect ? "connect" : "forget");
+    telemetry_report_event(instance, TelemetryEventNetWifiReconfigure, d);
+}
+
 // ===== Registration =====
 
 void telemetry_collectors_init(Telemetry* instance) {
@@ -406,4 +476,15 @@ void telemetry_collectors_init(Telemetry* instance) {
         cJSON_AddNumberToObject(d, "priority", ownership_info.priority);
         telemetry_report_event(instance, TelemetryEventCanvasAcquire, d);
     }
+
+    // WiFi (get_subscribe: no initial notification; seed the dedup value)
+    instance->wifi = furi_record_open(RECORD_WIFI);
+    instance->wifi_state = wifi_get_state(instance->wifi);
+    WifiInfo wifi_info;
+    furi_state_get_subscribe(
+        instance->wifi_state, &wifi_info, telemetry_wifi_state_callback, instance);
+    instance->last_wifi_state = wifi_info.state;
+    instance->wifi_action_pubsub = wifi_get_action_pubsub(instance->wifi);
+    furi_pubsub_subscribe(
+        instance->wifi_action_pubsub, telemetry_wifi_action_callback, instance);
 }

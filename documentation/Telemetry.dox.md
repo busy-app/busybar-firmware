@@ -71,6 +71,9 @@ events.
 | `power.transition`                | 1 | `charging`, `charge`, `charge_limit`                                                                                                                                                                                           |
 | `net.online` / `net.offline`      | 2 | (empty)                                                                                                                                                                                                                        |
 | `net.offline_duration`            | 2 | `duration_ms`                                                                                                                                                                                                                  |
+| `net.wifi.connect`                | 2 | `security` (`open`\|`wpa`\|`wpa2`\|`wpa_wpa2_mixed`\|`wpa3`\|`wpa3_transition`\|`wep`), `reconnect` (bool)                                                                          |
+| `net.wifi.disconnect`             | 2 | `reason` (`requested`\|`connect_failed`\|`connection_lost`)                                                                                                                                                                    |
+| `net.wifi.reconfigure`            | 2 | `action` (`connect`\|`forget`) — user-initiated                                                                                                                                                                                |
 | `account.link` / `account.unlink` | 2 | `linked` (bool)                                                                                                                                                                                                                |
 
 > `device.state` and `input.counts` are composite events generated at flush time

@@ -59,6 +59,9 @@ typedef enum {
     TelemetryEventNetOnline, /**< MQTT (re)connected (p2) */
     TelemetryEventNetOffline, /**< MQTT disconnected (p2) */
     TelemetryEventNetOfflineDuration, /**< Reported offline duration on reconnect (p2) */
+    TelemetryEventNetWifiConnect, /**< WiFi connected (p2) */
+    TelemetryEventNetWifiDisconnect, /**< WiFi disconnected (p2) */
+    TelemetryEventNetWifiReconfigure, /**< User-initiated WiFi reconfiguration (p2) */
     TelemetryEventAccountLink, /**< Account linked (p2) */
     TelemetryEventAccountUnlink, /**< Account unlinked (p2) */
     TelemetryEventCanvasAcquire, /**< Canvas acquired by an HTTP API app (p1) */
