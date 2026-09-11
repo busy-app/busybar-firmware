@@ -17,7 +17,7 @@ int32_t anim_test_app(void* arg) {
     AnimPlayer* train;
 
     FuriSemaphore* exit = furi_semaphore_alloc(1, 0);
-    int train_pos_10ths = -203 * 10;
+    int train_pos_10ths = -190 * 10;
     int velocity = 1;
 
     bool input_handler(const InputEvent* event, void* context) {
@@ -56,7 +56,7 @@ int32_t anim_test_app(void* arg) {
 
         widget_set_max_size(anim_player_get_base(train), 72, 15);
         anim_player_set_source_ex(train, TRAIN_PATH, AnimPlayerOptionIntermediateInternalBuffer);
-        anim_player_set_offset(train, -203, 0);
+        anim_player_set_offset(train, (float)train_pos_10ths / 10.0f, 0);
 
         gui_layer_add_input_callback(layer, input_handler, NULL);
     });
