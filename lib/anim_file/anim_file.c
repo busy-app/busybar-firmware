@@ -83,7 +83,6 @@ AnimFileInfo anim_file_info(const AnimFile* anim) {
 void anim_file_set_out_buf(AnimFile* anim, size_t width, size_t height, void* buffer) {
     furi_check(anim);
     furi_check(buffer);
-    FURI_LOG_D(TAG, "%p, w=%zu h=%zu buf=%p", anim, width, height, buffer);
     anim_file_img_init(anim, buffer, width, height);
 }
 
