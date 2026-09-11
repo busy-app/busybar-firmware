@@ -15,7 +15,7 @@
  *     "version": "1.2.3",
  *     "description": "Free form description", // Optional, default: ""
  *     "author": "Application author",         // Optional, default: ""
- *     "heap_size_kib": 32,                    // Optional, default: 32
+ *     "heap_size_kib": 128,                   // Optional, default: 128
  *     "debug": false                          // Optional, default: false
  * }
  * ```

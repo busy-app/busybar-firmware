@@ -18,6 +18,9 @@ App(
         "js_request.c",
         "js_local_storage.c",
         "js_util.c",
+        "js_url.c",
+        "js_stubs.c",
+        "js_response.c",
     ],
 )
 

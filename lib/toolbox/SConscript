@@ -21,11 +21,12 @@ env.Append(
         File("property.h"),
         File("rle_encode.h"),
         File("sha256_calc.h"),
+        File("slice.h"),
         File("strint.h"),
         File("timer.h"),
         File("tls_config.h"),
+        File("url.h"),
         File("value_index.h"),
-        File("http_headers.h"),
         File("get_line.h"),
     ],
 )
@@ -46,11 +47,12 @@ sources = [
     "property.c",
     "rle_encode.c",
     "sha256_calc.c",
+    "slice.c",
     "strint.c",
     "timers.c",
     "tls_config.c",
+    "url.c",
     "value_index.c",
-    "http_headers.c",
     "get_line.c",
 ]
 
