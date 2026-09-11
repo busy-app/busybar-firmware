@@ -54,7 +54,16 @@
                   label: es.hasVideoShapes ? 'Download animation' : 'Download PNG',
                   icon: 'i-bi-download',
                   onClick: downloadImage
-                }
+                },
+                ...(es.hasVideoShapes
+                  ? [
+                    {
+                      label: 'Download GIF',
+                      icon: 'i-bi-download',
+                      onClick: downloadGif
+                    }
+                  ]
+                  : [])
               ]"
               :content="{
                 align: 'end',
@@ -302,6 +311,8 @@
                         :config="getVideoConfig(shape)"
                         @mousedown="es.handleShapePointerDown"
                         @tap="es.handleShapePointerDown"
+                        @dblclick="() => es.requestVideoEdit(shape.id)"
+                        @dbltap="() => es.requestVideoEdit(shape.id)"
                         @dragmove="es.handleShapeDragMove"
                         @transform="es.handleShapeTransform"
                         @dragend="es.handleShapeDragEnd"
@@ -342,6 +353,25 @@
                   @pointerdown.stop.prevent
                   @click.stop="es.deleteSelectedShape"
                 />
+
+                <UTooltip
+                  v-if="editButtonStyle"
+                  :delay-duration="80"
+                  text="Edit video"
+                >
+                  <UButton
+                    data-id="draw-tool-edit-video"
+                    color="neutral"
+                    variant="solid"
+                    square
+                    size="xs"
+                    icon="i-bi-edit"
+                    class="pointer-events-auto absolute rounded-full"
+                    :style="editButtonStyle"
+                    @pointerdown.stop.prevent
+                    @click.stop="editSelectedVideo"
+                  />
+                </UTooltip>
 
                 <UButton
                   v-if="selectionHandleStyle"
@@ -466,38 +496,6 @@
               </UPopover>
             </div>
 
-          </div>
-
-          <div
-            v-if="es.hasVideoShapes"
-            data-id="draw-tool-timeline"
-            class="flex items-center gap-3 rounded-2xl bg-surface-container px-3 py-2 ring-1 ring-accented/50"
-          >
-            <UTooltip
-              :delay-duration="80"
-              :text="es.isTimelinePlaying ? 'Pause' : 'Play'"
-            >
-              <UButton
-                color="neutral"
-                variant="ghost"
-                square
-                :icon="es.isTimelinePlaying ? 'i-bi-control-pause' : 'i-bi-control-play'"
-                @click="es.toggleTimelinePlayback"
-              />
-            </UTooltip>
-
-            <USlider
-              :model-value="es.playheadFrame"
-              :min="0"
-              :max="Math.max(0, es.timelineFrameCount - 1)"
-              :step="1"
-              class="flex-1"
-              @update:model-value="handleTimelineScrub"
-            />
-
-            <span class="w-28 shrink-0 text-right text-xs tabular-nums text-muted">
-              {{ es.playheadFrame + 1 }} / {{ es.timelineFrameCount }} · {{ es.timelineFps }} fps
-            </span>
           </div>
 
           <ModalGeneric
@@ -1018,6 +1016,8 @@ import drawToolIconsData from '@/generated/drawTool/icons.json';
 import { DRAW_TOOL_DISPLAY_PRIORITY, DRAW_TOOL_EXPORT_PIXEL_SIZE, pixelateImageData } from '@/util/drawTool';
 import type { TransformerBox } from '@/util/drawTool';
 import { ANIM_FILE_EXTENSION, composeAnimationFromFrames } from '@/util/seq2anim';
+import { createAnimationFromFrames } from '@/util/anim2seq';
+import { encodeAnimationToGif } from '@/util/anim2gif';
 import type { DisplayDrawParams } from '@busy-app/busy-lib';
 
 type DrawToolIcon = {
@@ -1513,6 +1513,24 @@ const deleteButtonStyle = computed(() => {
     transform: 'translate(-50%, -50%)'
   };
 });
+const editButtonStyle = computed(() => {
+  if (!es.editButtonPosition) {
+    return '';
+  }
+
+  return {
+    left: `${es.editButtonPosition.x}px`,
+    top: `${es.editButtonPosition.y}px`,
+    transform: 'translate(-50%, -50%)'
+  };
+});
+
+function editSelectedVideo () {
+  if (es.selectedShapeId) {
+    es.requestVideoEdit(es.selectedShapeId);
+  }
+}
+
 const rotationHandleStyle = computed(() => {
   if (!es.rotationHandlePosition || selectedTextShape.value) {
     return '';
@@ -1905,17 +1923,6 @@ function getOverflowPreviewVideoConfig (shape: Parameters<typeof getDisplayVideo
     ...getDisplayVideoConfig(shape),
     opacity: OVERFLOW_PREVIEW_OPACITY
   };
-}
-
-function handleTimelineScrub (value: number | number[] | undefined) {
-  const frame = Array.isArray(value) ? value[0] : value;
-
-  if (typeof frame !== 'number') {
-    return;
-  }
-
-  es.isTimelinePlaying = false;
-  es.setPlayheadFrame(frame);
 }
 
 function stopTimelinePlaybackLoop () {
@@ -2399,6 +2406,26 @@ async function showStatusOnBusyBar () {
     // Request errors are already handled by the helper chain above.
   } finally {
     isShowingStatusOnDevice.value = false;
+  }
+}
+
+async function downloadGif () {
+  try {
+    const frames = await renderExportAnimationFrames();
+    const gif = encodeAnimationToGif(createAnimationFromFrames(frames, es.timelineFps));
+
+    downloadFile(gif, 'draw-tool.gif');
+  } catch (error) {
+    toast.add({
+      id: 'draw-tool-download-error',
+      title: 'Could not download GIF',
+      description: error instanceof Error ? error.message : String(error),
+      icon: 'i-bi-alert',
+      color: 'error',
+      duration: 0,
+      close: true,
+      closeIcon: 'i-bi-cross'
+    });
   }
 }
 

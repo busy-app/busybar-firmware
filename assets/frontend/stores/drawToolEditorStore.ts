@@ -52,6 +52,7 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
   const shapes = ref<EditorShape[]>([]);
   const selectedShapeId = ref<string | null>(null);
   const deleteButtonPosition = ref<OverlayControlPosition | null>(null);
+  const editButtonPosition = ref<OverlayControlPosition | null>(null);
   const rotationHandlePosition = ref<OverlayControlPosition | null>(null);
   const selectionHandlePosition = ref<OverlayControlPosition | null>(null);
   const activeSelectionHandleDrag = ref<SelectionHandleDragState | null>(null);
@@ -66,6 +67,7 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
   const showImageUploadModal = ref(false);
   const imageUploadFile = ref<File | null>(null);
   const showVideoUploadModal = ref(false);
+  const videoEditTargetId = ref<string | null>(null);
   const playheadFrame = ref(0);
   const isTimelinePlaying = ref(false);
   const showLeaveEditorModal = ref(false);
@@ -458,6 +460,7 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
 
     if (!selectedNode) {
       deleteButtonPosition.value = null;
+      editButtonPosition.value = null;
       rotationHandlePosition.value = null;
       selectionHandlePosition.value = null;
       return;
@@ -465,6 +468,7 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
 
     const transform = selectedNode.getAbsoluteTransform();
     const topLeftCorner = transform.point({ x: 0, y: 0 });
+    const topRightCorner = transform.point({ x: selectedNode.width(), y: 0 });
     const topCenterCorner = transform.point({ x: selectedNode.width() / 2, y: 0 });
     const rotationOffset = getStageDeltaFromLocalDelta(0, -stageMetrics.value.cellSize * 6, selectedNode.rotation());
     const bottomRightCorner = transform.point({ x: selectedNode.width(), y: selectedNode.height() });
@@ -473,6 +477,10 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
       x: topLeftCorner.x,
       y: topLeftCorner.y
     };
+
+    editButtonPosition.value = getSelectedShapeState()?.type === 'video'
+      ? { x: topRightCorner.x, y: topRightCorner.y }
+      : null;
 
     rotationHandlePosition.value = {
       x: topCenterCorner.x + rotationOffset.x,
@@ -496,6 +504,7 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     if (!selectedShapeId.value) {
       transformer.nodes([]);
       deleteButtonPosition.value = null;
+      editButtonPosition.value = null;
       rotationHandlePosition.value = null;
       selectionHandlePosition.value = null;
       overlayLayerRef.value?.getNode().batchDraw();
@@ -827,9 +836,9 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     pushHistorySnapshot();
   }
 
-  function addVideoShape (frames: ImageData[], fps: number, fileName: string) {
+  function addVideoShape (frames: ImageData[], fps: number, fileName: string, source?: VideoShapeSource) {
     if (!frames.length) {
-      return;
+      return null;
     }
 
     const canvas = createVideoShapeCanvas(frames[0].width, frames[0].height);
@@ -844,13 +853,60 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
       rotation: 0,
       frames,
       fps,
-      canvas
+      canvas,
+      source
     };
 
     blitVideoFrame(videoShape, playheadFrame.value);
     shapes.value.push(videoShape);
     selectedShapeId.value = videoShape.id;
     pushHistorySnapshot();
+    isTimelinePlaying.value = true;
+
+    return videoShape.id;
+  }
+
+  function updateVideoShape (shapeId: string, frames: ImageData[], fps: number, source?: VideoShapeSource) {
+    const existing = shapes.value.find((shape): shape is VideoShape => shape.type === 'video' && shape.id === shapeId);
+
+    if (!existing || !frames.length) {
+      return;
+    }
+
+    const sizeChanged = frames[0].width !== existing.frames[0]?.width || frames[0].height !== existing.frames[0]?.height;
+    const canvas = sizeChanged ? createVideoShapeCanvas(frames[0].width, frames[0].height) : existing.canvas;
+
+    updateShape(shapeId, shape => ({
+      ...(shape as VideoShape),
+      frames,
+      fps,
+      canvas,
+      source
+    }));
+
+    applyPlayheadToVideoShapes(playheadFrame.value);
+    syncPixelatedDisplay();
+    selectedShapeId.value = shapeId;
+    pushHistorySnapshot();
+    isTimelinePlaying.value = true;
+  }
+
+  function getVideoShape (shapeId: string): VideoShape | null {
+    return shapes.value.find((shape): shape is VideoShape => shape.type === 'video' && shape.id === shapeId) ?? null;
+  }
+
+  function requestVideoEdit (shapeId: string) {
+    const shape = getVideoShape(shapeId);
+
+    if (!shape?.source) {
+      return false;
+    }
+
+    isTimelinePlaying.value = false;
+    videoEditTargetId.value = shapeId;
+    showVideoUploadModal.value = true;
+
+    return true;
   }
 
   function applyPlayheadToVideoShapes (frame: number) {
@@ -909,6 +965,7 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     shapes.value = [];
     selectedShapeId.value = null;
     deleteButtonPosition.value = null;
+    editButtonPosition.value = null;
     rotationHandlePosition.value = null;
     selectionHandlePosition.value = null;
     activeSelectionHandleDrag.value = null;
@@ -921,6 +978,7 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     showImageUploadModal.value = false;
     imageUploadFile.value = null;
     showVideoUploadModal.value = false;
+    videoEditTargetId.value = null;
     playheadFrame.value = 0;
     isTimelinePlaying.value = false;
     statusFileName.value = DEFAULT_STATUS_FILE_NAME;
@@ -1128,6 +1186,7 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     shapes,
     selectedShapeId,
     deleteButtonPosition,
+    editButtonPosition,
     rotationHandlePosition,
     selectionHandlePosition,
     activeSelectionHandleDrag,
@@ -1149,6 +1208,7 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     showImageUploadModal,
     imageUploadFile,
     showVideoUploadModal,
+    videoEditTargetId,
     playheadFrame,
     isTimelinePlaying,
     videoShapes,
@@ -1181,6 +1241,9 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     addText,
     addImageShape,
     addVideoShape,
+    updateVideoShape,
+    getVideoShape,
+    requestVideoEdit,
     applyPlayheadToVideoShapes,
     setPlayheadFrame,
     stepPlayhead,

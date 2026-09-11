@@ -9,6 +9,8 @@
 
 <script setup lang="ts">
 import type { DecodedAnimation } from '@/util/anim2seq';
+import { drawAnimationFrame, requestAnimationTick, subscribeToAnimationTicker } from '@/util/animationTicker';
+import type { AnimationTickerSubscriber } from '@/util/animationTicker';
 
 const props = withDefaults(defineProps<{
   animation: DecodedAnimation;
@@ -20,99 +22,58 @@ const props = withDefaults(defineProps<{
 });
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
-const frameIndex = ref(0);
-const animationFrameHandle = ref<number | null>(null);
-const lastTimestamp = ref<number | null>(null);
-const elapsedInFrame = ref(0);
 
-function drawFrame (index: number) {
+let subscriber: AnimationTickerSubscriber | null = null;
+let unsubscribe: (() => void) | null = null;
+
+function teardown () {
+  unsubscribe?.();
+  unsubscribe = null;
+  subscriber = null;
+}
+
+function setup () {
+  teardown();
+
   const context = canvasRef.value?.getContext('2d');
-  const frame = props.animation.frames[index];
 
-  if (!context || !frame) {
+  if (!context) {
     return;
   }
 
-  context.putImageData(frame.imageData, 0, 0);
+  subscriber = {
+    animation: props.animation,
+    context,
+    loop: props.loop,
+    playing: props.playing && props.animation.frames.length > 1,
+    frameIndex: 0,
+    elapsedInFrame: 0
+  };
+
+  drawAnimationFrame(subscriber, 0);
+  unsubscribe = subscribeToAnimationTicker(subscriber);
 }
 
-function stop () {
-  if (animationFrameHandle.value !== null) {
-    cancelAnimationFrame(animationFrameHandle.value);
-    animationFrameHandle.value = null;
-  }
-
-  lastTimestamp.value = null;
-}
-
-function tick (timestamp: number) {
-  animationFrameHandle.value = null;
-
-  const frameDuration = 1000 / Math.max(1, props.animation.fps);
-  const frames = props.animation.frames;
-
-  if (lastTimestamp.value !== null) {
-    elapsedInFrame.value += timestamp - lastTimestamp.value;
-  }
-
-  lastTimestamp.value = timestamp;
-
-  let advanced = false;
-
-  while (elapsedInFrame.value >= frameDuration * frames[frameIndex.value].duration) {
-    elapsedInFrame.value -= frameDuration * frames[frameIndex.value].duration;
-
-    if (frameIndex.value + 1 >= frames.length) {
-      if (!props.loop) {
-        elapsedInFrame.value = 0;
-        stop();
-        return;
-      }
-
-      frameIndex.value = 0;
-    } else {
-      frameIndex.value += 1;
-    }
-
-    advanced = true;
-  }
-
-  if (advanced) {
-    drawFrame(frameIndex.value);
-  }
-
-  animationFrameHandle.value = requestAnimationFrame(tick);
-}
-
-function play () {
-  if (animationFrameHandle.value !== null || props.animation.frames.length < 2) {
-    return;
-  }
-
-  animationFrameHandle.value = requestAnimationFrame(tick);
-}
-
-function reset () {
-  stop();
-  frameIndex.value = 0;
-  elapsedInFrame.value = 0;
-  drawFrame(0);
-
-  if (props.playing) {
-    play();
-  }
-}
-
-watch(() => props.animation, reset);
+watch(() => props.animation, setup);
 
 watch(() => props.playing, playing => {
-  if (playing) {
-    play();
-  } else {
-    stop();
+  if (!subscriber) {
+    return;
+  }
+
+  subscriber.playing = playing && subscriber.animation.frames.length > 1;
+
+  if (subscriber.playing) {
+    requestAnimationTick();
   }
 });
 
-onMounted(reset);
-onBeforeUnmount(stop);
+watch(() => props.loop, loop => {
+  if (subscriber) {
+    subscriber.loop = loop;
+  }
+});
+
+onMounted(setup);
+onBeforeUnmount(teardown);
 </script>

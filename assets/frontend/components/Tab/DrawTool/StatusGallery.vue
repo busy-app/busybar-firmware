@@ -303,6 +303,13 @@ function getStatusMenuItems (statusName: string): DropdownMenuItem[] {
       icon: 'i-bi-download',
       onClick: () => dts.downloadStatusFile(statusName)
     },
+    ...(getStatusFileKind(statusName) === 'animation'
+      ? [{
+        label: 'Download GIF',
+        icon: 'i-bi-download',
+        onClick: () => dts.downloadStatusAsGif(statusName)
+      }]
+      : []),
     {
       label: 'Delete',
       icon: 'i-bi-trash',

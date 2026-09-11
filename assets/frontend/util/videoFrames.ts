@@ -1,14 +1,5 @@
 export type VideoFitMode = 'cover' | 'contain' | 'stretch';
 
-export interface VideoSource {
-  video: HTMLVideoElement;
-  url: string;
-  duration: number;
-  width: number;
-  height: number;
-  release: () => void;
-}
-
 export interface VideoCropRect {
   x: number;
   y: number;
@@ -22,20 +13,18 @@ export interface VideoCropState {
   scale: number;
 }
 
-export interface VideoFrameCache {
+export interface TimedFrame {
+  imageData: ImageData;
+  durationMs: number;
+}
+
+export interface FrameCache {
   frames: ImageData[];
   width: number;
   height: number;
   fps: number;
-  truncated: boolean;
-}
-
-export interface DecodeVideoFramesOptions {
-  fps: number;
-  maxDurationSeconds: number;
-  minWidth?: number;
-  signal?: AbortSignal;
-  onProgress?: (done: number, total: number) => void;
+  startTime: number;
+  endTime: number;
 }
 
 export interface RenderVideoFramesOptions {
@@ -51,6 +40,7 @@ export const VIDEO_METADATA_TIMEOUT_MS = 15000;
 export const VIDEO_CROP_MIN_SCALE = 0.2;
 export const VIDEO_FRAME_CACHE_MEMORY_BUDGET = 64 * 1024 * 1024;
 export const VIDEO_FRAME_CACHE_MAX_WIDTH = 720;
+export const VIDEO_DEFAULT_FRAME_DURATION_MS = 100;
 
 export const VIDEO_FIT_OPTIONS: Array<{ label: string; value: VideoFitMode }> = [
   { label: 'Fill (crop)', value: 'cover' },
@@ -58,7 +48,7 @@ export const VIDEO_FIT_OPTIONS: Array<{ label: string; value: VideoFitMode }> = 
   { label: 'Stretch', value: 'stretch' }
 ];
 
-export const VIDEO_FPS_OPTIONS = [5, 10, 12, 15, 20, 24, 30];
+export const VIDEO_FPS_OPTIONS = [10, 15, 24, 30, 60];
 
 export function getCoverCropRect (
   sourceWidth: number,
@@ -101,79 +91,19 @@ export function getVideoFrameCacheSize (
   };
 }
 
-export function loadVideoSource (file: File): Promise<VideoSource> {
-  const url = URL.createObjectURL(file);
-  const video = document.createElement('video');
+export function getFrameGrid (fps: number, startTime: number, endTime: number, maxFrames: number) {
+  const safeFps = Math.max(1, Math.round(fps));
+  const safeStart = Math.max(0, startTime);
+  const safeEnd = Math.max(safeStart, endTime);
+  const frameCount = Math.max(1, Math.min(maxFrames, Math.floor((safeEnd - safeStart) * safeFps)));
 
-  video.muted = true;
-  video.playsInline = true;
-  video.preload = 'auto';
-  video.crossOrigin = 'anonymous';
-
-  return new Promise((resolve, reject) => {
-    const timeout = window.setTimeout(() => {
-      cleanup();
-      URL.revokeObjectURL(url);
-      reject(new Error('Timed out while reading video metadata'));
-    }, VIDEO_METADATA_TIMEOUT_MS);
-
-    const cleanup = () => {
-      window.clearTimeout(timeout);
-      video.removeEventListener('loadeddata', handleLoaded);
-      video.removeEventListener('error', handleError);
-    };
-
-    const handleLoaded = async () => {
-      cleanup();
-
-      const duration = await resolveVideoDuration(video);
-
-      if (!Number.isFinite(duration) || duration <= 0 || !video.videoWidth || !video.videoHeight) {
-        URL.revokeObjectURL(url);
-        reject(new Error('Could not determine video duration or size'));
-        return;
-      }
-
-      resolve({
-        video,
-        url,
-        duration,
-        width: video.videoWidth,
-        height: video.videoHeight,
-        release: () => {
-          video.removeAttribute('src');
-          video.load();
-          URL.revokeObjectURL(url);
-        }
-      });
-    };
-
-    const handleError = () => {
-      cleanup();
-      URL.revokeObjectURL(url);
-      reject(new Error('Could not decode video file'));
-    };
-
-    video.addEventListener('loadeddata', handleLoaded);
-    video.addEventListener('error', handleError);
-    video.src = url;
-    video.load();
-  });
+  return { fps: safeFps, startTime: safeStart, endTime: safeStart + frameCount / safeFps, frameCount };
 }
 
-export async function decodeVideoFrames (
-  source: VideoSource,
-  options: DecodeVideoFramesOptions
-): Promise<VideoFrameCache> {
-  const fps = Math.max(1, Math.round(options.fps));
-  const usableDuration = Math.min(source.duration, options.maxDurationSeconds);
-  const truncated = source.duration > options.maxDurationSeconds;
-  const frameCount = Math.max(1, Math.floor(usableDuration * fps));
-  const size = getVideoFrameCacheSize(source.width, source.height, frameCount, options.minWidth);
-
+export function createFrameScaler (targetWidth: number, targetHeight: number) {
   const canvas = document.createElement('canvas');
-  canvas.width = size.width;
-  canvas.height = size.height;
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
 
   const context = canvas.getContext('2d', { willReadFrequently: true });
 
@@ -184,27 +114,78 @@ export async function decodeVideoFrames (
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = 'high';
 
-  const frames: ImageData[] = [];
+  return {
+    scale (source: CanvasImageSource): ImageData {
+      context.drawImage(source, 0, 0, targetWidth, targetHeight);
 
-  for (let index = 0; index < frameCount; index++) {
-    if (options.signal?.aborted) {
-      throw new DOMException('Video frame decoding aborted', 'AbortError');
+      return context.getImageData(0, 0, targetWidth, targetHeight);
     }
+  };
+}
 
-    const time = Math.min(index / fps, Math.max(0, source.duration - 0.001));
-    await seekVideo(source.video, time);
-
-    context.drawImage(source.video, 0, 0, size.width, size.height);
-    frames.push(context.getImageData(0, 0, size.width, size.height));
-
-    options.onProgress?.(index + 1, frameCount);
+export function resampleTimedFrames (
+  frames: TimedFrame[],
+  fps: number,
+  startTime: number,
+  endTime: number,
+  maxFrames: number
+): { frames: ImageData[]; fps: number; startTime: number; endTime: number } {
+  if (!frames.length) {
+    throw new Error('No frames to resample');
   }
 
-  return { frames, width: size.width, height: size.height, fps, truncated };
+  const totalMs = frames.reduce((sum, frame) => sum + Math.max(1, frame.durationMs), 0);
+  const grid = getFrameGrid(fps, startTime, Math.min(endTime, totalMs / 1000), maxFrames);
+  const output: ImageData[] = [];
+
+  let sourceIndex = 0;
+  let sourceEndMs = Math.max(1, frames[0].durationMs);
+
+  for (let index = 0; index < grid.frameCount; index++) {
+    const timeMs = (grid.startTime + index / grid.fps) * 1000;
+
+    while (timeMs >= sourceEndMs && sourceIndex < frames.length - 1) {
+      sourceIndex += 1;
+      sourceEndMs += Math.max(1, frames[sourceIndex].durationMs);
+    }
+
+    output.push(frames[sourceIndex].imageData);
+  }
+
+  return { frames: output, fps: grid.fps, startTime: grid.startTime, endTime: grid.endTime };
+}
+
+export function sliceFrameCache (cache: FrameCache, startTime: number, endTime: number): FrameCache | null {
+  const epsilon = 0.5 / cache.fps;
+
+  if (startTime < cache.startTime - epsilon || endTime > cache.endTime + epsilon) {
+    return null;
+  }
+
+  const startIndex = Math.max(0, Math.round((startTime - cache.startTime) * cache.fps));
+  const count = Math.max(1, Math.min(cache.frames.length - startIndex, Math.floor((endTime - startTime) * cache.fps)));
+
+  return {
+    frames: cache.frames.slice(startIndex, startIndex + count),
+    width: cache.width,
+    height: cache.height,
+    fps: cache.fps,
+    startTime: cache.startTime + startIndex / cache.fps,
+    endTime: cache.startTime + (startIndex + count) / cache.fps
+  };
+}
+
+export function imageDataToCanvas (imageData: ImageData): HTMLCanvasElement {
+  const canvas = document.createElement('canvas');
+  canvas.width = imageData.width;
+  canvas.height = imageData.height;
+  canvas.getContext('2d')?.putImageData(imageData, 0, 0);
+
+  return canvas;
 }
 
 export function renderVideoFrames (
-  cache: VideoFrameCache,
+  cache: FrameCache,
   options: RenderVideoFramesOptions
 ): ImageData[] {
   const sourceCanvas = document.createElement('canvas');
@@ -269,34 +250,7 @@ export function renderVideoFrames (
   });
 }
 
-async function resolveVideoDuration (video: HTMLVideoElement): Promise<number> {
-  if (Number.isFinite(video.duration)) {
-    return video.duration;
-  }
-
-  await new Promise<void>(resolve => {
-    const timeout = window.setTimeout(finish, VIDEO_SEEK_TIMEOUT_MS);
-
-    function finish () {
-      window.clearTimeout(timeout);
-      video.removeEventListener('durationchange', finish);
-      video.removeEventListener('seeked', finish);
-      resolve();
-    }
-
-    video.addEventListener('durationchange', finish);
-    video.addEventListener('seeked', finish);
-    video.currentTime = Number.MAX_SAFE_INTEGER;
-  });
-
-  const duration = video.duration;
-
-  await seekVideo(video, 0).catch(() => undefined);
-
-  return duration;
-}
-
-function seekVideo (video: HTMLVideoElement, time: number): Promise<void> {
+export function seekVideo (video: HTMLVideoElement, time: number): Promise<void> {
   return new Promise((resolve, reject) => {
     if (Math.abs(video.currentTime - time) < 0.0005 && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
       resolve();

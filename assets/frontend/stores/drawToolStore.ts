@@ -11,6 +11,8 @@ import {
 import type { DrawToolStatusKind } from '@/util/drawTool';
 import { decodeAnimation } from '@/util/anim2seq';
 import type { DecodedAnimation } from '@/util/anim2seq';
+import { decodeAnimationFrames } from '@/util/frameSources/decoderClient';
+import { encodeAnimationToGif } from '@/util/anim2gif';
 
 type DrawToolStatusDirectoryFile = {
   name: string;
@@ -105,10 +107,22 @@ export const useDrawToolStore = defineStore('drawTool', () => {
       const blob = await readStatusFile(createStatusFilePath(file.name));
 
       if (kind === 'animation') {
+        const decoded = await decodeAnimationFrames(await blob.arrayBuffer());
+        const fps = decoded.fps ?? 1;
+        const frameMs = 1000 / fps;
+
         return {
           kind,
           previewUrl: null,
-          animation: decodeAnimation(await blob.arrayBuffer())
+          animation: {
+            width: decoded.width,
+            height: decoded.height,
+            fps,
+            frames: decoded.frames.map(frame => ({
+              imageData: frame.imageData,
+              duration: Math.max(1, Math.round(frame.durationMs / frameMs))
+            }))
+          }
         };
       }
 
@@ -326,6 +340,18 @@ export const useDrawToolStore = defineStore('drawTool', () => {
     downloadFile(blob, fileName);
   }
 
+  async function downloadStatusAsGif (fileName: string) {
+    try {
+      const blob = await readStatusFile(createStatusFilePath(fileName));
+      const animation = decodeAnimation(await blob.arrayBuffer());
+      const gif = encodeAnimationToGif(animation);
+
+      downloadFile(gif, fileName.replace(/\.anim$/i, '') + '.gif');
+    } catch (error) {
+      await handleHTTPError(error, `Couldn't convert ${fileName} to GIF`, false, 10000);
+    }
+  }
+
   async function tryRemoveStatusFile (path: string): Promise<unknown> {
     const deviceStore = useDeviceStore();
 
@@ -372,6 +398,7 @@ export const useDrawToolStore = defineStore('drawTool', () => {
     showSavedStatusOnBusyBar,
     showTempAnimationOnBusyBar,
     downloadStatusFile,
+    downloadStatusAsGif,
     deleteStatusFiles
   };
 });

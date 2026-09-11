@@ -32,6 +32,13 @@ export const DRAW_TOOL_SAVE_DIR = `${USER_ASSETS_DIR}/${DRAW_TOOL_DISPLAY_APPLIC
 export const DRAW_TOOL_DISPLAY_PRIORITY = 40;
 export const DRAW_TOOL_VIDEO_MAX_DURATION_SECONDS = 15;
 export const DRAW_TOOL_VIDEO_DEFAULT_FPS = 15;
+export const DRAW_TOOL_VIDEO_MAX_FPS = 60;
+export const DRAW_TOOL_VIDEO_MAX_FRAMES = 450;
+export const DRAW_TOOL_VIDEO_MAX_FILE_BYTES = 4 * 1024 * 1024 * 1024;
+
+export function getVideoMaxDurationSeconds (fps: number): number {
+  return Math.min(DRAW_TOOL_VIDEO_MAX_DURATION_SECONDS, DRAW_TOOL_VIDEO_MAX_FRAMES / Math.max(1, fps));
+}
 
 export type DrawToolStatusKind = 'image' | 'animation';
 
@@ -119,12 +126,22 @@ export interface TextShape extends ShapeBase {
   fontId: string;
 }
 
+export interface VideoShapeSource {
+  file: File;
+  fps: number;
+  fit: 'cover' | 'contain' | 'stretch';
+  crop: { offsetX: number; offsetY: number; scale: number };
+  trimStart: number;
+  trimEnd: number;
+}
+
 export interface VideoShape extends ShapeBase {
   type: 'video';
   fileName: string;
   frames: ImageData[];
   fps: number;
   canvas: HTMLCanvasElement;
+  source?: VideoShapeSource;
 }
 
 export type EditorShape = RectShape | ImageShape | TextShape | VideoShape;
