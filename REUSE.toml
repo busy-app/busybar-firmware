@@ -27,6 +27,7 @@ path = [
     "lib/flipper_format/**",
     "lib/formatters/**",
     "lib/js_app/**",
+    "lib/http/**",
     "lib/lvgl_addons/**",
     "lib/mbedtls_patch/**",
     "lib/netstat/**",

@@ -40,6 +40,8 @@ static bool js_app_launcher_scene_run_start_app(JsAppLauncher* instance) {
     JsAppLauncherSceneRun* data =
         scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdRun);
 
+    data->js_error = JsRunnerErrorUnknown;
+
     do {
         JsAppInfo js_info;
 
@@ -78,6 +80,8 @@ static bool js_app_launcher_scene_run_start_app(JsAppLauncher* instance) {
 
         success = true;
     } while(false);
+
+    instance->error = js_app_launcher_translate_from_js_runner_error(data->js_error);
 
     return success;
 }
