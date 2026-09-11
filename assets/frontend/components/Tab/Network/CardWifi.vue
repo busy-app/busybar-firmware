@@ -271,7 +271,7 @@
             placeholder="Enter SSID"
             variant="subtle"
             :ui="{ base: 'ring-1 ring-glass bg-accented/50' }"
-            @keyup.enter="isConnectInvalid || loading.connect ? null : connectToNetwork()"
+            @keyup.enter="connectToNetworkIfValid"
           />
         </UFormField>
         <UFormField label="Security">
@@ -310,7 +310,7 @@
           :ui="{ base: 'ring-1 ring-glass bg-accented/50' }"
           :type="showPassword ? 'text' : 'password'"
           :placeholder="connectToExistingNetwork ? 'Password' : ''"
-          @keyup.enter="isConnectInvalid || loading.connect ? null : connectToNetwork()"
+          @keyup.enter="connectToNetworkIfValid"
         >
           <template #trailing>
             <UButton
@@ -363,37 +363,37 @@
               <UFormField label="Address">
                 <UInput
                   v-model="connectModel.ip_config.address"
-                  v-maska="'###.###.###.###'"
+                  v-maska="ipMaskOptions"
                   name="ip-address"
-                  placeholder="___ ___ ___ ___"
+                  placeholder="192.168.1.100"
                   size="xl"
                   variant="soft"
                   :ui="{ base: 'ring-1 ring-glass bg-accented/50' }"
-                  @keyup.enter="isConnectInvalid || loading.connect ? null : connectToNetwork()"
+                  @keyup.enter="connectToNetworkIfValid"
                 />
               </UFormField>
               <UFormField label="Subnet Mask">
                 <UInput
                   v-model="connectModel.ip_config.mask"
-                  v-maska="'###.###.###.###'"
+                  v-maska="ipMaskOptions"
                   name="subnet-mask"
-                  placeholder="___ ___ ___ ___"
+                  placeholder="255.255.255.0"
                   size="xl"
                   variant="soft"
                   :ui="{ base: 'ring-1 ring-glass bg-accented/50' }"
-                  @keyup.enter="isConnectInvalid || loading.connect ? null : connectToNetwork()"
+                  @keyup.enter="connectToNetworkIfValid"
                 />
               </UFormField>
               <UFormField label="Gateway">
                 <UInput
                   v-model="connectModel.ip_config.gateway"
-                  v-maska="'###.###.###.###'"
+                  v-maska="ipMaskOptions"
                   name="gateway"
-                  placeholder="___ ___ ___ ___"
+                  placeholder="192.168.1.1"
                   size="xl"
                   variant="soft"
                   :ui="{ base: 'ring-1 ring-glass bg-accented/50' }"
-                  @keyup.enter="isConnectInvalid || loading.connect ? null : connectToNetwork()"
+                  @keyup.enter="connectToNetworkIfValid"
                 />
               </UFormField>
             </template>
@@ -505,12 +505,50 @@ const initConnectModel = () => {
   };
 };
 
-const isConnectInvalid = computed(() => connectModel.value.ssid === '' || (connectModel.value.security !== 'Open' && connectModel.value.password === ''));
+const ipMaskOptions = {
+  mask: '#00.#00.#00.#00',
+  tokens: { 0: { pattern: /[0-9]/, optional: true } }
+};
 
-async function connectToNetwork () {
-  if (!connectModel.value.ssid) {
+function isValidIpv4 (value?: string) {
+  const octets = value?.split('.') ?? [];
+
+  return octets.length === 4 && octets.every(octet => {
+    if (!/^\d{1,3}$/.test(octet)) {
+      return false;
+    }
+
+    return Number(octet) <= 255;
+  });
+}
+
+const isConnectInvalid = computed(() => {
+  const { ssid, security, password, ip_config: ipConfig } = connectModel.value;
+
+  if (!ssid || (security !== 'Open' && !password)) {
+    return true;
+  }
+
+  if (ipConfig?.ip_method !== 'static') {
+    return false;
+  }
+
+  return ![ipConfig.address, ipConfig.mask, ipConfig.gateway].every(isValidIpv4);
+});
+
+function connectToNetworkIfValid () {
+  if (isConnectInvalid.value || loading.value.connect) {
     return;
   }
+
+  connectToNetwork();
+}
+
+async function connectToNetwork () {
+  if (isConnectInvalid.value) {
+    return;
+  }
+
   loading.value.connect = true;
   await wifiStore.connectToWifiNetwork(connectModel.value);
   await new Promise(resolve => setTimeout(resolve, 1000));
