@@ -112,6 +112,7 @@ typedef enum {
     MqttApiMessageTypeGetConfig,
     MqttApiMessageTypeSetConfig,
     MqttApiMessageTypePublish,
+    MqttApiMessageTypePublishDevice,
     MqttApiMessageTypeSubscribe,
     MqttApiMessageTypeUnsubscribe,
     MqttApiMessageTypeWifiState,
