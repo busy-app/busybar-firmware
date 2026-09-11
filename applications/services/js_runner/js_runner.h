@@ -16,9 +16,7 @@ typedef struct JsRunner JsRunner;
 typedef enum JsRunnerError {
     JsRunnerErrorNone = 0,
     JsRunnerErrorUnknown,
-    JsRunnerErrorCannotOpenFile,
-    JsRunnerErrorInvalidFileSize,
-    JsRunnerErrorCannotReadFile,
+    JsRunnerErrorFilesystem,
     JsRunnerErrorParseException,
     JsRunnerErrorInvalidAppId,
     JsRunnerErrorResource,
