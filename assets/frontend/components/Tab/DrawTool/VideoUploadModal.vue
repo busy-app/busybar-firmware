@@ -113,8 +113,6 @@
 
           <UFormField
             v-if="handle && handle.duration > 0.2"
-            :label="`Trim · ${formatSeconds(trimStart)} – ${formatSeconds(trimEnd)} · ${formatSeconds(maxWindowSeconds)} max at ${fps} fps`"
-            :description="'Drag the middle to move the selection, drag an edge to change its length'"
             :ui="{ description: 'text-xs' }"
           >
             <TabDrawToolTrimRange
@@ -202,8 +200,8 @@
             />
 
             <div
-              v-if="!animation || isDecoding"
-              class="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-neutral-950/70 px-6 text-sm text-muted"
+              v-if="!animation || isDecoding || isPreviewStale"
+              class="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-neutral-950/80 px-6 text-sm text-muted"
             >
               <template v-if="isDecoding">
                 <span>Extracting frames {{ decodeDone }} / {{ decodeTotal }}</span>
@@ -212,6 +210,17 @@
                   :max="decodeTotal"
                   size="sm"
                   class="max-w-64"
+                />
+              </template>
+              <template v-else-if="isPreviewStale">
+                <span class="text-xs">Preview shows the previous settings</span>
+                <UButton
+                  data-id="draw-tool-video-rerender"
+                  label="Update preview"
+                  icon="i-ri-restart-line"
+                  color="neutral"
+                  size="xs"
+                  @click="runDecode"
                 />
               </template>
               <span v-else-if="errorMessage">{{ errorMessage }}</span>
@@ -223,7 +232,12 @@
             v-if="animation"
             class="text-sm text-muted"
           >
-            {{ animation.frames.length }} frames · {{ animation.fps }} fps · {{ formatSeconds(animation.frames.length / animation.fps) }}
+            <template v-if="isPreviewStale">
+              Pending · {{ fps }} fps · {{ formatSeconds(trimEnd - trimStart) }}
+            </template>
+            <template v-else>
+              {{ animation.frames.length }} frames · {{ animation.fps }} fps · {{ formatSeconds(animation.frames.length / animation.fps) }}
+            </template>
           </p>
         </template>
       </div>
@@ -255,16 +269,19 @@ type RetainedSession = {
   fps: number;
 };
 
-const isOpen = defineModel<boolean>('open', { default: false });
-
-const es = useDrawToolEditorStore();
-
 const fpsOptions = VIDEO_FPS_OPTIONS
   .filter(value => value <= DRAW_TOOL_VIDEO_MAX_FPS)
   .map(value => ({ label: String(value), value }));
 const RENDER_DEBOUNCE_MS = 60;
 const TRIM_STEP_SECONDS = 0.1;
 const PREVIEW_MAX_HEIGHT_PX = 360;
+
+let retained: RetainedSession | null = null;
+let isRestoring = false;
+
+const isOpen = defineModel<boolean>('open', { default: false });
+
+const es = useDrawToolEditorStore();
 
 const sourceFile = ref<File | null>(null);
 const adapter = shallowRef<FrameSourceAdapter | null>(null);
@@ -285,17 +302,30 @@ const decodeDone = ref(0);
 const decodeTotal = ref(0);
 const errorMessage = ref<string | null>(null);
 const fileError = ref<string | null>(null);
+const appliedPreview = ref<{ fps: number; trimStart: number; trimEnd: number } | null>(null);
 const editTargetId = ref<string | null>(null);
 const decodeAbortController = ref<AbortController | null>(null);
 const renderTimer = ref<ReturnType<typeof setTimeout> | null>(null);
 const previewFrameHandle = ref<number | null>(null);
 
-let retained: RetainedSession | null = null;
-let isRestoring = false;
-
 const isEditing = computed(() => !!editTargetId.value);
+
 const isDraggingCrop = computed(() => !!cropDrag.value);
+
+const isPreviewStale = computed(() => {
+  const applied = appliedPreview.value;
+
+  if (!animation.value || !applied) {
+    return false;
+  }
+
+  return applied.fps !== fps.value
+    || Math.abs(applied.trimStart - trimStart.value) > TRIM_STEP_SECONDS / 2
+    || Math.abs(applied.trimEnd - trimEnd.value) > TRIM_STEP_SECONDS / 2;
+});
+
 const maxWindowSeconds = computed(() => getVideoMaxDurationSeconds(fps.value));
+
 const minWindowSeconds = computed(() => Math.min(handle.value?.duration ?? 0, 1 / fps.value));
 
 const cropRectClass = computed(() => {
@@ -363,6 +393,11 @@ function abortDecode () {
 function resetAnimation () {
   animation.value = null;
   errorMessage.value = null;
+  appliedPreview.value = null;
+}
+
+function markPreviewApplied (cache: FrameCache) {
+  appliedPreview.value = { fps: cache.fps, trimStart: cache.startTime, trimEnd: cache.endTime };
 }
 
 function releaseRetained () {
@@ -457,19 +492,19 @@ function clampTrim (start: number, end: number, movedStart: boolean) {
 function commitTrim () {
   const cache = frameCache.value;
 
-  if (!cache) {
+  if (!cache || cache.fps !== fps.value) {
     return;
   }
 
   const sliced = sliceFrameCache(cache, trimStart.value, trimEnd.value);
 
-  if (sliced) {
-    frameCache.value = sliced;
-    runRender();
+  if (!sliced) {
     return;
   }
 
-  runDecode();
+  frameCache.value = sliced;
+  markPreviewApplied(sliced);
+  runRender();
 }
 
 function scheduleRender () {
@@ -549,6 +584,7 @@ async function runDecode () {
     frameCache.value = cache;
     trimStart.value = cache.startTime;
     trimEnd.value = cache.endTime;
+    markPreviewApplied(cache);
     runRender();
   } catch (error) {
     if (controller.signal.aborted) {
@@ -693,6 +729,7 @@ async function openFile (file: File, restoreFrom?: VideoShapeSource) {
 
       if (sliced) {
         frameCache.value = sliced;
+        markPreviewApplied(sliced);
         runRender();
         return;
       }
@@ -757,7 +794,11 @@ function handleCropPointerUp (event: PointerEvent) {
   }
 }
 
-function insertVideo () {
+async function insertVideo () {
+  if (isPreviewStale.value) {
+    await runDecode();
+  }
+
   if (!animation.value || !sourceFile.value) {
     return;
   }
@@ -811,7 +852,6 @@ watch(fps, () => {
   }
 
   clampTrim(trimStart.value, trimEnd.value, false);
-  runDecode();
 });
 
 watch(fit, () => {
