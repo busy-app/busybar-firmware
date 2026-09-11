@@ -17,7 +17,9 @@
 typedef enum {
     JsAppLauncherErrorNone,
     JsAppLauncherErrorLoadFailed,
-    JsAppLauncherErrorSettingsMissing,
+    JsAppLauncherErrorSettingsSchemaMissing,
+    JsAppLauncherErrorSettingsSchemaInvalid,
+    JsAppLauncherErrorSettingsStorageFailure,
     JsAppLauncherErrorSettingsLoadFailed,
     JsAppLauncherErrorSyntaxError,
     JsAppLauncherErrorProgramCrashed,
