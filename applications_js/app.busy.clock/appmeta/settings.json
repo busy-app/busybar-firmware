@@ -1,0 +1,80 @@
+{
+  "format_version": 1,
+  "version": 1,
+  "sections": [
+    {
+      "id": "time",
+      "label": "Time",
+      "description": "Clock format.",
+      "icon": "clock",
+      "fields": [
+        {
+          "id": "time_format",
+          "type": "enum",
+          "label": "Time Format",
+          "default": "24h",
+          "options": [
+            { "value": "24h", "label": "24-hour" },
+            { "value": "12h", "label": "12-hour" }
+          ]
+        },
+        {
+          "id": "show_seconds",
+          "type": "boolean",
+          "label": "Show seconds",
+          "default": true
+        },
+        {
+          "id": "blinking_colon",
+          "type": "boolean",
+          "label": "Colon blink",
+          "default": true
+        }
+      ]
+    },
+    {
+      "id": "date",
+      "label": "Date",
+      "description": "Date appearance.",
+      "icon": "calendar",
+      "fields": [
+        {
+          "id": "show_date",
+          "type": "boolean",
+          "label": "Show date",
+          "default": false
+        },
+        {
+          "id": "date_format",
+          "type": "enum",
+          "label": "Date Format",
+          "default": "DD.MM.YYYY",
+          "options": [
+            { "value": "DD.MM.YYYY", "label": "DD.MM.YYYY" },
+            { "value": "DD/MM/YYYY", "label": "DD/MM/YYYY" },
+            { "value": "MM/DD/YYYY", "label": "MM/DD/YYYY" },
+            { "value": "YYYY-MM-DD", "label": "YYYY-MM-DD" },
+            { "value": "DD-MM-YYYY", "label": "DD-MM-YYYY" },
+            { "value": "YYYY.MM.DD", "label": "YYYY.MM.DD" }
+          ]
+        },
+        {
+          "id": "year_digits",
+          "type": "enum",
+          "label": "Year Digits",
+          "default": "4",
+          "options": [
+            { "value": "4", "label": "4 digits (2026)" },
+            { "value": "2", "label": "2 digits (26)" }
+          ]
+        },
+        {
+          "id": "show_weekday",
+          "type": "boolean",
+          "label": "Show Weekday",
+          "default": true
+        }
+      ]
+    }
+  ]
+}
