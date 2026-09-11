@@ -622,6 +622,12 @@ static const HttpHandler handlers_api_root[] = {
         .on_request = http_api_audio_callback,
     },
     {
+        .uri = "input/switch",
+        .method = HttpMethodGet,
+        .type = HttpHandlerCustom,
+        .on_request = http_api_input_switch_callback,
+    },
+    {
         .uri = "input",
         .method = HttpMethodPost,
         .type = HttpHandlerCustom,

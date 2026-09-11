@@ -23,6 +23,15 @@ static const struct {
     {"settings", InputKeySettings},
 };
 
+static const char* const switch_position_names[] = {
+    [InputSwitchPositionBusy] = "busy",
+    [InputSwitchPositionStatus] = "custom",
+    [InputSwitchPositionOff] = "off",
+    [InputSwitchPositionApps] = "apps",
+    [InputSwitchPositionSettings] = "settings",
+};
+static_assert(COUNT_OF(switch_position_names) == InputSwitchPositionMAX);
+
 bool http_api_input_callback(
     FuriString* path,
     HttpMethod method,
@@ -59,6 +68,33 @@ bool http_api_input_callback(
     } else {
         MG_REPLY_BAD_REQUEST(conn);
     }
+
+    return true;
+}
+
+bool http_api_input_switch_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(method);
+    UNUSED(msg);
+    UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
+    Input* input = furi_record_open(RECORD_INPUT);
+    InputSwitchPosition position;
+    furi_state_get(input_get_switch_pos(input), &position);
+    furi_record_close(RECORD_INPUT);
+
+    const char* name = "unknown";
+    if(position < InputSwitchPositionMAX) {
+        name = switch_position_names[position];
+    }
+
+    MG_REPLY_OK_BODY(conn, "{\"position\":\"%s\"}\n", name);
 
     return true;
 }

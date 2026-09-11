@@ -3,6 +3,7 @@ Input API client and Pydantic models.
 
 Endpoints:
 - POST /api/input
+- GET /api/input/switch
 """
 
 from __future__ import annotations
@@ -21,6 +22,12 @@ class InputErrorResponse(BaseModel):
     """Error response from POST /api/input."""
 
     error: str
+
+
+class InputSwitchResponse(BaseModel):
+    """Response from GET /api/input/switch."""
+
+    position: str
 
 
 # === Request Models ===
@@ -47,12 +54,15 @@ class InputAPI(BaseAPI):
 
     Endpoints:
     - POST /api/input - Send key event
+    - GET /api/input/switch - Get switch position
     """
 
     VALID_KEYS = [
         "up", "down", "ok", "back", "start",
         "busy", "off", "custom", "apps", "settings"
     ]
+
+    SWITCH_POSITIONS = ["busy", "custom", "off", "apps", "settings"]
 
     def send_key(self, key: str):
         """
@@ -65,3 +75,7 @@ class InputAPI(BaseAPI):
             Raw response
         """
         return self.post_raw("/api/input", params={"key": key}, data=b"")
+
+    def get_switch(self) -> InputSwitchResponse:
+        """Get the current mode switch position."""
+        return self.get("/api/input/switch", InputSwitchResponse)
