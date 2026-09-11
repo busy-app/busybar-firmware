@@ -54,7 +54,9 @@ void anim_file_img_init(AnimFile* anim, uint8_t* cutout_buffer, size_t width, si
         .content = AnimFileBufferContentUninitialized,
     };
 
-    anim_file_img_set_cutout(anim, 0, 0);
+    if(!dsp_2d_kernel_is_normalized(ANIM_FILE_IMG_KERNEL_SZ, img->cutout_kernel)) {
+        anim_file_img_set_cutout(anim, 0, 0);
+    }
 }
 
 void anim_file_img_deinit(AnimFile* anim) {

@@ -81,6 +81,20 @@ bool dsp_2d_kernel_is_identity(size_t kernel_sz, float kernel[kernel_sz][kernel_
     return true;
 }
 
+bool dsp_2d_kernel_is_normalized(size_t kernel_sz, float kernel[kernel_sz][kernel_sz]) {
+    furi_assert(kernel);
+
+    float sum = 0.0f;
+
+    for(size_t y = 0; y < kernel_sz; y++) {
+        for(size_t x = 0; x < kernel_sz; x++) {
+            sum += kernel[y][x];
+        }
+    }
+
+    return fabsf(sum - 1.0f) < DSP_EPSILON;
+}
+
 static uint32_t dsp_2d_kernel_iteration(
     const uint32_t* source,
     size_t stride,

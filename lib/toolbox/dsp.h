@@ -63,6 +63,18 @@ void dsp_2d_kernel_subpixel_translate(
 bool dsp_2d_kernel_is_identity(size_t kernel_sz, float kernel[kernel_sz][kernel_sz]);
 
 /**
+ * @brief Checks whether the provided kernel is normalized.
+ * 
+ * The kernel is considered normalized if the sum of all elements is exactly 1.
+ * 
+ * @param[in] kernel_sz Size of one axis of the kernel. Can't be less than 3,
+ *                      must be odd.
+ * @param[out] kernel Kernel to analyze (2-dimensional array of size `kernel_sz`
+ *                    x `kernel_sz`)
+ */
+bool dsp_2d_kernel_is_normalized(size_t kernel_sz, float kernel[kernel_sz][kernel_sz]);
+
+/**
  * @brief Apply a 2-dimensional kernel to part of an image
  * 
  * @param[in] kernel_sz Size of one axis of the kernel. Can't be less than 3,
