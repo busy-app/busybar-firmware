@@ -7,6 +7,7 @@
 
 #include <js_app_installer/js_app_installer_paths.h>
 #include <js_app_installer/js_app_installer.h>
+#include <js_app/js_app_registry.h>
 
 #include <cjson/cJSON.h>
 
@@ -349,6 +350,46 @@ static bool api_apps_install_request_callback(
     return true;
 }
 
+static void app_list_callback(const JsAppInfo* info, void* context) {
+    cJSON* list = context;
+
+    cJSON* entry = cJSON_CreateObject();
+    cJSON_AddStringToObject(entry, "id", info->manifest.id);
+    cJSON_AddStringToObject(entry, "name", info->manifest.name);
+    cJSON_AddStringToObject(entry, "version", info->manifest.version);
+    cJSON_AddStringToObject(entry, "author", info->manifest.author);
+    cJSON_AddStringToObject(entry, "description", info->manifest.description);
+    cJSON_AddBoolToObject(entry, "is_debug", info->manifest.is_debug);
+
+    cJSON_AddItemToArray(list, entry);
+}
+
+static bool api_apps_list_request_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(method);
+    UNUSED(ctx);
+    UNUSED(msg);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
+    cJSON* root = cJSON_CreateObject();
+    cJSON* list = cJSON_AddArrayToObject(root, "apps");
+    js_app_registry_list_apps(app_list_callback, list);
+
+    char* json = cJSON_PrintUnformatted(root);
+
+    mg_http_reply(conn, 200, DEFAULT_JSON_HEADERS "Connection: close\r\n", json);
+
+    free(json);
+    cJSON_free(root);
+
+    return true;
+}
+
 static const HttpHandler api_apps_handlers[] = {
     {
         .uri = "stage",
@@ -362,6 +403,12 @@ static const HttpHandler api_apps_handlers[] = {
         .method = HttpMethodPost,
         .type = HttpHandlerCustom,
         .on_request = api_apps_install_request_callback,
+    },
+    {
+        .uri = "list",
+        .method = HttpMethodGet,
+        .type = HttpHandlerCustom,
+        .on_request = api_apps_list_request_callback,
     },
 };
 
