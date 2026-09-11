@@ -26,11 +26,15 @@ static void js_app_launcher_scene_run_console_out_callback(
     }
 }
 
-static void js_app_launcher_scene_run_terminated_callback(void* context) {
+static void js_app_launcher_scene_run_event_callback(const JsRunnerEvent* event, void* context) {
+    furi_assert(event);
     furi_assert(context);
 
     JsAppLauncher* instance = context;
-    js_app_launcher_send_custom_event(instance, JsAppLauncherCustomEventScriptFinished);
+
+    if(event->type == JsRunnerEventTypeScriptFinished) {
+        js_app_launcher_send_custom_event(instance, JsAppLauncherCustomEventScriptFinished);
+    }
 }
 
 static bool js_app_launcher_scene_run_start_app(JsAppLauncher* instance) {
@@ -67,7 +71,7 @@ static bool js_app_launcher_scene_run_start_app(JsAppLauncher* instance) {
         const JsRunnerRunResult run_result = js_runner_run(
             data->js_runner_handle,
             js_info.path.entry,
-            js_app_launcher_scene_run_terminated_callback,
+            js_app_launcher_scene_run_event_callback,
             instance);
 
         if(run_result.error != JsRunnerErrorNone) {

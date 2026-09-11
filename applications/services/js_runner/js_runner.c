@@ -75,13 +75,15 @@ static bool app_has_background_tasks(JsRunnerApp* app) {
 void js_runner_app_stop_if_done(JsRunnerApp* app) {
     if(!app_has_background_tasks(app)) {
         JS_TRACE("No more tasks");
-        JsRunnerExecutionHandle* handle = app->execution_handle;
-        JsRunnerTerminationCallback termination_callback = handle ? handle->termination_callback :
-                                                                    NULL;
-        void* callback_context = handle ? handle->termination_callback_context : NULL;
+
         furi_event_flag_set(app->is_idle, JS_RUNNER_APP_FLAG_IDLE);
-        if(termination_callback) {
-            termination_callback(callback_context);
+
+        JsRunnerExecutionHandle* handle = app->execution_handle;
+        if((handle != NULL) && (handle->event_callback != NULL)) {
+            const JsRunnerEvent event = {
+                .type = JsRunnerEventTypeScriptFinished,
+            };
+            handle->event_callback(&event, handle->event_callback_context);
         }
     }
 }
@@ -459,7 +461,7 @@ void js_runner_context_free(JsRunnerContextHandle* handle) {
 
 static JsRunnerExecutionHandle* execution_handle_alloc(
     JsRunnerContextHandle* parent,
-    JsRunnerTerminationCallback on_terminate,
+    JsRunnerEventCallback event_callback,
     void* context) {
     if(atomic_flag_test_and_set(&parent->app->is_execution_handle_taken)) {
         return NULL;
@@ -467,8 +469,8 @@ static JsRunnerExecutionHandle* execution_handle_alloc(
     JsRunnerExecutionHandle* handle = malloc(sizeof(JsRunnerExecutionHandle));
     handle->app = parent->app;
     handle->context_handle = parent;
-    handle->termination_callback = on_terminate;
-    handle->termination_callback_context = context;
+    handle->event_callback = event_callback;
+    handle->event_callback_context = context;
     parent->app->execution_handle = handle;
     return handle;
 }
@@ -482,14 +484,14 @@ static void execution_handle_free(JsRunnerExecutionHandle* handle) {
 JsRunnerRunResult js_runner_run(
     JsRunnerContextHandle* handle,
     const char* path,
-    JsRunnerTerminationCallback on_terminate,
+    JsRunnerEventCallback event_callback,
     void* context) {
     FURI_LOG_I(TAG, "Running script: %s", path);
 
     JsRunnerError result = JsRunnerErrorNone;
     JsRunnerExecutionHandle* exec_handle = NULL;
     do {
-        exec_handle = execution_handle_alloc(handle, on_terminate, context);
+        exec_handle = execution_handle_alloc(handle, event_callback, context);
         if(!exec_handle) {
             result = JsRunnerErrorResource;
             break;
@@ -523,12 +525,12 @@ JsRunnerRunResult js_runner_run_snippet(
     JsRunnerContextHandle* handle,
     const char* code,
     bool print_result,
-    JsRunnerTerminationCallback on_terminate,
+    JsRunnerEventCallback event_callback,
     void* context) {
     JsRunnerError result = JsRunnerErrorNone;
     JsRunnerExecutionHandle* exec_handle = NULL;
     do {
-        exec_handle = execution_handle_alloc(handle, on_terminate, context);
+        exec_handle = execution_handle_alloc(handle, event_callback, context);
         if(!exec_handle) {
             result = JsRunnerErrorResource;
             break;

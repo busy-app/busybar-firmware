@@ -116,8 +116,8 @@ typedef struct JsRunnerContextHandle {
 typedef struct JsRunnerExecutionHandle {
     JsRunnerContextHandle* context_handle;
     JsRunnerApp* app;
-    JsRunnerTerminationCallback termination_callback;
-    void* termination_callback_context;
+    JsRunnerEventCallback event_callback;
+    void* event_callback_context;
 } JsRunnerExecutionHandle;
 
 typedef struct JsRunnerStaticContext {
