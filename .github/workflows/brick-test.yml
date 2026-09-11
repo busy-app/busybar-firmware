@@ -179,22 +179,29 @@ jobs:
         if: always()
         uses: aws-actions/configure-aws-credentials@d979d5b3a71173a29b74b5b88418bfda9437d885 # v6.1.1
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-access-key-id: ${{ secrets.QA_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.QA_AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-central-1
 
       - name: 'Upload runner logs to S3'
+        id: upload_logs
         if: always()
+        continue-on-error: true
         run: |
           RUN_ID="${{ github.run_number }}-${{ github.sha }}"
           LOG_FILE="$RUNNER_LOG_DIR/latest/runlog.log"
-          S3_PATH="s3://flipper-aws-qa-tests/bsb/runner-logs/brick-test/$RUN_ID/runlog.log"
-          PUBLIC_URL="https://flipper-aws-qa-tests.s3.eu-central-1.amazonaws.com/bsb/runner-logs/brick-test/$RUN_ID/runlog.log"
+          S3_BUCKET="bsb-qa-runners-crash-reports"
+          S3_KEY="runner-logs/brick-test/$RUN_ID/runlog.log"
+          S3_PATH="s3://$S3_BUCKET/$S3_KEY"
+          PUBLIC_URL="https://$S3_BUCKET.s3.eu-central-1.amazonaws.com/$S3_KEY"
 
           if [ -f "$LOG_FILE" ]; then
             aws s3 cp "$LOG_FILE" "$S3_PATH"
-            echo "## Brick Test Runner Logs" >> "$GITHUB_STEP_SUMMARY"
-            echo "- [runlog.log]($PUBLIC_URL)" >> "$GITHUB_STEP_SUMMARY"
+            echo "runlog_url=$PUBLIC_URL" >> "$GITHUB_OUTPUT"
+            {
+              echo "## Brick Test Runner Logs"
+              echo "- [runlog.log]($PUBLIC_URL)"
+            } >> "$GITHUB_STEP_SUMMARY"
           else
             echo "Log file not found: $LOG_FILE"
           fi
