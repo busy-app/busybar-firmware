@@ -120,15 +120,22 @@ const brightnessStore = useBrightnessStore();
 const deviceStore = useDeviceStore();
 const configStore = useConfigStore();
 
-const loading = ref({
+const sending = ref({
+  audio: false,
+  brightness: false
+});
+
+const pending = ref({
   audio: false,
   brightness: false
 });
 
 async function refreshAudioVolume () {
-  loading.value.audio = true;
+  if (sending.value.audio) {
+    return;
+  }
+
   await audioStore.fetchAudioVolume();
-  loading.value.audio = false;
 }
 
 const mute = ref({
@@ -159,6 +166,10 @@ watch(volumeNumber, (newValue, oldValue) => {
     mute.value.volumeBeforeMute = newValue;
   }
 
+  if (sending.value.audio) {
+    return;
+  }
+
   if (newValue !== oldValue || nextVolumeNumber.value === undefined) {
     nextVolumeNumber.value = newValue;
   }
@@ -180,40 +191,59 @@ function unmute () {
   setAudioVolume();
 }
 
-function onChangeAudioSlider () {
+async function onChangeAudioSlider () {
+  await nextTick();
   setAudioVolume();
 }
 
 async function setAudioVolume () {
-  if (loading.value.audio || nextVolumeNumber.value === undefined) {
+  if (nextVolumeNumber.value === undefined) {
     return;
   }
+
+  if (sending.value.audio) {
+    pending.value.audio = true;
+    return;
+  }
+
   mute.value.isMuted = false;
 
-  loading.value.audio = true;
+  sending.value.audio = true;
   const v = nextVolumeNumber.value;
 
   await audioStore.setAudioVolume(v);
   audioStore.audio = { volume: v };
 
   setTimeout(() => {
-    loading.value.audio = false;
+    sending.value.audio = false;
+
+    if (!pending.value.audio) {
+      return;
+    }
+    pending.value.audio = false;
+
+    if (nextVolumeNumber.value !== v) {
+      setAudioVolume();
+    }
   }, Number(configStore.get('sliderDebounceDelay')));
 }
 
 async function setVolumeToMute () {
-  loading.value.audio = true;
+  sending.value.audio = true;
+  pending.value.audio = false;
   mute.value.volumeBeforeMute = volumeNumber.value;
   nextVolumeNumber.value = mute.value.volumeBeforeMute;
   mute.value.isMuted = true;
   await audioStore.setAudioVolume(0);
-  loading.value.audio = false;
+  sending.value.audio = false;
 }
 
 async function refreshDisplayBrightness () {
-  loading.value.brightness = true;
+  if (sending.value.brightness) {
+    return;
+  }
+
   await brightnessStore.fetchDisplayBrightness();
-  loading.value.brightness = false;
 }
 
 const nextBrightnessNumber = ref<number | undefined>(undefined);
@@ -221,6 +251,10 @@ const brightnessNumber = computed(() => isNaN(Number(brightnessStore.displayBrig
 const isBrightnessAuto = computed(() => brightnessStore.displayBrightness?.value === 'auto');
 
 watch(() => brightnessStore.displayBrightness?.value, newValue => {
+  if (sending.value.brightness) {
+    return;
+  }
+
   if (newValue !== 'auto') {
     nextBrightnessNumber.value = Number(newValue ?? 50);
   }
@@ -231,16 +265,22 @@ function disableAutoBrightness () {
   setDisplayBrightness();
 }
 
-function onChangeBrightnessSlider () {
+async function onChangeBrightnessSlider () {
+  await nextTick();
   setDisplayBrightness();
 }
 
 async function setDisplayBrightness () {
-  if (loading.value.brightness || nextBrightnessNumber.value === undefined) {
+  if (nextBrightnessNumber.value === undefined) {
     return;
   }
 
-  loading.value.brightness = true;
+  if (sending.value.brightness) {
+    pending.value.brightness = true;
+    return;
+  }
+
+  sending.value.brightness = true;
   const b = nextBrightnessNumber.value;
 
   await brightnessStore.setDisplayBrightness({
@@ -251,12 +291,22 @@ async function setDisplayBrightness () {
   };
 
   setTimeout(() => {
-    loading.value.brightness = false;
+    sending.value.brightness = false;
+
+    if (!pending.value.brightness) {
+      return;
+    }
+    pending.value.brightness = false;
+
+    if (nextBrightnessNumber.value !== b) {
+      setDisplayBrightness();
+    }
   }, Number(configStore.get('sliderDebounceDelay')));
 }
 
 async function setBrightnessToAuto () {
-  loading.value.brightness = true;
+  sending.value.brightness = true;
+  pending.value.brightness = false;
   await brightnessStore.setDisplayBrightness({
     value: 'auto'
   });
@@ -264,7 +314,7 @@ async function setBrightnessToAuto () {
     value: 'auto'
   };
   nextBrightnessNumber.value = 50;
-  loading.value.brightness = false;
+  sending.value.brightness = false;
 }
 
 const refreshInterval = ref<NodeJS.Timeout | null>(null);
