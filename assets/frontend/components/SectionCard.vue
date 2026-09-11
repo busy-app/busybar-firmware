@@ -64,6 +64,8 @@
 </template>
 
 <script setup lang="ts">
+import { twMerge } from 'tailwind-merge';
+
 interface CardUi {
   root?: string;
   header?: string;
@@ -130,7 +132,7 @@ const headerExists = computed(() => !!(props.title || props.subtitle || props.ic
 const bodyExists = computed(() => isEmptySlot('default') === false || isEmptySlot('raw-body') === false);
 
 function mergeUiClass (defaultClass: string, overrideClass?: string): string {
-  return [defaultClass, overrideClass].filter(Boolean).join(' ');
+  return twMerge(defaultClass, overrideClass);
 }
 
 function isEmptySlot (slotName: string): boolean {

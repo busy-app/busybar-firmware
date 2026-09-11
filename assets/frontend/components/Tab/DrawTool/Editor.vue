@@ -12,11 +12,8 @@
       }"
     >
       <template #leading-actions>
-        <UButton
+        <SectionBackButton
           data-id="draw-tool-editor-back"
-          icon="i-bi-arrow-back"
-          color="neutral"
-          variant="ghost"
           @click="handleBackButtonClick"
         />
       </template>
