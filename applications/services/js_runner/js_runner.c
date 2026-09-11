@@ -748,6 +748,7 @@ static void run_snippet_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
     };
     jerry_value_t parsed_script = jerry_parse(
         (const jerry_char_t*)cmd->run_snippet.code, strlen(cmd->run_snippet.code), &parse_options);
+
     do {
         if(jerry_value_is_exception(parsed_script)) {
             FuriString* error = js_get_exception_string(parsed_script);
@@ -759,38 +760,37 @@ static void run_snippet_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
             furi_string_free(error);
             ret = JsRunnerErrorParseException;
             break;
-        } else {
-            furi_event_flag_clear(app->is_idle, JS_RUNNER_APP_FLAG_IDLE);
-            unlock_with_result(cmd, JsRunnerErrorNone);
-            unlocked = true;
-
-            jerry_value_t result = jerry_run(parsed_script);
-            if(cmd->run_snippet.print_result && !jerry_value_is_exception(result)) {
-                jerry_value_t string = jerry_value_to_string(result);
-                jerry_value_free(result);
-                result = string;
-            }
-            if(jerry_value_is_exception(result)) {
-                FuriString* error = js_get_exception_string(result);
-                console_print(
-                    app,
-                    JsRunnerConsoleSeverityError,
-                    furi_string_get_cstr(error),
-                    JsRunnerConsoleSeparatorNewline);
-                furi_string_free(error);
-                app_terminate_from_app_thread(app);
-            } else if(cmd->run_snippet.print_result) {
-                char* str = js_string_to_c_string(result);
-
-                console_print(
-                    app, JsRunnerConsoleSeverityLog, str, JsRunnerConsoleSeparatorNewline);
-                free(str);
-            }
-            jerry_value_free(result);
-            js_run_jobs();
-            app->script_evaluation_done = true;
-            js_runner_app_stop_if_done(app);
         }
+
+        furi_event_flag_clear(app->is_idle, JS_RUNNER_APP_FLAG_IDLE);
+        unlock_with_result(cmd, JsRunnerErrorNone);
+        unlocked = true;
+
+        jerry_value_t result = jerry_run(parsed_script);
+        if(cmd->run_snippet.print_result && !jerry_value_is_exception(result)) {
+            jerry_value_t string = jerry_value_to_string(result);
+            jerry_value_free(result);
+            result = string;
+        }
+
+        if(jerry_value_is_exception(result)) {
+            FuriString* error = js_get_exception_string(result);
+            console_print(
+                app,
+                JsRunnerConsoleSeverityError,
+                furi_string_get_cstr(error),
+                JsRunnerConsoleSeparatorNewline);
+            furi_string_free(error);
+            app_terminate_from_app_thread(app);
+        } else if(cmd->run_snippet.print_result) {
+            char* str = js_string_to_c_string(result);
+            console_print(app, JsRunnerConsoleSeverityLog, str, JsRunnerConsoleSeparatorNewline);
+            free(str);
+        }
+        jerry_value_free(result);
+        js_run_jobs();
+        app->script_evaluation_done = true;
+        js_runner_app_stop_if_done(app);
     } while(false);
     jerry_value_free(parsed_script);
     if(!unlocked) {
