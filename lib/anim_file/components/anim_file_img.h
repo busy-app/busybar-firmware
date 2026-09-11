@@ -11,15 +11,30 @@
 extern "C" {
 #endif
 
-// see `anim_file_format.h` for terminology
-
 #define ANIM_FILE_IMG_KERNEL_SZ 3
 
+typedef enum {
+    AnimFileBufferContentUninitialized,
+    AnimFileBufferContentFromFile,
+    AnimFileBufferContentDecoded,
+    AnimFileBufferContentFullColor,
+    AnimFileBufferContentDispersed,
+    AnimFileBufferContentCut,
+} AnimFileBufferContent;
+
 typedef struct {
-    uint8_t* encoded_buffer; //<! may not be present
-    uint8_t* packed_buffer; //<! may not be present
-    uint8_t* sheet_buffer; //<! may not be present
-    uint8_t* cutout_buffer; //<! provided by application
+    uint8_t* data;
+    size_t max_bytes;
+    size_t filled_bytes;
+    AnimFileBufferContent content;
+} AnimFileBuffer;
+
+typedef struct {
+    AnimFileBuffer buffer_a;
+    AnimFileBuffer buffer_b;
+    AnimFileBuffer buffer_persistent;
+    AnimFileBuffer buffer_cutout; //<! provided by application
+
     size_t cutout_w;
     size_t cutout_h;
     int cutout_x;
@@ -27,24 +42,14 @@ typedef struct {
     float cutout_kernel[ANIM_FILE_IMG_KERNEL_SZ][ANIM_FILE_IMG_KERNEL_SZ];
 } AnimFileImg;
 
-/**
- * @brief Length of Packed buffer
- */
-size_t anim_file_img_packed_length(const AnimFileHeader* file_hdr);
-
-void anim_file_img_init(
-    AnimFile* anim,
-    uint8_t* cutout_buffer,
-    size_t width,
-    size_t height,
-    bool force_sheet_buffer);
+void anim_file_img_init(AnimFile* anim, uint8_t* cutout_buffer, size_t width, size_t height);
 
 void anim_file_img_deinit(AnimFile* anim);
 
 /**
  * @returns `NULL` on any kind of error (logged with `ANIM_FILE_DETAILED_ERRORS`)
  */
-uint8_t* anim_file_img_encoded_buffer(AnimFile* anim, AnimFileFrameEncoding encoding);
+AnimFileBuffer* anim_file_img_initial_buffer(AnimFile* anim);
 
 void anim_file_img_set_cutout(AnimFile* anim, float x, float y);
 

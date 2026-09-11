@@ -1,4 +1,4 @@
-#include <anim_file_i.h>
+#include <anim_file_i_struct.h>
 
 bool anim_file_load_header(AnimFileHeader* header, File* file) {
     furi_assert(header);
@@ -28,7 +28,7 @@ bool anim_file_load_header(AnimFileHeader* header, File* file) {
         ANIM_FILE_ERR("Invalid section count");
         return false;
     }
-    if(!header->display_frame_count) {
+    if(!header->frame_count) {
         ANIM_FILE_ERR("Invalid display frame count");
         return false;
     }
@@ -115,7 +115,7 @@ bool anim_file_load_validate_section_0(const AnimFileHeader* header, const uint8
         ANIM_FILE_ERR("Invalid section 0 name");
         return false;
     }
-    if((section->start != 0) || (section->end != header->display_frame_count - 1)) {
+    if((section->start != 0) || (section->end != header->frame_count - 1)) {
         ANIM_FILE_ERR("Invalid section 0 range");
         return false;
     }

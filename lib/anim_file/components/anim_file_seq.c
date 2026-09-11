@@ -1,53 +1,16 @@
-#include <anim_file_i.h>
+#include <anim_file_i_struct.h>
 
-void anim_file_seq_new_active(AnimFile* anim, const AnimFileRange* range, AnimFileFrameFlag flags) {
-    furi_assert(anim);
-
-    AnimFileSeq* seq = &anim->seq;
-
-    if(range) {
-        seq->disp_frame_idx = range->start;
-        seq->last_disp_frame = range->end;
-        seq->requested_file_frame = range->start_offset;
-        seq->remaining_duration = range->start_duration_override;
-    }
-    seq->flags |= flags;
-}
-
-size_t anim_file_seq_disp_frame_idx(AnimFile* anim) {
-    furi_assert(anim);
-    return anim->seq.disp_frame_idx;
-}
-
-AnimFileFrameFlag anim_file_seq_load_current_frame(AnimFile* anim) {
+/**
+ * @brief Loads and renders the frame at the specified file offset.
+ * Fills buffers with data as required, then asks the `img` component to render it.
+ */
+static AnimFileFrameFlag anim_file_seq_render_frame(AnimFile* anim, size_t file_offset) {
     furi_assert(anim);
 
     AnimFileSeq* seq = &anim->seq;
     AnimFileFrameHeader* frame_hdr = &seq->frame_hdr;
 
-    bool only_frame = anim->meta.info.frames == 1;
-
-    if((seq->loaded_file_frame == seq->requested_file_frame) && !only_frame) {
-        if(!seq->remaining_duration) return AnimFileFrameFlagNoChange;
-
-        if(seq->disp_frame_idx == seq->last_disp_frame) {
-            if(!anim_file_start_last_frame(anim)) {
-                AnimFileFrameFlag flags = seq->flags;
-
-                seq->flags = AnimFileFrameFlagNone;
-                seq->remaining_duration = 0;
-
-                return flags;
-            }
-        }
-
-        seq->disp_frame_idx++;
-        if(--seq->remaining_duration > 0) return AnimFileFrameFlagNoChange;
-
-        seq->requested_file_frame += sizeof(*frame_hdr) + frame_hdr->encoded_length;
-    }
-
-    if(!storage_file_seek(anim->file, seq->requested_file_frame, true)) {
+    if(!storage_file_seek(anim->file, file_offset, true)) {
         ANIM_FILE_ERR("Failed to seek frame header");
         return AnimFileFrameFlagError;
     }
@@ -58,42 +21,126 @@ AnimFileFrameFlag anim_file_seq_load_current_frame(AnimFile* anim) {
         return AnimFileFrameFlagError;
     }
 
-    uint8_t* frame_destination = anim_file_img_encoded_buffer(anim, frame_hdr->encoding);
-    if(frame_hdr->encoding != AnimFileFrameEncodingRaw) {
-        if(frame_hdr->encoded_length > anim->meta.header.max_encoded_length) {
-            ANIM_FILE_ERR("Invalid file header: frame.encoded_length > max_encoded_length");
+    AnimFileMaskEncoding mask_encoding = anim_file_mask_encoding(frame_hdr->joint_encoding);
+    AnimFilePixelEncoding px_encoding = anim_file_px_encoding(frame_hdr->joint_encoding);
+    bool should_have_mask_data = mask_encoding >= AnimFileMaskEncodingRleFirstBlack;
+
+    if(mask_encoding >= AnimFileMaskEncodingMAX) {
+        ANIM_FILE_ERR("Invalid frame header: invalid frame.mask_encoding");
+        return AnimFileFrameFlagError;
+    }
+    if(px_encoding >= AnimFilePixelEncodingMAX) {
+        ANIM_FILE_ERR("Invalid frame header: invalid frame.pixel_encoding");
+        return AnimFileFrameFlagError;
+    }
+    if(should_have_mask_data) {
+        if(frame_hdr->mask_length > anim->meta.header.max_mask_length) {
+            ANIM_FILE_ERR("Invalid file header: frame.mask_length > file.max_mask_length");
+            return AnimFileFrameFlagError;
+        }
+    } else {
+        if(frame_hdr->mask_length) {
+            ANIM_FILE_ERR(
+                "Invalid file header: frame.mask_length != 0 with frame.mask_encoding == Fully{Black,White}");
             return AnimFileFrameFlagError;
         }
     }
-    if(!frame_hdr->duration) {
-        ANIM_FILE_ERR("Invalid frame header: duration = 0");
+    if(px_encoding != AnimFilePixelEncodingRaw) {
+        if(frame_hdr->pixel_length > anim->meta.header.max_pixel_length) {
+            ANIM_FILE_ERR("Invalid file header: frame.pixel_length > file.max_pixel_length");
+            return AnimFileFrameFlagError;
+        }
+    }
+
+    uint8_t* mask_destination = anim_file_mask_buffer(anim);
+    AnimFileBuffer* pixel_buffer = anim_file_img_initial_buffer(anim);
+
+    to_read = ROUND_UP_TO(frame_hdr->mask_length, 8);
+    if(storage_file_read(anim->file, mask_destination, to_read) != to_read) {
+        ANIM_FILE_ERR("Invalid frame header: frame.mask_length_bytes lies outside of file");
         return AnimFileFrameFlagError;
     }
 
-    to_read = frame_hdr->encoded_length;
-    if(storage_file_read(anim->file, frame_destination, frame_hdr->encoded_length) != to_read) {
-        ANIM_FILE_ERR("Invalid frame encoded_length");
+    to_read = frame_hdr->pixel_length;
+    if(to_read > pixel_buffer->max_bytes) {
+        ANIM_FILE_ERR(
+            "Invalid frame header: frame.pixel_length larger than raw unencoded pixel data");
+        return AnimFileFrameFlagError;
+    }
+    if(storage_file_read(anim->file, pixel_buffer->data, to_read) != to_read) {
+        ANIM_FILE_ERR("Invalid frame header: frame.pixel_length lies outside of file");
         return AnimFileFrameFlagError;
     }
 
-    seq->loaded_file_frame = seq->requested_file_frame;
+    pixel_buffer->content = AnimFileBufferContentFromFile;
+    pixel_buffer->filled_bytes = to_read;
+    seq->loaded_frame_offset = file_offset;
 
-    bool duration_was_overridden_externally = !!seq->remaining_duration;
-    if(!duration_was_overridden_externally) seq->remaining_duration = frame_hdr->duration;
+#ifdef ANIM_FILE_PROFILE_PERFORMANCE
+    profiler_start(anim->profiler, "full_decode");
+#endif
 
-    if(!anim_file_img_full_decode(anim, frame_hdr)) {
-        return AnimFileFrameFlagError;
+    if(!anim_file_img_full_decode(anim, frame_hdr)) return AnimFileFrameFlagError;
+
+#ifdef ANIM_FILE_PROFILE_PERFORMANCE
+    profiler_stop(anim->profiler, "full_decode");
+#endif
+
+    return AnimFileFrameFlagNone;
+}
+
+void anim_file_seq_new_active(AnimFile* anim, const AnimFileRange* range, AnimFileFrameFlag flags) {
+    furi_assert(anim);
+
+    AnimFileSeq* seq = &anim->seq;
+
+    if(range) {
+        seq->frame_idx = range->start;
+        seq->last_frame_idx = range->end;
+        seq->requested_frame_offset = range->start_offset;
+    }
+    seq->external_flags |= flags;
+}
+
+size_t anim_file_seq_frame_idx(AnimFile* anim) {
+    furi_assert(anim);
+    return anim->seq.frame_idx;
+}
+
+AnimFileFrameFlag anim_file_seq_draw_requested_and_go_to_next(AnimFile* anim) {
+    furi_assert(anim);
+
+    AnimFileSeq* seq = &anim->seq;
+    AnimFileFrameHeader* frame_hdr = &seq->frame_hdr;
+
+    if(seq->loaded_frame_offset == seq->requested_frame_offset) {
+        bool on_last_frame_in_range = seq->frame_idx == seq->last_frame_idx;
+
+        if(on_last_frame_in_range) {
+            bool should_continue = anim_file_start_last_frame(anim);
+
+            if(!should_continue) {
+                AnimFileFrameFlag previous_flags = seq->external_flags;
+                seq->external_flags = AnimFileFrameFlagNone;
+                return previous_flags;
+            }
+
+        } else {
+            seq->frame_idx++;
+
+            size_t following_header =
+                frame_hdr->pixel_length + ROUND_UP_TO(frame_hdr->mask_length, 8);
+            seq->requested_frame_offset += sizeof(*frame_hdr) + following_header;
+        }
     }
 
-    AnimFileFrameFlag flags = AnimFileFrameFlagNone;
+    AnimFileFrameFlag flags = anim_file_seq_render_frame(anim, seq->requested_frame_offset);
+    if(flags & AnimFileFrameFlagError) return flags;
 
-    if(seq->disp_frame_idx == seq->last_disp_frame) {
-        flags |= AnimFileFrameFlagLast;
-        anim_file_start_last_frame(anim);
-    }
+    if(seq->frame_idx == seq->last_frame_idx) flags |= AnimFileFrameFlagLast;
 
-    flags |= seq->flags;
-    seq->flags = AnimFileFrameFlagNone;
+    flags |= seq->external_flags;
+    seq->external_flags = AnimFileFrameFlagNone;
 
     return flags;
 }
@@ -103,20 +150,6 @@ void anim_file_seq_redraw_current_frame(AnimFile* anim) {
 
     AnimFileSeq* seq = &anim->seq;
 
-    if(!seq->loaded_file_frame) return;
-
-    if(!storage_file_seek(anim->file, seq->loaded_file_frame + sizeof(AnimFileFrameHeader), true)) {
-        ANIM_FILE_ERR("Failed to seek frame");
-        return;
-    }
-
-    const AnimFileFrameHeader* frame_hdr = &seq->frame_hdr;
-    uint8_t* frame_destination = anim_file_img_encoded_buffer(anim, frame_hdr->encoding);
-    size_t to_read = frame_hdr->encoded_length;
-    if(storage_file_read(anim->file, frame_destination, frame_hdr->encoded_length) != to_read) {
-        ANIM_FILE_ERR("Failed to read frame");
-        return;
-    }
-
-    anim_file_img_full_decode(anim, frame_hdr);
+    if(!seq->loaded_frame_offset) return;
+    anim_file_seq_render_frame(anim, seq->loaded_frame_offset);
 }
