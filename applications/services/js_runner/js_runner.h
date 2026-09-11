@@ -4,9 +4,10 @@
  * @brief Javascript app runner
  */
 #pragma once
+
 #include <stddef.h>
-#include <furi/core/string.h>
-#include <furi/core/thread.h>
+#include <stdint.h>
+#include <stdbool.h>
 
 #define RECORD_JS_RUNNER "js_runner"
 
