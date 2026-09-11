@@ -420,6 +420,25 @@ export const useFirmwareStore = defineStore('firmware', () => {
       fileUpdate.value.progress = 0;
     }
   }
+
+  function completeSuccessfulUpdate () {
+    localStorage.setItem('successfulUpdate', 'true');
+    window.location.reload();
+  }
+
+  watch(
+    () => [autoUpdate.value.stage, fileUpdate.value.stage],
+    ([autoStage, fileStage], [prevAutoStage, prevFileStage]) => {
+      const justSucceeded
+        = (autoStage === UpdateStage.SUCCESS && prevAutoStage !== UpdateStage.SUCCESS)
+          || (fileStage === UpdateStage.SUCCESS && prevFileStage !== UpdateStage.SUCCESS);
+
+      if (justSucceeded) {
+        completeSuccessfulUpdate();
+      }
+    }
+  );
+
   async function startFirmwareUpdateFromFile () {
     try {
       fileUpdate.value.showFileUploadModal = false;

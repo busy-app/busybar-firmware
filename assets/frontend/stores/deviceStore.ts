@@ -48,6 +48,9 @@ export const useDeviceStore = defineStore('device', () => {
         if (firmwareStore.autoUpdate.stage === UpdateStage.UPDATING) {
           firmwareStore.autoUpdate.stage = UpdateStage.SUCCESS;
         }
+        if (firmwareStore.fileUpdate.stage === UpdateStage.UPDATING) {
+          firmwareStore.fileUpdate.stage = UpdateStage.SUCCESS;
+        }
       }
       isConnected.value = true;
       console.debug('Device is connected');
