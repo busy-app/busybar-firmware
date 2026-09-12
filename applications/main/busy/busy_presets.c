@@ -154,7 +154,25 @@ const TimerIndicatorPreset busy_timer_indicator_presets[BusyTimerIndicatorTypeMa
                     .anim_path = BUSY_ANIM_PATH("indicator_busy_72x16.anim"),
                 },
         },
-    [BusyTimerIndicatorTypeRestBig] = {},
+    [BusyTimerIndicatorTypeRestBig] =
+        {
+            .background_config =
+                {
+                    .anim_path = BUSY_ANIM_PATH("particles_rest_72x16.anim"),
+                },
+            .progress_config =
+                {
+                    .anim_path = BUSY_ANIM_PATH("progress_rest_70x22.anim"),
+                    .mask_path = BUSY_IMG_PATH("indicator_mask_72x16.image"),
+                    .direction = TimerIndicatorProgressDirectionVertical,
+                    .start_offset_px = -6,
+                    .end_offset_px = 16,
+                },
+            .foreground_config =
+                {
+                    .image_path = BUSY_IMG_PATH("indicator_rest_72x16.image"),
+                },
+        },
 };
 
 const TimerIndicatorTransition

@@ -11,6 +11,7 @@ typedef enum {
     VarItemListIdRest,
     VarItemListIdCycles,
     VarItemListIdAutostart,
+    VarItemListIdShowTimeLeft,
     VarItemListIdShowWork,
     VarItemListIdDemoMode,
     VarItemListIdMax,
@@ -33,7 +34,8 @@ static void busy_scene_setup_timer_set_item_defaults(const BusySceneSetupTimer* 
         [VarItemListIdRest] = BUSY_TIMER_REST_TIME_DEFAULT_MN,
         [VarItemListIdCycles] = BUSY_TIMER_CYCLE_COUNT_DEFAULT,
         [VarItemListIdAutostart] = BUSY_TIMER_ENABLE_AUTOSTART_DEFAULT,
-        // VarItemListIdShowWork and VarItemListIdDemoMode are not reset to default
+        // VarItemListIdShowTimeLeft, VarItemListIdShowWork and VarItemListIdDemoMode
+        // are not reset to default
     };
 
     for(GuiDisplayId display_id = 0; display_id < GuiDisplayIdMax; ++display_id) {
@@ -62,6 +64,7 @@ static void busy_scene_setup_timer_filter_items(BusySceneSetupTimer* data) {
                 [VarItemListIdMode] = true,
                 [VarItemListIdTime] = true,
                 [VarItemListIdShowWork] = true,
+                [VarItemListIdShowTimeLeft] = true,
                 [VarItemListIdDemoMode] = true,
             },
         [BusyTimerModeInterval] =
@@ -72,6 +75,7 @@ static void busy_scene_setup_timer_filter_items(BusySceneSetupTimer* data) {
                 [VarItemListIdCycles] = true,
                 [VarItemListIdAutostart] = true,
                 [VarItemListIdShowWork] = true,
+                [VarItemListIdShowTimeLeft] = true,
                 [VarItemListIdDemoMode] = true,
             },
     };
@@ -162,6 +166,8 @@ static void
 
     items[item_id++] = var_item_list_add_switch(container->list, "Autostart", NULL, NULL);
 
+    items[item_id++] = var_item_list_add_switch(container->list, "Show time\nleft", NULL, NULL);
+
     items[item_id++] =
         var_item_list_add_switch(container->list, "Show work\nphase only", NULL, NULL);
 
@@ -193,6 +199,7 @@ static void busy_scene_setup_init_var_item_values(
     }
 
     var_item_set_value(items[VarItemListIdShowWork], app_config->is_show_work_only_enabled);
+    var_item_set_value(items[VarItemListIdShowTimeLeft], app_config->is_show_time_left_enabled);
     var_item_set_value(items[VarItemListIdDemoMode], timer_preset->is_demo_mode_enabled);
 }
 
@@ -219,6 +226,7 @@ static void busy_scene_setup_get_var_item_values(
     }
 
     app_config->is_show_work_only_enabled = var_item_get_value(items[VarItemListIdShowWork]);
+    app_config->is_show_time_left_enabled = var_item_get_value(items[VarItemListIdShowTimeLeft]);
     timer_preset->is_demo_mode_enabled = var_item_get_value(items[VarItemListIdDemoMode]);
 }
 

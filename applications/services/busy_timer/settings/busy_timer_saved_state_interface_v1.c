@@ -25,6 +25,8 @@ static bool busy_timer_saved_state_snapshot_deserialize_callback(
     void* value) {
     UNUSED(setting);
     BusyTimerSnapshot* snapshot = value;
+    // NOTE: No current value to fall back on when loading stored state
+    snapshot->app_config.is_show_time_left_enabled = BUSY_APP_IS_SHOW_TIME_LEFT_ENABLED_DEFAULT;
     return busy_timer_snapshot_deserialize_raw(snapshot, json_node);
 }
 
