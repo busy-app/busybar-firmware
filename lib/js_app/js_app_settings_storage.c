@@ -489,6 +489,12 @@ bool js_app_settings_storage_save(JsAppSettingsStorage* instance) {
     return setting_provider_save(instance->provider, &instance->root, instance->values);
 }
 
+bool js_app_settings_storage_reset(JsAppSettingsStorage* instance) {
+    furi_check(instance);
+
+    return setting_provider_reset(instance->provider, &instance->root, instance->values);
+}
+
 const SettingProviderSetting* js_app_settings_storage_get_root(JsAppSettingsStorage* instance) {
     furi_check(instance);
 

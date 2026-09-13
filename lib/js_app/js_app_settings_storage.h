@@ -78,6 +78,16 @@ bool js_app_settings_storage_load(JsAppSettingsStorage* instance);
 bool js_app_settings_storage_save(JsAppSettingsStorage* instance);
 
 /**
+ * @brief Reset every value to its default.
+ *
+ * Substitutes the schema default for every field and writes the document.
+ *
+ * @param[in] instance Storage.
+ * @return true on success, false on a write error.
+ */
+bool js_app_settings_storage_reset(JsAppSettingsStorage* instance);
+
+/**
  * @brief Get the root setting of the descriptor tree.
  *
  * @param[in] instance Storage.
