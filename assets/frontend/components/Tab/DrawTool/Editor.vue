@@ -1854,6 +1854,13 @@ async function insertImage () {
     return;
   }
 
+  if (es.imageUploadFile.type === 'image/gif' || /\.gif$/i.test(es.imageUploadFile.name)) {
+    es.pendingVideoUploadFile = es.imageUploadFile;
+    es.resetImageUploadModal();
+    es.showVideoUploadModal = true;
+    return;
+  }
+
   try {
     const imageElement = await loadImageFile(es.imageUploadFile);
     const pixelArt = es.imageUploadFile.type === 'image/svg+xml' ? false : undefined;
@@ -2133,6 +2140,7 @@ async function renderExportAnimationFrames () {
   const frameCount = es.timelineFrameCount;
   const renderer = createExportRenderer();
   const frames: ImageData[] = [];
+  const wasPlaying = es.isTimelinePlaying;
 
   es.isTimelinePlaying = false;
   isExportingAnimation.value = true;
@@ -2153,6 +2161,7 @@ async function renderExportAnimationFrames () {
     es.applyPlayheadToVideoShapes(es.playheadFrame);
     es.syncPixelatedDisplay();
     isExportingAnimation.value = false;
+    es.isTimelinePlaying = wasPlaying && es.hasVideoShapes;
   }
 
   return frames;

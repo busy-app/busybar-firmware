@@ -67,6 +67,7 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
   const showImageUploadModal = ref(false);
   const imageUploadFile = ref<File | null>(null);
   const showVideoUploadModal = ref(false);
+  const pendingVideoUploadFile = shallowRef<File | null>(null);
   const videoEditTargetId = ref<string | null>(null);
   const playheadFrame = ref(0);
   const isTimelinePlaying = ref(false);
@@ -978,6 +979,7 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     showImageUploadModal.value = false;
     imageUploadFile.value = null;
     showVideoUploadModal.value = false;
+    pendingVideoUploadFile.value = null;
     videoEditTargetId.value = null;
     playheadFrame.value = 0;
     isTimelinePlaying.value = false;
@@ -1208,6 +1210,7 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     showImageUploadModal,
     imageUploadFile,
     showVideoUploadModal,
+    pendingVideoUploadFile,
     videoEditTargetId,
     playheadFrame,
     isTimelinePlaying,

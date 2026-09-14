@@ -932,10 +932,14 @@ watch([trimStart, trimEnd], () => {
 watch(isOpen, open => {
   if (open) {
     const target = es.videoEditTargetId;
+    const pendingFile = es.pendingVideoUploadFile;
     es.videoEditTargetId = null;
+    es.pendingVideoUploadFile = null;
 
     if (target) {
       openForEdit(target);
+    } else if (pendingFile) {
+      sourceFile.value = pendingFile;
     }
 
     return;
