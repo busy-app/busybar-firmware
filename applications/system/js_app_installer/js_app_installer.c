@@ -147,7 +147,8 @@ static void handle_install(JsAppInstaller* instance, JsAppInstallerMsg* message)
     JsAppInstallerError result = JsAppInstallerErrorInstall;
     bool cleanup = false;
     do {
-        if(message->install.install_key == 0 || message->install.install_key != instance->staged_install_key) {
+        if(message->install.install_key == 0 ||
+           message->install.install_key != instance->staged_install_key) {
             break;
         }
 

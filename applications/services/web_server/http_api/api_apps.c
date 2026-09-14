@@ -127,7 +127,7 @@ static bool
     mg_http_reply(conn, status_code, DEFAULT_JSON_HEADERS "Connection: close\r\n", "%s", json);
 
     free(json);
-    cJSON_free(root);
+    cJSON_Delete(root);
 
     conn->is_draining = 1;
 
@@ -402,7 +402,7 @@ static bool api_apps_list_request_callback(
     mg_http_reply(conn, 200, DEFAULT_JSON_HEADERS "Connection: close\r\n", "%s", json);
 
     free(json);
-    cJSON_free(root);
+    cJSON_Delete(root);
 
     return true;
 }
@@ -447,10 +447,12 @@ static bool api_apps_delete_callback(
             break;
         }
         do {
-            if(!storage_dir_exists(storage, furi_string_get_cstr(path))) {
+            JsApp* app = js_app_registry_get_app(app_id);
+            if(!app) {
                 result = AppRemoveResultNotFound;
                 break;
             }
+            js_app_free(app);
             if(!storage_simply_remove_recursive(storage, furi_string_get_cstr(path))) {
                 FURI_LOG_E(TAG, "Cannot delete directory %s", furi_string_get_cstr(path));
                 result = AppRemoveResultError;
