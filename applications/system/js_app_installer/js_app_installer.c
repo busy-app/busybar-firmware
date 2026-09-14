@@ -58,36 +58,30 @@ static bool
 
                 JsAppInfo info;
                 if(js_app_get_info(app, &info)) {
-                    result->app_id = furi_string_alloc_set(info.manifest.id);
-                    result->version = furi_string_alloc_set(info.manifest.version);
                     instance->staged_install_key = gen_install_key();
                     if(instance->staged_app_path) {
                         furi_string_free(instance->staged_app_path);
                     }
                     instance->staged_app_path = furi_string_alloc_set(path);
+
+                    result->staged_app = app;
+                    app = NULL;
+
                     result->install_key = instance->staged_install_key;
                     result->error = JsAppInstallerErrorNone;
+                    result->installed_app = js_app_registry_get_app(info.manifest.id);
+
                     found = true;
                 }
             }
-            js_app_free(app);
+            if(app) {
+                js_app_free(app);
+            }
         }
         furi_string_free(path);
     } while(false);
     dir_walk_free(walk);
     return found;
-}
-
-static void get_installed_version(JsAppInstallerStageResult* result) {
-    result->installed_version = NULL;
-    JsApp* app = js_app_registry_get_app(furi_string_get_cstr(result->app_id));
-    if(app) {
-        JsAppInfo info;
-        if(js_app_get_info(app, &info)) {
-            result->installed_version = furi_string_alloc_set(info.manifest.version);
-        }
-        js_app_free(app);
-    }
 }
 
 static void handle_stage(JsAppInstaller* instance, JsAppInstallerMsg* message) {
@@ -122,8 +116,6 @@ static void handle_stage(JsAppInstaller* instance, JsAppInstallerMsg* message) {
                 result->error = JsAppInstallerErrorManifest;
                 break;
             }
-
-            get_installed_version(result);
         } while(false);
         tar_archive_free(tar);
     } while(false);
@@ -171,6 +163,7 @@ static void handle_install(JsAppInstaller* instance, JsAppInstallerMsg* message)
                 break;
             }
             FuriString* target_path = js_app_registry_get_app_path(new_app_info.manifest.id);
+            furi_assert(target_path);
 
             do {
                 if(!storage_simply_remove_recursive(storage, furi_string_get_cstr(target_path))) {

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <furi/furi.h>
+#include <js_app/js_app.h>
 
 #define RECORD_JS_APP_INSTALLER "js_app_installer"
 
@@ -23,11 +24,10 @@ typedef struct JsAppInstallerStageResult {
     JsAppInstallerError error;
 
     uint32_t
-        install_key; ///< Unique key used to install the app (valid if error == JsAppInstallerErrorNone)
-    FuriString* app_id; ///< Unpacked application id (NULL unless error == JsAppInstallerErrorNone)
-    FuriString*
-        version; ///< Unpacked application version (NULL unless error == JsAppInstallerErrorNone)
-    FuriString* installed_version; ///< Currently installed version of this app or NULL
+        install_key; ///< Unique key used to install the app (valid if error == JsAppInstallerErrorNone).
+    JsApp* staged_app; ///< Staged app (valid if error == JsAppInstallerErrorNone).
+    JsApp*
+        installed_app; ///< Installed app with the same app id as the staged one or NULL if not found (valid if error == JsAppInstallerErrorNone).
 } JsAppInstallerStageResult;
 
 /**

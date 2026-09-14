@@ -57,6 +57,10 @@ JsApp* js_app_registry_get_app(const char* app_id) {
 
     FuriString* app_path = js_app_registry_get_app_path(app_id);
 
+    if(!app_path) {
+        return NULL;
+    }
+
     JsApp* js_app = js_app_alloc();
 
     if(!js_app_load_from_directory(js_app, furi_string_get_cstr(app_path))) {
@@ -68,7 +72,33 @@ JsApp* js_app_registry_get_app(const char* app_id) {
     return js_app;
 }
 
+static bool validate_app_id(const char* app_id) {
+    if(!*app_id) {
+        return false;
+    }
+    size_t i = 0;
+    while(app_id[i]) {
+        char c = app_id[i];
+        bool is_word = isalnum((int)c) || c == '_' || c == '-';
+        bool is_dot = c == '.';
+        if(i == 0) {
+            if(!is_word) {
+                return false;
+            }
+        } else {
+            if(!is_word && !is_dot) {
+                return false;
+            }
+        }
+        ++i;
+    }
+    return true;
+}
+
 FuriString* js_app_registry_get_app_path(const char* app_id) {
+    if(!validate_app_id(app_id)) {
+        return NULL;
+    }
     FuriString* app_path = furi_string_alloc();
     path_concat(JS_APPS_PATH, app_id, app_path);
     return app_path;

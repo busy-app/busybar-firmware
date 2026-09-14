@@ -27,6 +27,7 @@ env.Append(
         File("value_index.h"),
         File("http_headers.h"),
         File("get_line.h"),
+        File("url_utils.h"),
     ],
 )
 
@@ -52,6 +53,7 @@ sources = [
     "value_index.c",
     "http_headers.c",
     "get_line.c",
+    "url_utils.c",
 ]
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)

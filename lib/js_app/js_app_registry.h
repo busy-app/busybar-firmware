@@ -45,10 +45,12 @@ void js_app_registry_list_apps(JsAppRegistryListCallback callback, void* context
 JsApp* js_app_registry_get_app(const char* app_id);
 
 /**
- * @brief Get installation path for a JavaScript application by its id.
+ * @brief Validate app ID and get installation path for a JavaScript application by its ID.
+ *
+ * Valid app IDs correspond to the following regular expression: [a-zA-Z0-9_\-][a-zA-Z0-9_\-.]*
  *
  * @param[in] app_id zero-terminated string containing the desired application's ID
- * @return path in filesystem.
+ * @return path in filesystem or @c NULL if app_id is invalid.
  */
 FuriString* js_app_registry_get_app_path(const char* app_id);
 
