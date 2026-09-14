@@ -10,7 +10,11 @@ env.Append(
     SDK_HEADERS=[
         File("js_app.h"),
         File("js_app_manifest.h"),
+        File("js_app_settings.h"),
         File("js_app_registry.h"),
+        File("setting_types/js_app_settings_color.h"),
+        File("setting_types/js_app_settings_geo.h"),
+        File("setting_types/js_app_settings_time.h"),
     ],
 )
 
@@ -20,7 +24,11 @@ libenv.ApplyLibFlags()
 sources = [
     "js_app.c",
     "js_app_manifest.c",
+    "js_app_settings.c",
     "js_app_registry.c",
+    "setting_types/js_app_settings_color.c",
+    "setting_types/js_app_settings_geo.c",
+    "setting_types/js_app_settings_time.c",
 ]
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
