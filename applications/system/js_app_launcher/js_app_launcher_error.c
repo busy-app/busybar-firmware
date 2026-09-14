@@ -18,6 +18,30 @@ static const JsAppLauncherErrorDesc js_app_launcher_error_descs[JsAppLauncherErr
                     .back = "Try to restart or reinstall it",
                 },
         },
+    [JsAppLauncherErrorSettingsMissing] =
+        {
+            .primary =
+                {
+                    .front = "This app has\nno settings.",
+                    .back = "No settings",
+                },
+            .auxiliary =
+                {
+                    .back = "Add settings file to the app",
+                },
+        },
+    [JsAppLauncherErrorSettingsLoadFailed] =
+        {
+            .primary =
+                {
+                    .front = "Settings loading\nfailed.",
+                    .back = "Settings loading failed",
+                },
+            .auxiliary =
+                {
+                    .back = "Check the app settings file",
+                },
+        },
     [JsAppLauncherErrorSyntaxError] =
         {
             .primary =
@@ -54,7 +78,9 @@ JsAppLauncherError js_app_launcher_translate_from_js_runner_error(JsRunnerError 
     furi_assert(js_runner_error < JsRunnerErrorMax);
     JsAppLauncherError translated_error;
 
-    if(js_runner_error == JsRunnerErrorParseException) {
+    if(js_runner_error == JsRunnerErrorNone) {
+        translated_error = JsAppLauncherErrorNone;
+    } else if(js_runner_error == JsRunnerErrorParseException) {
         translated_error = JsAppLauncherErrorSyntaxError;
     } else {
         translated_error = JsAppLauncherErrorLoadFailed;

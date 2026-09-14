@@ -120,8 +120,8 @@ Application manifest file is a JSON file that matches the following schema:
         "heap_size_kib": {
             "type": "number",
             "minimum": 1,
-            "maximum": 256,
-            "default": 32,
+            "maximum": 512,
+            "default": 128,
             "description": "The amount of memory reserved for application heap, in KiB"
         },
         "debug": {
