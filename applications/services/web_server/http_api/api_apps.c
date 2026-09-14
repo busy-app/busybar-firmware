@@ -30,8 +30,6 @@ typedef struct {
     size_t total_file_size; // Expected total size from Content-Length
     size_t received_file_size; // Bytes received so far
 
-    bool file_fully_received; // Flag: true if all bytes received and temp file closed
-
     CoarseTimer timeout_timer;
 } HttpInstallHandlerCtx;
 
@@ -47,7 +45,6 @@ static HttpInstallHandlerCtx* alloc_install_context() {
 
     ctx->total_file_size = 0;
     ctx->received_file_size = 0;
-    ctx->file_fully_received = false;
     return ctx;
 }
 
@@ -189,10 +186,6 @@ static void api_apps_on_data_cb(struct mg_connection* conn, struct mg_iobuf* io)
 
     if(install_ctx->received_file_size >= install_ctx->total_file_size) {
         FURI_LOG_I(TAG, "on_data: All data received (%zu bytes)", install_ctx->received_file_size);
-        install_ctx->file_fully_received = true;
-
-        temp_file_free(install_ctx->update_file);
-        install_ctx->update_file = NULL;
 
         if(!handle_completed_upload(install_ctx, conn)) {
             // Error response already sent by handle_completed_upload
