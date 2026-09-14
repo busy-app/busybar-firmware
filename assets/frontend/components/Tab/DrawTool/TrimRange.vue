@@ -1,51 +1,55 @@
 <template>
   <div
-    ref="trackRef"
-    class="relative h-10 w-full touch-none select-none overflow-hidden rounded-lg bg-elevated ring-1 ring-accented"
+    class="h-10 w-full touch-none select-none overflow-hidden rounded-lg bg-elevated px-2 ring-1 ring-accented"
     :class="disabled ? 'opacity-60' : ''"
   >
     <div
-      class="absolute inset-y-0 bg-primary/20"
-      :style="{ left: '0%', width: `${startPercent}%` }"
-    />
-    <div
-      class="absolute inset-y-0 bg-primary/20"
-      :style="{ left: `${endPercent}%`, right: '0%' }"
-    />
-
-    <div
-      class="absolute inset-y-0 bg-primary/25 ring-1 ring-primary"
-      :class="disabled ? '' : activeMode === 'move' ? 'cursor-grabbing' : 'cursor-grab'"
-      :style="{ left: `${startPercent}%`, width: `${Math.max(0, endPercent - startPercent)}%` }"
-      @pointerdown="event => handlePointerDown(event, 'move')"
-      @pointermove="handlePointerMove"
-      @pointerup="handlePointerUp"
-      @pointercancel="handlePointerUp"
+      ref="trackRef"
+      class="relative h-full w-full"
     >
-      <span class="pointer-events-none absolute inset-0 flex items-center justify-center text-[11px] tabular-nums text-default">
-        {{ lengthLabel }}
-      </span>
-    </div>
+      <div
+        class="absolute inset-y-0 bg-primary/20"
+        :style="{ left: '-0.5rem', width: `calc(${startPercent}% + 0.5rem)` }"
+      />
+      <div
+        class="absolute inset-y-0 bg-primary/20"
+        :style="{ left: `${endPercent}%`, right: '-0.5rem' }"
+      />
 
-    <div
-      v-for="handle in handles"
-      :key="handle.mode"
-      role="slider"
-      tabindex="0"
-      :aria-label="handle.label"
-      :aria-valuemin="0"
-      :aria-valuemax="Math.round(duration * 100) / 100"
-      :aria-valuenow="Math.round(handle.value * 100) / 100"
-      class="absolute inset-y-0 z-10 flex w-4 -translate-x-1/2 items-center justify-center rounded-md bg-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-      :class="disabled ? '' : 'cursor-ew-resize'"
-      :style="{ left: `${handle.percent}%` }"
-      @pointerdown="event => handlePointerDown(event, handle.mode)"
-      @pointermove="handlePointerMove"
-      @pointerup="handlePointerUp"
-      @pointercancel="handlePointerUp"
-      @keydown="event => handleKeyDown(event, handle.mode)"
-    >
-      <span class="pointer-events-none h-4 w-0.5 rounded-full bg-inverted/70" />
+      <div
+        class="absolute inset-y-0 bg-primary/25 ring-1 ring-primary"
+        :class="disabled ? '' : activeMode === 'move' ? 'cursor-grabbing' : 'cursor-grab'"
+        :style="{ left: `${startPercent}%`, width: `${Math.max(0, endPercent - startPercent)}%` }"
+        @pointerdown="event => handlePointerDown(event, 'move')"
+        @pointermove="handlePointerMove"
+        @pointerup="handlePointerUp"
+        @pointercancel="handlePointerUp"
+      >
+        <span class="pointer-events-none absolute inset-0 flex items-center justify-center text-[11px] tabular-nums text-default">
+          {{ lengthLabel }}
+        </span>
+      </div>
+
+      <div
+        v-for="handle in handles"
+        :key="handle.mode"
+        role="slider"
+        tabindex="0"
+        :aria-label="handle.label"
+        :aria-valuemin="0"
+        :aria-valuemax="Math.round(duration * 100) / 100"
+        :aria-valuenow="Math.round(handle.value * 100) / 100"
+        class="absolute inset-y-0 z-10 flex w-4 -translate-x-1/2 items-center justify-center rounded-md bg-primary focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-inverted"
+        :class="disabled ? '' : 'cursor-ew-resize'"
+        :style="{ left: `${handle.percent}%` }"
+        @pointerdown="event => handlePointerDown(event, handle.mode)"
+        @pointermove="handlePointerMove"
+        @pointerup="handlePointerUp"
+        @pointercancel="handlePointerUp"
+        @keydown="event => handleKeyDown(event, handle.mode)"
+      >
+        <span class="pointer-events-none h-4 w-0.5 rounded-full bg-inverted/70" />
+      </div>
     </div>
   </div>
 </template>

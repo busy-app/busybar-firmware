@@ -51,7 +51,7 @@
             <p class="text-sm text-muted">
               {{ bytesToSize(sourceFile.size) }}
               <template v-if="handle">
-                · {{ handle.width }}×{{ handle.height }} · {{ formatSeconds(handle.duration) }}
+                · {{ formatSeconds(handle.duration) }}
                 <template v-if="handle.nativeFps"> · {{ handle.nativeFps }} fps</template>
                 · {{ adapter?.label }}
               </template>
@@ -63,9 +63,16 @@
             color="neutral"
             variant="ghost"
             icon="i-bi-upload"
-            :disabled="isDecoding"
-            @click="replaceFile"
+            @click="replaceInputRef?.click()"
           />
+
+          <input
+            ref="replaceInputRef"
+            type="file"
+            class="hidden"
+            :accept="FRAME_SOURCE_ACCEPT"
+            @change="handleReplaceInput"
+          >
         </div>
 
         <div
@@ -110,23 +117,6 @@
               />
             </UFormField>
           </div>
-
-          <UFormField
-            v-if="handle && handle.duration > 0.2"
-            :ui="{ description: 'text-xs' }"
-          >
-            <TabDrawToolTrimRange
-              v-model:start="trimStart"
-              v-model:end="trimEnd"
-              :duration="handle.duration"
-              :min-length="minWindowSeconds"
-              :max-length="maxWindowSeconds"
-              :step="TRIM_STEP_SECONDS"
-              :disabled="isDecoding"
-              class="mt-1"
-              @change="commitTrim"
-            />
-          </UFormField>
 
           <div
             v-if="handle"
@@ -193,6 +183,22 @@
             </div>
           </div>
 
+          <TabDrawToolTrimRange
+            v-if="handle && handle.duration > 0.2"
+            v-model:start="trimStart"
+            v-model:end="trimEnd"
+            :duration="handle.duration"
+            :min-length="minWindowSeconds"
+            :max-length="maxWindowSeconds"
+            :step="TRIM_STEP_SECONDS"
+            :disabled="isDecoding"
+            @change="commitTrim"
+          />
+
+          <p class="-mb-2 text-sm font-medium">
+            BUSY Bar preview
+          </p>
+
           <div class="relative aspect-[72/16] w-full overflow-hidden rounded-md bg-neutral-950 ring-1 ring-default">
             <AnimationPlayer
               v-if="animation"
@@ -227,18 +233,6 @@
               <span v-else>Loading…</span>
             </div>
           </div>
-
-          <p
-            v-if="animation"
-            class="text-sm text-muted"
-          >
-            <template v-if="isPreviewStale">
-              Pending · {{ fps }} fps · {{ formatSeconds(trimEnd - trimStart) }}
-            </template>
-            <template v-else>
-              {{ animation.frames.length }} frames · {{ animation.fps }} fps · {{ formatSeconds(animation.frames.length / animation.fps) }}
-            </template>
-          </p>
         </template>
       </div>
     </template>
@@ -278,6 +272,7 @@ const PREVIEW_MAX_HEIGHT_PX = 360;
 
 let retained: RetainedSession | null = null;
 let isRestoring = false;
+let backdropFrameHandle: number | null = null;
 
 const isOpen = defineModel<boolean>('open', { default: false });
 
@@ -295,6 +290,7 @@ const trimEnd = ref(0);
 const cropContainerRef = ref<HTMLDivElement | null>(null);
 const previewVideoRef = ref<HTMLVideoElement | null>(null);
 const backdropCanvasRef = ref<HTMLCanvasElement | null>(null);
+const replaceInputRef = ref<HTMLInputElement | null>(null);
 const cropDrag = ref<{ pointerId: number; startX: number; startY: number; startOffsetX: number; startOffsetY: number } | null>(null);
 const animation = shallowRef<DecodedAnimation | null>(null);
 const isDecoding = ref(false);
@@ -397,7 +393,17 @@ function resetAnimation () {
 }
 
 function markPreviewApplied (cache: FrameCache) {
-  appliedPreview.value = { fps: cache.fps, trimStart: cache.startTime, trimEnd: cache.endTime };
+  const frameSeconds = 1 / cache.fps;
+
+  if (Math.abs(cache.startTime - trimStart.value) >= frameSeconds) {
+    trimStart.value = cache.startTime;
+  }
+
+  if (Math.abs(cache.endTime - trimEnd.value) >= frameSeconds) {
+    trimEnd.value = cache.endTime;
+  }
+
+  appliedPreview.value = { fps: cache.fps, trimStart: trimStart.value, trimEnd: trimEnd.value };
 }
 
 function releaseRetained () {
@@ -456,10 +462,20 @@ function retainSession () {
   handle.value = null;
 }
 
-function replaceFile () {
+function handleReplaceInput (event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+
+  input.value = '';
+
+  if (!file) {
+    return;
+  }
+
   releaseRetained();
   editTargetId.value = null;
-  resetState();
+  crop.value = { offsetX: 0.5, offsetY: 0.5, scale: 1 };
+  sourceFile.value = file;
 }
 
 function clampTrim (start: number, end: number, movedStart: boolean) {
@@ -582,8 +598,6 @@ async function runDecode () {
     }
 
     frameCache.value = cache;
-    trimStart.value = cache.startTime;
-    trimEnd.value = cache.endTime;
     markPreviewApplied(cache);
     runRender();
   } catch (error) {
@@ -601,17 +615,56 @@ async function runDecode () {
   }
 }
 
-function drawBackdrop () {
-  const canvas = backdropCanvasRef.value;
-  const firstFrame = handle.value?.frames?.[0]?.imageData;
+function stopBackdropLoop () {
+  if (backdropFrameHandle !== null) {
+    cancelAnimationFrame(backdropFrameHandle);
+    backdropFrameHandle = null;
+  }
+}
 
-  if (!canvas || !firstFrame) {
+function startBackdropLoop () {
+  stopBackdropLoop();
+
+  const canvas = backdropCanvasRef.value;
+  const frames = handle.value?.frames;
+  const context = canvas?.getContext('2d');
+
+  if (!canvas || !context || !frames?.length) {
     return;
   }
 
-  canvas.width = firstFrame.width;
-  canvas.height = firstFrame.height;
-  canvas.getContext('2d')?.putImageData(firstFrame, 0, 0);
+  canvas.width = frames[0].imageData.width;
+  canvas.height = frames[0].imageData.height;
+
+  const frameEnds: number[] = [];
+  let totalMs = 0;
+
+  for (const frame of frames) {
+    totalMs += Math.max(1, frame.durationMs);
+    frameEnds.push(totalMs);
+  }
+
+  let origin: number | null = null;
+  let drawnIndex = -1;
+
+  const step = (timestamp: number) => {
+    origin ??= timestamp;
+
+    const startMs = Math.min(trimStart.value * 1000, totalMs);
+    const endMs = trimEnd.value > 0 ? Math.min(trimEnd.value * 1000, totalMs) : totalMs;
+    const timeMs = startMs + ((timestamp - origin) % Math.max(1, endMs - startMs));
+    const foundIndex = frameEnds.findIndex(end => timeMs < end);
+    const index = foundIndex < 0 ? frames.length - 1 : foundIndex;
+
+    if (index !== drawnIndex) {
+      context.putImageData(frames[index].imageData, 0, 0);
+      drawnIndex = index;
+    }
+
+    backdropFrameHandle = requestAnimationFrame(step);
+  };
+
+  backdropFrameHandle = requestAnimationFrame(step);
 }
 
 function cancelPreviewWatchers () {
@@ -626,13 +679,21 @@ function cancelPreviewWatchers () {
 }
 
 function stopPreviewLoop () {
+  stopBackdropLoop();
   cancelPreviewWatchers();
   previewVideoRef.value?.pause();
 }
 
 function keepPreviewInTrim (video: HTMLVideoElement, tolerance: number) {
-  if (video.currentTime >= trimEnd.value - tolerance || video.currentTime < trimStart.value - tolerance) {
+  const endsAtVideoEnd = Number.isFinite(video.duration) && trimEnd.value >= video.duration - 1 / 30;
+  const pastEnd = !endsAtVideoEnd && video.currentTime >= trimEnd.value - tolerance;
+
+  if (pastEnd || video.currentTime < trimStart.value - tolerance) {
     video.currentTime = trimStart.value;
+  }
+
+  if (video.paused && !video.seeking && isOpen.value) {
+    video.play().catch(() => undefined);
   }
 }
 
@@ -721,7 +782,7 @@ async function openFile (file: File, restoreFrom?: VideoShapeSource) {
 
     await nextTick();
     isRestoring = false;
-    drawBackdrop();
+    startBackdropLoop();
     startPreviewLoop();
 
     if (reusable?.cache && reusable.fps === fps.value) {

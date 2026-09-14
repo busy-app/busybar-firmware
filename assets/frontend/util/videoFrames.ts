@@ -156,7 +156,7 @@ export function resampleTimedFrames (
 }
 
 export function sliceFrameCache (cache: FrameCache, startTime: number, endTime: number): FrameCache | null {
-  const epsilon = 0.5 / cache.fps;
+  const epsilon = 1 / cache.fps;
 
   if (startTime < cache.startTime - epsilon || endTime > cache.endTime + epsilon) {
     return null;
