@@ -187,10 +187,17 @@ static void api_apps_on_data_cb(struct mg_connection* conn, struct mg_iobuf* io)
     if(install_ctx->received_file_size >= install_ctx->total_file_size) {
         FURI_LOG_I(TAG, "on_data: All data received (%zu bytes)", install_ctx->received_file_size);
 
+        temp_file_free(install_ctx->update_file);
+        install_ctx->update_file = NULL;
+
         if(!handle_completed_upload(install_ctx, conn)) {
             // Error response already sent by handle_completed_upload
             FURI_LOG_E(TAG, "on_data: package handling failed.");
         }
+
+        Storage* storage = furi_record_open(RECORD_STORAGE);
+        storage_simply_remove(storage, JS_APP_DOWNLOAD_PATH);
+        furi_record_close(RECORD_STORAGE);
     }
 }
 

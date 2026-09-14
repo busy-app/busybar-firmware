@@ -10,7 +10,7 @@ paths:
       summary: Stage a Javascript application for installation
       description: Uploads an application package (TGZ or TAR file) and initiates the installation process.
       x-local-only: true
-      operationId: installApp
+      operationId: stageApp
       parameters: []
       requestBody:
         required: true
@@ -41,6 +41,35 @@ paths:
                 $ref: "#/components/schemas/Error"
         "508":
           description: Failed to save the application package.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /api/apps/install:
+    post:
+      tags:
+        - Apps
+      summary: Install a staged Javascript application
+      description: Installs a staged Javascript application using the installation key
+      x-local-only: true
+      operationId: installApp
+      parameters:
+        - name: install_id
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: Installation ID
+          example: 123456789
+      responses:
+        "200":
+          description: Application installed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppStageResult"
+        "400":
+          description: Invalid parameters.
           content:
             application/json:
               schema:
