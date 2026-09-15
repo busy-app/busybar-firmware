@@ -1,13 +1,13 @@
 tags:
 - name: Apps
-  description: Javascript applications managements
+  description: JavaScript applications management
 
 paths:
   /api/apps/stage:
     post:
       tags:
         - Apps
-      summary: Stage a Javascript application for installation
+      summary: Stage a JavaScript application for installation
       description: Uploads an application package (TGZ or TAR file) and initiates the installation process.
       x-local-only: true
       operationId: stageApp
@@ -19,7 +19,7 @@ paths:
             schema:
               type: string
               format: binary
-              description: Javascript application TGZ package.
+              description: JavaScript application TGZ package.
       responses:
         "200":
           description: Application staged successfully.
@@ -49,8 +49,8 @@ paths:
     post:
       tags:
         - Apps
-      summary: Install a staged Javascript application
-      description: Installs a staged Javascript application using the installation key
+      summary: Install a staged JavaScript application
+      description: Installs a staged JavaScript application using the installation key
       x-local-only: true
       operationId: installApp
       parameters:
@@ -78,8 +78,8 @@ paths:
     delete:
       tags:
         - Apps
-      summary: Delete a Javascript application
-      description: Removes an installed Javascript application, keeping its settings
+      summary: Delete a JavaScript application
+      description: Removes an installed JavaScript application, keeping its settings
       x-local-only: true
       operationId: removeApp
       parameters:
@@ -89,7 +89,7 @@ paths:
           schema:
             type: string
             pattern: "^[a-zA-Z0-9_\\-][a-zA-Z0-9_\\-.]{0,31}$"
-          description: Javascript application id
+          description: JavaScript application id
           example: "com.example.useless-app"
       responses:
         "200":
@@ -114,8 +114,8 @@ paths:
     get:
       tags:
         - Apps
-      summary: List installed Javascript applications
-      description: Lists installed Javascript applications
+      summary: List installed JavaScript applications
+      description: Lists installed JavaScript applications
       x-local-only: true
       operationId: listApps
       responses:
