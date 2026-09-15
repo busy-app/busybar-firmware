@@ -19,7 +19,7 @@
 #define APP_UPLOAD_IDLE_TIMEOUT_MS 5000
 
 #define INSTALL_KEY_LEN_MAX 11
-#define APP_ID_LEN_MAX      64
+#define APP_ID_LEN_MAX      34
 
 typedef struct {
     Storage* storage;

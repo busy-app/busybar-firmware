@@ -88,7 +88,7 @@ paths:
           required: true
           schema:
             type: string
-            pattern: "^[a-zA-Z0-9_\\-][a-zA-Z0-9_\\-.]*$"
+            pattern: "^[a-zA-Z0-9_\\-][a-zA-Z0-9_\\-.]{0,31}$"
           description: Javascript application id
           example: "com.example.useless-app"
       responses:

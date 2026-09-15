@@ -78,6 +78,9 @@ bool js_app_registry_validate_app_id(const char* app_id) {
     }
     size_t i = 0;
     while(app_id[i]) {
+        if(i == 32) {
+            return false;
+        }
         char c = app_id[i];
         bool is_word = isalnum((int)c) || c == '_' || c == '-';
         bool is_dot = c == '.';
