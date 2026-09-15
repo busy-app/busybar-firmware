@@ -93,8 +93,15 @@ void js_runner_app_stop_if_done(JsRunnerApp* app) {
 }
 
 void js_run_jobs(void) {
+    JsRunnerApp* app = js_runner_static_context.app;
+    furi_assert(app);
+
     bool should_run = false;
     do {
+        if(app->should_terminate) {
+            break;
+        }
+
         jerry_value_t jobs_result = jerry_run_jobs();
         if(jerry_value_is_exception(jobs_result)) {
             FURI_LOG_E(TAG, "Exception when running jobs");
@@ -104,6 +111,7 @@ void js_run_jobs(void) {
                 should_run = true;
             }
         }
+
         jerry_value_free(jobs_result);
     } while(should_run);
 }
@@ -114,9 +122,7 @@ static void fetch_event_queue_callback(FuriEventLoopObject* object, void* contex
     JsFetchEvent event;
     furi_check(furi_message_queue_get(app->fetch.event_queue, &event, 0) == FuriStatusOk);
     js_fetch_process_event(&event);
-    if(!app->should_terminate) {
-        js_run_jobs();
-    }
+    js_run_jobs();
 }
 
 typedef void (*CommandQueueHandler)(JsRunnerApp* app, JsRunnerAppCommand* cmd);
