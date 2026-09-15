@@ -83,7 +83,7 @@
         </div>
 
         <template v-else>
-          <div class="flex flex-wrap items-end gap-4">
+          <div class="flex flex-wrap items-start gap-4">
             <UFormField label="FPS">
               <USelect
                 v-model="fps"
@@ -107,14 +107,16 @@
               label="Zoom"
               class="min-w-40 flex-1"
             >
-              <USlider
-                v-model="cropScalePercent"
-                :min="0"
-                :max="100"
-                :step="1"
-                :disabled="isDecoding"
-                @change="scheduleRender"
-              />
+              <div class="flex h-8 items-center">
+                <USlider
+                  v-model="cropScalePercent"
+                  :min="0"
+                  :max="100"
+                  :step="1"
+                  :disabled="isDecoding"
+                  @change="scheduleRender"
+                />
+              </div>
             </UFormField>
           </div>
 
@@ -192,7 +194,11 @@
             :max-length="maxWindowSeconds"
             :step="TRIM_STEP_SECONDS"
             :disabled="isDecoding"
+            :current-time="previewTime"
+            :playing="previewPlaying"
             @change="commitTrim"
+            @seek="seekPreview"
+            @toggle-play="togglePreviewPlayback"
           />
 
           <p class="-mb-2 text-sm font-medium">
@@ -273,6 +279,7 @@ const PREVIEW_MAX_HEIGHT_PX = 360;
 let retained: RetainedSession | null = null;
 let isRestoring = false;
 let backdropFrameHandle: number | null = null;
+let backdropSeekMs: number | null = null;
 
 const isOpen = defineModel<boolean>('open', { default: false });
 
@@ -303,6 +310,8 @@ const editTargetId = ref<string | null>(null);
 const decodeAbortController = ref<AbortController | null>(null);
 const renderTimer = ref<ReturnType<typeof setTimeout> | null>(null);
 const previewFrameHandle = ref<number | null>(null);
+const previewPlaying = ref(true);
+const previewTime = ref(0);
 
 const isEditing = computed(() => !!editTargetId.value);
 
@@ -644,15 +653,29 @@ function startBackdropLoop () {
     frameEnds.push(totalMs);
   }
 
-  let origin: number | null = null;
+  let lastTimestamp: number | null = null;
+  let elapsedMs = 0;
   let drawnIndex = -1;
 
   const step = (timestamp: number) => {
-    origin ??= timestamp;
-
     const startMs = Math.min(trimStart.value * 1000, totalMs);
     const endMs = trimEnd.value > 0 ? Math.min(trimEnd.value * 1000, totalMs) : totalMs;
-    const timeMs = startMs + ((timestamp - origin) % Math.max(1, endMs - startMs));
+    const windowMs = Math.max(1, endMs - startMs);
+
+    if (previewPlaying.value && lastTimestamp !== null) {
+      elapsedMs += timestamp - lastTimestamp;
+    }
+
+    lastTimestamp = timestamp;
+
+    if (backdropSeekMs !== null) {
+      elapsedMs = backdropSeekMs - startMs;
+      backdropSeekMs = null;
+    }
+
+    const timeMs = startMs + (((elapsedMs % windowMs) + windowMs) % windowMs);
+
+    previewTime.value = timeMs / 1000;
     const foundIndex = frameEnds.findIndex(end => timeMs < end);
     const index = foundIndex < 0 ? frames.length - 1 : foundIndex;
 
@@ -692,7 +715,9 @@ function keepPreviewInTrim (video: HTMLVideoElement, tolerance: number) {
     video.currentTime = trimStart.value;
   }
 
-  if (video.paused && !video.seeking && isOpen.value) {
+  previewTime.value = video.currentTime;
+
+  if (previewPlaying.value && video.paused && !video.seeking && isOpen.value) {
     video.play().catch(() => undefined);
   }
 }
@@ -702,6 +727,36 @@ function handlePreviewTimeUpdate () {
 
   if (video) {
     keepPreviewInTrim(video, 0.05);
+  }
+}
+
+function togglePreviewPlayback () {
+  previewPlaying.value = !previewPlaying.value;
+
+  const video = previewVideoRef.value;
+
+  if (!video || handle.value?.kind !== 'video') {
+    return;
+  }
+
+  if (previewPlaying.value) {
+    keepPreviewInTrim(video, 0.02);
+  } else {
+    video.pause();
+  }
+}
+
+function seekPreview (time: number) {
+  const latestTime = Math.max(trimStart.value, trimEnd.value - 0.05);
+  const nextTime = Math.min(Math.max(time, trimStart.value), latestTime);
+  const video = previewVideoRef.value;
+
+  previewTime.value = nextTime;
+
+  if (handle.value?.kind === 'video' && video) {
+    video.currentTime = nextTime;
+  } else {
+    backdropSeekMs = nextTime * 1000;
   }
 }
 
@@ -715,7 +770,7 @@ function startPreviewLoop () {
   cancelPreviewWatchers();
   keepPreviewInTrim(video, 0.02);
 
-  if (video.paused) {
+  if (previewPlaying.value && video.paused) {
     video.play().catch(() => undefined);
   }
 
@@ -741,6 +796,8 @@ async function openFile (file: File, restoreFrom?: VideoShapeSource) {
   releaseHandle();
   frameCache.value = null;
   fileError.value = null;
+  previewPlaying.value = true;
+  previewTime.value = 0;
 
   if (file.size > DRAW_TOOL_VIDEO_MAX_FILE_BYTES) {
     fileError.value = `This file is ${bytesToSize(file.size)}. The limit is ${bytesToSize(DRAW_TOOL_VIDEO_MAX_FILE_BYTES)}.`;

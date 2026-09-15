@@ -174,7 +174,7 @@
                             </span>
                             <UKbd
                               v-else
-                              class="size-6 justify-center px-1.5 bg-accented/25"
+                              class="h-6 min-w-6 justify-center px-1.5 bg-accented/25"
                               :value="token.label"
                             />
                           </template>
