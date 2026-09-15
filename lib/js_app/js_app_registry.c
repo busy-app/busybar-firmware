@@ -78,7 +78,7 @@ bool js_app_registry_validate_app_id(const char* app_id) {
     }
     size_t i = 0;
     while(app_id[i]) {
-        if(i == 32) {
+        if(i == JS_APP_ID_LEN_MAX) {
             return false;
         }
         char c = app_id[i];

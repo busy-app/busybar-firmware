@@ -9,6 +9,8 @@
 #include "js_app.h"
 #include <furi/core/string.h>
 
+#define JS_APP_ID_LEN_MAX 32
+
 #ifdef __cplusplus
 extern "C" {
 #endif
