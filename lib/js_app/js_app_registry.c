@@ -4,20 +4,13 @@
 #include <core/check.h>
 
 #include <storage_utils/dir_walk.h>
+#include <storage/storage.h>
 #include <toolbox/path.h>
 
 #define TAG "JsAppRegistry"
 
 // TODO: Share with assets HTTP API
 #define JS_APPS_PATH EXT_PATH("user_assets")
-
-static bool js_app_registry_is_dir_callback(const char* path, FileInfo* file_info, void* context) {
-    UNUSED(path);
-    UNUSED(context);
-
-    furi_assert(file_info);
-    return file_info_is_dir(file_info);
-}
 
 static void js_app_registry_list_apps_directory(
     DirWalk* dir_walk,
@@ -47,7 +40,7 @@ void js_app_registry_list_apps(JsAppRegistryListCallback callback, void* context
 
     DirWalk* dir_walk = dir_walk_alloc(storage);
     dir_walk_set_recursive(dir_walk, false);
-    dir_walk_set_filter_cb(dir_walk, js_app_registry_is_dir_callback, NULL);
+    dir_walk_set_filter_cb(dir_walk, dir_walk_is_dir_callback, NULL);
 
     if(dir_walk_open(dir_walk, JS_APPS_PATH)) {
         js_app_registry_list_apps_directory(dir_walk, callback, context);
@@ -62,8 +55,11 @@ void js_app_registry_list_apps(JsAppRegistryListCallback callback, void* context
 JsApp* js_app_registry_get_app(const char* app_id) {
     furi_check(app_id);
 
-    FuriString* app_path = furi_string_alloc();
-    path_concat(JS_APPS_PATH, app_id, app_path);
+    FuriString* app_path = js_app_registry_get_app_path(app_id);
+
+    if(!app_path) {
+        return NULL;
+    }
 
     JsApp* js_app = js_app_alloc();
 
@@ -74,4 +70,40 @@ JsApp* js_app_registry_get_app(const char* app_id) {
 
     furi_string_free(app_path);
     return js_app;
+}
+
+bool js_app_registry_validate_app_id(const char* app_id) {
+    if(!*app_id) {
+        return false;
+    }
+    size_t i = 0;
+    while(app_id[i]) {
+        if(i == JS_APP_ID_LEN_MAX) {
+            return false;
+        }
+        char c = app_id[i];
+        bool is_word = (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
+                       (c >= '0' && c <= '9') || c == '_' || c == '-';
+        bool is_dot = c == '.';
+        if(i == 0) {
+            if(!is_word) {
+                return false;
+            }
+        } else {
+            if(!is_word && !is_dot) {
+                return false;
+            }
+        }
+        ++i;
+    }
+    return true;
+}
+
+FuriString* js_app_registry_get_app_path(const char* app_id) {
+    if(!js_app_registry_validate_app_id(app_id)) {
+        return NULL;
+    }
+    FuriString* app_path = furi_string_alloc();
+    path_concat(JS_APPS_PATH, app_id, app_path);
+    return app_path;
 }
