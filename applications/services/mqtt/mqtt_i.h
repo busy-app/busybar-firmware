@@ -22,6 +22,9 @@
 #define MQTT_POLL_PERIOD_MS      (1000UL)
 #define MQTT_API_VERSION         "v1"
 
+#define MQTT_INFLIGHT_MESSAGES_MAX   (16)
+#define MQTT_INFLIGHT_DATA_MAX_BYTES (16 * 1024)
+
 #define MQTT_ROOT_TOPIC_DEVICE  "devices"
 #define MQTT_ROOT_TOPIC_SESSION "sessions"
 
@@ -81,6 +84,15 @@ struct MqttSubscription {
 
 ILIST_DEF(MqttSubscriptionList, MqttSubscription, M_POD_OPLIST)
 
+typedef struct {
+    uint16_t id;
+    MqttScope scope;
+    MqttQos qos;
+    FuriString* topic_path;
+    uint8_t* data;
+    size_t data_size;
+} MqttInflightMessage;
+
 struct Mqtt {
     struct mg_mgr mgr;
     struct mg_connection* conn;
@@ -91,6 +103,10 @@ struct Mqtt {
     FuriString* device_serial;
 
     MqttSubscriptionList_t subscriptions;
+
+    MqttInflightMessage inflight[MQTT_INFLIGHT_MESSAGES_MAX];
+    size_t inflight_count;
+    size_t inflight_data_size;
 
     unsigned long api_connection_id;
     uint32_t reconnect_delay_ms;
@@ -220,6 +236,19 @@ bool mqtt_publish_internal(
     size_t data_size,
     const MqttProperty* props,
     uint32_t props_count);
+
+void mqtt_inflight_track(
+    Mqtt* instance,
+    uint16_t id,
+    MqttScope scope,
+    MqttQos qos,
+    const FuriString* topic_path,
+    const void* data,
+    size_t data_size);
+
+void mqtt_inflight_ack(Mqtt* instance, uint16_t id);
+
+void mqtt_inflight_retransmit(Mqtt* instance);
 
 void mqtt_property_to_raw(const MqttProperty* property, struct mg_mqtt_prop* raw_property);
 

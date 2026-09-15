@@ -63,6 +63,17 @@ const char* busy_timer_get_profile_name(BusyTimerProfileId profile_id) {
     return busy_timer_profile_names[profile_id];
 }
 
+static BusyTimerProfileId
+    busy_timer_find_profile_id(const BusyTimer* instance, const char* card_id) {
+    for(BusyTimerProfileId profile_id = 0; profile_id < BusyTimerProfileIdMax; ++profile_id) {
+        if(strcmp(instance->settings[profile_id].profile.metadata.card_id, card_id) == 0) {
+            return profile_id;
+        }
+    }
+
+    return BusyTimerProfileIdMax;
+}
+
 #ifdef BUSY_TIMER_TICK_DEBUG
 static void busy_timer_get_time_str(uint32_t time_s, char buf[TIME_MAX_LEN]) {
     const uint32_t h = S_TO_H(time_s);
@@ -664,7 +675,8 @@ static void busy_timer_apply_snapshot(
 
     if(new_state != BusyTimerStateIdle) {
         instance->session_source = source;
-        instance->active_profile_id = BusyTimerProfileIdMax;
+        instance->active_profile_id =
+            busy_timer_find_profile_id(instance, snapshot->common.card_id);
 
         if(type == BusyTimerSnapshotTypeInterval) {
             const BusyTimerSnapshotInterval* interval = &snapshot->interval;

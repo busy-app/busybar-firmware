@@ -12,6 +12,10 @@
  * - Attempts to publish when offline or not linked will result in an error,
  * - Unsubscribing from a topic will cause a reconnection to the MQTT broker.
  *
+ * Delivery guarantees:
+ * - QoS 1 messages without properties are kept until acknowledged by the broker
+ * and retransmitted after reconnection (duplicates are possible).
+ *
  * Topic format:
  * With the below API, subscription/publishing is only possible on the session topic.
  *
