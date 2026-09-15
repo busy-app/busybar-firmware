@@ -37,6 +37,7 @@ from clients.api import (
     UpdateAPI,
     BusyAPI,
     SmartHomeAPI,
+    TelemetryAPI,
 )
 from clients.cli import SimpleCLIConnection
 from config.config import Config
@@ -729,6 +730,22 @@ def busy_api(api_factory):
 @pytest.fixture
 def smart_home_api(api_factory):
     return api_factory(SmartHomeAPI)
+
+
+@pytest.fixture
+def telemetry_api(api_factory):
+    return api_factory(TelemetryAPI)
+
+
+@pytest.fixture
+def telemetry_state_guard(telemetry_api: TelemetryAPI):
+    """Restore the persisted telemetry opt-in state after a test."""
+    original_enabled = telemetry_api.get_status().enabled
+    yield original_enabled
+    try:
+        telemetry_api.set_enabled(original_enabled)
+    except Exception:
+        pass
 
 
 @pytest.fixture
