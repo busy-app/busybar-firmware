@@ -88,6 +88,32 @@ bool js_app_settings_storage_save(JsAppSettingsStorage* instance);
 bool js_app_settings_storage_reset(JsAppSettingsStorage* instance);
 
 /**
+ * @brief Export the settings document.
+ *
+ * Serializes the current values into a complete settings document. Values
+ * must be current: call js_app_settings_storage_load() before exporting.
+ *
+ * @param[in] instance Storage.
+ * @param[out] data Serialized document data.
+ * @return true on success, false when a value fails to encode.
+ */
+bool js_app_settings_storage_export(const JsAppSettingsStorage* instance, FuriString* data);
+
+/**
+ * @brief Import a settings document.
+ *
+ * Strict counterpart of js_app_settings_storage_export(): the document must
+ * carry the settings version and every field with a valid value; unknown
+ * keys are dropped.
+ *
+ * @param[in] instance Storage.
+ * @param[in] data Document data to import.
+ * @param[in] size Length of the document data.
+ * @return true on success, false on an invalid document.
+ */
+bool js_app_settings_storage_import(JsAppSettingsStorage* instance, const char* data, size_t size);
+
+/**
  * @brief Get the root setting of the descriptor tree.
  *
  * @param[in] instance Storage.
