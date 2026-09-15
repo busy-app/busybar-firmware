@@ -667,18 +667,23 @@ static void run_file_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
             .source_name = source_name,
         };
 
-        jerry_value_t parsed_script =
+        jerry_value_t parse_result =
             jerry_parse((const jerry_char_t*)buf, file_size, &parse_options);
         free(buf);
 
         do {
-            if(jerry_value_is_exception(parsed_script)) {
-                js_log_exception(TAG, "Error parsing script", parsed_script);
-                ret = JsRunnerErrorParseException;
+            if(jerry_value_is_exception(parse_result)) {
+                if(js_exception_is_null(parse_result)) {
+                    FURI_LOG_E(TAG, "Error parsing script: possibly out of memory");
+                    ret = JsRunnerErrorOutOfMemory;
+                } else {
+                    js_log_exception(TAG, "Error parsing script", parse_result);
+                    ret = JsRunnerErrorParseException;
+                }
                 break;
             }
 
-            jerry_value_t link_result = jerry_module_link(parsed_script, NULL, NULL);
+            jerry_value_t link_result = jerry_module_link(parse_result, NULL, NULL);
             if(jerry_value_is_exception(link_result)) {
                 js_log_exception(TAG, "Error linking modules", link_result);
                 jerry_value_free(link_result);
@@ -692,7 +697,7 @@ static void run_file_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
             unlock_with_result(cmd, JsRunnerErrorNone);
             unlocked = true;
 
-            jerry_value_t result = jerry_module_evaluate(parsed_script);
+            jerry_value_t result = jerry_module_evaluate(parse_result);
 
             if(jerry_value_is_exception(result)) {
                 js_log_exception(TAG, "Error running script", result);
@@ -709,7 +714,7 @@ static void run_file_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
             jerry_value_free(link_result);
         } while(false);
 
-        jerry_value_free(parsed_script);
+        jerry_value_free(parse_result);
         jerry_value_free(source_name);
     } while(false);
 

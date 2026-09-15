@@ -17,6 +17,7 @@ typedef enum JsRunnerError {
     JsRunnerErrorNone = 0,
     JsRunnerErrorUnknown,
     JsRunnerErrorFilesystem,
+    JsRunnerErrorOutOfMemory,
     JsRunnerErrorParseException,
     JsRunnerErrorInvalidAppId,
     JsRunnerErrorResource,
