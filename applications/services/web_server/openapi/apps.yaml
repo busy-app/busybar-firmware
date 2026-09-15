@@ -54,12 +54,12 @@ paths:
       x-local-only: true
       operationId: installApp
       parameters:
-        - name: install_id
+        - name: install_key
           in: query
           required: true
           schema:
             type: integer
-          description: Installation ID
+          description: Installation key
           example: 123456789
       responses:
         "200":
