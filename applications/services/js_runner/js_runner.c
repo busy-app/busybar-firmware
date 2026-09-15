@@ -93,20 +93,14 @@ void js_runner_app_stop_if_done(JsRunnerApp* app) {
 }
 
 void js_run_jobs(void) {
-    bool run = true;
-    while(run) {
-        jerry_value_t jobs_result = jerry_run_jobs();
-        if(jerry_value_is_exception(jobs_result)) {
-            FURI_LOG_E(TAG, "Exception when running jobs");
-            if(jerry_value_is_abort(jobs_result)) {
-                FURI_LOG_E(TAG, "Must terminate");
-            }
-            run = false;
-        } else {
-            run = false;
+    jerry_value_t jobs_result = jerry_run_jobs();
+    if(jerry_value_is_exception(jobs_result)) {
+        FURI_LOG_E(TAG, "Exception when running jobs");
+        if(jerry_value_is_abort(jobs_result)) {
+            FURI_LOG_E(TAG, "Must terminate");
         }
-        jerry_value_free(jobs_result);
     }
+    jerry_value_free(jobs_result);
 }
 
 static void fetch_event_queue_callback(FuriEventLoopObject* object, void* context) {
