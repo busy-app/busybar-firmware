@@ -718,6 +718,12 @@ static const HttpHandler handlers_api_root[] = {
         .ctx_free = http_api_smart_home_free,
         .on_request = http_api_smart_home_callback,
     },
+    {
+        .uri = "apps/settings",
+        .method = HttpMethodGet | HttpMethodPut | HttpMethodDelete,
+        .type = HttpHandlerCustom,
+        .on_request = http_api_apps_callback,
+    },
 };
 
 void* http_api_root_alloc(void) {
