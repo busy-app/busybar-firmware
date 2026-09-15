@@ -50,9 +50,20 @@ JsApp* js_app_registry_get_app(const char* app_id);
  * Valid app IDs correspond to the following regular expression: [a-zA-Z0-9_\-][a-zA-Z0-9_\-.]*
  *
  * @param[in] app_id zero-terminated string containing the desired application's ID
- * @return path in filesystem or @c NULL if app_id is invalid.
+ * @return path in filesystem or @c NULL if app_id is invalid
  */
 FuriString* js_app_registry_get_app_path(const char* app_id);
+
+/**
+ * @brief Check an application ID is valid.
+ *
+ * Valid application IDs correspond to the following regular expression:
+ * ^[a-zA-Z0-9_\-][a-zA-Z0-9_\-.]*$
+ *
+ * @param[in] app_id zero-terminated string to be validated
+ * @return true if app_id is a valid application ID
+ */
+bool js_app_registry_validate_app_id(const char* app_id);
 
 #ifdef __cplusplus
 }

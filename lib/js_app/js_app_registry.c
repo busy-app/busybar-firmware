@@ -72,7 +72,7 @@ JsApp* js_app_registry_get_app(const char* app_id) {
     return js_app;
 }
 
-static bool validate_app_id(const char* app_id) {
+bool js_app_registry_validate_app_id(const char* app_id) {
     if(!*app_id) {
         return false;
     }
@@ -96,7 +96,7 @@ static bool validate_app_id(const char* app_id) {
 }
 
 FuriString* js_app_registry_get_app_path(const char* app_id) {
-    if(!validate_app_id(app_id)) {
+    if(!js_app_registry_validate_app_id(app_id)) {
         return NULL;
     }
     FuriString* app_path = furi_string_alloc();
