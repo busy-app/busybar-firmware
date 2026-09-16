@@ -875,6 +875,7 @@ static const char* const error_messages[] = {
     [JsRunnerErrorNone] = "OK",
     [JsRunnerErrorUnknown] = "Unknown error",
     [JsRunnerErrorFilesystem] = "Failed to read script file",
+    [JsRunnerErrorOutOfMemory] = "Out of memory",
     [JsRunnerErrorParseException] = "Parse exception",
     [JsRunnerErrorInvalidAppId] = "Invalid App ID",
     [JsRunnerErrorResource] = "Out of resources",
