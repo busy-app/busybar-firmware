@@ -36,6 +36,13 @@
         }                                                                          \
     } while(false)
 
+#define JS_CHECK_ARG_IS_STRING(arg)                                              \
+    do {                                                                         \
+        if(!jerry_value_is_string(arg)) {                                        \
+            return jerry_throw_sz(JERRY_ERROR_TYPE, "String argument required"); \
+        }                                                                        \
+    } while(false)
+
 /** @brief Check if value is not and exception and free it
  * @param value value to check and free
  */
