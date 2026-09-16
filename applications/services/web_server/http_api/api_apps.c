@@ -9,6 +9,7 @@
 #include <js_app_installer/js_app_installer_paths.h>
 #include <js_app_installer/js_app_installer.h>
 #include <js_app/js_app_registry.h>
+#include <js_app/js_app_common.h>
 
 #include <cjson/cJSON.h>
 

@@ -1,4 +1,5 @@
 #include "js_app_registry.h"
+#include "js_app_common.h"
 
 #include <core/log.h>
 #include <core/check.h>
