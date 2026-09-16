@@ -67,7 +67,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AppStageResult"
+                $ref: "#/components/schemas/SuccessResponse"
         "400":
           description: Invalid parameters.
           content:
@@ -194,3 +194,5 @@ schemas:
         type: array
         items:
           $ref: "#/components/schemas/AppInfo"
+    required:
+      - apps
