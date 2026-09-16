@@ -482,7 +482,7 @@ static bool api_apps_delete_callback(
         MG_REPLY_NOT_FOUND(conn);
         break;
     case AppRemoveResultError:
-        MG_REPLY_ERROR(conn, 500, "filesystem error");
+        MG_REPLY_ERROR(conn, 508, "filesystem error");
         break;
     default:
         furi_check(false);

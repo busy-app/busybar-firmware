@@ -176,7 +176,7 @@ schemas:
         description: "Application icon URL"
         example: "/api/storage/read?path=%2Fext%2Fapps_assets%2Fshared%2Fimages%2Funknown_app_front_8x8.image"
       is_debug:
-        type: bool
+        type: boolean
         description: "A flag indicating that this app only shows up in debug mode"
         example: false
     required:
