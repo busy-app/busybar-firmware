@@ -87,8 +87,8 @@ static void js_runner_notify(JsRunnerApp* app, JsRunnerEventType event_type) {
 void js_runner_app_stop_if_done(JsRunnerApp* app) {
     if(!app_has_background_tasks(app)) {
         JS_TRACE("No more tasks");
-        furi_event_flag_set(app->is_idle, JS_RUNNER_APP_FLAG_IDLE);
         js_runner_notify(app, JsRunnerEventTypeScriptFinished);
+        furi_event_flag_set(app->is_idle, JS_RUNNER_APP_FLAG_IDLE);
     }
 }
 
