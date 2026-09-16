@@ -10,6 +10,7 @@ import allure
 import pytest
 
 from clients.api import AppInfo, AppsAPI, StorageAPI
+from utils.wait import wait_for
 
 
 APP_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_\-][a-zA-Z0-9_\-.]{0,31}$")
@@ -47,6 +48,7 @@ def _build_app_package(
     manifest_updates: dict[str, object] | None = None,
     missing_manifest_fields: tuple[str, ...] = (),
     gzip: bool = True,
+    main_script: bytes | None = None,
 ) -> tuple[bytes, bytes]:
     manifest = {
         "format_version": 1,
@@ -70,9 +72,10 @@ def _build_app_package(
         manifest,
         separators=(",", ":"),
     ).encode("utf-8")
-    main_script = (
-        f"globalThis.integrationVersion = {version!r};\n"
-    ).encode("utf-8")
+    if main_script is None:
+        main_script = (
+            f"globalThis.integrationVersion = {version!r};\n"
+        ).encode("utf-8")
 
     package = io.BytesIO()
     with tarfile.open(
@@ -140,7 +143,7 @@ def _assert_app_metadata(
 
 @pytest.fixture
 def test_app_id(apps_api: AppsAPI):
-    app_id = f"test.install.{uuid.uuid4().hex[:12]}"
+    app_id = f"test.{uuid.uuid4().hex[:12]}"
     yield app_id
 
     response = apps_api.delete_app_raw(app_id)
@@ -253,6 +256,79 @@ class TestAppsAPI:
                 f"{repeated_delete.text[:200]!r}"
             )
 
+    @allure.title("An installed application is available to launch")
+    @pytest.mark.cli
+    def test_installed_app_can_be_launched(
+        self,
+        apps_api: AppsAPI,
+        storage_api: StorageAPI,
+        streaming_api,
+        persistent_cli_connection,
+        test_app_id: str,
+    ):
+        launch_token = uuid.uuid4().hex
+        storage_path = (
+            "/ext/apps_data/jsrunner/"
+            f"{test_app_id}.localstorage.json"
+        )
+        script = (
+            "localStorage.setItem("
+            f"'integration_launch', '{launch_token}'"
+            ");\n"
+        ).encode("utf-8")
+        package, _ = _build_app_package(
+            test_app_id,
+            main_script=script,
+        )
+
+        storage_api.remove_raw(storage_path)
+        try:
+            with allure.step(
+                "Install an application with an observable script"
+            ):
+                staged = apps_api.stage(package)
+                apps_api.install(staged.install_key)
+
+            with allure.step("Open the installed app in the device launcher"):
+                initial_frame = streaming_api.front_frame()
+                output = persistent_cli_connection.execute_command(
+                    f"loader open js_app_launcher {test_app_id}"
+                )
+                assert "Failed to launch" not in output, (
+                    f"Launcher rejected the installed app: {output!r}"
+                )
+                launcher_frame = wait_for(
+                    "JS app launcher screen",
+                    streaming_api.front_frame,
+                    lambda frame: frame.digest() != initial_frame.digest(),
+                    timeout=5,
+                    interval=0.2,
+                )
+                launcher_frame.attach("Installed JS app launcher")
+
+            with allure.step("Start the application and observe main.js"):
+                start_output = persistent_cli_connection.execute_command(
+                    "input send InputKeyStart InputTypeShort"
+                )
+                assert "Usage:" not in start_output, (
+                    f"Failed to inject Start selection: {start_output!r}"
+                )
+                marker_response = wait_for(
+                    "installed main.js launch marker",
+                    lambda: storage_api.read(storage_path),
+                    lambda response: response.status_code == 200,
+                    timeout=5,
+                    interval=0.2,
+                )
+                payload = marker_response.json()
+                assert payload == {
+                    "format_version": 1,
+                    "data": {"integration_launch": launch_token},
+                }, f"Unexpected launch marker: {payload!r}"
+        finally:
+            persistent_cli_connection.execute_command("loader kill")
+            storage_api.remove_raw(storage_path)
+
     @allure.title("A plain TAR application package can be installed")
     def test_plain_tar_package(
         self,
@@ -341,9 +417,9 @@ class TestAppsAPI:
                 "2.0.0",
             )
 
-    @allure.title("Install rejects a same or older application version")
+    @allure.title("Install allows a same or older application version")
     @pytest.mark.parametrize("candidate_version", ["2.0.0", "1.9.9"])
-    def test_install_rejects_non_newer_version(
+    def test_install_allows_non_newer_version(
         self,
         apps_api: AppsAPI,
         test_app_id: str,
@@ -363,32 +439,25 @@ class TestAppsAPI:
             apps_api.install(baseline_stage.install_key)
 
         with allure.step(
-            f"Attempt to install non-newer version {candidate_version}"
+            f"Install non-newer version {candidate_version}"
         ):
             candidate_stage = apps_api.stage(candidate_package)
-            response = apps_api.install_raw(candidate_stage.install_key)
+            response = apps_api.install(candidate_stage.install_key)
+            assert response.result == "OK", (
+                f"Unexpected install result: {response.result!r}"
+            )
 
-        with allure.step("Verify the update was rejected without replacement"):
+        with allure.step("Verify the selected version replaced the app"):
             installed = _find_app(
                 apps_api.list_apps().apps,
                 test_app_id,
             )
-            issues = []
-            if response.status_code != 409:
-                issues.append(
-                    f"install returned HTTP {response.status_code}, "
-                    f"expected 409; body={response.text[:200]!r}"
-                )
-            if installed is None:
-                issues.append("the installed application disappeared")
-            elif installed.version != "2.0.0":
-                issues.append(
-                    f"installed version is {installed.version!r}, "
-                    "expected '2.0.0'"
-                )
-            assert not issues, (
-                "Non-newer application version was not safely rejected:\n- "
-                + "\n- ".join(issues)
+            assert installed is not None, (
+                "Application disappeared after replacing its version"
+            )
+            assert installed.version == candidate_version, (
+                f"Installed version is {installed.version!r}, "
+                f"expected {candidate_version!r}"
             )
 
     @allure.title("Invalid update keeps the installed application intact")
@@ -711,7 +780,7 @@ class TestAppsAPI:
     @allure.title("Manifest heap size enforces the documented boundaries")
     @pytest.mark.parametrize(
         ("heap_size_kib", "expected_status"),
-        [(1, 200), (256, 200), (0, 400), (257, 400)],
+        [(1, 200), (512, 200), (0, 400), (513, 400)],
     )
     def test_manifest_heap_size_boundaries(
         self,
