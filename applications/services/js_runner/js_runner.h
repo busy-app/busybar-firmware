@@ -158,6 +158,6 @@ FuriPubSub* js_runner_get_fatal_pubsub(JsRunner* instance);
 /**
  * @brief Fatal error code indicating running out of heap memory.
  *
- * To be used with the pubsub obtainted through js_runner_get_fatal_pubsub.
+ * To be used with the pubsub obtained through js_runner_get_fatal_pubsub.
  */
 extern const uint32_t JS_RUNNER_FATAL_OUT_OF_MEMORY;

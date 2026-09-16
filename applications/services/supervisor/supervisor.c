@@ -250,7 +250,7 @@ static const SupervisorWarning supervisor_warnings[] =
                             },
                         [GuiDisplayIdBack] =
                             {
-                                .primary_text = "Javascript error",
+                                .primary_text = "JavaScript error",
                                 .auxiliary_text = "To restart device, hold\nBACK + START buttons",
                                 .icon.as_path = SHARED_IMG_PATH("error_back_11x11.image"),
                                 .is_icon_animated = false,
@@ -272,7 +272,7 @@ static const SupervisorWarning supervisor_warnings[] =
                             },
                         [GuiDisplayIdBack] =
                             {
-                                .primary_text = "Javascript heap overflow",
+                                .primary_text = "JavaScript heap overflow",
                                 .auxiliary_text = "To restart device, hold\nBACK + START buttons",
                                 .icon.as_path = SHARED_IMG_PATH("error_back_11x11.image"),
                                 .is_icon_animated = false,
@@ -600,19 +600,18 @@ static void supervisor_handle_intercom_status(Supervisor* instance, IntercomStat
 
 static void supervisor_handle_js_error(Supervisor* instance, uint32_t error) {
     bool is_debug = furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug);
-    if(is_debug) {
+    bool is_bootloop = furi_get_tick() <= furi_ms_to_ticks(SUPERVISOR_REBOOT_GRACE_PERIOD_MS);
+    if(is_debug || is_bootloop) {
         if(error == JS_RUNNER_FATAL_OUT_OF_MEMORY) {
             supervisor_update_warning(instance, SupervisorWarningTypeJsOutOfMemory, true);
         } else {
             supervisor_update_warning(instance, SupervisorWarningTypeJsError, true);
         }
     } else {
-        if(furi_get_tick() > furi_ms_to_ticks(SUPERVISOR_REBOOT_GRACE_PERIOD_MS)) {
-            FURI_LOG_I(TAG, "Rebooting...");
-            furi_delay_ms(100);
+        FURI_LOG_I(TAG, "Rebooting...");
+        furi_delay_ms(100);
 
-            power_reboot(instance->power, PowerRebootNormal);
-        }
+        power_reboot(instance->power, PowerRebootNormal);
     }
 }
 
