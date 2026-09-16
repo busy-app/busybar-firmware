@@ -96,11 +96,12 @@ void js_run_jobs(void) {
     JsRunnerApp* app = js_runner_static_context.app;
     furi_assert(app);
 
-    bool should_run = false;
-    do {
+    for(;;) {
         if(app->should_terminate) {
             break;
         }
+
+        bool should_continue = false;
 
         jerry_value_t jobs_result = jerry_run_jobs();
         if(jerry_value_is_exception(jobs_result)) {
@@ -108,12 +109,16 @@ void js_run_jobs(void) {
             if(jerry_value_is_abort(jobs_result)) {
                 FURI_LOG_E(TAG, "Must terminate");
             } else {
-                should_run = true;
+                should_continue = true;
             }
         }
 
         jerry_value_free(jobs_result);
-    } while(should_run);
+
+        if(!should_continue) {
+            break;
+        }
+    };
 }
 
 static void fetch_event_queue_callback(FuriEventLoopObject* object, void* context) {
