@@ -5,7 +5,6 @@
 #include <core/check.h>
 
 #include <storage_utils/dir_walk.h>
-#include <storage/storage.h>
 #include <toolbox/path.h>
 
 #define TAG "JsAppRegistry"
@@ -73,35 +72,8 @@ JsApp* js_app_registry_get_app(const char* app_id) {
     return js_app;
 }
 
-bool js_app_registry_validate_app_id(const char* app_id) {
-    if(!*app_id) {
-        return false;
-    }
-    size_t i = 0;
-    while(app_id[i]) {
-        if(i == JS_APP_ID_LEN_MAX) {
-            return false;
-        }
-        char c = app_id[i];
-        bool is_word = (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
-                       (c >= '0' && c <= '9') || c == '_' || c == '-';
-        bool is_dot = c == '.';
-        if(i == 0) {
-            if(!is_word) {
-                return false;
-            }
-        } else {
-            if(!is_word && !is_dot) {
-                return false;
-            }
-        }
-        ++i;
-    }
-    return true;
-}
-
 FuriString* js_app_registry_get_app_path(const char* app_id) {
-    if(!js_app_registry_validate_app_id(app_id)) {
+    if(!js_app_registry_is_valid_app_id(app_id)) {
         return NULL;
     }
     FuriString* app_path = furi_string_alloc();
