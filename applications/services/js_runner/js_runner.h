@@ -99,7 +99,7 @@ void js_runner_context_free(JsRunnerContextHandle* handle);
  * @param handle context handle previously created by js_runner_context_alloc.
  * @param path entry point script path.
  * @param event_callback function to be called when an event occurs.
- * @param context user pointer passed to the on_terminate function.
+ * @param context user pointer passed to the @p event_callback function.
  *
  * @return operation result. If error is JsRunnerErrorNone, handle is valid.
  */
