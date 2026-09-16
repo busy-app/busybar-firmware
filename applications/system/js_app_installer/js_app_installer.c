@@ -51,8 +51,8 @@ static bool
         }
 
         FuriString* path = furi_string_alloc();
+        JsApp* app = js_app_alloc();
         while(!found && dir_walk_read(walk, path, NULL) == DirWalkOK) {
-            JsApp* app = js_app_alloc();
             if(js_app_load_from_directory(app, furi_string_get_cstr(path))) {
                 FURI_LOG_I(TAG, "Found app at %s", furi_string_get_cstr(path));
 
@@ -74,11 +74,11 @@ static bool
                     found = true;
                 }
             }
-            if(app) {
-                js_app_free(app);
-            }
         }
         furi_string_free(path);
+        if(app) {
+            js_app_free(app);
+        }
     } while(false);
     dir_walk_free(walk);
     return found;
