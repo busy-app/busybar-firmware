@@ -154,9 +154,18 @@ void wifi_send_device_name_info_event(Wifi* instance, const DeviceNameInfo* devi
     wifi_api_send_event(instance, &event);
 }
 
+static void wifi_api_publish_action(Wifi* instance, WifiAction action) {
+    furi_pubsub_publish(instance->action_pubsub, &action);
+}
+
 FuriState* wifi_get_state(Wifi* instance) {
     furi_check(instance);
     return instance->state;
+}
+
+FuriPubSub* wifi_get_action_pubsub(Wifi* instance) {
+    furi_check(instance);
+    return instance->action_pubsub;
 }
 
 WifiStatus wifi_scan(Wifi* instance, WifiScanResult* results, uint8_t* count, uint8_t max_count) {
@@ -194,7 +203,11 @@ WifiStatus wifi_connect(
             },
     };
 
-    return wifi_api_blocking_request(instance, &msg);
+    const WifiStatus status = wifi_api_blocking_request(instance, &msg);
+    if(status == WifiStatusOk) {
+        wifi_api_publish_action(instance, WifiActionConnect);
+    }
+    return status;
 }
 
 WifiStatus wifi_disconnect(Wifi* instance) {
@@ -214,7 +227,11 @@ WifiStatus wifi_forget(Wifi* instance) {
         .request_type = WifiRequestTypeForget,
     };
 
-    return wifi_api_blocking_request(instance, &msg);
+    const WifiStatus status = wifi_api_blocking_request(instance, &msg);
+    if(status == WifiStatusOk) {
+        wifi_api_publish_action(instance, WifiActionForget);
+    }
+    return status;
 }
 
 WifiStatus wifi_get_info(Wifi* instance, WifiInfo* info) {

@@ -60,6 +60,7 @@ struct Wifi {
     FuriMessageQueue* response_queue;
     FuriSemaphore* dhcp_semaphore;
     FuriState* state;
+    FuriPubSub* action_pubsub;
     Intercom* intercom;
     IntercomChannel* intercom_ch_control;
     IntercomChannel* intercom_ch_data;
