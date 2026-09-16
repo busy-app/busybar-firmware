@@ -16,6 +16,8 @@ JsRunnerStaticContext js_runner_static_context = {
     .is_running = ATOMIC_FLAG_INIT,
 };
 
+const uint32_t JS_RUNNER_FATAL_OUT_OF_MEMORY = JERRY_FATAL_OUT_OF_MEMORY;
+
 size_t js_runner_thread_context_alloc(size_t context_size) {
     size_t alloc_size = 0;
     WITH_JS_RUNNER_APP(app, {
@@ -41,6 +43,17 @@ void* js_runner_thread_context_get(void) {
         result = app->jrs_context;
     });
     return result;
+}
+
+void js_runner_handle_fatal_error(jerry_fatal_code_t code) {
+    JsRunner* instance = furi_record_open(RECORD_JS_RUNNER);
+    uint32_t code32 = (uint32_t)code;
+    furi_pubsub_publish(instance->fatal_pubsub, (void*)code32);
+    furi_record_close(RECORD_JS_RUNNER);
+}
+
+FuriPubSub* js_runner_get_fatal_pubsub(JsRunner* instance) {
+    return instance->fatal_pubsub;
 }
 
 bool js_runner_get_root_path(FuriString* path) {
@@ -578,6 +591,7 @@ JsRunnerError js_runner_join(JsRunnerExecutionHandle* handle, uint32_t timeout) 
 static JsRunner* js_runner_alloc(void) {
     JsRunner* instance = malloc(sizeof(JsRunner));
     instance->event_loop = furi_event_loop_alloc();
+    instance->fatal_pubsub = furi_pubsub_alloc();
     furi_record_create(RECORD_JS_RUNNER, instance);
     return instance;
 }

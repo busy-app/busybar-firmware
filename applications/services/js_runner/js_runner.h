@@ -7,6 +7,7 @@
 #include <stddef.h>
 #include <furi/core/string.h>
 #include <furi/core/thread.h>
+#include <furi/core/pubsub.h>
 
 #define RECORD_JS_RUNNER "js_runner"
 
@@ -146,3 +147,17 @@ void js_runner_abort_all(JsRunner* instance);
  * @return error message
  */
 const char* js_runner_get_error_message(JsRunnerError error);
+
+/** @brief Get a pubsub which is triggered on jerryscript fatal errors.
+ *
+ * @param instance JsRunner instance. Can be obtained with furi_record_open().
+ * @return the pubsub. Pubsub messages can be directly casted into uint32_t.
+ */
+FuriPubSub* js_runner_get_fatal_pubsub(JsRunner* instance);
+
+/**
+ * @brief Fatal error code indicating running out of heap memory.
+ *
+ * To be used with the pubsub obtainted through js_runner_get_fatal_pubsub.
+ */
+extern const uint32_t JS_RUNNER_FATAL_OUT_OF_MEMORY;

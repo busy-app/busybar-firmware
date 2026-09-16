@@ -104,6 +104,7 @@ typedef struct JsRunnerApp {
 typedef struct JsRunner {
     FuriEventLoop* event_loop;
     FuriMessageQueue* message_queue;
+    FuriPubSub* fatal_pubsub;
 } JsRunner;
 
 typedef struct JsRunnerContextHandle {
