@@ -59,9 +59,6 @@ static bool
                 JsAppInfo info;
                 if(js_app_get_info(app, &info)) {
                     instance->staged_install_key = gen_install_key();
-                    if(instance->staged_app_path) {
-                        furi_string_free(instance->staged_app_path);
-                    }
                     instance->staged_app_path = furi_string_alloc_set(path);
 
                     result->staged_app = app;
@@ -89,6 +86,12 @@ static void handle_stage(JsAppInstaller* instance, JsAppInstallerMsg* message) {
     furi_assert(message);
 
     JsAppInstallerStageResult* result = message->stage.result;
+
+    instance->staged_install_key = 0;
+    if(instance->staged_app_path) {
+        furi_string_free(instance->staged_app_path);
+        instance->staged_app_path = NULL;
+    }
 
     Storage* storage = furi_record_open(RECORD_STORAGE);
     do {

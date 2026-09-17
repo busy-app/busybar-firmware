@@ -137,7 +137,7 @@ schemas:
       install_key:
         type: integer
         description: "Single-use installation key"
-        example: "123456789"
+        example: 123456789
       staged:
         $ref: "#/components/schemas/AppInfo"
         description: "Staged application info"
