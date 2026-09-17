@@ -26,6 +26,11 @@ typedef enum JsRunnerError {
     JsRunnerErrorMax,
 } JsRunnerError;
 
+typedef enum JsRunnerFatal {
+    JsRunnerFatalGeneric,
+    JsRunnerFatalOutOfMemory,
+} JsRunnerFatal;
+
 typedef enum JsRunnerConsoleSeverity {
     JsRunnerConsoleSeverityLog,
     JsRunnerConsoleSeverityInfo,
@@ -151,13 +156,6 @@ const char* js_runner_get_error_message(JsRunnerError error);
 /** @brief Get a pubsub which is triggered on jerryscript fatal errors.
  *
  * @param instance JsRunner instance. Can be obtained with furi_record_open().
- * @return the pubsub. Pubsub messages can be directly casted into uint32_t.
+ * @return the pubsub. Pubsub messages can be directly casted into JsRunnerFatal.
  */
 FuriPubSub* js_runner_get_fatal_pubsub(JsRunner* instance);
-
-/**
- * @brief Fatal error code indicating running out of heap memory.
- *
- * To be used with the pubsub obtained through js_runner_get_fatal_pubsub.
- */
-extern const uint32_t JS_RUNNER_FATAL_OUT_OF_MEMORY;

@@ -79,7 +79,7 @@ typedef struct {
     SupervisorEventType type;
     union {
         IntercomStatus intercom_status;
-        uint32_t js_error_code;
+        JsRunnerFatal js_fatal;
     };
 } SupervisorEvent;
 
@@ -396,13 +396,13 @@ static void supervisor_js_runner_fatal_callback(const void* message, void* conte
     furi_assert(context);
 
     Supervisor* instance = context;
-    uint32_t code = (uint32_t)message;
+    JsRunnerFatal code = (JsRunnerFatal)message;
 
     supervisor_send_event_ex(
         instance,
         &(SupervisorEvent){
             .type = SupervisorEventTypeJsError,
-            .js_error_code = code,
+            .js_fatal = code,
         });
 }
 
@@ -598,11 +598,11 @@ static void supervisor_handle_intercom_status(Supervisor* instance, IntercomStat
     supervisor_update_warning(instance, SupervisorWarningTypeIntercomError, true);
 }
 
-static void supervisor_handle_js_error(Supervisor* instance, uint32_t error) {
+static void supervisor_handle_js_fatal(Supervisor* instance, uint32_t error) {
     bool is_debug = furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug);
     bool is_bootloop = furi_get_tick() <= furi_ms_to_ticks(SUPERVISOR_REBOOT_GRACE_PERIOD_MS);
     if(is_debug || is_bootloop) {
-        if(error == JS_RUNNER_FATAL_OUT_OF_MEMORY) {
+        if(error == JsRunnerFatalOutOfMemory) {
             supervisor_update_warning(instance, SupervisorWarningTypeJsOutOfMemory, true);
         } else {
             supervisor_update_warning(instance, SupervisorWarningTypeJsError, true);
@@ -695,8 +695,8 @@ static void supervisor_process(FuriEventLoopObject* object, void* context) {
         break;
 
     case SupervisorEventTypeJsError:
-        FURI_LOG_I(TAG, "Js error event received with code %lu", event.js_error_code);
-        supervisor_handle_js_error(instance, event.js_error_code);
+        FURI_LOG_I(TAG, "JS fatal event received with code %d", event.js_fatal);
+        supervisor_handle_js_fatal(instance, event.js_fatal);
         break;
     }
 }
