@@ -1,5 +1,8 @@
 <template>
-  <div class="flex w-full touch-none select-none items-center gap-3 rounded-xl bg-elevated/50 py-2 pl-2 pr-4 ring-1 ring-default">
+  <div
+    class="flex w-full touch-none select-none items-center gap-3 rounded-xl bg-elevated/50 py-2 pl-2 pr-4 ring-1 ring-default"
+    @keydown="handleRootKeyDown"
+  >
     <UButton
       data-id="draw-tool-video-preview-toggle"
       :icon="playing ? 'i-bi-control-pause' : 'i-bi-control-play'"
@@ -67,16 +70,24 @@
 
         <div
           v-if="playheadPercent !== null"
+          ref="playheadRef"
           data-id="draw-tool-video-playhead"
-          class="absolute inset-y-0 z-[5] flex w-3 -translate-x-1/2 cursor-ew-resize justify-center"
+          role="slider"
+          tabindex="0"
+          aria-label="Playhead"
+          :aria-valuemin="0"
+          :aria-valuemax="Math.round(duration * 100) / 100"
+          :aria-valuenow="Math.round((currentTime ?? 0) * 100) / 100"
+          class="group absolute inset-y-0 z-[5] flex w-3 -translate-x-1/2 cursor-ew-resize justify-center focus:outline-none"
           :style="{ left: `${playheadPercent}%` }"
           @pointerdown="handleScrubDown"
           @pointermove="handleScrubMove"
           @pointerup="handleScrubUp"
           @pointercancel="handleScrubUp"
+          @keydown="handlePlayheadKeyDown"
         >
           <span class="pointer-events-none h-full w-0.5 rounded-full bg-primary" />
-          <span class="pointer-events-none absolute -top-0.5 left-1/2 size-2 -translate-x-1/2 rotate-45 rounded-[2px] bg-primary" />
+          <span class="pointer-events-none absolute -top-0.5 left-1/2 size-2 -translate-x-1/2 rotate-45 rounded-[2px] bg-primary transition-transform group-hover:scale-125 group-focus:scale-150" />
         </div>
 
         <div
@@ -88,7 +99,7 @@
           :aria-valuemin="0"
           :aria-valuemax="Math.round(duration * 100) / 100"
           :aria-valuenow="Math.round(handle.value * 100) / 100"
-          class="group absolute inset-y-0 z-10 flex w-4 -translate-x-1/2 justify-center focus-visible:outline-none"
+          class="group absolute inset-y-0 z-10 flex w-4 -translate-x-1/2 justify-center focus:outline-none"
           :class="disabled ? '' : 'cursor-ew-resize'"
           :style="{ left: `${handle.percent}%` }"
           @pointerdown="event => handlePointerDown(event, handle.mode)"
@@ -98,7 +109,7 @@
           @keydown="event => handleKeyDown(event, handle.mode)"
         >
           <span class="pointer-events-none h-full w-0.5 rounded-full bg-inverted" />
-          <span class="pointer-events-none absolute left-1/2 top-0 size-3 -translate-x-1/2 rounded-full bg-inverted ring-2 ring-default transition-transform group-hover:scale-125 group-focus-visible:scale-125" />
+          <span class="pointer-events-none absolute left-1/2 top-0 size-3 -translate-x-1/2 rounded-full bg-inverted ring-2 ring-default transition-transform group-hover:scale-125 group-focus:scale-125" />
           <span
             v-if="activeMode === handle.mode"
             class="pointer-events-none absolute left-1/2 top-full mt-1 -translate-x-1/2 rounded bg-inverted px-1.5 py-0.5 text-[10px] tabular-nums text-inverted"
@@ -122,11 +133,13 @@ const props = withDefaults(defineProps<{
   minLength: number;
   maxLength: number;
   step?: number;
+  fps?: number;
   disabled?: boolean;
   currentTime?: number | null;
   playing?: boolean;
 }>(), {
   step: 0.05,
+  fps: 0,
   disabled: false,
   currentTime: null,
   playing: false
@@ -144,6 +157,7 @@ const end = defineModel<number>('end', { required: true });
 
 const trackRef = ref<HTMLDivElement | null>(null);
 const scrubPointerId = ref<number | null>(null);
+const playheadRef = ref<HTMLDivElement | null>(null);
 
 const {
   activeMode,
@@ -187,6 +201,44 @@ const ticks = computed(() => {
   return list;
 });
 
+function focus () {
+  playheadRef.value?.focus();
+}
+
+defineExpose({ focus });
+
+function handleRootKeyDown (event: KeyboardEvent) {
+  if (event.key !== ' ' && event.code !== 'Space') {
+    return;
+  }
+
+  if ((event.target as HTMLElement | null)?.closest('button')) {
+    return;
+  }
+
+  event.preventDefault();
+  emit('togglePlay');
+}
+
+function handlePlayheadKeyDown (event: KeyboardEvent) {
+  const direction = event.key === 'ArrowLeft' ? -1 : event.key === 'ArrowRight' ? 1 : 0;
+
+  if (!direction || props.duration <= 0 || props.currentTime === null) {
+    return;
+  }
+
+  event.preventDefault();
+
+  if (props.playing) {
+    emit('togglePlay');
+  }
+
+  const frameStep = props.fps > 0 ? 1 / props.fps : props.step;
+  const next = props.currentTime + (direction * frameStep * (event.shiftKey ? 10 : 1));
+
+  emit('seek', Math.min(props.duration, Math.max(0, next)));
+}
+
 function emitSeek (clientX: number) {
   const time = timeFromClientX(clientX);
 
@@ -201,7 +253,12 @@ function handleScrubDown (event: PointerEvent) {
   }
 
   event.preventDefault();
-  (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+
+  const target = event.currentTarget as HTMLElement;
+
+  target.setPointerCapture(event.pointerId);
+  target.focus();
+
   scrubPointerId.value = event.pointerId;
   emitSeek(event.clientX);
 }

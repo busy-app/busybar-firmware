@@ -82,7 +82,12 @@ export function useTrimRange (
     }
 
     event.preventDefault();
-    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+
+    const target = event.currentTarget as HTMLElement;
+
+    target.setPointerCapture(event.pointerId);
+    target.focus();
+
     drag.value = { pointerId: event.pointerId, mode, clientX: event.clientX, start: start.value, end: end.value, moved: false };
   }
 

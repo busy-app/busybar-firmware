@@ -192,12 +192,14 @@
 
           <TabDrawToolTrimRange
             v-if="handle && handle.duration > 0.2"
+            ref="trimRangeRef"
             v-model:start="trimStart"
             v-model:end="trimEnd"
             :duration="handle.duration"
             :min-length="minWindowSeconds"
             :max-length="maxWindowSeconds"
             :step="TRIM_STEP_SECONDS"
+            :fps="fps"
             :disabled="isDecoding"
             :current-time="previewTime"
             :playing="previewPlaying"
@@ -219,7 +221,8 @@
 
             <div
               v-if="!animation || isDecoding || (isPreviewStale && !isTrimDragging)"
-              class="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-neutral-950/80 px-6 text-sm text-muted"
+              class="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 text-sm text-muted"
+              :class="animation ? 'bg-elevated/80' : 'bg-elevated'"
             >
               <template v-if="isDecoding">
                 <span>Extracting frames {{ decodeDone }} / {{ decodeTotal }}</span>
@@ -231,7 +234,7 @@
                 />
               </template>
               <template v-else-if="needsFirstRender && !isInstantSource">
-                <span class="text-sm font-medium text-default">Set up your clip first</span>
+                <span class="text-sm font-medium text-default">You can set up your clip first</span>
                 <UButton
                   data-id="draw-tool-video-first-render"
                   label="Build preview"
@@ -315,6 +318,7 @@ const cropContainerRef = ref<HTMLDivElement | null>(null);
 const previewVideoRef = ref<HTMLVideoElement | null>(null);
 const backdropCanvasRef = ref<HTMLCanvasElement | null>(null);
 const replaceInputRef = ref<HTMLInputElement | null>(null);
+const trimRangeRef = ref<{ focus: () => void } | null>(null);
 const cropDrag = ref<{ pointerId: number; startX: number; startY: number; startOffsetX: number; startOffsetY: number } | null>(null);
 const animation = shallowRef<DecodedAnimation | null>(null);
 const isDecoding = ref(false);
@@ -916,6 +920,7 @@ async function openFile (file: File, restoreFrom?: VideoShapeSource) {
     isRestoring = false;
     startBackdropLoop();
     startPreviewLoop();
+    trimRangeRef.value?.focus();
 
     if (reusable?.cache && reusable.fps === fps.value) {
       const sliced = sliceFrameCache(reusable.cache, trimStart.value, trimEnd.value);
