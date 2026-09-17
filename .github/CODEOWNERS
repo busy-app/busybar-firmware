@@ -26,7 +26,7 @@ tests/ @ssecsd @iMalkav
 /applications/services/gui/ @hedger @gsurkov
 /applications/services/input/ @hedger @gsurkov
 /applications/services/intercom/ @hedger @DrZlo13 @gsurkov
-/applications/services/js_runner/ @imihajlow @gsurkov
+/applications/services/js_runner/ @hedger @imihajlow @gsurkov
 /applications/services/light_sensor/ @hedger @nminaylov @imihajlow
 /applications/services/loader/ @hedger @DrZlo13 @gsurkov
 /applications/services/matter/ @hedger @gsurkov @portasynthinca3
