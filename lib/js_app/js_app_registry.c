@@ -81,7 +81,7 @@ FuriString* js_app_registry_get_app_path(const char* app_id) {
     return app_path;
 }
 
-JsAppRegistryAppUninstallResult js_app_registry_delete_app(const char* app_id) {
+JsAppRegistryAppUninstallResult js_app_registry_uninstall_app(const char* app_id) {
     FuriString* path = js_app_registry_get_app_path(app_id);
     if(!path) {
         return JsAppRegistryAppUninstallResultNotFound;
