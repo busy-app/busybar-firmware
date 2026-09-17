@@ -5,7 +5,6 @@ App(
     provides=[
         "apps_menu",
         "js_app_launcher",
-        "js_app_installer",
         "message",
         "system_apps_on_start",
         "system_apps_cli",
