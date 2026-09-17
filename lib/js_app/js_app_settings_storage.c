@@ -6,8 +6,9 @@
 
 #define JS_APP_SETTINGS_STORAGE_SCHEMA_PATH_FORMAT \
     (EXT_PATH("user_assets") "/%s/appmeta/settings.json")
+#define JS_APP_SETTINGS_STORAGE_DATA_DIR EXT_PATH("apps_data/jsrunner")
 #define JS_APP_SETTINGS_STORAGE_DATA_PATH_FORMAT \
-    (EXT_PATH("apps_data/jsrunner") "/%s.settings.json")
+    (JS_APP_SETTINGS_STORAGE_DATA_DIR "/%s.settings.json")
 
 #define JS_APP_SETTINGS_STORAGE_ALIGN(value) \
     (((value) + (_Alignof(max_align_t) - 1)) & ~(_Alignof(max_align_t) - 1))
@@ -364,10 +365,12 @@ static void
 
 /* Schema Parsing */
 
-static JsAppSettings* js_app_settings_storage_parse_schema(const char* app_id) {
+static JsAppSettings*
+    js_app_settings_storage_parse_schema(const char* app_id, JsAppSettingsStorageStatus* status) {
     FuriString* schema_path_builder =
         furi_string_alloc_printf(JS_APP_SETTINGS_STORAGE_SCHEMA_PATH_FORMAT, app_id);
 
+    JsAppSettingsStorageStatus parse_status;
     JsAppSettings* settings = NULL;
     Storage* storage = furi_record_open(RECORD_STORAGE);
     File* file = storage_file_alloc(storage);
@@ -375,7 +378,10 @@ static JsAppSettings* js_app_settings_storage_parse_schema(const char* app_id) {
     do {
         const char* schema_path = furi_string_get_cstr(schema_path_builder);
         if(!storage_file_open(file, schema_path, FSAM_READ, FSOM_OPEN_EXISTING)) {
-            if(storage_file_get_error(file) != FSE_NOT_EXIST) {
+            if(storage_file_get_error(file) == FSE_NOT_EXIST) {
+                parse_status = JsAppSettingsStorageStatusSchemaMissing;
+            } else {
+                parse_status = JsAppSettingsStorageStatusStorageFailure;
                 FURI_LOG_E(TAG, "Failed to open schema file %s", schema_path);
             }
 
@@ -384,6 +390,7 @@ static JsAppSettings* js_app_settings_storage_parse_schema(const char* app_id) {
 
         uint64_t file_size = storage_file_size(file);
         if(file_size == 0) {
+            parse_status = JsAppSettingsStorageStatusSchemaInvalid;
             FURI_LOG_E(TAG, "Schema file %s is empty", schema_path);
             break;
         }
@@ -391,7 +398,10 @@ static JsAppSettings* js_app_settings_storage_parse_schema(const char* app_id) {
         char* file_buffer = malloc(file_size);
         if(storage_file_read(file, file_buffer, file_size) == file_size) {
             settings = js_app_settings_parse(file_buffer, file_size);
+            parse_status = settings ? JsAppSettingsStorageStatusOk :
+                                      JsAppSettingsStorageStatusSchemaInvalid;
         } else {
+            parse_status = JsAppSettingsStorageStatusStorageFailure;
             FURI_LOG_E(TAG, "Failed to read schema file %s", schema_path);
         }
 
@@ -402,19 +412,36 @@ static JsAppSettings* js_app_settings_storage_parse_schema(const char* app_id) {
     furi_record_close(RECORD_STORAGE);
     furi_string_free(schema_path_builder);
 
+    *status = parse_status;
+
     return settings;
 }
 
 /* Public API Implementation */
 
-JsAppSettingsStorage* js_app_settings_storage_alloc(const char* app_id) {
+JsAppSettingsStorage*
+    js_app_settings_storage_alloc(const char* app_id, JsAppSettingsStorageStatus* status) {
     furi_check(app_id);
+    furi_check(status);
 
     JsAppSettingsStorage* instance = NULL;
 
     do {
-        JsAppSettings* settings = js_app_settings_storage_parse_schema(app_id);
+        JsAppSettings* settings = js_app_settings_storage_parse_schema(app_id, status);
         if(!settings) {
+            break;
+        }
+
+        Storage* storage = furi_record_open(RECORD_STORAGE);
+        bool is_path_make_successful =
+            storage_simply_mkpath(storage, JS_APP_SETTINGS_STORAGE_DATA_DIR);
+        furi_record_close(RECORD_STORAGE);
+
+        if(!is_path_make_successful) {
+            FURI_LOG_W(
+                TAG, "Failed to create data directory: \"%s\".", JS_APP_SETTINGS_STORAGE_DATA_DIR);
+            *status = JsAppSettingsStorageStatusStorageFailure;
+            js_app_settings_free(settings);
             break;
         }
 
@@ -474,6 +501,28 @@ bool js_app_settings_storage_save(JsAppSettingsStorage* instance) {
     furi_check(instance);
 
     return setting_provider_save(instance->provider, &instance->root, instance->values);
+}
+
+bool js_app_settings_storage_reset(JsAppSettingsStorage* instance) {
+    furi_check(instance);
+
+    return setting_provider_reset(instance->provider, &instance->root, instance->values);
+}
+
+bool js_app_settings_storage_export(const JsAppSettingsStorage* instance, FuriString* data) {
+    furi_check(instance);
+    furi_check(data);
+
+    return setting_provider_save_document(
+        instance->provider, &instance->root, instance->values, data);
+}
+
+bool js_app_settings_storage_import(JsAppSettingsStorage* instance, const char* data, size_t size) {
+    furi_check(instance);
+    furi_check(data);
+
+    return setting_provider_load_document(
+        instance->provider, &instance->root, data, size, instance->values);
 }
 
 const SettingProviderSetting* js_app_settings_storage_get_root(JsAppSettingsStorage* instance) {

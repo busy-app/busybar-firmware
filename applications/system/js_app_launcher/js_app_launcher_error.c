@@ -18,7 +18,7 @@ static const JsAppLauncherErrorDesc js_app_launcher_error_descs[JsAppLauncherErr
                     .back = "Try to restart or reinstall it",
                 },
         },
-    [JsAppLauncherErrorSettingsMissing] =
+    [JsAppLauncherErrorSettingsSchemaMissing] =
         {
             .primary =
                 {
@@ -28,6 +28,30 @@ static const JsAppLauncherErrorDesc js_app_launcher_error_descs[JsAppLauncherErr
             .auxiliary =
                 {
                     .back = "Add settings file to the app",
+                },
+        },
+    [JsAppLauncherErrorSettingsSchemaInvalid] =
+        {
+            .primary =
+                {
+                    .front = "Settings file\nis invalid.",
+                    .back = "Invalid settings",
+                },
+            .auxiliary =
+                {
+                    .back = "Fix the app settings file",
+                },
+        },
+    [JsAppLauncherErrorSettingsStorageFailure] =
+        {
+            .primary =
+                {
+                    .front = "Settings storage\nerror.",
+                    .back = "Settings storage error",
+                },
+            .auxiliary =
+                {
+                    .back = "Check the storage device",
                 },
         },
     [JsAppLauncherErrorSettingsLoadFailed] =

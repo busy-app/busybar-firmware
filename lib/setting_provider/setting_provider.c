@@ -120,7 +120,7 @@ static bool storage_parse_json(SettingProvider* instance) {
             break;
         }
 
-        char* file_buffer = malloc(file_size + 1);
+        char* file_buffer = malloc(file_size);
         if(storage_file_read(file, file_buffer, file_size) != file_size) {
             FURI_LOG_W(TAG, "Failed to read file: \"%s\".", file_path);
             free(file_buffer);
@@ -129,8 +129,7 @@ static bool storage_parse_json(SettingProvider* instance) {
 
         storage_file_free(file);
 
-        file_buffer[file_size] = '\0';
-        instance->json_root = cJSON_Parse(file_buffer);
+        instance->json_root = cJSON_ParseWithLength(file_buffer, file_size);
         free(file_buffer);
 
         return true;
@@ -296,4 +295,53 @@ bool setting_provider_validate(const SettingProviderSetting* setting, const void
     furi_check(value);
 
     return setting_provider_internal_validate(setting, value);
+}
+
+bool setting_provider_load_document(
+    SettingProvider* instance,
+    const SettingProviderSetting* setting,
+    const char* data,
+    size_t size,
+    void* value) {
+    furi_check(instance);
+    furi_check(data);
+    furi_check(value);
+    furi_check(!instance->json_root);
+
+    instance->json_root = cJSON_ParseWithLength(data, size);
+
+    bool is_successful = json_structure_setup(instance) &&
+                         migrations_apply(instance) != MigrationResultFailure &&
+                         !setting_provider_internal_load(instance->json_values, setting, value);
+
+    cJSON_Delete(instance->json_root);
+    instance->json_root = NULL;
+
+    return is_successful;
+}
+
+bool setting_provider_save_document(
+    SettingProvider* instance,
+    const SettingProviderSetting* setting,
+    const void* value,
+    FuriString* data) {
+    furi_check(instance);
+    furi_check(value);
+    furi_check(data);
+    furi_check(!instance->json_root);
+
+    json_structure_reset(instance);
+
+    bool is_successful = setting_provider_internal_save(instance->json_values, setting, value);
+
+    if(is_successful) {
+        char* json_string = cJSON_Print(instance->json_root);
+        furi_string_set(data, json_string);
+        cJSON_free(json_string);
+    }
+
+    cJSON_Delete(instance->json_root);
+    instance->json_root = NULL;
+
+    return is_successful;
 }

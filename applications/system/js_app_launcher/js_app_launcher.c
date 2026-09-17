@@ -13,6 +13,16 @@
 
 #define NAV_BAR_HEIGHT (14)
 
+static const JsAppLauncherError js_app_launcher_settings_storage_error_map[] = {
+    [JsAppSettingsStorageStatusOk] = JsAppLauncherErrorNone,
+    [JsAppSettingsStorageStatusSchemaMissing] = JsAppLauncherErrorSettingsSchemaMissing,
+    [JsAppSettingsStorageStatusSchemaInvalid] = JsAppLauncherErrorSettingsSchemaInvalid,
+    [JsAppSettingsStorageStatusStorageFailure] = JsAppLauncherErrorSettingsStorageFailure,
+};
+
+static_assert(
+    COUNT_OF(js_app_launcher_settings_storage_error_map) == JsAppSettingsStorageStatusesCount);
+
 static bool js_app_launcher_gui_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
@@ -119,13 +129,24 @@ static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
         js_app_launcher_event_queue_callback,
         instance);
 
+    JsAppLauncherSceneId scene_id;
     if(instance->js_app) {
-        instance->settings_storage = js_app_settings_storage_alloc(app_id);
-        scene_manager_next_scene(instance->scene_manager, JsAppLauncherSceneIdStart);
+        JsAppSettingsStorageStatus status;
+        instance->settings_storage = js_app_settings_storage_alloc(app_id, &status);
+
+        if(instance->settings_storage || status == JsAppSettingsStorageStatusSchemaMissing) {
+            scene_id = JsAppLauncherSceneIdStart;
+        } else {
+            instance->error = js_app_launcher_settings_storage_error_map[status];
+            scene_id = JsAppLauncherSceneIdError;
+        }
     } else {
+        instance->settings_storage = NULL;
         instance->error = JsAppLauncherErrorLoadFailed;
-        scene_manager_next_scene(instance->scene_manager, JsAppLauncherSceneIdError);
+        scene_id = JsAppLauncherSceneIdError;
     }
+
+    scene_manager_next_scene(instance->scene_manager, scene_id);
 
     return instance;
 }

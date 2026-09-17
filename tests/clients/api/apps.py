@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 from .base import BaseAPI
@@ -38,6 +40,13 @@ class AppsResultResponse(BaseModel):
     """Successful install or delete response."""
 
     result: str
+
+
+class AppSettingsDocument(BaseModel):
+    """Complete settings document returned by an installed application."""
+
+    version: int = Field(gt=0)
+    values: dict[str, Any]
 
 
 class AppsAPI(BaseAPI):
@@ -100,3 +109,69 @@ class AppsAPI(BaseAPI):
         """Attempt app deletion and return the raw response."""
         params = {"app_id": app_id} if app_id is not None else None
         return self.delete_raw("/api/apps", params=params)
+
+    def get_settings(self, app_id: str) -> AppSettingsDocument:
+        """Read an application's complete settings document."""
+        return self.get(
+            "/api/apps/settings",
+            AppSettingsDocument,
+            params={"app_id": app_id},
+        )
+
+    def get_settings_raw(self, app_id: str | None = None):
+        """Read settings and return the raw response."""
+        params = {"app_id": app_id} if app_id is not None else None
+        return self.get_raw("/api/apps/settings", params=params)
+
+    def set_settings(
+        self,
+        app_id: str,
+        document: AppSettingsDocument | dict[str, Any],
+    ) -> AppsResultResponse:
+        """Replace an application's settings document."""
+        body = (
+            document.model_dump()
+            if isinstance(document, AppSettingsDocument)
+            else document
+        )
+        return self.put(
+            "/api/apps/settings",
+            AppsResultResponse,
+            params={"app_id": app_id},
+            json=body,
+        )
+
+    def set_settings_raw(
+        self,
+        app_id: str | None = None,
+        document: dict[str, Any] | None = None,
+        *,
+        body: bytes | str | None = None,
+    ):
+        """Attempt to replace settings and return the raw response."""
+        params = {"app_id": app_id} if app_id is not None else None
+        if body is not None:
+            return self.put_raw(
+                "/api/apps/settings",
+                params=params,
+                data=body,
+                headers={"Content-Type": "application/json"},
+            )
+        return self.put_raw(
+            "/api/apps/settings",
+            params=params,
+            json=document,
+        )
+
+    def reset_settings(self, app_id: str) -> AppsResultResponse:
+        """Reset an application's settings to schema defaults."""
+        return self.delete(
+            "/api/apps/settings",
+            AppsResultResponse,
+            params={"app_id": app_id},
+        )
+
+    def reset_settings_raw(self, app_id: str | None = None):
+        """Attempt to reset settings and return the raw response."""
+        params = {"app_id": app_id} if app_id is not None else None
+        return self.delete_raw("/api/apps/settings", params=params)
