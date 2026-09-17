@@ -142,8 +142,17 @@ schemas:
         $ref: "#/components/schemas/AppInfo"
         description: "Staged application info"
       installed:
-        $ref: "#/components/schemas/AppInfo"
+        allOf:
+          $ref: "#/components/schemas/AppInfo"
         description: "If an application with the same ID is already installed, its info"
+        example:
+          id: "com.example.useful-app"
+          name: "A Useful App"
+          version: "0.9.0"
+          author: "Erika Mustermann"
+          description: "An app to assist in my daily routine"
+          icon_path: "/ext/apps_assets/shared/images/unknown_app_front_8x8.image"
+          is_debug: false
     required:
       - result
       - install_key
