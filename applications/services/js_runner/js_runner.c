@@ -711,8 +711,9 @@ static void run_file_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
             unlock_with_result(cmd, JsRunnerErrorNone);
             unlocked = true;
 
-            jerry_value_t result = jerry_module_evaluate(parse_result);
+            js_runner_notify(app, JsRunnerEventTypeScriptStarted);
 
+            jerry_value_t result = jerry_module_evaluate(parse_result);
             if(jerry_value_is_exception(result)) {
                 js_log_exception(TAG, "Error running script", result);
                 app_terminate_from_app_thread(app);
@@ -720,8 +721,6 @@ static void run_file_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
 
             js_run_jobs();
             app->script_evaluation_done = true;
-
-            js_runner_notify(app, JsRunnerEventTypeScriptStarted);
             js_runner_app_stop_if_done(app);
 
             jerry_value_free(result);
@@ -786,6 +785,8 @@ static void run_snippet_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
         furi_event_flag_clear(app->is_idle, JS_RUNNER_APP_FLAG_IDLE);
         unlock_with_result(cmd, JsRunnerErrorNone);
         unlocked = true;
+
+        js_runner_notify(app, JsRunnerEventTypeScriptStarted);
 
         jerry_value_t result = jerry_run(parsed_script);
         if(cmd->run_snippet.print_result && !jerry_value_is_exception(result)) {
