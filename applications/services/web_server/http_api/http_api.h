@@ -1,7 +1,7 @@
 #pragma once
 #include "../web_server_i.h"
 
-#define API_VERSION {27, 7, 0}
+#define API_VERSION {27, 8, 0}
 
 // Access logging (also used by web_server.c for static-file requests)
 int http_api_extract_status(const struct mg_connection* conn);
@@ -197,6 +197,22 @@ bool http_api_busy_callback(
 void* http_api_smart_home_alloc(void);
 void http_api_smart_home_free(void* ctx);
 bool http_api_smart_home_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx);
+
+// Apps
+void* http_api_apps_alloc(void);
+void http_api_apps_free(void* ctx);
+bool http_api_apps_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx);
+bool http_api_apps_hdr_callback_root(
     FuriString* path,
     HttpMethod method,
     struct mg_connection* conn,

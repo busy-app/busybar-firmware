@@ -1,0 +1,198 @@
+tags:
+- name: Apps
+  description: JavaScript applications management
+
+paths:
+  /api/apps/stage:
+    post:
+      tags:
+        - Apps
+      summary: Stage a JavaScript application for installation
+      description: Uploads an application package (TGZ or TAR file) and initiates the installation process.
+      x-local-only: true
+      operationId: stageApp
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+              description: JavaScript application TGZ package.
+      responses:
+        "200":
+          description: Application staged successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppStageResult"
+        "400":
+          description: Invalid parameters, invalid package file, or installation preparation failed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "413":
+          description: Application package too large.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "508":
+          description: Failed to save the application package.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /api/apps/install:
+    post:
+      tags:
+        - Apps
+      summary: Install a staged JavaScript application
+      description: Installs a staged JavaScript application using the installation key
+      x-local-only: true
+      operationId: installApp
+      parameters:
+        - name: install_key
+          in: query
+          required: true
+          schema:
+            type: integer
+          description: Installation key
+          example: 123456789
+      responses:
+        "200":
+          description: Application installed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid parameters.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /api/apps:
+    delete:
+      tags:
+        - Apps
+      summary: Delete a JavaScript application
+      description: Removes an installed JavaScript application, keeping its settings
+      x-local-only: true
+      operationId: removeApp
+      parameters:
+        - name: app_id
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: "^[a-zA-Z0-9_\\-][a-zA-Z0-9_\\-.]{0,31}$"
+          description: JavaScript application id
+          example: "com.example.useless-app"
+      responses:
+        "200":
+          description: Done successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "404":
+          description: App with given ID was not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "400":
+          description: Missing application id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /api/apps/list:
+    get:
+      tags:
+        - Apps
+      summary: List installed JavaScript applications
+      description: Lists installed JavaScript applications
+      x-local-only: true
+      operationId: listApps
+      responses:
+        "200":
+          description: Done successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppListResult"
+
+schemas:
+  AppStageResult:
+    type: object
+    properties:
+      result:
+        type: string
+        description: "Operation result"
+        example: "OK"
+      install_key:
+        type: integer
+        description: "Single-use installation key"
+        example: 123456789
+      staged:
+        $ref: "#/components/schemas/AppInfo"
+        description: "Staged application info"
+      installed:
+        $ref: "#/components/schemas/AppInfo"
+        description: "If an application with the same ID is already installed, its info"
+    required:
+      - result
+      - install_key
+      - staged
+  AppInfo:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "Application ID"
+        example: "com.example.useful-app"
+      name:
+        type: string
+        description: "Human-readable application name"
+        example: "A Useful App"
+      version:
+        type: string
+        description: "Application version"
+        example: "1.0.0"
+      author:
+        type: string
+        description: "Application author"
+        example: "Erika Mustermann"
+      description:
+        type: string
+        description: "Application description"
+        example: "An app to assist in my daily routine"
+      icon_path:
+        type: string
+        description: "Application icon path"
+        example: "/ext/apps_assets/shared/images/unknown_app_front_8x8.image"
+      is_debug:
+        type: boolean
+        description: "A flag indicating that this app only shows up in debug mode"
+        example: false
+    required:
+      - id
+      - name
+      - version
+      - author
+      - description
+      - icon
+      - is_debug
+  AppListResult:
+    type: object
+    properties:
+      apps:
+        type: array
+        items:
+          $ref: "#/components/schemas/AppInfo"
+    required:
+      - apps

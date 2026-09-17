@@ -1,6 +1,7 @@
 #include "js_runner_i.h"
 #include "js_fetch.h"
 #include "js_interval.h"
+#include "js_input.h"
 #include "js_console.h"
 #include "js_local_storage.h"
 #include "js_url.h"
@@ -8,6 +9,7 @@
 #include "js_request.h"
 #include "js_response.h"
 #include "js_stubs.h"
+#include <js_app/js_app_common.h>
 
 #define TAG "JsRunner"
 
@@ -80,9 +82,13 @@ static bool has_active_interval(JsRunnerAppInterval* instance) {
     return !IntervalDict_empty_p(instance->intervals);
 }
 
+static bool has_active_input(JsRunnerAppInput* input) {
+    return input->pubsub_subscription != NULL;
+}
+
 static bool app_has_background_tasks(JsRunnerApp* app) {
     return !app->script_evaluation_done || has_active_interval(&app->interval) ||
-           has_active_fetch(&app->fetch);
+           has_active_fetch(&app->fetch) || has_active_input(&app->input);
 }
 
 void js_runner_app_stop_if_done(JsRunnerApp* app) {
@@ -243,6 +249,7 @@ static void js_runner_app_init(JsRunnerApp* app, const AppThreadParams* params) 
         &app->console, params->console_write_cb, params->console_write_context);
     js_runner_app_interval_init(&app->interval);
     js_runner_app_fetch_init(&app->fetch);
+    js_runner_app_input_init(&app->input);
     furi_event_loop_subscribe_message_queue(
         app->event_loop,
         app->fetch.event_queue,
@@ -256,9 +263,11 @@ static void js_runner_app_init(JsRunnerApp* app, const AppThreadParams* params) 
 
 static void js_runner_app_deinit(JsRunnerApp* app) {
     JS_TRACE("app deinit");
+    furi_event_loop_maybe_unsubscribe(app->event_loop, app->input.input_queue);
     furi_event_loop_unsubscribe(app->event_loop, app->command_queue);
     furi_event_loop_unsubscribe(app->event_loop, app->fetch.event_queue);
     furi_event_loop_free(app->event_loop);
+    js_runner_app_input_deinit(&app->input);
     if(app->root_path) {
         furi_string_free(app->root_path);
     }
@@ -358,17 +367,6 @@ const char* js_runner_app_get_id(const JsRunnerApp* app) {
     return furi_string_get_cstr(app->app_id);
 }
 
-static bool validate_app_id(const char* app_id) {
-    while(*app_id) {
-        int c = *app_id;
-        if(!isalnum(c) && c != '.' && c != '_') {
-            return false;
-        }
-        ++app_id;
-    }
-    return true;
-}
-
 JsRunnerContextHandle*
     context_handle_alloc(JsRunner* instance, JsRunnerApp* app, FuriMessageQueue* command_queue) {
     JsRunnerContextHandle* handle = malloc(sizeof(JsRunnerContextHandle));
@@ -395,6 +393,7 @@ static int32_t app_thread_callback(void* context) {
     jerry_string_external_on_free(external_string_free_callback);
 
     js_setup_console(&app.console);
+    js_setup_input_methods();
     js_setup_interval_methods();
     js_setup_url();
     js_setup_headers();
@@ -423,7 +422,7 @@ JsRunnerContextInitResult js_runner_context_alloc(
     size_t heap_size,
     JsRunnerConsoleOutCallback console_write_cb,
     void* console_write_context) {
-    if(!validate_app_id(app_id)) {
+    if(!js_app_registry_is_valid_app_id(app_id)) {
         return (JsRunnerContextInitResult){
             .error = JsRunnerErrorInvalidAppId,
             .handle = NULL,
@@ -613,6 +612,10 @@ static void abort_intervals(JsRunnerApp* app) {
         uint32_t id = IntervalDict_ref(iter)->key;
         js_interval_abort(app, id);
     }
+}
+
+static void abort_inputs(JsRunnerApp* app) {
+    js_runner_app_input_abort(&app->input);
 }
 
 static void unlock_with_result(JsRunnerAppCommand* cmd, JsRunnerError result) {
@@ -806,6 +809,7 @@ static void quit_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
 
 static void app_terminate_from_app_thread(JsRunnerApp* app) {
     app->should_terminate = true;
+    abort_inputs(app);
     abort_fetches(&app->fetch);
     abort_intervals(app);
 }
