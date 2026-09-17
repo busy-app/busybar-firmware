@@ -64,6 +64,7 @@ App(
         "api_tokens",
         "js_runner",
         "ca_storage",
+        "js_app_installer",
     ],
     targets=["f20", "f21", "f22"],
 )

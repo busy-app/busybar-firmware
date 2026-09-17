@@ -165,3 +165,11 @@ void dir_walk_close(DirWalk* dir_walk) {
     furi_string_reset(dir_walk->path);
     dir_walk->current_index = 0;
 }
+
+bool dir_walk_is_dir_callback(const char* path, FileInfo* file_info, void* context) {
+    UNUSED(path);
+    UNUSED(context);
+
+    furi_assert(file_info);
+    return file_info_is_dir(file_info);
+}

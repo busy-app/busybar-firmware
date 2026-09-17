@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: BUSY Bar HTTP API
   description: HTTP API for BUSY Bar web server
-  version: 27.7.0
+  version: 27.8.0
   contact:
     name: tbd
 
