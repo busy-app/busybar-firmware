@@ -71,6 +71,7 @@ from .assets import (
 from .apps import (
     AppInfo,
     AppListResponse,
+    AppSettingsDocument,
     AppsAPI,
     AppsResultResponse,
     AppStageResponse,
@@ -185,6 +186,7 @@ __all__ = [
     "AppsAPI",
     "AppInfo",
     "AppListResponse",
+    "AppSettingsDocument",
     "AppStageResponse",
     "AppsResultResponse",
     "AccountAPI",
