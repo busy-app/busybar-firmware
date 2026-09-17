@@ -199,6 +199,7 @@
             @change="commitTrim"
             @seek="seekPreview"
             @toggle-play="togglePreviewPlayback"
+            @dragging="isTrimDragging = $event"
           />
 
           <p class="-mb-2 text-sm font-medium">
@@ -212,7 +213,7 @@
             />
 
             <div
-              v-if="!animation || isDecoding || isPreviewStale"
+              v-if="!animation || isDecoding || (isPreviewStale && !isTrimDragging)"
               class="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-neutral-950/80 px-6 text-sm text-muted"
             >
               <template v-if="isDecoding">
@@ -224,7 +225,7 @@
                   class="max-w-64"
                 />
               </template>
-              <template v-else-if="isPreviewStale">
+              <template v-else-if="isPreviewStale && !isTrimDragging">
                 <span class="text-xs">Preview shows the previous settings</span>
                 <UButton
                   data-id="draw-tool-video-rerender"
@@ -289,6 +290,7 @@ const sourceFile = ref<File | null>(null);
 const adapter = shallowRef<FrameSourceAdapter | null>(null);
 const handle = shallowRef<FrameSourceHandle | null>(null);
 const frameCache = shallowRef<FrameCache | null>(null);
+const sourceCache = shallowRef<FrameCache | null>(null);
 const fps = ref<number>(DRAW_TOOL_VIDEO_DEFAULT_FPS);
 const fit = ref<VideoFitMode>('cover');
 const crop = ref<VideoCropState>({ offsetX: 0.5, offsetY: 0.5, scale: 1 });
@@ -312,6 +314,7 @@ const renderTimer = ref<ReturnType<typeof setTimeout> | null>(null);
 const previewFrameHandle = ref<number | null>(null);
 const previewPlaying = ref(true);
 const previewTime = ref(0);
+const isTrimDragging = ref(false);
 
 const isEditing = computed(() => !!editTargetId.value);
 
@@ -435,6 +438,7 @@ function resetState () {
   resetAnimation();
   releaseHandle();
   frameCache.value = null;
+  sourceCache.value = null;
   sourceFile.value = null;
   adapter.value = null;
   fileError.value = null;
@@ -459,7 +463,7 @@ function retainSession () {
   retained = {
     file: sourceFile.value,
     handle: handle.value?.kind === 'video' ? handle.value : null,
-    cache: frameCache.value,
+    cache: sourceCache.value ?? frameCache.value,
     fps: fps.value
   };
 
@@ -515,7 +519,7 @@ function clampTrim (start: number, end: number, movedStart: boolean) {
 }
 
 function commitTrim () {
-  const cache = frameCache.value;
+  const cache = sourceCache.value ?? frameCache.value;
 
   if (!cache || cache.fps !== fps.value) {
     return;
@@ -581,6 +585,7 @@ async function runDecode () {
   abortDecode();
   resetAnimation();
   frameCache.value = null;
+  sourceCache.value = null;
 
   const controller = new AbortController();
   decodeAbortController.value = controller;
@@ -607,6 +612,7 @@ async function runDecode () {
     }
 
     frameCache.value = cache;
+    sourceCache.value = cache;
     markPreviewApplied(cache);
     runRender();
   } catch (error) {
@@ -795,6 +801,7 @@ async function openFile (file: File, restoreFrom?: VideoShapeSource) {
   resetAnimation();
   releaseHandle();
   frameCache.value = null;
+  sourceCache.value = null;
   fileError.value = null;
   previewPlaying.value = true;
   previewTime.value = 0;
@@ -846,6 +853,7 @@ async function openFile (file: File, restoreFrom?: VideoShapeSource) {
       const sliced = sliceFrameCache(reusable.cache, trimStart.value, trimEnd.value);
 
       if (sliced) {
+        sourceCache.value = reusable.cache;
         frameCache.value = sliced;
         markPreviewApplied(sliced);
         runRender();

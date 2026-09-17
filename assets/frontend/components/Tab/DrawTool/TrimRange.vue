@@ -136,6 +136,7 @@ const emit = defineEmits<{
   change: [];
   seek: [time: number];
   togglePlay: [];
+  dragging: [value: boolean];
 }>();
 
 const start = defineModel<number>('start', { required: true });
@@ -156,6 +157,8 @@ const {
   handleKeyDown,
   timeFromClientX
 } = useTrimRange(props, start, end, trackRef, () => emit('change'));
+
+watch(activeMode, mode => emit('dragging', mode !== null));
 
 const playheadPercent = computed(() => {
   if (props.currentTime === null || props.duration <= 0) {
