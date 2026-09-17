@@ -84,11 +84,16 @@
 
         <template v-else>
           <div class="flex flex-wrap items-start gap-4">
-            <UFormField label="FPS">
+            <UFormField
+              v-if="fpsOptions.length > 1 || isFpsLocked"
+              label="FPS"
+              :help="isFpsLocked ? 'One frame rate in canvas' : undefined"
+              :ui="{help: 'text-xs'}"
+            >
               <USelect
                 v-model="fps"
                 :items="fpsOptions"
-                :disabled="isDecoding"
+                :disabled="isDecoding || isFpsLocked"
                 class="w-28"
               />
             </UFormField>
@@ -225,7 +230,7 @@
                   class="max-w-64"
                 />
               </template>
-              <template v-else-if="needsFirstRender">
+              <template v-else-if="needsFirstRender && !isInstantSource">
                 <span class="text-sm font-medium text-default">Set up your clip first</span>
                 <UButton
                   data-id="draw-tool-video-first-render"
@@ -234,10 +239,10 @@
                   color="neutral"
                   size="xs"
                   class="mt-1"
-                  @click="runDecode"
+                  @click="() => runDecode()"
                 />
               </template>
-              <template v-else-if="isPreviewStale && !isTrimDragging">
+              <template v-else-if="isPreviewStale && !isTrimDragging && !isInstantSource">
                 <span class="text-xs">Preview shows the previous settings</span>
                 <UButton
                   data-id="draw-tool-video-rerender"
@@ -245,7 +250,7 @@
                   icon="i-ri-restart-line"
                   color="neutral"
                   size="xs"
-                  @click="runDecode"
+                  @click="() => runDecode()"
                 />
               </template>
               <span v-else-if="errorMessage">{{ errorMessage }}</span>
@@ -342,7 +347,23 @@ const isPreviewStale = computed(() => {
     || Math.abs(applied.trimEnd - trimEnd.value) > TRIM_STEP_SECONDS / 2;
 });
 
+const isInstantSource = computed(() => handle.value?.kind === 'frames');
+
+const lockedFps = computed(() => {
+  const other = es.videoShapes.find(shape => shape.id !== editTargetId.value);
+
+  return other ? other.fps : null;
+});
+
+const isFpsLocked = computed(() => lockedFps.value !== null);
+
 const fpsOptions = computed(() => {
+  const locked = lockedFps.value;
+
+  if (locked !== null) {
+    return [{ label: String(locked), value: locked }];
+  }
+
   const allowed = getAllowedFps(handle.value?.nativeFps);
   const values = allowed.includes(fps.value) ? allowed : [...allowed, fps.value].sort((a, b) => a - b);
 
@@ -403,9 +424,14 @@ const cropRectStyle = computed(() => {
 });
 
 function getAllowedFps (nativeFps?: number) {
-  const allowed = nativeFps ? FPS_CHOICES.filter(value => value <= nativeFps) : FPS_CHOICES;
+  if (!nativeFps) {
+    return FPS_CHOICES;
+  }
 
-  return allowed.length ? allowed : [FPS_CHOICES[0]];
+  const native = Math.max(1, Math.min(DRAW_TOOL_VIDEO_MAX_FPS, Math.round(nativeFps)));
+  const allowed = FPS_CHOICES.filter(value => value <= native);
+
+  return allowed.includes(native) ? allowed : [...allowed, native];
 }
 
 function getInitialFps (nativeFps?: number) {
@@ -555,14 +581,15 @@ function clampTrim (start: number, end: number, movedStart: boolean) {
 
 function commitTrim () {
   const cache = sourceCache.value ?? frameCache.value;
-
-  if (!cache || cache.fps !== fps.value) {
-    return;
-  }
-
-  const sliced = sliceFrameCache(cache, trimStart.value, trimEnd.value);
+  const sliced = cache && cache.fps === fps.value
+    ? sliceFrameCache(cache, trimStart.value, trimEnd.value)
+    : null;
 
   if (!sliced) {
+    if (isInstantSource.value) {
+      runDecode({ quiet: true });
+    }
+
     return;
   }
 
@@ -609,7 +636,7 @@ function runRender () {
   }
 }
 
-async function runDecode () {
+async function runDecode (options?: { quiet?: boolean }) {
   const activeAdapter = adapter.value;
   const activeHandle = handle.value;
 
@@ -617,14 +644,19 @@ async function runDecode () {
     return;
   }
 
+  const quiet = options?.quiet === true;
+
   abortDecode();
-  resetAnimation();
-  frameCache.value = null;
-  sourceCache.value = null;
+
+  if (!quiet) {
+    resetAnimation();
+    frameCache.value = null;
+    sourceCache.value = null;
+  }
 
   const controller = new AbortController();
   decodeAbortController.value = controller;
-  isDecoding.value = true;
+  isDecoding.value = !quiet;
   decodeDone.value = 0;
   decodeTotal.value = 0;
 
@@ -871,12 +903,12 @@ async function openFile (file: File, restoreFrom?: VideoShapeSource) {
     handle.value = openedHandle;
 
     if (restoreFrom) {
-      fps.value = restoreFrom.fps;
+      fps.value = lockedFps.value ?? restoreFrom.fps;
       fit.value = restoreFrom.fit;
       crop.value = { ...restoreFrom.crop };
       clampTrim(restoreFrom.trimStart, restoreFrom.trimEnd, false);
     } else {
-      fps.value = getInitialFps(openedHandle.nativeFps);
+      fps.value = lockedFps.value ?? getInitialFps(openedHandle.nativeFps);
       clampTrim(0, Math.min(openedHandle.duration, maxWindowSeconds.value), false);
     }
 
@@ -893,7 +925,12 @@ async function openFile (file: File, restoreFrom?: VideoShapeSource) {
         frameCache.value = sliced;
         markPreviewApplied(sliced);
         runRender();
+        return;
       }
+    }
+
+    if (isInstantSource.value) {
+      await runDecode({ quiet: true });
     }
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : String(error);
@@ -1011,6 +1048,10 @@ watch(fps, () => {
   }
 
   clampTrim(trimStart.value, trimEnd.value, false);
+
+  if (isInstantSource.value) {
+    runDecode({ quiet: true });
+  }
 });
 
 watch(fit, () => {

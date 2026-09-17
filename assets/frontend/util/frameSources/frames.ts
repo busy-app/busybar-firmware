@@ -12,6 +12,7 @@ const IMAGE_MIME_BY_EXTENSION: Record<string, string> = {
 
 function toHandle (adapterId: string, decoded: DecodedFrameSet): FrameSourceHandle {
   const totalMs = decoded.frames.reduce((sum, frame) => sum + Math.max(1, frame.durationMs), 0);
+  const shortestMs = decoded.frames.reduce((shortest, frame) => Math.min(shortest, Math.max(1, frame.durationMs)), Infinity);
 
   return {
     kind: 'frames',
@@ -19,7 +20,7 @@ function toHandle (adapterId: string, decoded: DecodedFrameSet): FrameSourceHand
     width: decoded.width,
     height: decoded.height,
     duration: totalMs / 1000,
-    nativeFps: decoded.fps,
+    nativeFps: decoded.fps ?? Math.max(1, Math.round(1000 / shortestMs)),
     frames: decoded.frames,
     release: () => undefined
   };
