@@ -101,209 +101,210 @@ typedef enum {
 static void supervisor_make_filesystem(Supervisor* supervisor, const void* context);
 static void supervisor_format_partition(Supervisor* supervisor, const void* context);
 
-static const SupervisorWarning supervisor_warnings[] =
-    {
-        [SupervisorWarningTypeBatteryNotReady] =
-            {
-                .ui_presets =
-                    {
-                        [GuiDisplayIdFront] =
-                            {
-                                .primary_text = "Battery issue,\ncontact support",
-                                .auxiliary_text = NULL,
-                                .icon.as_path = SHARED_IMG_PATH("missing_battery_front_8x8.image"),
-                                .is_icon_animated = false,
-                            },
-                        [GuiDisplayIdBack] =
-                            {
-                                .primary_text = "Battery issue",
-                                .auxiliary_text = "Please contact support",
-                                .icon.as_path = SHARED_IMG_PATH("error_back_11x11.image"),
-                                .is_icon_animated = false,
-                            },
-                    },
-                .ok_callback = NULL,
-                .do_lock_input = true,
-            },
-        [SupervisorWarningTypeBatteryCritical] =
-            {
-                .ui_presets =
-                    {
-                        [GuiDisplayIdFront] =
-                            {
-                                .primary_text = "Connect charger",
-                                .auxiliary_text = "Power off in 00:30",
-                                .icon.as_path = SHARED_IMG_PATH("low_battery_front_8x8.image"),
-                                .is_icon_animated = false,
-                            },
-                        [GuiDisplayIdBack] =
-                            {
-                                .primary_text = "Connect charger",
-                                .auxiliary_text = "Power off in 00:30",
-                                .icon.as_path = SHARED_IMG_PATH("error_back_11x11.image"),
-                                .is_icon_animated = false,
-                            },
-                    },
-                .ok_callback = NULL,
-                .do_lock_input = false,
-            },
-        [SupervisorWarningTypeRebooting] =
-            {
-                .ui_presets =
-                    {
-                        [GuiDisplayIdFront] =
-                            {
-                                .primary_text = "Restarting device",
-                                .auxiliary_text = NULL,
-                                .icon.as_path = SHARED_ANIM_PATH("spinner_front_8x8.anim"),
-                                .is_icon_animated = true,
-                            },
-                        [GuiDisplayIdBack] =
-                            {
-                                .primary_text = "Restarting device",
-                                .auxiliary_text = NULL,
-                                .icon.as_path = SHARED_ANIM_PATH("spinner_back_16x16.anim"),
-                                .is_icon_animated = true,
-                            },
-                    },
-                .ok_callback = NULL,
-                .do_lock_input = true,
-            },
-        [SupervisorWarningTypeStorageNoPartitions] =
-            {
-                .ui_presets =
-                    {
-                        [GuiDisplayIdFront] =
-                            {
-                                .primary_text = "Storage error\nOK = reset device",
-                                .auxiliary_text = NULL,
-                                .icon.as_image = &I_error_front_8x8,
-                                .is_icon_animated = false,
-                            },
-                        [GuiDisplayIdBack] =
-                            {
-                                .primary_text = "Storage error,\npress OK to reset device",
-                                .auxiliary_text = NULL,
-                                .icon.as_image = &I_error_back_11x11,
-                                .is_icon_animated = false,
-                            },
-                    },
-                .ok_callback = supervisor_make_filesystem,
-                .do_lock_input = true,
-            },
-        [SupervisorWarningTypeStorageNoBackup] =
-            {
-                .ui_presets =
-                    {
-                        [GuiDisplayIdFront] =
-                            {
-                                .primary_text = "Storage error\nOK = reset device",
-                                .auxiliary_text = NULL,
-                                .icon.as_path = SHARED_IMG_PATH("error_front_8x8.image"),
-                                .is_icon_animated = false,
-                            },
-                        [GuiDisplayIdBack] =
-                            {
-                                .primary_text = "Storage error,\npress OK to reset device",
-                                .auxiliary_text = NULL,
-                                .icon.as_path = SHARED_IMG_PATH("error_back_11x11.image"),
-                                .is_icon_animated = false,
-                            },
-                    },
-                .ok_callback = supervisor_format_partition,
-                .context = STORAGE_BACKUP_PATH_PREFIX,
-                .do_lock_input = true,
-            },
-        [SupervisorWarningTypeStorageNoExternal] =
-            {
-                .ui_presets =
-                    {
-                        [GuiDisplayIdFront] =
-                            {
-                                .primary_text = "Storage error\nOK = reset device",
-                                .auxiliary_text = NULL,
-                                .icon.as_image = &I_error_front_8x8,
-                                .is_icon_animated = false,
-                            },
-                        [GuiDisplayIdBack] =
-                            {
-                                .primary_text = "Storage error,\npress OK to reset device",
-                                .auxiliary_text = NULL,
-                                .icon.as_image = &I_error_back_11x11,
-                                .is_icon_animated = false,
-                            },
-                    },
-                .ok_callback = supervisor_format_partition,
-                .context = STORAGE_EXT_PATH_PREFIX,
-                .do_lock_input = true,
-            },
-        [SupervisorWarningTypeJsError] =
-            {
-                .ui_presets =
-                    {
-                        [GuiDisplayIdFront] =
-                            {
-                                .primary_text = "JS fatal error,\nrestart device",
-                                .auxiliary_text = NULL,
-                                .icon.as_path = SHARED_IMG_PATH("error_front_8x8.image"),
-                                .is_icon_animated = false,
-                            },
-                        [GuiDisplayIdBack] =
-                            {
-                                .primary_text = "JavaScript error",
-                                .auxiliary_text = "To restart device, hold\nBACK + START buttons",
-                                .icon.as_path = SHARED_IMG_PATH("error_back_11x11.image"),
-                                .is_icon_animated = false,
-                            },
-                    },
-                .ok_callback = NULL,
-                .do_lock_input = true,
-            },
-        [SupervisorWarningTypeJsOutOfMemory] =
-            {
-                .ui_presets =
-                    {
-                        [GuiDisplayIdFront] =
-                            {
-                                .primary_text = "JS heap overflow\nRestart device",
-                                .auxiliary_text = NULL,
-                                .icon.as_path = SHARED_IMG_PATH("error_front_8x8.image"),
-                                .is_icon_animated = false,
-                            },
-                        [GuiDisplayIdBack] =
-                            {
-                                .primary_text = "JavaScript heap overflow",
-                                .auxiliary_text = "To restart device, hold\nBACK + START buttons",
-                                .icon.as_path = SHARED_IMG_PATH("error_back_11x11.image"),
-                                .is_icon_animated = false,
-                            },
-                    },
-                .ok_callback = NULL,
-                .do_lock_input = true,
-            },
-        [SupervisorWarningTypeIntercomError] =
-            {
-                .ui_presets =
-                    {
-                        [GuiDisplayIdFront] =
-                            {
-                                .primary_text = "System error,\nrestart device",
-                                .auxiliary_text = NULL,
-                                .icon.as_path = SHARED_IMG_PATH("error_front_8x8.image"),
-                                .is_icon_animated = false,
-                            },
-                        [GuiDisplayIdBack] =
-                            {
-                                .primary_text = "System error",
-                                .auxiliary_text = "To restart device, hold\nBACK + START buttons",
-                                .icon.as_path = SHARED_IMG_PATH("error_back_11x11.image"),
-                                .is_icon_animated = false,
-                            },
-                    },
-                .ok_callback = NULL,
-                .do_lock_input = true,
-            },
+/* clang-format off */
+static const SupervisorWarning supervisor_warnings[] = {
+    [SupervisorWarningTypeBatteryNotReady] =
+        {
+            .ui_presets =
+                {
+                    [GuiDisplayIdFront] =
+                        {
+                            .primary_text = "Battery issue,\ncontact support",
+                            .auxiliary_text = NULL,
+                            .icon.as_path = SHARED_IMG_PATH("missing_battery_front_8x8.image"),
+                            .is_icon_animated = false,
+                        },
+                    [GuiDisplayIdBack] =
+                        {
+                            .primary_text = "Battery issue",
+                            .auxiliary_text = "Please contact support",
+                            .icon.as_path = SHARED_IMG_PATH("error_back_11x11.image"),
+                            .is_icon_animated = false,
+                        },
+                },
+            .ok_callback = NULL,
+            .do_lock_input = true,
+        },
+    [SupervisorWarningTypeBatteryCritical] =
+        {
+            .ui_presets =
+                {
+                    [GuiDisplayIdFront] =
+                        {
+                            .primary_text = "Connect charger",
+                            .auxiliary_text = "Power off in 00:30",
+                            .icon.as_path = SHARED_IMG_PATH("low_battery_front_8x8.image"),
+                            .is_icon_animated = false,
+                        },
+                    [GuiDisplayIdBack] =
+                        {
+                            .primary_text = "Connect charger",
+                            .auxiliary_text = "Power off in 00:30",
+                            .icon.as_path = SHARED_IMG_PATH("error_back_11x11.image"),
+                            .is_icon_animated = false,
+                        },
+                },
+            .ok_callback = NULL,
+            .do_lock_input = false,
+        },
+    [SupervisorWarningTypeRebooting] =
+        {
+            .ui_presets =
+                {
+                    [GuiDisplayIdFront] =
+                        {
+                            .primary_text = "Restarting device",
+                            .auxiliary_text = NULL,
+                            .icon.as_path = SHARED_ANIM_PATH("spinner_front_8x8.anim"),
+                            .is_icon_animated = true,
+                        },
+                    [GuiDisplayIdBack] =
+                        {
+                            .primary_text = "Restarting device",
+                            .auxiliary_text = NULL,
+                            .icon.as_path = SHARED_ANIM_PATH("spinner_back_16x16.anim"),
+                            .is_icon_animated = true,
+                        },
+                },
+            .ok_callback = NULL,
+            .do_lock_input = true,
+        },
+    [SupervisorWarningTypeStorageNoPartitions] =
+        {
+            .ui_presets =
+                {
+                    [GuiDisplayIdFront] =
+                        {
+                            .primary_text = "Storage error\nOK = reset device",
+                            .auxiliary_text = NULL,
+                            .icon.as_image = &I_error_front_8x8,
+                            .is_icon_animated = false,
+                        },
+                    [GuiDisplayIdBack] =
+                        {
+                            .primary_text = "Storage error,\npress OK to reset device",
+                            .auxiliary_text = NULL,
+                            .icon.as_image = &I_error_back_11x11,
+                            .is_icon_animated = false,
+                        },
+                },
+            .ok_callback = supervisor_make_filesystem,
+            .do_lock_input = true,
+        },
+    [SupervisorWarningTypeStorageNoBackup] =
+        {
+            .ui_presets =
+                {
+                    [GuiDisplayIdFront] =
+                        {
+                            .primary_text = "Storage error\nOK = reset device",
+                            .auxiliary_text = NULL,
+                            .icon.as_path = SHARED_IMG_PATH("error_front_8x8.image"),
+                            .is_icon_animated = false,
+                        },
+                    [GuiDisplayIdBack] =
+                        {
+                            .primary_text = "Storage error,\npress OK to reset device",
+                            .auxiliary_text = NULL,
+                            .icon.as_path = SHARED_IMG_PATH("error_back_11x11.image"),
+                            .is_icon_animated = false,
+                        },
+                },
+            .ok_callback = supervisor_format_partition,
+            .context = STORAGE_BACKUP_PATH_PREFIX,
+            .do_lock_input = true,
+        },
+    [SupervisorWarningTypeStorageNoExternal] =
+        {
+            .ui_presets =
+                {
+                    [GuiDisplayIdFront] =
+                        {
+                            .primary_text = "Storage error\nOK = reset device",
+                            .auxiliary_text = NULL,
+                            .icon.as_image = &I_error_front_8x8,
+                            .is_icon_animated = false,
+                        },
+                    [GuiDisplayIdBack] =
+                        {
+                            .primary_text = "Storage error,\npress OK to reset device",
+                            .auxiliary_text = NULL,
+                            .icon.as_image = &I_error_back_11x11,
+                            .is_icon_animated = false,
+                        },
+                },
+            .ok_callback = supervisor_format_partition,
+            .context = STORAGE_EXT_PATH_PREFIX,
+            .do_lock_input = true,
+        },
+    [SupervisorWarningTypeJsError] =
+        {
+            .ui_presets =
+                {
+                    [GuiDisplayIdFront] =
+                        {
+                            .primary_text = "JS fatal error,\nrestart device",
+                            .auxiliary_text = NULL,
+                            .icon.as_path = SHARED_IMG_PATH("error_front_8x8.image"),
+                            .is_icon_animated = false,
+                        },
+                    [GuiDisplayIdBack] =
+                        {
+                            .primary_text = "JavaScript error",
+                            .auxiliary_text = "To restart device, hold\nBACK + START buttons",
+                            .icon.as_path = SHARED_IMG_PATH("error_back_11x11.image"),
+                            .is_icon_animated = false,
+                        },
+                },
+            .ok_callback = NULL,
+            .do_lock_input = true,
+        },
+    [SupervisorWarningTypeJsOutOfMemory] =
+        {
+            .ui_presets =
+                {
+                    [GuiDisplayIdFront] =
+                        {
+                            .primary_text = "JS heap overflow\nRestart device",
+                            .auxiliary_text = NULL,
+                            .icon.as_path = SHARED_IMG_PATH("error_front_8x8.image"),
+                            .is_icon_animated = false,
+                        },
+                    [GuiDisplayIdBack] =
+                        {
+                            .primary_text = "JavaScript heap overflow",
+                            .auxiliary_text = "To restart device, hold\nBACK + START buttons",
+                            .icon.as_path = SHARED_IMG_PATH("error_back_11x11.image"),
+                            .is_icon_animated = false,
+                        },
+                },
+            .ok_callback = NULL,
+            .do_lock_input = true,
+        },
+    [SupervisorWarningTypeIntercomError] =
+        {
+            .ui_presets =
+                {
+                    [GuiDisplayIdFront] =
+                        {
+                            .primary_text = "System error,\nrestart device",
+                            .auxiliary_text = NULL,
+                            .icon.as_path = SHARED_IMG_PATH("error_front_8x8.image"),
+                            .is_icon_animated = false,
+                        },
+                    [GuiDisplayIdBack] =
+                        {
+                            .primary_text = "System error",
+                            .auxiliary_text = "To restart device, hold\nBACK + START buttons",
+                            .icon.as_path = SHARED_IMG_PATH("error_back_11x11.image"),
+                            .is_icon_animated = false,
+                        },
+                },
+            .ok_callback = NULL,
+            .do_lock_input = true,
+        },
 };
+/* clang-format on */
 
 static_assert(
     COUNT_OF(supervisor_warnings) == SupervisorWarningTypesCount,
