@@ -9,6 +9,7 @@
 #include "js_request.h"
 #include "js_response.h"
 #include "js_stubs.h"
+#include <js_app/js_app_common.h>
 
 #define TAG "JsRunner"
 
@@ -353,17 +354,6 @@ const char* js_runner_app_get_id(const JsRunnerApp* app) {
     return furi_string_get_cstr(app->app_id);
 }
 
-static bool validate_app_id(const char* app_id) {
-    while(*app_id) {
-        int c = *app_id;
-        if(!isalnum(c) && c != '.' && c != '_') {
-            return false;
-        }
-        ++app_id;
-    }
-    return true;
-}
-
 JsRunnerContextHandle*
     context_handle_alloc(JsRunner* instance, JsRunnerApp* app, FuriMessageQueue* command_queue) {
     JsRunnerContextHandle* handle = malloc(sizeof(JsRunnerContextHandle));
@@ -419,7 +409,7 @@ JsRunnerContextInitResult js_runner_context_alloc(
     size_t heap_size,
     JsRunnerConsoleOutCallback console_write_cb,
     void* console_write_context) {
-    if(!validate_app_id(app_id)) {
+    if(!js_app_registry_is_valid_app_id(app_id)) {
         return (JsRunnerContextInitResult){
             .error = JsRunnerErrorInvalidAppId,
             .handle = NULL,

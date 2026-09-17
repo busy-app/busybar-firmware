@@ -82,6 +82,10 @@ API_ENDPOINTS = [
     ("/api/wifi/disconnect", "POST"),
     ("/api/wifi/networks", "GET"),
     ("/api/wifi/status", "GET"),
+    ("/api/apps", "DELETE"),
+    ("/api/apps/list", "GET"),
+    ("/api/apps/stage", "POST"),
+    ("/api/apps/install", "POST"),
 ]
 
 

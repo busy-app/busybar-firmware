@@ -1,4 +1,5 @@
 #include "js_app_registry.h"
+#include "js_app_common.h"
 
 #include <core/log.h>
 #include <core/check.h>
@@ -10,14 +11,6 @@
 
 // TODO: Share with assets HTTP API
 #define JS_APPS_PATH EXT_PATH("user_assets")
-
-static bool js_app_registry_is_dir_callback(const char* path, FileInfo* file_info, void* context) {
-    UNUSED(path);
-    UNUSED(context);
-
-    furi_assert(file_info);
-    return file_info_is_dir(file_info);
-}
 
 static void js_app_registry_list_apps_directory(
     DirWalk* dir_walk,
@@ -47,7 +40,7 @@ void js_app_registry_list_apps(JsAppRegistryListCallback callback, void* context
 
     DirWalk* dir_walk = dir_walk_alloc(storage);
     dir_walk_set_recursive(dir_walk, false);
-    dir_walk_set_filter_cb(dir_walk, js_app_registry_is_dir_callback, NULL);
+    dir_walk_set_filter_cb(dir_walk, dir_walk_is_dir_callback, NULL);
 
     if(dir_walk_open(dir_walk, JS_APPS_PATH)) {
         js_app_registry_list_apps_directory(dir_walk, callback, context);
@@ -62,8 +55,11 @@ void js_app_registry_list_apps(JsAppRegistryListCallback callback, void* context
 JsApp* js_app_registry_get_app(const char* app_id) {
     furi_check(app_id);
 
-    FuriString* app_path = furi_string_alloc();
-    path_concat(JS_APPS_PATH, app_id, app_path);
+    FuriString* app_path = js_app_registry_get_app_path(app_id);
+
+    if(!app_path) {
+        return NULL;
+    }
 
     JsApp* js_app = js_app_alloc();
 
@@ -74,4 +70,39 @@ JsApp* js_app_registry_get_app(const char* app_id) {
 
     furi_string_free(app_path);
     return js_app;
+}
+
+FuriString* js_app_registry_get_app_path(const char* app_id) {
+    if(!js_app_registry_is_valid_app_id(app_id)) {
+        return NULL;
+    }
+    FuriString* app_path = furi_string_alloc();
+    path_concat(JS_APPS_PATH, app_id, app_path);
+    return app_path;
+}
+
+JsAppRegistryAppUninstallResult js_app_registry_uninstall_app(const char* app_id) {
+    FuriString* path = js_app_registry_get_app_path(app_id);
+    if(!path) {
+        return JsAppRegistryAppUninstallResultNotFound;
+    }
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+    JsAppRegistryAppUninstallResult result = JsAppRegistryAppUninstallResultOk;
+    do {
+        JsApp* app = js_app_registry_get_app(app_id);
+        if(!app) {
+            result = JsAppRegistryAppUninstallResultNotFound;
+            break;
+        }
+        js_app_free(app);
+        if(!storage_simply_remove_recursive(storage, furi_string_get_cstr(path))) {
+            FURI_LOG_E(TAG, "Cannot delete directory %s", furi_string_get_cstr(path));
+            result = JsAppRegistryAppUninstallResultStorageError;
+            break;
+        }
+        result = JsAppRegistryAppUninstallResultOk;
+    } while(false);
+    furi_string_free(path);
+    furi_record_close(RECORD_STORAGE);
+    return result;
 }

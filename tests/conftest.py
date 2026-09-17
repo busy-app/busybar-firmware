@@ -37,6 +37,7 @@ from clients.api import (
     UpdateAPI,
     BusyAPI,
     SmartHomeAPI,
+    AppsAPI,
 )
 from clients.cli import SimpleCLIConnection
 from config.config import Config
@@ -689,6 +690,11 @@ def storage_api(api_factory):
 @pytest.fixture
 def assets_api(api_factory):
     return api_factory(AssetsAPI)
+
+
+@pytest.fixture
+def apps_api(api_factory):
+    return api_factory(AppsAPI)
 
 
 @pytest.fixture
