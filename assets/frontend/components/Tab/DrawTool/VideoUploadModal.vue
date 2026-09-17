@@ -107,22 +107,6 @@
               />
             </UFormField>
 
-            <UFormField
-              v-if="fit === 'cover'"
-              label="Zoom"
-              class="min-w-40 flex-1"
-            >
-              <div class="flex h-8 items-center">
-                <USlider
-                  v-model="cropScalePercent"
-                  :min="0"
-                  :max="100"
-                  :step="1"
-                  :disabled="isDecoding"
-                  @change="scheduleRender"
-                />
-              </div>
-            </UFormField>
           </div>
 
           <div
@@ -173,6 +157,21 @@
                     class="size-3 animate-spin"
                   />
                   {{ isDecoding ? 'Updating preview…' : 'Drag to choose the visible area' }}
+                </span>
+
+                <span
+                  data-id="draw-tool-video-zoom-grip"
+                  :aria-label="`Zoom ${Math.round((1 - (crop.scale - VIDEO_CROP_MIN_SCALE) / (1 - VIDEO_CROP_MIN_SCALE)) * 100)}%`"
+                  class="absolute -bottom-1.5 -right-1.5 z-10 flex size-5 cursor-nwse-resize items-center justify-center rounded-full bg-white text-neutral-900 ring-1 ring-black/25"
+                  @pointerdown="handleZoomPointerDown"
+                  @pointermove="handleZoomPointerMove"
+                  @pointerup="handleZoomPointerUp"
+                  @pointercancel="handleZoomPointerUp"
+                >
+                  <UIcon
+                    name="i-ri-zoom-in-line"
+                    class="pointer-events-none size-3"
+                  />
                 </span>
               </div>
 
@@ -320,6 +319,7 @@ const backdropCanvasRef = ref<HTMLCanvasElement | null>(null);
 const replaceInputRef = ref<HTMLInputElement | null>(null);
 const trimRangeRef = ref<{ focus: () => void } | null>(null);
 const cropDrag = ref<{ pointerId: number; startX: number; startY: number; startOffsetX: number; startOffsetY: number } | null>(null);
+const zoomDrag = ref<{ pointerId: number; startX: number; startY: number; startScale: number; startWidth: number } | null>(null);
 const animation = shallowRef<DecodedAnimation | null>(null);
 const isDecoding = ref(false);
 const decodeDone = ref(0);
@@ -390,15 +390,6 @@ const cropRectClass = computed(() => {
   }
 
   return isDraggingCrop.value ? 'cursor-grabbing ring-primary' : 'cursor-move ring-white/90';
-});
-
-const cropScalePercent = computed({
-  get: () => Math.round(((1 - crop.value.scale) / (1 - VIDEO_CROP_MIN_SCALE)) * 100),
-  set: value => {
-    const ratio = Math.min(1, Math.max(0, Number(value) / 100));
-
-    crop.value = { ...crop.value, scale: 1 - ratio * (1 - VIDEO_CROP_MIN_SCALE) };
-  }
 });
 
 const cropRect = computed(() => {
@@ -991,6 +982,67 @@ function handleCropPointerUp (event: PointerEvent) {
   cropDrag.value = null;
 
   if (drag.startOffsetX !== crop.value.offsetX || drag.startOffsetY !== crop.value.offsetY) {
+    scheduleRender();
+  }
+}
+
+function handleZoomPointerDown (event: PointerEvent) {
+  const rect = cropRect.value;
+
+  if (!rect || isDecoding.value) {
+    return;
+  }
+
+  event.preventDefault();
+  event.stopPropagation();
+  (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+  zoomDrag.value = {
+    pointerId: event.pointerId,
+    startX: event.clientX,
+    startY: event.clientY,
+    startScale: crop.value.scale,
+    startWidth: rect.width
+  };
+}
+
+function handleZoomPointerMove (event: PointerEvent) {
+  const drag = zoomDrag.value;
+  const container = cropContainerRef.value;
+
+  if (!drag || drag.pointerId !== event.pointerId || !container) {
+    return;
+  }
+
+  event.stopPropagation();
+
+  const bounds = container.getBoundingClientRect();
+
+  if (bounds.width <= 0 || bounds.height <= 0) {
+    return;
+  }
+
+  const delta = (((event.clientX - drag.startX) / bounds.width) + ((event.clientY - drag.startY) / bounds.height)) / 2;
+  const widthPerScale = drag.startWidth / Math.max(0.001, drag.startScale);
+  const nextScale = drag.startScale + (delta / widthPerScale);
+
+  crop.value = {
+    ...crop.value,
+    scale: Math.min(1, Math.max(VIDEO_CROP_MIN_SCALE, nextScale))
+  };
+}
+
+function handleZoomPointerUp (event: PointerEvent) {
+  const drag = zoomDrag.value;
+
+  if (!drag || drag.pointerId !== event.pointerId) {
+    return;
+  }
+
+  event.stopPropagation();
+  (event.currentTarget as HTMLElement).releasePointerCapture(event.pointerId);
+  zoomDrag.value = null;
+
+  if (drag.startScale !== crop.value.scale) {
     scheduleRender();
   }
 }
