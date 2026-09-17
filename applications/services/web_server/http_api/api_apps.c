@@ -427,15 +427,15 @@ static bool api_apps_delete_callback(
     if(app_id_len <= 0) {
         MG_REPLY_BAD_REQUEST(conn);
     } else {
-        JsAppRegistryAppDeleteResult delete_result = js_app_registry_delete_app(app_id);
-        switch(delete_result) {
-        case JsAppRegistryAppDeleteResultOk:
+        JsAppRegistryAppUninstallResult uninstall_result = js_app_registry_uninstall_app(app_id);
+        switch(uninstall_result) {
+        case JsAppRegistryAppUninstallResultOk:
             MG_REPLY_OK(conn);
             break;
-        case JsAppRegistryAppDeleteResultNotFound:
+        case JsAppRegistryAppUninstallResultNotFound:
             MG_REPLY_NOT_FOUND(conn);
             break;
-        case JsAppRegistryAppDeleteResultStorageError:
+        case JsAppRegistryAppUninstallResultStorageError:
             MG_REPLY_ERROR(conn, 508, "filesystem error");
             break;
         default:

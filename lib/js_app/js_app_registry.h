@@ -13,11 +13,11 @@
 extern "C" {
 #endif
 
-typedef enum JsAppRegistryAppDeleteResult {
-    JsAppRegistryAppDeleteResultOk,
-    JsAppRegistryAppDeleteResultNotFound,
-    JsAppRegistryAppDeleteResultStorageError,
-} JsAppRegistryAppDeleteResult;
+typedef enum JsAppRegistryAppUninstallResult {
+    JsAppRegistryAppUninstallResultOk,
+    JsAppRegistryAppUninstallResultNotFound,
+    JsAppRegistryAppUninstallResultStorageError,
+} JsAppRegistryAppUninstallResult;
 
 /**
  * @brief Type for a callback to be invoked for each JavaScript application found.
@@ -66,7 +66,7 @@ FuriString* js_app_registry_get_app_path(const char* app_id);
  * @param[in] app_id zero-terminated string containing the desired application's ID
  * @return operation result
  */
-JsAppRegistryAppDeleteResult js_app_registry_delete_app(const char* app_id);
+JsAppRegistryAppUninstallResult js_app_registry_uninstall_app(const char* app_id);
 
 #ifdef __cplusplus
 }

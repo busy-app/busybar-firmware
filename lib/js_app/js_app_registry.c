@@ -81,26 +81,26 @@ FuriString* js_app_registry_get_app_path(const char* app_id) {
     return app_path;
 }
 
-JsAppRegistryAppDeleteResult js_app_registry_delete_app(const char* app_id) {
+JsAppRegistryAppUninstallResult js_app_registry_delete_app(const char* app_id) {
     FuriString* path = js_app_registry_get_app_path(app_id);
     if(!path) {
-        return JsAppRegistryAppDeleteResultNotFound;
+        return JsAppRegistryAppUninstallResultNotFound;
     }
     Storage* storage = furi_record_open(RECORD_STORAGE);
-    JsAppRegistryAppDeleteResult result = JsAppRegistryAppDeleteResultOk;
+    JsAppRegistryAppUninstallResult result = JsAppRegistryAppUninstallResultOk;
     do {
         JsApp* app = js_app_registry_get_app(app_id);
         if(!app) {
-            result = JsAppRegistryAppDeleteResultNotFound;
+            result = JsAppRegistryAppUninstallResultNotFound;
             break;
         }
         js_app_free(app);
         if(!storage_simply_remove_recursive(storage, furi_string_get_cstr(path))) {
             FURI_LOG_E(TAG, "Cannot delete directory %s", furi_string_get_cstr(path));
-            result = JsAppRegistryAppDeleteResultStorageError;
+            result = JsAppRegistryAppUninstallResultStorageError;
             break;
         }
-        result = JsAppRegistryAppDeleteResultOk;
+        result = JsAppRegistryAppUninstallResultOk;
     } while(false);
     furi_string_free(path);
     furi_record_close(RECORD_STORAGE);
