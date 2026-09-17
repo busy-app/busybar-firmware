@@ -8,7 +8,7 @@ import uuid
 import allure
 import pytest
 
-from clients.api import AppsAPI, StorageAPI
+from clients.api import AppsAPI, AssetsAPI, StorageAPI
 from utils.js_app_package import build_app_package
 
 
@@ -305,6 +305,12 @@ class TestAppSettingsAPI:
             "lat": 1.0,
         }
 
+        fractional_version = _document(UPDATED_VALUES)
+        fractional_version["version"] = 7.5
+
+        fractional_integer = deepcopy(UPDATED_VALUES)
+        fractional_integer["level"] = 8.5
+
         cases = (
             ("malformed JSON", b"{"),
             ("missing version", {"values": deepcopy(UPDATED_VALUES)}),
@@ -312,6 +318,8 @@ class TestAppSettingsAPI:
             ("missing field", _document(missing_field)),
             ("older version", _document(UPDATED_VALUES, 6)),
             ("future version", _document(UPDATED_VALUES, 8)),
+            ("fractional version", fractional_version),
+            ("fractional integer", _document(fractional_integer)),
             ("integer above maximum", _document(invalid_level)),
             ("short sensitive string", _document(short_string)),
             ("unknown enum option", _document(invalid_enum)),
@@ -338,6 +346,42 @@ class TestAppSettingsAPI:
                 assert current.model_dump() == baseline, (
                     f"{name} changed settings: {current.model_dump()!r}"
                 )
+
+    @allure.title("Settings endpoints reject uninstalled asset directories")
+    def test_settings_reject_uninstalled_asset_directory(
+        self,
+        apps_api: AppsAPI,
+        assets_api: AssetsAPI,
+        storage_api: StorageAPI,
+    ):
+        app_id = f"test.assets.{uuid.uuid4().hex[:10]}"
+        data_path = f"/ext/apps_data/jsrunner/{app_id}.settings.json"
+
+        try:
+            with allure.step("Create a settings schema without installing an app"):
+                assets_api.upload_asset(
+                    app_id,
+                    "appmeta/settings.json",
+                    _settings_schema_bytes(),
+                )
+
+            with allure.step("Reject settings operations for the asset directory"):
+                responses = {
+                    "GET": apps_api.get_settings_raw(app_id),
+                    "PUT": apps_api.set_settings_raw(
+                        app_id,
+                        _document(UPDATED_VALUES),
+                    ),
+                    "DELETE": apps_api.reset_settings_raw(app_id),
+                }
+                for method, response in responses.items():
+                    assert response.status_code == 404, (
+                        f"{method} returned HTTP {response.status_code}: "
+                        f"{response.text[:200]!r}"
+                    )
+        finally:
+            assets_api.delete_assets(app_id)
+            storage_api.remove_raw(data_path)
 
     @allure.title("DELETE resets every setting to its schema default")
     def test_delete_resets_defaults(
