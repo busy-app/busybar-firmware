@@ -258,11 +258,11 @@ bool setting_provider_validate(const SettingProviderSetting* setting, const void
  * version and every field of the setting subtree, all valid. On failure the
  * value buffer may be partially overwritten with defaults.
  *
- * @param[in] instance   Setting provider instance
- * @param[in] setting    Setting descriptor
- * @param[in] data       Document data to load from
- * @param[in] data_size  Length of the document data
- * @param[out] value     Output buffer (must match expected type/size)
+ * @param[in] instance Setting provider instance
+ * @param[in] setting  Setting descriptor
+ * @param[in] data     Document data to load from
+ * @param[in] size     Length of the document data
+ * @param[out] value   Output buffer (must match expected type/size)
  *
  * @return    true on success, false on an invalid document
  */
@@ -270,7 +270,7 @@ bool setting_provider_load_document(
     SettingProvider* instance,
     const SettingProviderSetting* setting,
     const char* data,
-    size_t data_size,
+    size_t size,
     void* value);
 
 /**
@@ -279,10 +279,10 @@ bool setting_provider_load_document(
  * Builds the settings document for the setting subtree with the instance
  * version, without touching storage.
  *
- * @param[in] instance  Setting provider instance
- * @param[in] setting   Setting descriptor
- * @param[in] value     Pointer to value to save
- * @param[out] data     Serialized document data
+ * @param[in] instance Setting provider instance
+ * @param[in] setting  Setting descriptor
+ * @param[in] value    Pointer to value to save
+ * @param[out] data    Serialized document data
  *
  * @return    true on success, false when a value fails to serialize
  */

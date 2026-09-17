@@ -1,13 +1,13 @@
 #include "http_api.h"
 
 #include <storage_utils/temp_file.h>
-#include <toolbox/url_utils.h>
 #include <toolbox/timers.h>
 
 #include <js_app_installer/js_app_installer_paths.h>
 #include <js_app_installer/js_app_installer.h>
 #include <js_app/js_app_registry.h>
 #include <js_app/js_app_settings_storage.h>
+#include <js_app/js_app_common.h>
 
 #define TAG "HttpApiApps"
 
@@ -32,12 +32,6 @@ typedef struct {
 
 static void api_apps_on_data_cb(struct mg_connection* conn, struct mg_iobuf* io);
 static void api_apps_on_close_cb(struct mg_connection* conn);
-static bool api_apps_settings_callback(
-    FuriString* path,
-    HttpMethod method,
-    struct mg_connection* conn,
-    struct mg_http_message* msg,
-    void* ctx);
 
 static HttpInstallHandlerCtx* alloc_install_context() {
     HttpInstallHandlerCtx* ctx = malloc(sizeof(HttpInstallHandlerCtx));
@@ -361,14 +355,6 @@ static bool api_apps_install_request_callback(
     return true;
 }
 
-static FuriString* get_file_download_url(const char* path) {
-    FuriString* path_encoded = url_utils_encode(path);
-    FuriString* result = furi_string_alloc_set("/api/storage/read?path=");
-    furi_string_cat(result, path_encoded);
-    furi_string_free(path_encoded);
-    return result;
-}
-
 static cJSON* serialize_app_info(const JsAppInfo* info) {
     cJSON* entry = cJSON_CreateObject();
     cJSON_AddStringToObject(entry, "id", info->manifest.id);
@@ -377,9 +363,7 @@ static cJSON* serialize_app_info(const JsAppInfo* info) {
     cJSON_AddStringToObject(entry, "author", info->manifest.author);
     cJSON_AddStringToObject(entry, "description", info->manifest.description);
     cJSON_AddBoolToObject(entry, "is_debug", info->manifest.is_debug);
-    FuriString* icon_url = get_file_download_url(info->path.icon.front);
-    cJSON_AddStringToObject(entry, "icon", furi_string_get_cstr(icon_url));
-    furi_string_free(icon_url);
+    cJSON_AddStringToObject(entry, "icon_path", info->path.icon.front);
     return entry;
 }
 
@@ -417,13 +401,6 @@ static bool api_apps_list_request_callback(
     return true;
 }
 
-typedef enum AppRemoveResult {
-    AppRemoveResultOk,
-    AppRemoveResultWrongId,
-    AppRemoveResultNotFound,
-    AppRemoveResultError,
-} AppRemoveResult;
-
 static bool api_apps_delete_callback(
     FuriString* path,
     HttpMethod method,
@@ -442,53 +419,25 @@ static bool api_apps_delete_callback(
         return true;
     }
 
-    Storage* storage = furi_record_open(RECORD_STORAGE);
-    AppRemoveResult result = AppRemoveResultError;
-    do {
-        char app_id[APP_ID_LEN_MAX];
-        int app_id_len = mg_http_get_var(&msg->query, "app_id", app_id, APP_ID_LEN_MAX);
-        if(app_id_len <= 0) {
-            result = AppRemoveResultWrongId;
-            break;
-        }
-        FuriString* path = js_app_registry_get_app_path(app_id);
-        if(!path) {
-            result = AppRemoveResultWrongId;
-            break;
-        }
-        do {
-            JsApp* app = js_app_registry_get_app(app_id);
-            if(!app) {
-                result = AppRemoveResultNotFound;
-                break;
-            }
-            js_app_free(app);
-            if(!storage_simply_remove_recursive(storage, furi_string_get_cstr(path))) {
-                FURI_LOG_E(TAG, "Cannot delete directory %s", furi_string_get_cstr(path));
-                result = AppRemoveResultError;
-                break;
-            }
-            result = AppRemoveResultOk;
-        } while(false);
-        furi_string_free(path);
-    } while(false);
-    furi_record_close(RECORD_STORAGE);
-
-    switch(result) {
-    case AppRemoveResultOk:
-        MG_REPLY_OK(conn);
-        break;
-    case AppRemoveResultWrongId:
+    char app_id[APP_ID_LEN_MAX];
+    int app_id_len = mg_http_get_var(&msg->query, "app_id", app_id, APP_ID_LEN_MAX);
+    if(app_id_len <= 0) {
         MG_REPLY_BAD_REQUEST(conn);
-        break;
-    case AppRemoveResultNotFound:
-        MG_REPLY_NOT_FOUND(conn);
-        break;
-    case AppRemoveResultError:
-        MG_REPLY_ERROR(conn, 500, "filesystem error");
-        break;
-    default:
-        furi_check(false);
+    } else {
+        JsAppRegistryAppUninstallResult uninstall_result = js_app_registry_uninstall_app(app_id);
+        switch(uninstall_result) {
+        case JsAppRegistryAppUninstallResultOk:
+            MG_REPLY_OK(conn);
+            break;
+        case JsAppRegistryAppUninstallResultNotFound:
+            MG_REPLY_NOT_FOUND(conn);
+            break;
+        case JsAppRegistryAppUninstallResultStorageError:
+            MG_REPLY_ERROR(conn, 508, "filesystem error");
+            break;
+        default:
+            furi_check(false);
+        }
     }
 
     return true;
@@ -559,7 +508,7 @@ static bool api_apps_settings_callback(
         return true;
     }
 
-    if(!js_app_registry_validate_app_id(app_id)) {
+    if(!js_app_registry_is_valid_app_id(app_id)) {
         MG_REPLY_BAD_REQUEST(conn);
         return true;
     }

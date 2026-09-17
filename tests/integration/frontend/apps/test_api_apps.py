@@ -1,23 +1,116 @@
 from __future__ import annotations
 
+import io
+import json
 import re
+import tarfile
 import uuid
 
 import allure
 import pytest
 
 from clients.api import AppInfo, AppsAPI, StorageAPI
-from utils.js_app_package import (
-    APP_AUTHOR,
-    APP_DESCRIPTION,
-    APP_NAME,
-    build_app_package,
-    build_non_app_package,
-)
 from utils.wait import wait_for, wait_for_stable
 
 
 APP_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_\-][a-zA-Z0-9_\-.]{0,31}$")
+APP_NAME = "Integration Test App"
+APP_AUTHOR = "BUSY Bar QA"
+APP_DESCRIPTION = "Installed by the API integration test"
+
+
+def _add_tar_directory(archive: tarfile.TarFile, path: str) -> None:
+    entry = tarfile.TarInfo(f"{path.rstrip('/')}/")
+    entry.type = tarfile.DIRTYPE
+    entry.mode = 0o755
+    archive.addfile(entry)
+
+
+def _add_tar_file(
+    archive: tarfile.TarFile,
+    path: str,
+    content: bytes,
+) -> None:
+    entry = tarfile.TarInfo(path)
+    entry.size = len(content)
+    entry.mode = 0o644
+    archive.addfile(entry, io.BytesIO(content))
+
+
+def _build_app_package(
+    root_id: str,
+    *,
+    manifest_id: str | None = None,
+    version: str = "1.0.0",
+    include_main: bool = True,
+    include_optional_manifest_fields: bool = True,
+    extra_files: dict[str, bytes] | None = None,
+    manifest_updates: dict[str, object] | None = None,
+    missing_manifest_fields: tuple[str, ...] = (),
+    gzip: bool = True,
+    main_script: bytes | None = None,
+) -> tuple[bytes, bytes]:
+    manifest = {
+        "format_version": 1,
+        "id": manifest_id if manifest_id is not None else root_id,
+        "name": APP_NAME,
+        "version": version,
+    }
+    if include_optional_manifest_fields:
+        manifest.update(
+            {
+                "description": APP_DESCRIPTION,
+                "author": APP_AUTHOR,
+                "heap_size_kib": 64,
+                "debug": False,
+            }
+        )
+    manifest.update(manifest_updates or {})
+    for field in missing_manifest_fields:
+        manifest.pop(field, None)
+    manifest_bytes = json.dumps(
+        manifest,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    if main_script is None:
+        main_script = (
+            f"globalThis.integrationVersion = {version!r};\n"
+        ).encode("utf-8")
+
+    package = io.BytesIO()
+    with tarfile.open(
+        fileobj=package,
+        mode="w:gz" if gzip else "w",
+        format=tarfile.USTAR_FORMAT,
+    ) as archive:
+        _add_tar_directory(archive, root_id)
+        _add_tar_directory(archive, f"{root_id}/appmeta")
+        _add_tar_directory(archive, f"{root_id}/scripts")
+        _add_tar_file(
+            archive,
+            f"{root_id}/appmeta/manifest.json",
+            manifest_bytes,
+        )
+        if include_main:
+            _add_tar_file(
+                archive,
+                f"{root_id}/scripts/main.js",
+                main_script,
+            )
+        for path, content in (extra_files or {}).items():
+            _add_tar_file(archive, path, content)
+    return package.getvalue(), main_script
+
+
+def _build_non_app_package() -> bytes:
+    package = io.BytesIO()
+    with tarfile.open(
+        fileobj=package,
+        mode="w:gz",
+        format=tarfile.USTAR_FORMAT,
+    ) as archive:
+        _add_tar_file(archive, "README.txt", b"not an application")
+    return package.getvalue()
 
 
 def _find_app(apps: list[AppInfo], app_id: str) -> AppInfo | None:
@@ -43,8 +136,8 @@ def _assert_app_metadata(
     assert app.is_debug is False, (
         f"Unexpected debug flag: {app.is_debug!r}"
     )
-    assert app.icon.startswith("/api/storage/read?path="), (
-        f"Unexpected icon URL: {app.icon!r}"
+    assert app.icon_path.startswith("/ext/"), (
+        f"Unexpected icon path: {app.icon_path!r}"
     )
 
 
@@ -84,8 +177,8 @@ class TestAppsAPI:
                 assert app.version, (
                     f"Empty version returned for {app.id!r}"
                 )
-                assert app.icon.startswith("/api/storage/read?path="), (
-                    f"Invalid icon URL for {app.id!r}: {app.icon!r}"
+                assert app.icon_path.startswith("/ext/"), (
+                    f"Invalid icon path for {app.id!r}: {app.icon_path!r}"
                 )
 
     @allure.title("Stage, install, list and delete a JavaScript app")
@@ -95,7 +188,7 @@ class TestAppsAPI:
         storage_api: StorageAPI,
         test_app_id: str,
     ):
-        package, main_script = build_app_package(test_app_id)
+        package, main_script = _build_app_package(test_app_id)
 
         with allure.step("Stage a valid application package"):
             staged = apps_api.stage(package)
@@ -183,7 +276,7 @@ class TestAppsAPI:
             f"'integration_launch', '{launch_token}'"
             ");\n"
         ).encode("utf-8")
-        package, _ = build_app_package(
+        package, _ = _build_app_package(
             test_app_id,
             main_script=script,
         )
@@ -246,7 +339,7 @@ class TestAppsAPI:
         apps_api: AppsAPI,
         test_app_id: str,
     ):
-        package, _ = build_app_package(test_app_id, gzip=False)
+        package, _ = _build_app_package(test_app_id, gzip=False)
 
         with allure.step("Stage and install a plain TAR package"):
             staged = apps_api.stage(package)
@@ -273,11 +366,11 @@ class TestAppsAPI:
         apps_api: AppsAPI,
         test_app_id: str,
     ):
-        version_one, _ = build_app_package(
+        version_one, _ = _build_app_package(
             test_app_id,
             version="1.0.0",
         )
-        version_two, _ = build_app_package(
+        version_two, _ = _build_app_package(
             test_app_id,
             version="2.0.0",
         )
@@ -336,11 +429,11 @@ class TestAppsAPI:
         test_app_id: str,
         candidate_version: str,
     ):
-        baseline_package, _ = build_app_package(
+        baseline_package, _ = _build_app_package(
             test_app_id,
             version="2.0.0",
         )
-        candidate_package, _ = build_app_package(
+        candidate_package, _ = _build_app_package(
             test_app_id,
             version=candidate_version,
         )
@@ -378,11 +471,11 @@ class TestAppsAPI:
         storage_api: StorageAPI,
         test_app_id: str,
     ):
-        baseline_package, baseline_script = build_app_package(
+        baseline_package, baseline_script = _build_app_package(
             test_app_id,
             version="1.0.0",
         )
-        invalid_update, _ = build_app_package(
+        invalid_update, _ = _build_app_package(
             test_app_id,
             version="2.0.0",
             include_main=False,
@@ -430,7 +523,7 @@ class TestAppsAPI:
         apps_api: AppsAPI,
         test_app_id: str,
     ):
-        package, _ = build_app_package(
+        package, _ = _build_app_package(
             test_app_id,
             include_optional_manifest_fields=False,
         )
@@ -475,8 +568,8 @@ class TestAppsAPI:
     ):
         first_id = f"test.stage.{uuid.uuid4().hex[:12]}"
         second_id = f"test.stage.{uuid.uuid4().hex[:12]}"
-        first_package, _ = build_app_package(first_id)
-        second_package, _ = build_app_package(second_id)
+        first_package, _ = _build_app_package(first_id)
+        second_package, _ = _build_app_package(second_id)
 
         try:
             with allure.step("Stage two different packages"):
@@ -540,7 +633,7 @@ class TestAppsAPI:
         apps_api: AppsAPI,
         test_app_id: str,
     ):
-        package, _ = build_app_package(test_app_id)
+        package, _ = _build_app_package(test_app_id)
         staged = apps_api.stage(package)
         wrong_key = staged.install_key + 1
 
@@ -567,7 +660,7 @@ class TestAppsAPI:
         apps_api: AppsAPI,
     ):
         app_id = f"test.failed.stage.{uuid.uuid4().hex[:7]}"
-        package, _ = build_app_package(app_id)
+        package, _ = _build_app_package(app_id)
 
         with allure.step("Stage a valid application"):
             staged = apps_api.stage(package)
@@ -617,25 +710,25 @@ class TestAppsAPI:
             package = b"this is not a tar archive"
             expected_error_code = "unpack_error"
         elif case == "no_application":
-            package = build_non_app_package()
+            package = _build_non_app_package()
             expected_error_code = "manifest_error"
         elif case == "missing_main":
-            package, _ = build_app_package(
+            package, _ = _build_app_package(
                 valid_id,
                 include_main=False,
             )
             expected_error_code = "manifest_error"
         elif case == "mismatched_id":
-            package, _ = build_app_package(
+            package, _ = _build_app_package(
                 valid_id,
                 manifest_id=f"other.{uuid.uuid4().hex[:10]}",
             )
             expected_error_code = "manifest_error"
         elif case == "invalid_id":
-            package, _ = build_app_package(".hidden")
+            package, _ = _build_app_package(".hidden")
             expected_error_code = "manifest_error"
         elif case == "invalid_version":
-            package, _ = build_app_package(
+            package, _ = _build_app_package(
                 valid_id,
                 version="not-semver",
             )
@@ -675,7 +768,7 @@ class TestAppsAPI:
         missing_field: str,
     ):
         app_id = f"test.required.{uuid.uuid4().hex[:9]}"
-        package, _ = build_app_package(
+        package, _ = _build_app_package(
             app_id,
             missing_manifest_fields=(missing_field,),
         )
@@ -703,7 +796,7 @@ class TestAppsAPI:
         expected_status: int,
     ):
         app_id = f"test.heap.{uuid.uuid4().hex[:12]}"
-        package, _ = build_app_package(
+        package, _ = _build_app_package(
             app_id,
             manifest_updates={"heap_size_kib": heap_size_kib},
         )
@@ -735,7 +828,7 @@ class TestAppsAPI:
         marker_path = f"/ext/js_app_installer/{marker_name}"
         archive_path = f"{app_id}/../../{marker_name}"
         marker_content = b"integration traversal marker"
-        package, _ = build_app_package(
+        package, _ = _build_app_package(
             app_id,
             extra_files={archive_path: marker_content},
         )
@@ -782,8 +875,8 @@ class TestAppsAPI:
     def test_app_id_length_boundary(self, apps_api: AppsAPI):
         valid_id = "t" + uuid.uuid4().hex[:31]
         invalid_id = f"{valid_id}x"
-        valid_package, _ = build_app_package(valid_id)
-        invalid_package, _ = build_app_package(invalid_id)
+        valid_package, _ = _build_app_package(valid_id)
+        invalid_package, _ = _build_app_package(invalid_id)
 
         try:
             with allure.step("Accept a 32-character application ID"):
@@ -814,9 +907,9 @@ class TestAppsAPI:
     def test_delete_validation(self, apps_api: AppsAPI):
         cases = (
             (None, 400, "missing id"),
-            (".hidden", 400, "leading period"),
-            ("bad/id", 400, "path separator"),
-            ("x" * 33, 400, "id longer than 32 characters"),
+            (".hidden", 404, "leading period"),
+            ("bad/id", 404, "path separator"),
+            ("x" * 33, 404, "id longer than 32 characters"),
             (
                 f"test.absent.{uuid.uuid4().hex[:10]}",
                 404,

@@ -45,7 +45,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-
   /api/apps/install:
     post:
       tags:
@@ -68,14 +67,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AppStageResult"
+                $ref: "#/components/schemas/SuccessResponse"
         "400":
           description: Invalid parameters.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-
   /api/apps:
     delete:
       tags:
@@ -90,7 +88,6 @@ paths:
           required: true
           schema:
             $ref: "#/components/schemas/AppId"
-          description: JavaScript application id
       responses:
         "200":
           description: Done successfully
@@ -105,12 +102,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "400":
-          description: Missing or invalid application id
+          description: Missing application id
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-
   /api/apps/list:
     get:
       tags:
@@ -129,9 +125,7 @@ paths:
 
   /api/apps/settings:
     description: |
-      Settings document of a JavaScript application. Sensitive values are
-      carried in plaintext. Writers are not locked: the last successful write
-      wins. A settings version change resets the stored values.
+      Settings document of a JavaScript application.
     get:
       tags:
         - Apps
@@ -186,7 +180,7 @@ paths:
       description: >
         Replaces the settings document: every field must be present and
         valid, with a version matching the application settings; unknown keys
-        are dropped and values are normalized to the schema encodings.
+        are dropped.
       x-local-only: true
       operationId: setAppSettings
       parameters:
@@ -306,7 +300,6 @@ schemas:
       - result
       - install_key
       - staged
-
   AppInfo:
     type: object
     properties:
@@ -329,11 +322,11 @@ schemas:
       description:
         type: string
         description: "Application description"
-        example: "An app to assist with my daily routine"
-      icon:
+        example: "An app to assist in my daily routine"
+      icon_path:
         type: string
-        description: "Application icon URL"
-        example: "/api/storage/read?path=%2Fext%2Fapps_assets%2Fshared%2Fimages%2Funknown_app_front_8x8.image"
+        description: "Application icon path"
+        example: "/ext/apps_assets/shared/images/unknown_app_front_8x8.image"
       is_debug:
         type: boolean
         description: "A flag indicating that this app only shows up in debug mode"
@@ -344,9 +337,8 @@ schemas:
       - version
       - author
       - description
-      - icon
+      - icon_path
       - is_debug
-
   AppListResult:
     type: object
     properties:
@@ -354,6 +346,8 @@ schemas:
         type: array
         items:
           $ref: "#/components/schemas/AppInfo"
+    required:
+      - apps
 
   AppSettingsDocument:
     type: object

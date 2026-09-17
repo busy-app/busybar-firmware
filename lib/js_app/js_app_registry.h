@@ -9,11 +9,15 @@
 #include "js_app.h"
 #include <furi/core/string.h>
 
-#define JS_APP_ID_LEN_MAX 32
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+typedef enum JsAppRegistryAppUninstallResult {
+    JsAppRegistryAppUninstallResultOk,
+    JsAppRegistryAppUninstallResultNotFound,
+    JsAppRegistryAppUninstallResultStorageError,
+} JsAppRegistryAppUninstallResult;
 
 /**
  * @brief Type for a callback to be invoked for each JavaScript application found.
@@ -57,15 +61,12 @@ JsApp* js_app_registry_get_app(const char* app_id);
 FuriString* js_app_registry_get_app_path(const char* app_id);
 
 /**
- * @brief Check an application ID is valid.
+ * @brief Delete an installed JavaScript application.
  *
- * Valid application IDs correspond to the following regular expression:
- * ^[a-zA-Z0-9_\-][a-zA-Z0-9_\-.]*$
- *
- * @param[in] app_id zero-terminated string to be validated
- * @return true if app_id is a valid application ID
+ * @param[in] app_id zero-terminated string containing the desired application's ID
+ * @return operation result
  */
-bool js_app_registry_validate_app_id(const char* app_id);
+JsAppRegistryAppUninstallResult js_app_registry_uninstall_app(const char* app_id);
 
 #ifdef __cplusplus
 }

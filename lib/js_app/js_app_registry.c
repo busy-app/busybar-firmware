@@ -1,10 +1,10 @@
 #include "js_app_registry.h"
+#include "js_app_common.h"
 
 #include <core/log.h>
 #include <core/check.h>
 
 #include <storage_utils/dir_walk.h>
-#include <storage/storage.h>
 #include <toolbox/path.h>
 
 #define TAG "JsAppRegistry"
@@ -72,38 +72,37 @@ JsApp* js_app_registry_get_app(const char* app_id) {
     return js_app;
 }
 
-bool js_app_registry_validate_app_id(const char* app_id) {
-    if(!*app_id) {
-        return false;
-    }
-    size_t i = 0;
-    while(app_id[i]) {
-        if(i == JS_APP_ID_LEN_MAX) {
-            return false;
-        }
-        char c = app_id[i];
-        bool is_word = (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
-                       (c >= '0' && c <= '9') || c == '_' || c == '-';
-        bool is_dot = c == '.';
-        if(i == 0) {
-            if(!is_word) {
-                return false;
-            }
-        } else {
-            if(!is_word && !is_dot) {
-                return false;
-            }
-        }
-        ++i;
-    }
-    return true;
-}
-
 FuriString* js_app_registry_get_app_path(const char* app_id) {
-    if(!js_app_registry_validate_app_id(app_id)) {
+    if(!js_app_registry_is_valid_app_id(app_id)) {
         return NULL;
     }
     FuriString* app_path = furi_string_alloc();
     path_concat(JS_APPS_PATH, app_id, app_path);
     return app_path;
+}
+
+JsAppRegistryAppUninstallResult js_app_registry_uninstall_app(const char* app_id) {
+    FuriString* path = js_app_registry_get_app_path(app_id);
+    if(!path) {
+        return JsAppRegistryAppUninstallResultNotFound;
+    }
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+    JsAppRegistryAppUninstallResult result = JsAppRegistryAppUninstallResultOk;
+    do {
+        JsApp* app = js_app_registry_get_app(app_id);
+        if(!app) {
+            result = JsAppRegistryAppUninstallResultNotFound;
+            break;
+        }
+        js_app_free(app);
+        if(!storage_simply_remove_recursive(storage, furi_string_get_cstr(path))) {
+            FURI_LOG_E(TAG, "Cannot delete directory %s", furi_string_get_cstr(path));
+            result = JsAppRegistryAppUninstallResultStorageError;
+            break;
+        }
+        result = JsAppRegistryAppUninstallResultOk;
+    } while(false);
+    furi_string_free(path);
+    furi_record_close(RECORD_STORAGE);
+    return result;
 }

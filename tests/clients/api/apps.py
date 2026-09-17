@@ -17,7 +17,7 @@ class AppInfo(BaseModel):
     version: str
     author: str
     description: str
-    icon: str
+    icon_path: str
     is_debug: bool
 
 

@@ -1,5 +1,5 @@
 #include "js_app_manifest.h"
-#include "js_app_registry.h"
+#include "js_app_common.h"
 
 #include <core/check.h>
 #include <core/log.h>
@@ -100,7 +100,7 @@ static bool
         }
 
         info->id = cJSON_GetStringValue(item);
-        if(!js_app_registry_validate_app_id(info->id)) {
+        if(!js_app_registry_is_valid_app_id(info->id)) {
             break;
         }
 

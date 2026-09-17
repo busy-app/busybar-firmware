@@ -300,15 +300,15 @@ bool setting_provider_validate(const SettingProviderSetting* setting, const void
 bool setting_provider_load_document(
     SettingProvider* instance,
     const SettingProviderSetting* setting,
-    const char* json,
-    size_t json_size,
+    const char* data,
+    size_t size,
     void* value) {
     furi_check(instance);
-    furi_check(json);
+    furi_check(data);
     furi_check(value);
     furi_check(!instance->json_root);
 
-    instance->json_root = cJSON_ParseWithLength(json, json_size);
+    instance->json_root = cJSON_ParseWithLength(data, size);
 
     bool is_successful = json_structure_setup(instance) &&
                          migrations_apply(instance) != MigrationResultFailure &&
@@ -324,10 +324,10 @@ bool setting_provider_save_document(
     SettingProvider* instance,
     const SettingProviderSetting* setting,
     const void* value,
-    FuriString* json) {
+    FuriString* data) {
     furi_check(instance);
     furi_check(value);
-    furi_check(json);
+    furi_check(data);
     furi_check(!instance->json_root);
 
     json_structure_reset(instance);
@@ -336,7 +336,7 @@ bool setting_provider_save_document(
 
     if(is_successful) {
         char* json_string = cJSON_Print(instance->json_root);
-        furi_string_set(json, json_string);
+        furi_string_set(data, json_string);
         cJSON_free(json_string);
     }
 

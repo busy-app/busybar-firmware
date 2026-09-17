@@ -495,20 +495,20 @@ bool js_app_settings_storage_reset(JsAppSettingsStorage* instance) {
     return setting_provider_reset(instance->provider, &instance->root, instance->values);
 }
 
-bool js_app_settings_storage_export(const JsAppSettingsStorage* instance, FuriString* json) {
+bool js_app_settings_storage_export(const JsAppSettingsStorage* instance, FuriString* data) {
     furi_check(instance);
-    furi_check(json);
+    furi_check(data);
 
     return setting_provider_save_document(
-        instance->provider, &instance->root, instance->values, json);
+        instance->provider, &instance->root, instance->values, data);
 }
 
-bool js_app_settings_storage_import(JsAppSettingsStorage* instance, const char* json, size_t size) {
+bool js_app_settings_storage_import(JsAppSettingsStorage* instance, const char* data, size_t size) {
     furi_check(instance);
-    furi_check(json);
+    furi_check(data);
 
     return setting_provider_load_document(
-        instance->provider, &instance->root, json, size, instance->values);
+        instance->provider, &instance->root, data, size, instance->values);
 }
 
 const SettingProviderSetting* js_app_settings_storage_get_root(JsAppSettingsStorage* instance) {

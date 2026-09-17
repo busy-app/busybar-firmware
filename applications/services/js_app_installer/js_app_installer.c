@@ -51,17 +51,14 @@ static bool
         }
 
         FuriString* path = furi_string_alloc();
+        JsApp* app = js_app_alloc();
         while(!found && dir_walk_read(walk, path, NULL) == DirWalkOK) {
-            JsApp* app = js_app_alloc();
             if(js_app_load_from_directory(app, furi_string_get_cstr(path))) {
                 FURI_LOG_I(TAG, "Found app at %s", furi_string_get_cstr(path));
 
                 JsAppInfo info;
                 if(js_app_get_info(app, &info)) {
                     instance->staged_install_key = gen_install_key();
-                    if(instance->staged_app_path) {
-                        furi_string_free(instance->staged_app_path);
-                    }
                     instance->staged_app_path = furi_string_alloc_set(path);
 
                     result->staged_app = app;
@@ -74,11 +71,11 @@ static bool
                     found = true;
                 }
             }
-            if(app) {
-                js_app_free(app);
-            }
         }
         furi_string_free(path);
+        if(app) {
+            js_app_free(app);
+        }
     } while(false);
     dir_walk_free(walk);
     return found;
@@ -89,6 +86,12 @@ static void handle_stage(JsAppInstaller* instance, JsAppInstallerMsg* message) {
     furi_assert(message);
 
     JsAppInstallerStageResult* result = message->stage.result;
+
+    instance->staged_install_key = 0;
+    if(instance->staged_app_path) {
+        furi_string_free(instance->staged_app_path);
+        instance->staged_app_path = NULL;
+    }
 
     Storage* storage = furi_record_open(RECORD_STORAGE);
     do {
