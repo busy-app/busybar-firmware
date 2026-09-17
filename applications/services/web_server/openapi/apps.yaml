@@ -87,10 +87,7 @@ paths:
           in: query
           required: true
           schema:
-            type: string
-            pattern: "^[a-zA-Z0-9_\\-][a-zA-Z0-9_\\-.]{0,31}$"
-          description: JavaScript application id
-          example: "com.example.useless-app"
+            $ref: "#/components/schemas/AppId"
       responses:
         "200":
           description: Done successfully
@@ -126,7 +123,162 @@ paths:
               schema:
                 $ref: "#/components/schemas/AppListResult"
 
+  /api/apps/settings:
+    description: |
+      Settings document of a JavaScript application.
+    get:
+      tags:
+        - Apps
+      summary: Get application settings
+      description: >
+        Returns the complete settings document; the first request
+        materializes it from the schema defaults.
+      x-local-only: true
+      operationId: getAppSettings
+      parameters:
+        - name: app_id
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/AppId"
+      responses:
+        "200":
+          description: Settings document
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppSettingsDocument"
+        "400":
+          description: Invalid application identifier
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Unknown application or no settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Invalid settings schema or failed to build the document
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "508":
+          description: Storage error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    put:
+      tags:
+        - Apps
+      summary: Set application settings
+      description: >
+        Replaces the settings document: every field must be present and
+        valid, with a version matching the application settings; unknown keys
+        are dropped.
+      x-local-only: true
+      operationId: setAppSettings
+      parameters:
+        - name: app_id
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/AppId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppSettingsDocument"
+      responses:
+        "200":
+          description: Settings stored
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid application identifier or document
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Unknown application or no settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Invalid settings schema
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "508":
+          description: Storage error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      tags:
+        - Apps
+      summary: Reset application settings
+      description: Resets every field to its schema default.
+      x-local-only: true
+      operationId: resetAppSettings
+      parameters:
+        - name: app_id
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/AppId"
+      responses:
+        "200":
+          description: Settings reset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid application identifier
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Unknown application or no settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Invalid settings schema
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "508":
+          description: Storage error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 schemas:
+  AppId:
+    type: string
+    pattern: "^[a-zA-Z0-9_\\-][a-zA-Z0-9_\\-.]{0,31}$"
+    description: JavaScript application id
+    example: "app.author.example_app"
+
   AppStageResult:
     type: object
     properties:
@@ -185,7 +337,7 @@ schemas:
       - version
       - author
       - description
-      - icon
+      - icon_path
       - is_debug
   AppListResult:
     type: object
@@ -196,3 +348,20 @@ schemas:
           $ref: "#/components/schemas/AppInfo"
     required:
       - apps
+
+  AppSettingsDocument:
+    type: object
+    properties:
+      version:
+        type: integer
+        description: Settings version of the application schema
+        example: 1
+      values:
+        type: object
+        description: Setting values keyed by field id, with groups as nested objects
+        additionalProperties: true
+        example:
+          volume: 5
+    required:
+      - version
+      - values

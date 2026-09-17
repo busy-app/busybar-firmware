@@ -18,6 +18,21 @@ extern "C" {
 typedef struct JsAppSettingsStorage JsAppSettingsStorage;
 
 /**
+ * @brief Result of building a settings storage.
+ *
+ * Set by js_app_settings_storage_alloc(); every failure status pairs with a
+ * NULL return.
+ */
+typedef enum {
+    JsAppSettingsStorageStatusOk, //!< Storage built.
+    JsAppSettingsStorageStatusSchemaMissing, //!< App has no settings schema.
+    JsAppSettingsStorageStatusSchemaInvalid, //!< Schema is empty or unparsable.
+    JsAppSettingsStorageStatusStorageFailure, //!< Schema could not be read.
+
+    JsAppSettingsStorageStatusesCount,
+} JsAppSettingsStorageStatus;
+
+/**
  * @brief Build a settings storage for an application.
  *
  * Parses the application's settings schema, composes the provider descriptor
@@ -25,10 +40,11 @@ typedef struct JsAppSettingsStorage JsAppSettingsStorage;
  * js_app_settings_storage_load() before reading any.
  *
  * @param[in] app_id Application identifier.
- * @return Allocated storage, or NULL when the application has no settings
- *         schema; failures are logged.
+ * @param[out] status Resulting status.
+ * @return Allocated storage, or NULL on failure; failures are logged.
  */
-JsAppSettingsStorage* js_app_settings_storage_alloc(const char* app_id);
+JsAppSettingsStorage*
+    js_app_settings_storage_alloc(const char* app_id, JsAppSettingsStorageStatus* status);
 
 /**
  * @brief Release a settings storage.
@@ -60,6 +76,42 @@ bool js_app_settings_storage_load(JsAppSettingsStorage* instance);
  * @return true on success, false on a write or validation failure.
  */
 bool js_app_settings_storage_save(JsAppSettingsStorage* instance);
+
+/**
+ * @brief Reset every value to its default.
+ *
+ * Substitutes the schema default for every field and writes the document.
+ *
+ * @param[in] instance Storage.
+ * @return true on success, false on a write error.
+ */
+bool js_app_settings_storage_reset(JsAppSettingsStorage* instance);
+
+/**
+ * @brief Export the settings document.
+ *
+ * Serializes the current values into a complete settings document. Values
+ * must be current: call js_app_settings_storage_load() before exporting.
+ *
+ * @param[in] instance Storage.
+ * @param[out] data Serialized document data.
+ * @return true on success, false when a value fails to encode.
+ */
+bool js_app_settings_storage_export(const JsAppSettingsStorage* instance, FuriString* data);
+
+/**
+ * @brief Import a settings document.
+ *
+ * Strict counterpart of js_app_settings_storage_export(): the document must
+ * carry the settings version and every field with a valid value; unknown
+ * keys are dropped.
+ *
+ * @param[in] instance Storage.
+ * @param[in] data Document data to import.
+ * @param[in] size Length of the document data.
+ * @return true on success, false on an invalid document.
+ */
+bool js_app_settings_storage_import(JsAppSettingsStorage* instance, const char* data, size_t size);
 
 /**
  * @brief Get the root setting of the descriptor tree.

@@ -250,18 +250,18 @@ static void js_app_launcher_scene_setup_on_enter(void* context) {
 
     do {
         if(!instance->settings_storage) {
-            instance->error = JsAppLauncherErrorSettingsMissing;
+            instance->error = JsAppLauncherErrorSettingsSchemaMissing;
             scene_manager_replace_current_scene(
                 instance->scene_manager, JsAppLauncherSceneIdError);
             break;
-        };
+        }
 
         if(!js_app_settings_storage_load(instance->settings_storage)) {
             instance->error = JsAppLauncherErrorSettingsLoadFailed;
             scene_manager_replace_current_scene(
                 instance->scene_manager, JsAppLauncherSceneIdError);
             break;
-        };
+        }
 
         with_gui(instance->gui, {
             const SettingProviderSetting* root =
