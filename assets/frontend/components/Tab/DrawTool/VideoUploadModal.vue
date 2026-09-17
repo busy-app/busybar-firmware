@@ -7,7 +7,7 @@
     show-close-button
     :primary-action-props="{
       label: isEditing ? 'Apply changes' : 'Insert video',
-      disabled: !animation || isDecoding,
+      disabled: !handle || isDecoding || !!fileError,
       onClick: insertVideo
     }"
     :secondary-action-props="{
@@ -225,6 +225,18 @@
                   class="max-w-64"
                 />
               </template>
+              <template v-else-if="needsFirstRender">
+                <span class="text-sm font-medium text-default">Set up your clip first</span>
+                <UButton
+                  data-id="draw-tool-video-first-render"
+                  label="Build preview"
+                  icon="i-ri-equalizer-line"
+                  color="neutral"
+                  size="xs"
+                  class="mt-1"
+                  @click="runDecode"
+                />
+              </template>
               <template v-else-if="isPreviewStale && !isTrimDragging">
                 <span class="text-xs">Preview shows the previous settings</span>
                 <UButton
@@ -270,9 +282,7 @@ type RetainedSession = {
   fps: number;
 };
 
-const fpsOptions = VIDEO_FPS_OPTIONS
-  .filter(value => value <= DRAW_TOOL_VIDEO_MAX_FPS)
-  .map(value => ({ label: String(value), value }));
+const FPS_CHOICES = VIDEO_FPS_OPTIONS.filter(value => value <= DRAW_TOOL_VIDEO_MAX_FPS);
 const RENDER_DEBOUNCE_MS = 60;
 const TRIM_STEP_SECONDS = 0.1;
 const PREVIEW_MAX_HEIGHT_PX = 360;
@@ -332,6 +342,19 @@ const isPreviewStale = computed(() => {
     || Math.abs(applied.trimEnd - trimEnd.value) > TRIM_STEP_SECONDS / 2;
 });
 
+const fpsOptions = computed(() => {
+  const allowed = getAllowedFps(handle.value?.nativeFps);
+  const values = allowed.includes(fps.value) ? allowed : [...allowed, fps.value].sort((a, b) => a - b);
+
+  return values.map(value => ({ label: String(value), value }));
+});
+
+const needsFirstRender = computed(() => !!handle.value
+  && !animation.value
+  && !appliedPreview.value
+  && !isDecoding.value
+  && !errorMessage.value);
+
 const maxWindowSeconds = computed(() => getVideoMaxDurationSeconds(fps.value));
 
 const minWindowSeconds = computed(() => Math.min(handle.value?.duration ?? 0, 1 / fps.value));
@@ -378,6 +401,18 @@ const cropRectStyle = computed(() => {
     touchAction: 'none'
   };
 });
+
+function getAllowedFps (nativeFps?: number) {
+  const allowed = nativeFps ? FPS_CHOICES.filter(value => value <= nativeFps) : FPS_CHOICES;
+
+  return allowed.length ? allowed : [FPS_CHOICES[0]];
+}
+
+function getInitialFps (nativeFps?: number) {
+  const allowed = getAllowedFps(nativeFps);
+
+  return allowed.includes(DRAW_TOOL_VIDEO_DEFAULT_FPS) ? DRAW_TOOL_VIDEO_DEFAULT_FPS : Math.max(...allowed);
+}
 
 function formatSeconds (seconds: number) {
   return `${seconds.toFixed(1)} s`;
@@ -841,6 +876,7 @@ async function openFile (file: File, restoreFrom?: VideoShapeSource) {
       crop.value = { ...restoreFrom.crop };
       clampTrim(restoreFrom.trimStart, restoreFrom.trimEnd, false);
     } else {
+      fps.value = getInitialFps(openedHandle.nativeFps);
       clampTrim(0, Math.min(openedHandle.duration, maxWindowSeconds.value), false);
     }
 
@@ -857,11 +893,8 @@ async function openFile (file: File, restoreFrom?: VideoShapeSource) {
         frameCache.value = sliced;
         markPreviewApplied(sliced);
         runRender();
-        return;
       }
     }
-
-    await runDecode();
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : String(error);
   }
@@ -921,7 +954,7 @@ function handleCropPointerUp (event: PointerEvent) {
 }
 
 async function insertVideo () {
-  if (isPreviewStale.value) {
+  if (!animation.value || isPreviewStale.value) {
     await runDecode();
   }
 
