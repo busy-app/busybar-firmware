@@ -6,8 +6,9 @@
 
 #define JS_APP_SETTINGS_STORAGE_SCHEMA_PATH_FORMAT \
     (EXT_PATH("user_assets") "/%s/appmeta/settings.json")
+#define JS_APP_SETTINGS_STORAGE_DATA_DIR EXT_PATH("apps_data/jsrunner")
 #define JS_APP_SETTINGS_STORAGE_DATA_PATH_FORMAT \
-    (EXT_PATH("apps_data/jsrunner") "/%s.settings.json")
+    (JS_APP_SETTINGS_STORAGE_DATA_DIR "/%s.settings.json")
 
 #define JS_APP_SETTINGS_STORAGE_ALIGN(value) \
     (((value) + (_Alignof(max_align_t) - 1)) & ~(_Alignof(max_align_t) - 1))
@@ -428,6 +429,19 @@ JsAppSettingsStorage*
     do {
         JsAppSettings* settings = js_app_settings_storage_parse_schema(app_id, status);
         if(!settings) {
+            break;
+        }
+
+        Storage* storage = furi_record_open(RECORD_STORAGE);
+        bool is_path_make_successful =
+            storage_simply_mkpath(storage, JS_APP_SETTINGS_STORAGE_DATA_DIR);
+        furi_record_close(RECORD_STORAGE);
+
+        if(!is_path_make_successful) {
+            FURI_LOG_W(
+                TAG, "Failed to create data directory: \"%s\".", JS_APP_SETTINGS_STORAGE_DATA_DIR);
+            *status = JsAppSettingsStorageStatusStorageFailure;
+            js_app_settings_free(settings);
             break;
         }
 
