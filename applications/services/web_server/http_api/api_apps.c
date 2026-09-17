@@ -415,13 +415,6 @@ static bool api_apps_list_request_callback(
     return true;
 }
 
-typedef enum AppRemoveResult {
-    AppRemoveResultOk,
-    AppRemoveResultWrongId,
-    AppRemoveResultNotFound,
-    AppRemoveResultError,
-} AppRemoveResult;
-
 static bool api_apps_delete_callback(
     FuriString* path,
     HttpMethod method,
@@ -440,53 +433,25 @@ static bool api_apps_delete_callback(
         return true;
     }
 
-    Storage* storage = furi_record_open(RECORD_STORAGE);
-    AppRemoveResult result = AppRemoveResultError;
-    do {
-        char app_id[APP_ID_LEN_MAX];
-        int app_id_len = mg_http_get_var(&msg->query, "app_id", app_id, APP_ID_LEN_MAX);
-        if(app_id_len <= 0) {
-            result = AppRemoveResultWrongId;
-            break;
-        }
-        FuriString* path = js_app_registry_get_app_path(app_id);
-        if(!path) {
-            result = AppRemoveResultWrongId;
-            break;
-        }
-        do {
-            JsApp* app = js_app_registry_get_app(app_id);
-            if(!app) {
-                result = AppRemoveResultNotFound;
-                break;
-            }
-            js_app_free(app);
-            if(!storage_simply_remove_recursive(storage, furi_string_get_cstr(path))) {
-                FURI_LOG_E(TAG, "Cannot delete directory %s", furi_string_get_cstr(path));
-                result = AppRemoveResultError;
-                break;
-            }
-            result = AppRemoveResultOk;
-        } while(false);
-        furi_string_free(path);
-    } while(false);
-    furi_record_close(RECORD_STORAGE);
-
-    switch(result) {
-    case AppRemoveResultOk:
-        MG_REPLY_OK(conn);
-        break;
-    case AppRemoveResultWrongId:
+    char app_id[APP_ID_LEN_MAX];
+    int app_id_len = mg_http_get_var(&msg->query, "app_id", app_id, APP_ID_LEN_MAX);
+    if(app_id_len <= 0) {
         MG_REPLY_BAD_REQUEST(conn);
-        break;
-    case AppRemoveResultNotFound:
-        MG_REPLY_NOT_FOUND(conn);
-        break;
-    case AppRemoveResultError:
-        MG_REPLY_ERROR(conn, 508, "filesystem error");
-        break;
-    default:
-        furi_check(false);
+    } else {
+        JsAppRegistryAppDeleteResult delete_result = js_app_registry_delete_app(app_id);
+        switch(delete_result) {
+        case JsAppRegistryAppDeleteResultOk:
+            MG_REPLY_OK(conn);
+            break;
+        case JsAppRegistryAppDeleteResultNotFound:
+            MG_REPLY_NOT_FOUND(conn);
+            break;
+        case JsAppRegistryAppDeleteResultStorageError:
+            MG_REPLY_ERROR(conn, 508, "filesystem error");
+            break;
+        default:
+            furi_check(false);
+        }
     }
 
     return true;

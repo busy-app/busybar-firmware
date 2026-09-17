@@ -13,6 +13,12 @@
 extern "C" {
 #endif
 
+typedef enum JsAppRegistryAppDeleteResult {
+    JsAppRegistryAppDeleteResultOk,
+    JsAppRegistryAppDeleteResultNotFound,
+    JsAppRegistryAppDeleteResultStorageError,
+} JsAppRegistryAppDeleteResult;
+
 /**
  * @brief Type for a callback to be invoked for each JavaScript application found.
  *
@@ -53,6 +59,14 @@ JsApp* js_app_registry_get_app(const char* app_id);
  * @return path in filesystem or @c NULL if app_id is invalid
  */
 FuriString* js_app_registry_get_app_path(const char* app_id);
+
+/**
+ * @brief Delete an installed JavaScript application.
+ *
+ * @param[in] app_id zero-terminated string containing the desired application's ID
+ * @return operation result
+ */
+JsAppRegistryAppDeleteResult js_app_registry_delete_app(const char* app_id);
 
 #ifdef __cplusplus
 }
