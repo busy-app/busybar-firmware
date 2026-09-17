@@ -4,7 +4,6 @@
 #include <toolbox/timers.h>
 
 #include <storage_utils/temp_file.h>
-#include <toolbox/url_utils.h>
 
 #include <js_app_installer/js_app_installer_paths.h>
 #include <js_app_installer/js_app_installer.h>
@@ -359,14 +358,6 @@ static bool api_apps_install_request_callback(
     return true;
 }
 
-static FuriString* get_file_download_url(const char* path) {
-    FuriString* path_encoded = url_utils_encode(path);
-    FuriString* result = furi_string_alloc_set("/api/storage/read?path=");
-    furi_string_cat(result, path_encoded);
-    furi_string_free(path_encoded);
-    return result;
-}
-
 static cJSON* serialize_app_info(const JsAppInfo* info) {
     cJSON* entry = cJSON_CreateObject();
     cJSON_AddStringToObject(entry, "id", info->manifest.id);
@@ -375,9 +366,7 @@ static cJSON* serialize_app_info(const JsAppInfo* info) {
     cJSON_AddStringToObject(entry, "author", info->manifest.author);
     cJSON_AddStringToObject(entry, "description", info->manifest.description);
     cJSON_AddBoolToObject(entry, "is_debug", info->manifest.is_debug);
-    FuriString* icon_url = get_file_download_url(info->path.icon.front);
-    cJSON_AddStringToObject(entry, "icon", furi_string_get_cstr(icon_url));
-    furi_string_free(icon_url);
+    cJSON_AddStringToObject(entry, "icon_path", info->path.icon.front);
     return entry;
 }
 

@@ -105,7 +105,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "400":
-          description: Missing or invalid application id
+          description: Missing application id
           content:
             application/json:
               schema:
@@ -171,10 +171,10 @@ schemas:
         type: string
         description: "Application description"
         example: "An app to assist in my daily routine"
-      icon:
+      icon_path:
         type: string
-        description: "Application icon URL"
-        example: "/api/storage/read?path=%2Fext%2Fapps_assets%2Fshared%2Fimages%2Funknown_app_front_8x8.image"
+        description: "Application icon path"
+        example: "/ext/apps_assets/shared/images/unknown_app_front_8x8.image"
       is_debug:
         type: boolean
         description: "A flag indicating that this app only shows up in debug mode"

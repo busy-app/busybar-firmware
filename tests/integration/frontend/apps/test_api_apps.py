@@ -136,8 +136,8 @@ def _assert_app_metadata(
     assert app.is_debug is False, (
         f"Unexpected debug flag: {app.is_debug!r}"
     )
-    assert app.icon.startswith("/api/storage/read?path="), (
-        f"Unexpected icon URL: {app.icon!r}"
+    assert app.icon_path.startswith("/ext/"), (
+        f"Unexpected icon path: {app.icon_path!r}"
     )
 
 
@@ -177,8 +177,8 @@ class TestAppsAPI:
                 assert app.version, (
                     f"Empty version returned for {app.id!r}"
                 )
-                assert app.icon.startswith("/api/storage/read?path="), (
-                    f"Invalid icon URL for {app.id!r}: {app.icon!r}"
+                assert app.icon_path.startswith("/ext/"), (
+                    f"Invalid icon path for {app.id!r}: {app.icon_path!r}"
                 )
 
     @allure.title("Stage, install, list and delete a JavaScript app")
@@ -907,9 +907,9 @@ class TestAppsAPI:
     def test_delete_validation(self, apps_api: AppsAPI):
         cases = (
             (None, 400, "missing id"),
-            (".hidden", 400, "leading period"),
-            ("bad/id", 400, "path separator"),
-            ("x" * 33, 400, "id longer than 32 characters"),
+            (".hidden", 404, "leading period"),
+            ("bad/id", 404, "path separator"),
+            ("x" * 33, 404, "id longer than 32 characters"),
             (
                 f"test.absent.{uuid.uuid4().hex[:10]}",
                 404,
