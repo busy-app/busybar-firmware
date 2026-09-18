@@ -397,7 +397,7 @@ static void supervisor_js_runner_fatal_callback(const void* message, void* conte
     furi_assert(context);
 
     Supervisor* instance = context;
-    JsRunnerFatal code = (JsRunnerFatal)message;
+    JsRunnerFatal code = *(const JsRunnerFatal*)message;
 
     supervisor_send_event_ex(
         instance,
@@ -599,7 +599,7 @@ static void supervisor_handle_intercom_status(Supervisor* instance, IntercomStat
     supervisor_update_warning(instance, SupervisorWarningTypeIntercomError, true);
 }
 
-static void supervisor_handle_js_fatal(Supervisor* instance, uint32_t error) {
+static void supervisor_handle_js_fatal(Supervisor* instance, JsRunnerFatal error) {
     bool is_debug = furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug);
     bool is_bootloop = furi_get_tick() <= furi_ms_to_ticks(SUPERVISOR_REBOOT_GRACE_PERIOD_MS);
     if(is_debug || is_bootloop) {

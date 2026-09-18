@@ -56,7 +56,7 @@ void js_runner_handle_fatal_error(jerry_fatal_code_t code) {
         break;
     }
     JsRunner* instance = furi_record_open(RECORD_JS_RUNNER);
-    furi_pubsub_publish(instance->fatal_pubsub, (void*)error);
+    furi_pubsub_publish(instance->fatal_pubsub, &error);
     furi_record_close(RECORD_JS_RUNNER);
 }
 

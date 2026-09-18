@@ -156,6 +156,6 @@ const char* js_runner_get_error_message(JsRunnerError error);
 /** @brief Get a pubsub which is triggered on jerryscript fatal errors.
  *
  * @param instance JsRunner instance. Can be obtained with furi_record_open().
- * @return the pubsub. Pubsub messages can be directly casted into JsRunnerFatal.
+ * @return the pubsub. Pubsub messages can be casted into a pointer to JsRunnerFatal.
  */
 FuriPubSub* js_runner_get_fatal_pubsub(JsRunner* instance);
