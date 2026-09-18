@@ -10,10 +10,10 @@
       <UButton
         variant="link"
         class="p-0 gap-0.5"
-        href="http://10.0.4.20/docs"
+        :href="`${barUrl}/docs`"
         target="_blank"
       >
-        <span class="underline">http://10.0.4.20/docs</span>
+        <span class="underline">{{ barUrl }}/docs</span>
         <UIcon
           name="i-bi-open-in-new"
           class="size-4"
@@ -191,6 +191,7 @@
 const deviceStore = useDeviceStore();
 const wifiStore = useWifiStore();
 const pms = usePasswordModalStore();
+const runtimeConfig = useRuntimeConfig();
 
 const loading = ref({
   access: false
@@ -200,6 +201,14 @@ const httpApiSwitchModel = ref(false);
 const showEnableHttpApiModal = ref(false);
 
 const connected = computed(() => wifiStore.wifi?.state === 'connected');
+
+const barUrl = computed(() => {
+  if (deviceStore.connectionType === 'usb') {
+    return runtimeConfig.public.barUrl || window.location.origin;
+  }
+
+  return 'http://10.0.4.20';
+});
 
 watch(() => deviceStore.httpAPIAccess, access => {
   if (!access) {

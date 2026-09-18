@@ -4,6 +4,7 @@
 
 <script setup lang="ts">
 import { clearInterval, setInterval } from 'worker-timers';
+import { pad2 } from '@/util/pad';
 
 const props = defineProps<{
   ms: number;
@@ -40,12 +41,10 @@ const formatDuration = (milliseconds: number) => {
   const minutes = totalMinutes % 60;
   const hours = Math.floor(totalMinutes / 60);
 
-  const pad = (number: number) => number.toString().padStart(2, '0');
-
   if (hours > 0) {
-    return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+    return `${pad2(hours)}:${pad2(minutes)}:${pad2(seconds)}`;
   } else {
-    return `${pad(minutes)}:${pad(seconds)}`;
+    return `${pad2(minutes)}:${pad2(seconds)}`;
   }
 };
 

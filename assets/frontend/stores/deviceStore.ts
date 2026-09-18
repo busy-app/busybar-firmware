@@ -179,10 +179,12 @@ export const useDeviceStore = defineStore('device', () => {
 
   // Device status
   const deviceStatus = ref<DeviceStatus | undefined>(undefined);
+  const deviceStatusFetchedAt = ref<number | undefined>(undefined);
   async function fetchDeviceStatus (): Promise<DeviceStatus | undefined> {
     const status = await busyBar.value.SystemStatusGet()
       .then(response => {
         deviceStatus.value = response;
+        deviceStatusFetchedAt.value = Date.now();
         return response;
       })
       .catch(async error => {
@@ -319,6 +321,7 @@ export const useDeviceStore = defineStore('device', () => {
     fetchApiVersion,
 
     deviceStatus,
+    deviceStatusFetchedAt,
     fetchDeviceStatus,
 
     deviceName,

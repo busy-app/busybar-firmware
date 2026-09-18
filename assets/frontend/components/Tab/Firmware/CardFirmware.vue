@@ -46,7 +46,7 @@
       </div>
     </div>
 
-    <ContentList :items="firmwareContent" />
+    <FirmwareInfoList />
   </SectionCard>
 </template>
 
@@ -55,46 +55,8 @@ const deviceStore = useDeviceStore();
 const firmwareStore = useFirmwareStore();
 const wifiStore = useWifiStore();
 
-const system = computed(() => deviceStore.deviceStatus?.system);
 const firmware = computed(() => deviceStore.deviceStatus?.firmware);
 const fwVersionPolifilled = computed(() => firmware.value?.version === 'unknown' ? `${firmware.value.branch} ${firmware.value.commit_hash}` : firmware.value?.version);
-
-const firmwareContent = computed(() => [
-  [
-    {
-      title: 'Version',
-      value: firmware.value?.version,
-      loading: !firmware.value
-    },
-    {
-      title: 'Branch',
-      value: firmware.value?.branch,
-      loading: !firmware.value
-    },
-    {
-      title: 'Commit hash',
-      value: firmware.value?.commit_hash,
-      loading: !firmware.value
-    }
-  ],
-  [
-    {
-      title: 'Build date',
-      value: firmware.value?.build_date,
-      loading: !firmware.value
-    },
-    {
-      title: 'API version',
-      value: deviceStore.apiVersion?.api_semver,
-      loading: !deviceStore.apiVersion
-    },
-    {
-      title: 'Uptime',
-      value: system.value?.uptime ? system.value.uptime.slice(0, system.value.uptime.lastIndexOf(' ')) : undefined,
-      loading: !system.value
-    }
-  ]
-]);
 
 async function initFirmwareUpdateFromFile () {
   await deviceStore.fetchDeviceStatus();
