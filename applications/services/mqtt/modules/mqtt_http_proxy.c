@@ -51,6 +51,18 @@ static const MqttHttpProxyBlocklistEntry mqtt_http_proxy_blocklist[] = {
         .name = "wifi/networks",
         .id = MqttHttpProxyMethodIdGet,
     },
+    {
+        .name = "apps",
+        .id = MqttHttpProxyMethodIdDelete,
+    },
+    {
+        .name = "apps/stage",
+        .id = MqttHttpProxyMethodIdPost,
+    },
+    {
+        .name = "apps/install",
+        .id = MqttHttpProxyMethodIdPost,
+    },
 };
 
 static MqttHttpProxyMethodId mqtt_http_proxy_get_method_id_by_name(const struct mg_str name) {
