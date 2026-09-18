@@ -55,6 +55,7 @@ typedef struct {
 
 typedef enum {
     JsAppLauncherCustomEventIndexMax = 0x7F,
+    JsAppLauncherCustomEventScriptStarted,
     JsAppLauncherCustomEventScriptFinished,
     JsAppLauncherCustomEventSettingsChanged,
 } JsAppLauncherCustomEvent;

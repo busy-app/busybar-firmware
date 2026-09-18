@@ -97,35 +97,53 @@ static bool app_has_background_tasks(JsRunnerApp* app) {
            has_active_fetch(&app->fetch) || has_active_input(&app->input);
 }
 
+static void js_runner_notify(JsRunnerApp* app, JsRunnerEventType event_type) {
+    JsRunnerExecutionHandle* handle = app->execution_handle;
+
+    if((handle != NULL) && (handle->event_callback != NULL)) {
+        const JsRunnerEvent event = {
+            .type = event_type,
+        };
+
+        handle->event_callback(&event, handle->event_callback_context);
+    }
+}
+
 void js_runner_app_stop_if_done(JsRunnerApp* app) {
     if(!app_has_background_tasks(app)) {
         JS_TRACE("No more tasks");
-        JsRunnerExecutionHandle* handle = app->execution_handle;
-        JsRunnerTerminationCallback termination_callback = handle ? handle->termination_callback :
-                                                                    NULL;
-        void* callback_context = handle ? handle->termination_callback_context : NULL;
+        js_runner_notify(app, JsRunnerEventTypeScriptFinished);
         furi_event_flag_set(app->is_idle, JS_RUNNER_APP_FLAG_IDLE);
-        if(termination_callback) {
-            termination_callback(callback_context);
-        }
     }
 }
 
 void js_run_jobs(void) {
-    bool run = true;
-    while(run) {
+    JsRunnerApp* app = js_runner_static_context.app;
+    furi_assert(app);
+
+    for(;;) {
+        if(app->should_terminate) {
+            break;
+        }
+
+        bool should_continue = false;
+
         jerry_value_t jobs_result = jerry_run_jobs();
         if(jerry_value_is_exception(jobs_result)) {
             FURI_LOG_E(TAG, "Exception when running jobs");
             if(jerry_value_is_abort(jobs_result)) {
                 FURI_LOG_E(TAG, "Must terminate");
+            } else {
+                should_continue = true;
             }
-            run = false;
-        } else {
-            run = false;
         }
+
         jerry_value_free(jobs_result);
-    }
+
+        if(!should_continue) {
+            break;
+        }
+    };
 }
 
 static void fetch_event_queue_callback(FuriEventLoopObject* object, void* context) {
@@ -477,7 +495,7 @@ void js_runner_context_free(JsRunnerContextHandle* handle) {
 
 static JsRunnerExecutionHandle* execution_handle_alloc(
     JsRunnerContextHandle* parent,
-    JsRunnerTerminationCallback on_terminate,
+    JsRunnerEventCallback event_callback,
     void* context) {
     if(atomic_flag_test_and_set(&parent->app->is_execution_handle_taken)) {
         return NULL;
@@ -485,8 +503,8 @@ static JsRunnerExecutionHandle* execution_handle_alloc(
     JsRunnerExecutionHandle* handle = malloc(sizeof(JsRunnerExecutionHandle));
     handle->app = parent->app;
     handle->context_handle = parent;
-    handle->termination_callback = on_terminate;
-    handle->termination_callback_context = context;
+    handle->event_callback = event_callback;
+    handle->event_callback_context = context;
     parent->app->execution_handle = handle;
     return handle;
 }
@@ -500,14 +518,14 @@ static void execution_handle_free(JsRunnerExecutionHandle* handle) {
 JsRunnerRunResult js_runner_run(
     JsRunnerContextHandle* handle,
     const char* path,
-    JsRunnerTerminationCallback on_terminate,
+    JsRunnerEventCallback event_callback,
     void* context) {
     FURI_LOG_I(TAG, "Running script: %s", path);
 
     JsRunnerError result = JsRunnerErrorNone;
     JsRunnerExecutionHandle* exec_handle = NULL;
     do {
-        exec_handle = execution_handle_alloc(handle, on_terminate, context);
+        exec_handle = execution_handle_alloc(handle, event_callback, context);
         if(!exec_handle) {
             result = JsRunnerErrorResource;
             break;
@@ -541,12 +559,12 @@ JsRunnerRunResult js_runner_run_snippet(
     JsRunnerContextHandle* handle,
     const char* code,
     bool print_result,
-    JsRunnerTerminationCallback on_terminate,
+    JsRunnerEventCallback event_callback,
     void* context) {
     JsRunnerError result = JsRunnerErrorNone;
     JsRunnerExecutionHandle* exec_handle = NULL;
     do {
-        exec_handle = execution_handle_alloc(handle, on_terminate, context);
+        exec_handle = execution_handle_alloc(handle, event_callback, context);
         if(!exec_handle) {
             result = JsRunnerErrorResource;
             break;
@@ -611,7 +629,7 @@ static void abort_fetches(JsRunnerAppFetch* instance) {
 }
 
 static void abort_intervals(JsRunnerApp* app) {
-    JS_TRACE("Delete fetch thread");
+    JS_TRACE("abort intervals");
     while(!IntervalDict_empty_p(app->interval.intervals)) {
         IntervalDict_it_t iter;
         IntervalDict_it(iter, app->interval.intervals);
@@ -656,17 +674,17 @@ static void run_file_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
     js_runner_app_set_root_path(app, cmd->run_file.path);
     do {
         if(!storage_file_open(f, cmd->run_file.path, FSAM_READ, FSOM_OPEN_EXISTING)) {
-            ret = JsRunnerErrorCannotOpenFile;
+            ret = JsRunnerErrorFilesystem;
             break;
         }
         uint64_t file_size = storage_file_size(f);
         if((file_size == 0) || (file_size > JS_RUNNER_MAX_SCRIPT_SIZE)) {
-            ret = JsRunnerErrorInvalidFileSize;
+            ret = JsRunnerErrorFilesystem;
             break;
         }
         char* buf = malloc(file_size);
         if(storage_file_read(f, buf, file_size) != file_size) {
-            ret = JsRunnerErrorCannotReadFile;
+            ret = JsRunnerErrorFilesystem;
             free(buf);
             break;
         }
@@ -683,47 +701,66 @@ static void run_file_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
             .source_name = source_name,
         };
 
-        jerry_value_t parsed_script =
+        jerry_value_t parse_result =
             jerry_parse((const jerry_char_t*)buf, file_size, &parse_options);
         free(buf);
-        do {
-            if(jerry_value_is_exception(parsed_script)) {
-                js_log_exception(TAG, "Error parsing script", parsed_script);
-                ret = JsRunnerErrorParseException;
-                break;
-            } else {
-                jerry_value_t link_result = jerry_module_link(parsed_script, NULL, NULL);
-                if(jerry_value_is_exception(link_result)) {
-                    js_log_exception(TAG, "Error linking modules", link_result);
-                    jerry_value_free(link_result);
-                    ret = JsRunnerErrorParseException;
-                    break;
-                } else {
-                    // Evaluating the script can take an arbitrary amount of time.
-                    // Unlocking to let the API caller proceed.
-                    furi_event_flag_clear(app->is_idle, JS_RUNNER_APP_FLAG_IDLE);
-                    unlock_with_result(cmd, JsRunnerErrorNone);
-                    unlocked = true;
 
-                    jerry_value_t result = jerry_module_evaluate(parsed_script);
-                    if(jerry_value_is_exception(result)) {
-                        js_log_exception(TAG, "Error running script", result);
-                        app_terminate_from_app_thread(app);
-                    }
-                    js_run_jobs();
-                    app->script_evaluation_done = true;
-                    js_runner_app_stop_if_done(app);
-                    jerry_value_free(result);
+        do {
+            if(jerry_value_is_exception(parse_result)) {
+                if(js_exception_is_null(parse_result)) {
+                    FURI_LOG_E(TAG, "Error parsing script: possibly out of memory");
+                    ret = JsRunnerErrorOutOfMemory;
+                } else {
+                    js_log_exception(TAG, "Error parsing script", parse_result);
+                    ret = JsRunnerErrorParseException;
+                }
+                break;
+            }
+
+            jerry_value_t link_result = jerry_module_link(parse_result, NULL, NULL);
+            if(jerry_value_is_exception(link_result)) {
+                if(js_exception_is_null(parse_result)) {
+                    FURI_LOG_E(TAG, "Error linking modules: possibly out of memory");
+                    ret = JsRunnerErrorOutOfMemory;
+                } else {
+                    js_log_exception(TAG, "Error linking modules", link_result);
+                    ret = JsRunnerErrorParseException;
                 }
                 jerry_value_free(link_result);
+                ret = JsRunnerErrorParseException;
+                break;
             }
+
+            // Evaluating the script can take an arbitrary amount of time.
+            // Unlocking to let the API caller proceed.
+            furi_event_flag_clear(app->is_idle, JS_RUNNER_APP_FLAG_IDLE);
+            unlock_with_result(cmd, JsRunnerErrorNone);
+            unlocked = true;
+
+            js_runner_notify(app, JsRunnerEventTypeScriptStarted);
+
+            jerry_value_t evaluate_result = jerry_module_evaluate(parse_result);
+            if(jerry_value_is_exception(evaluate_result)) {
+                js_log_exception(TAG, "Error running script", evaluate_result);
+                app_terminate_from_app_thread(app);
+            }
+
+            js_run_jobs();
+            app->script_evaluation_done = true;
+            js_runner_app_stop_if_done(app);
+
+            jerry_value_free(evaluate_result);
+            jerry_value_free(link_result);
         } while(false);
-        jerry_value_free(parsed_script);
+
+        jerry_value_free(parse_result);
         jerry_value_free(source_name);
     } while(false);
+
     js_runner_app_set_root_path(app, NULL);
     storage_file_free(f);
     furi_record_close(RECORD_STORAGE);
+
     if(!unlocked) {
         unlock_with_result(cmd, ret);
     }
@@ -757,6 +794,7 @@ static void run_snippet_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
     };
     jerry_value_t parsed_script = jerry_parse(
         (const jerry_char_t*)cmd->run_snippet.code, strlen(cmd->run_snippet.code), &parse_options);
+
     do {
         if(jerry_value_is_exception(parsed_script)) {
             FuriString* error = js_get_exception_string(parsed_script);
@@ -768,38 +806,39 @@ static void run_snippet_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
             furi_string_free(error);
             ret = JsRunnerErrorParseException;
             break;
-        } else {
-            furi_event_flag_clear(app->is_idle, JS_RUNNER_APP_FLAG_IDLE);
-            unlock_with_result(cmd, JsRunnerErrorNone);
-            unlocked = true;
-
-            jerry_value_t result = jerry_run(parsed_script);
-            if(cmd->run_snippet.print_result && !jerry_value_is_exception(result)) {
-                jerry_value_t string = jerry_value_to_string(result);
-                jerry_value_free(result);
-                result = string;
-            }
-            if(jerry_value_is_exception(result)) {
-                FuriString* error = js_get_exception_string(result);
-                console_print(
-                    app,
-                    JsRunnerConsoleSeverityError,
-                    furi_string_get_cstr(error),
-                    JsRunnerConsoleSeparatorNewline);
-                furi_string_free(error);
-                app_terminate_from_app_thread(app);
-            } else if(cmd->run_snippet.print_result) {
-                char* str = js_string_to_c_string(result);
-
-                console_print(
-                    app, JsRunnerConsoleSeverityLog, str, JsRunnerConsoleSeparatorNewline);
-                free(str);
-            }
-            jerry_value_free(result);
-            js_run_jobs();
-            app->script_evaluation_done = true;
-            js_runner_app_stop_if_done(app);
         }
+
+        furi_event_flag_clear(app->is_idle, JS_RUNNER_APP_FLAG_IDLE);
+        unlock_with_result(cmd, JsRunnerErrorNone);
+        unlocked = true;
+
+        js_runner_notify(app, JsRunnerEventTypeScriptStarted);
+
+        jerry_value_t result = jerry_run(parsed_script);
+        if(cmd->run_snippet.print_result && !jerry_value_is_exception(result)) {
+            jerry_value_t string = jerry_value_to_string(result);
+            jerry_value_free(result);
+            result = string;
+        }
+
+        if(jerry_value_is_exception(result)) {
+            FuriString* error = js_get_exception_string(result);
+            console_print(
+                app,
+                JsRunnerConsoleSeverityError,
+                furi_string_get_cstr(error),
+                JsRunnerConsoleSeparatorNewline);
+            furi_string_free(error);
+            app_terminate_from_app_thread(app);
+        } else if(cmd->run_snippet.print_result) {
+            char* str = js_string_to_c_string(result);
+            console_print(app, JsRunnerConsoleSeverityLog, str, JsRunnerConsoleSeparatorNewline);
+            free(str);
+        }
+        jerry_value_free(result);
+        js_run_jobs();
+        app->script_evaluation_done = true;
+        js_runner_app_stop_if_done(app);
     } while(false);
     jerry_value_free(parsed_script);
     if(!unlocked) {
@@ -871,9 +910,8 @@ int32_t js_runner_srv(void* p) {
 static const char* const error_messages[] = {
     [JsRunnerErrorNone] = "OK",
     [JsRunnerErrorUnknown] = "Unknown error",
-    [JsRunnerErrorCannotOpenFile] = "Cannot open file",
-    [JsRunnerErrorInvalidFileSize] = "Invalid file size",
-    [JsRunnerErrorCannotReadFile] = "Cannot read file",
+    [JsRunnerErrorFilesystem] = "Failed to read script file",
+    [JsRunnerErrorOutOfMemory] = "Out of memory",
     [JsRunnerErrorParseException] = "Parse exception",
     [JsRunnerErrorInvalidAppId] = "Invalid App ID",
     [JsRunnerErrorResource] = "Out of resources",

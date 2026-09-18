@@ -4,10 +4,12 @@
  * @brief Javascript app runner
  */
 #pragma once
+
 #include <stddef.h>
-#include <furi/core/string.h>
-#include <furi/core/thread.h>
-#include <furi/core/pubsub.h>
+#include <stdint.h>
+#include <stdbool.h>
+
+#include <core/pubsub.h>
 
 #define RECORD_JS_RUNNER "js_runner"
 
@@ -16,9 +18,8 @@ typedef struct JsRunner JsRunner;
 typedef enum JsRunnerError {
     JsRunnerErrorNone = 0,
     JsRunnerErrorUnknown,
-    JsRunnerErrorCannotOpenFile,
-    JsRunnerErrorInvalidFileSize,
-    JsRunnerErrorCannotReadFile,
+    JsRunnerErrorFilesystem,
+    JsRunnerErrorOutOfMemory,
     JsRunnerErrorParseException,
     JsRunnerErrorInvalidAppId,
     JsRunnerErrorResource,
@@ -64,7 +65,16 @@ typedef struct JsRunnerRunResult {
     JsRunnerExecutionHandle* handle;
 } JsRunnerRunResult;
 
-typedef void (*JsRunnerTerminationCallback)(void* context);
+typedef enum {
+    JsRunnerEventTypeScriptStarted,
+    JsRunnerEventTypeScriptFinished,
+} JsRunnerEventType;
+
+typedef struct {
+    JsRunnerEventType type;
+} JsRunnerEvent;
+
+typedef void (*JsRunnerEventCallback)(const JsRunnerEvent* event, void* context);
 
 /** @brief Allocate a Javascript execution context.
  *
@@ -95,15 +105,15 @@ void js_runner_context_free(JsRunnerContextHandle* handle);
  *
  * @param handle context handle previously created by js_runner_context_alloc.
  * @param path entry point script path.
- * @param on_terminate function to be called when script terminates.
- * @param context user pointer passed to the on_terminate function.
+ * @param event_callback function to be called when an event occurs.
+ * @param context user pointer passed to the @p event_callback function.
  *
  * @return operation result. If error is JsRunnerErrorNone, handle is valid.
  */
 JsRunnerRunResult js_runner_run(
     JsRunnerContextHandle* handle,
     const char* path,
-    JsRunnerTerminationCallback on_terminate,
+    JsRunnerEventCallback event_callback,
     void* context);
 
 /** @brief Run a JS code snippet.
@@ -111,7 +121,7 @@ JsRunnerRunResult js_runner_run(
  * @param handle context handle previously created by js_runner_context_alloc.
  * @param code JS code (encoding: UTF-8).
  * @param print_result if true, evaluation result of the code snippet is printed using the console callback (severity: log).
- * @param on_terminate function to be called when snippet terminates.
+ * @param event_callback function to be called when an event occurs.
  * @param context user pointer passed to the on_terminate function.
  *
  * @return operation result. If error is JsRunnerErrorNone, handle is valid.
@@ -120,7 +130,7 @@ JsRunnerRunResult js_runner_run_snippet(
     JsRunnerContextHandle* handle,
     const char* code,
     bool print_result,
-    JsRunnerTerminationCallback on_terminate,
+    JsRunnerEventCallback event_callback,
     void* context);
 
 /** @brief Wait until JS run job completes.

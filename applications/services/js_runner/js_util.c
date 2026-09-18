@@ -135,6 +135,14 @@ FuriString* js_string_to_furi_string(jerry_value_t value) {
     return result;
 }
 
+bool js_exception_is_null(jerry_value_t exception) {
+    furi_check(jerry_value_is_exception(exception));
+    jerry_value_t val = jerry_exception_value(exception, false);
+    const bool is_null = jerry_value_is_null(val);
+    jerry_value_free(val);
+    return is_null;
+}
+
 FuriString* js_get_exception_string(jerry_value_t exception) {
     furi_check(jerry_value_is_exception(exception));
     jerry_value_t val = jerry_exception_value(exception, false);
