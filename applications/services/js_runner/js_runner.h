@@ -9,6 +9,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include <core/pubsub.h>
+
 #define RECORD_JS_RUNNER "js_runner"
 
 typedef struct JsRunner JsRunner;
@@ -24,6 +26,11 @@ typedef enum JsRunnerError {
     JsRunnerErrorTimeout,
     JsRunnerErrorMax,
 } JsRunnerError;
+
+typedef enum JsRunnerFatal {
+    JsRunnerFatalGeneric,
+    JsRunnerFatalOutOfMemory,
+} JsRunnerFatal;
 
 typedef enum JsRunnerConsoleSeverity {
     JsRunnerConsoleSeverityLog,
@@ -155,3 +162,10 @@ void js_runner_abort_all(JsRunner* instance);
  * @return error message
  */
 const char* js_runner_get_error_message(JsRunnerError error);
+
+/** @brief Get a pubsub which is triggered on jerryscript fatal errors.
+ *
+ * @param instance JsRunner instance. Can be obtained with furi_record_open().
+ * @return the pubsub. Pubsub messages can be casted into a pointer to JsRunnerFatal.
+ */
+FuriPubSub* js_runner_get_fatal_pubsub(JsRunner* instance);
