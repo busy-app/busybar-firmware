@@ -7,10 +7,21 @@
 
 #include "scenes/js_app_launcher_scenes.h"
 
-#define INPUT_QUEUE_SIZE (8)
-#define EVENT_QUEUE_SIZE (8)
+#define INPUT_QUEUE_SIZE       (8)
+#define EVENT_QUEUE_SIZE       (8)
+#define EVENT_QUEUE_TIMEOUT_MS (3000)
 
 #define NAV_BAR_HEIGHT (14)
+
+static const JsAppLauncherError js_app_launcher_settings_storage_error_map[] = {
+    [JsAppSettingsStorageStatusOk] = JsAppLauncherErrorNone,
+    [JsAppSettingsStorageStatusSchemaMissing] = JsAppLauncherErrorSettingsSchemaMissing,
+    [JsAppSettingsStorageStatusSchemaInvalid] = JsAppLauncherErrorSettingsSchemaInvalid,
+    [JsAppSettingsStorageStatusStorageFailure] = JsAppLauncherErrorSettingsStorageFailure,
+};
+
+static_assert(
+    COUNT_OF(js_app_launcher_settings_storage_error_map) == JsAppSettingsStorageStatusesCount);
 
 static bool js_app_launcher_gui_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
@@ -118,12 +129,24 @@ static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
         js_app_launcher_event_queue_callback,
         instance);
 
+    JsAppLauncherSceneId scene_id;
     if(instance->js_app) {
-        scene_manager_next_scene(instance->scene_manager, JsAppLauncherSceneIdStart);
+        JsAppSettingsStorageStatus status;
+        instance->settings_storage = js_app_settings_storage_alloc(app_id, &status);
+
+        if(instance->settings_storage || status == JsAppSettingsStorageStatusSchemaMissing) {
+            scene_id = JsAppLauncherSceneIdStart;
+        } else {
+            instance->error = js_app_launcher_settings_storage_error_map[status];
+            scene_id = JsAppLauncherSceneIdError;
+        }
     } else {
+        instance->settings_storage = NULL;
         instance->error = JsAppLauncherErrorLoadFailed;
-        scene_manager_next_scene(instance->scene_manager, JsAppLauncherSceneIdError);
+        scene_id = JsAppLauncherSceneIdError;
     }
+
+    scene_manager_next_scene(instance->scene_manager, scene_id);
 
     return instance;
 }
@@ -139,6 +162,10 @@ static void js_app_launcher_free(JsAppLauncher* instance) {
     furi_message_queue_free(instance->event_queue);
 
     furi_event_loop_free(instance->event_loop);
+
+    if(instance->settings_storage) {
+        js_app_settings_storage_free(instance->settings_storage);
+    }
 
     if(instance->js_app) {
         js_app_free(instance->js_app);
@@ -169,6 +196,11 @@ int32_t js_app_launcher_app(void* arg) {
 
 void js_app_launcher_send_custom_event(JsAppLauncher* instance, uint32_t event) {
     furi_assert(instance);
-    furi_check(
-        furi_message_queue_put(instance->event_queue, &event, FuriWaitForever) == FuriStatusOk);
+
+    FuriStatus queue_status =
+        furi_message_queue_put(instance->event_queue, &event, EVENT_QUEUE_TIMEOUT_MS);
+
+    if(queue_status != FuriStatusOk) {
+        FURI_LOG_E(TAG, "Failed to put an item into event queue.");
+    }
 }
