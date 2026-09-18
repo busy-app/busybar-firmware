@@ -251,6 +251,47 @@ bool setting_provider_reset(
  */
 bool setting_provider_validate(const SettingProviderSetting* setting, const void* value);
 
+/**
+ * @brief Load values from a settings document.
+ *
+ * Strict document load: the document must carry a current or migratable
+ * version and every field of the setting subtree, all valid. On failure the
+ * value buffer may be partially overwritten with defaults.
+ *
+ * @param[in] instance Setting provider instance
+ * @param[in] setting  Setting descriptor
+ * @param[in] data     Document data to load from
+ * @param[in] size     Length of the document data
+ * @param[out] value   Output buffer (must match expected type/size)
+ *
+ * @return    true on success, false on an invalid document
+ */
+bool setting_provider_load_document(
+    SettingProvider* instance,
+    const SettingProviderSetting* setting,
+    const char* data,
+    size_t size,
+    void* value);
+
+/**
+ * @brief Save values into a settings document.
+ *
+ * Builds the settings document for the setting subtree with the instance
+ * version, without touching storage.
+ *
+ * @param[in] instance Setting provider instance
+ * @param[in] setting  Setting descriptor
+ * @param[in] value    Pointer to value to save
+ * @param[out] data    Serialized document data
+ *
+ * @return    true on success, false when a value fails to serialize
+ */
+bool setting_provider_save_document(
+    SettingProvider* instance,
+    const SettingProviderSetting* setting,
+    const void* value,
+    FuriString* data);
+
 #ifdef __cplusplus
 }
 #endif

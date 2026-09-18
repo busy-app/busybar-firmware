@@ -3,7 +3,10 @@
 #include "js_fetch_body_methods.h"
 #include "js_headers.h"
 #include "js_request.h"
+#include "js_response.h"
+
 #include <fetch/fetch.h>
+#include <http/http_response.h>
 
 #define TAG                     "JsFetch"
 #define FETCH_THREAD_STACK_SIZE (10 * 1024)
@@ -63,7 +66,7 @@ static RequestParseResult parse_request(jerry_value_t obj) {
             };
             break;
         }
-        FURI_LOG_D(TAG, "Fetch %s", request.url);
+        JS_TRACE("Fetch %s", request.url);
 
         if(js_object_has_property(obj, "method")) {
             jerry_value_t method_val = jerry_object_get_sz(obj, "method");
@@ -304,7 +307,7 @@ static jerry_value_t fetch(
         return js_rejected_promise("At least 1 argument required, but only 0 passed");
     }
     jerry_value_t url = JS_ARG(0);
-    jerry_value_t init = JS_ARG(1);
+    jerry_value_t init = JS_ARG_OR_UNDEFINED(1);
 
     jerry_value_t request = js_request_construct(url, init);
     if(jerry_value_is_exception(request)) {
@@ -366,12 +369,19 @@ static jerry_value_t body_used_getter(
 }
 
 static jerry_value_t create_response(JsFetch* instance, SizedBuffer headers) {
-    jerry_value_t response = jerry_object();
+    HttpResponse http_response;
+    http_response_init(&http_response);
 
+    if(!http_response_parse(&http_response, headers.buffer, headers.size)) {
+        // Log error, but continue with blank HTTP response
+        FURI_LOG_E(TAG, "Failed to parse response");
+    }
+
+    jerry_value_t response = js_response_alloc(http_response.status, http_response.status_text);
     jerry_object_set_native_ptr(response, &js_fetch_response_native_info, instance);
 
+    jerry_value_t headers_val = js_headers_alloc(http_response.headers);
     jerry_value_t readable_stream = js_readable_stream_alloc(instance);
-    jerry_value_t headers_val = js_headers_alloc(response, headers.buffer, headers.size);
 
     js_set_property(response, "headers", headers_val);
     js_set_property(response, "body", readable_stream);
@@ -596,8 +606,6 @@ void js_fetch_abort(JsFetch* instance) {
 }
 
 void js_setup_fetch(void) {
-    js_setup_request();
-
     jerry_value_t global_obj = jerry_current_realm();
     js_set_method(global_obj, "fetch", fetch);
     jerry_value_free(global_obj);

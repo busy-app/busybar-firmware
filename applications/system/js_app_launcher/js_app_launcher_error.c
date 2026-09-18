@@ -18,6 +18,54 @@ static const JsAppLauncherErrorDesc js_app_launcher_error_descs[JsAppLauncherErr
                     .back = "Try to restart or reinstall it",
                 },
         },
+    [JsAppLauncherErrorSettingsSchemaMissing] =
+        {
+            .primary =
+                {
+                    .front = "This app has\nno settings.",
+                    .back = "No settings",
+                },
+            .auxiliary =
+                {
+                    .back = "Add settings file to the app",
+                },
+        },
+    [JsAppLauncherErrorSettingsSchemaInvalid] =
+        {
+            .primary =
+                {
+                    .front = "Settings file\nis invalid.",
+                    .back = "Invalid settings",
+                },
+            .auxiliary =
+                {
+                    .back = "Fix the app settings file",
+                },
+        },
+    [JsAppLauncherErrorSettingsStorageFailure] =
+        {
+            .primary =
+                {
+                    .front = "Settings storage\nerror.",
+                    .back = "Settings storage error",
+                },
+            .auxiliary =
+                {
+                    .back = "Check the storage device",
+                },
+        },
+    [JsAppLauncherErrorSettingsLoadFailed] =
+        {
+            .primary =
+                {
+                    .front = "Settings loading\nfailed.",
+                    .back = "Settings loading failed",
+                },
+            .auxiliary =
+                {
+                    .back = "Check the app settings file",
+                },
+        },
     [JsAppLauncherErrorSyntaxError] =
         {
             .primary =
@@ -54,8 +102,12 @@ JsAppLauncherError js_app_launcher_translate_from_js_runner_error(JsRunnerError 
     furi_assert(js_runner_error < JsRunnerErrorMax);
     JsAppLauncherError translated_error;
 
-    if(js_runner_error == JsRunnerErrorParseException) {
+    if(js_runner_error == JsRunnerErrorNone) {
+        translated_error = JsAppLauncherErrorNone;
+    } else if(js_runner_error == JsRunnerErrorParseException) {
         translated_error = JsAppLauncherErrorSyntaxError;
+    } else if(js_runner_error == JsRunnerErrorOutOfMemory) {
+        translated_error = JsAppLauncherErrorProgramCrashed;
     } else {
         translated_error = JsAppLauncherErrorLoadFailed;
     }

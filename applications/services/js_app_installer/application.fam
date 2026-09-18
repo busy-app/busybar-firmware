@@ -1,0 +1,10 @@
+App(
+    appid="js_app_installer",
+    name="JsAppInstaller",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="js_app_installer_app",
+    requires=["gui"],
+    stack_size=2 * 1024,
+    order=350,
+    targets=["f20", "f21", "f22"],
+)
