@@ -85,15 +85,15 @@
         <template v-else>
           <div class="flex flex-wrap items-start gap-4">
             <UFormField
-              v-if="fpsOptions.length > 1 || isFpsLocked"
+              v-if="fpsOptions.length > 1"
               label="FPS"
-              :help="isFpsLocked ? 'One frame rate in canvas' : undefined"
-              :ui="{help: 'text-xs'}"
+              :help="willConvertClips ? `Other clips will be converted to ${fps} fps` : undefined"
+              :ui="{ help: 'text-xs text-warning' }"
             >
               <USelect
                 v-model="fps"
                 :items="fpsOptions"
-                :disabled="isDecoding || isFpsLocked"
+                :disabled="isDecoding"
                 class="w-28"
               />
             </UFormField>
@@ -216,6 +216,7 @@
             <AnimationPlayer
               v-if="animation"
               :animation="animation"
+              :frame="barPreviewFrame"
             />
 
             <div
@@ -353,25 +354,37 @@ const isPreviewStale = computed(() => {
 
 const isInstantSource = computed(() => handle.value?.kind === 'frames');
 
-const lockedFps = computed(() => {
+const canvasFps = computed(() => {
   const other = es.videoShapes.find(shape => shape.id !== editTargetId.value);
 
   return other ? other.fps : null;
 });
 
-const isFpsLocked = computed(() => lockedFps.value !== null);
+const willConvertClips = computed(() => canvasFps.value !== null && fps.value !== canvasFps.value);
 
 const fpsOptions = computed(() => {
-  const locked = lockedFps.value;
+  const allowed = getAllowedFps(handle.value?.nativeFps);
+  const extra = [fps.value, canvasFps.value].filter((value): value is number => value !== null);
+  const values = [...new Set([...allowed, ...extra])].sort((a, b) => a - b);
 
-  if (locked !== null) {
-    return [{ label: String(locked), value: locked }];
+  return values.map(value => ({
+    label: String(value),
+    value,
+    disabled: canvasFps.value !== null && value !== canvasFps.value && !es.canSetTimelineFps(value, editTargetId.value)
+  }));
+});
+
+const barPreviewFrame = computed(() => {
+  const cache = frameCache.value;
+  const frameCount = animation.value?.frames.length ?? 0;
+
+  if (!cache || frameCount === 0) {
+    return 0;
   }
 
-  const allowed = getAllowedFps(handle.value?.nativeFps);
-  const values = allowed.includes(fps.value) ? allowed : [...allowed, fps.value].sort((a, b) => a - b);
+  const index = Math.floor(((previewTime.value - cache.startTime) * cache.fps) + 1e-6);
 
-  return values.map(value => ({ label: String(value), value }));
+  return Math.min(frameCount - 1, Math.max(0, index));
 });
 
 const needsFirstRender = computed(() => !!handle.value
@@ -876,7 +889,7 @@ async function openFile (file: File, restoreFrom?: VideoShapeSource) {
   const resolvedAdapter = resolveFrameSourceAdapter(file);
 
   if (!resolvedAdapter) {
-    fileError.value = 'Unsupported file. Use a video, an animated GIF or WebP, or a .anim file.';
+    fileError.value = 'Unsupported file. Use a video, a GIF or a .anim file.';
     return;
   }
 
@@ -898,12 +911,12 @@ async function openFile (file: File, restoreFrom?: VideoShapeSource) {
     handle.value = openedHandle;
 
     if (restoreFrom) {
-      fps.value = lockedFps.value ?? restoreFrom.fps;
+      fps.value = restoreFrom.fps;
       fit.value = restoreFrom.fit;
       crop.value = { ...restoreFrom.crop };
       clampTrim(restoreFrom.trimStart, restoreFrom.trimEnd, false);
     } else {
-      fps.value = lockedFps.value ?? getInitialFps(openedHandle.nativeFps);
+      fps.value = canvasFps.value ?? getInitialFps(openedHandle.nativeFps);
       clampTrim(0, Math.min(openedHandle.duration, maxWindowSeconds.value), false);
     }
 
@@ -1054,6 +1067,10 @@ async function insertVideo () {
 
   if (!animation.value || !sourceFile.value) {
     return;
+  }
+
+  if (canvasFps.value !== null && animation.value.fps !== canvasFps.value) {
+    es.setTimelineFps(animation.value.fps, { exceptShapeId: editTargetId.value, recordHistory: false });
   }
 
   const frames = animation.value.frames.map(frame => frame.imageData);

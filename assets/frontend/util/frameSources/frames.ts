@@ -6,8 +6,7 @@ import { getFileExtension } from './types';
 import type { DecodeFramesOptions, FrameSourceAdapter, FrameSourceHandle } from './types';
 
 const IMAGE_MIME_BY_EXTENSION: Record<string, string> = {
-  gif: 'image/gif',
-  webp: 'image/webp'
+  gif: 'image/gif'
 };
 
 function toHandle (adapterId: string, decoded: DecodedFrameSet): FrameSourceHandle {
@@ -81,7 +80,7 @@ export const imageAdapter: FrameSourceAdapter = {
   accepts: file => {
     const mime = file.type || IMAGE_MIME_BY_EXTENSION[getFileExtension(file)];
 
-    return mime === 'image/gif' || mime === 'image/webp';
+    return mime === 'image/gif';
   },
   open: async file => {
     const mime = file.type || IMAGE_MIME_BY_EXTENSION[getFileExtension(file)];

@@ -1,3 +1,4 @@
+import { decompressFrames, parseGIF } from 'gifuct-js';
 import { decodeAnimation } from '../util/anim2seq';
 
 type DecodeRequest
@@ -16,6 +17,8 @@ type DecodeResponse
     | { id: number; ok: false; error: string };
 
 const DEFAULT_FRAME_DURATION_MS = 100;
+const GIF_DISPOSAL_RESTORE_BACKGROUND = 2;
+const GIF_DISPOSAL_RESTORE_PREVIOUS = 3;
 
 function toMessageFrame (imageData: ImageData, durationMs: number): DecodedFrameMessage {
   return {
@@ -38,55 +41,78 @@ async function decodeAnim (buffer: ArrayBuffer) {
   };
 }
 
-async function decodeImage (buffer: ArrayBuffer, mime: string) {
-  if (typeof ImageDecoder === 'undefined') {
-    throw new Error('ImageDecoder is not available in this browser');
+function clearRect (canvas: Uint8ClampedArray, canvasWidth: number, canvasHeight: number, dims: { left: number; top: number; width: number; height: number }) {
+  const left = Math.max(0, dims.left);
+  const right = Math.min(canvasWidth, dims.left + dims.width);
+
+  if (right <= left) {
+    return;
   }
 
-  const decoder = new ImageDecoder({ data: buffer, type: mime });
+  for (let y = Math.max(0, dims.top); y < Math.min(canvasHeight, dims.top + dims.height); y++) {
+    canvas.fill(0, ((y * canvasWidth) + left) * 4, ((y * canvasWidth) + right) * 4);
+  }
+}
 
-  await decoder.tracks.ready;
+function decodeGif (buffer: ArrayBuffer) {
+  const gif = parseGIF(buffer);
+  const width = gif.lsd.width;
+  const height = gif.lsd.height;
+  const parsedFrames = decompressFrames(gif, true);
 
-  const track = decoder.tracks.selectedTrack;
-
-  if (!track) {
-    throw new Error('Image has no decodable track');
+  if (!width || !height || !parsedFrames.length) {
+    throw new Error('GIF has no decodable frames');
   }
 
-  await decoder.completed;
-
-  const frameCount = Math.max(1, track.frameCount);
+  const canvas = new Uint8ClampedArray(width * height * 4);
   const frames: DecodedFrameMessage[] = [];
-  let width = 0;
-  let height = 0;
 
-  for (let index = 0; index < frameCount; index++) {
-    const result = await decoder.decode({ frameIndex: index });
-    const image = result.image;
+  parsedFrames.forEach(frame => {
+    const { left, top, width: patchWidth, height: patchHeight } = frame.dims;
+    const previous = frame.disposalType === GIF_DISPOSAL_RESTORE_PREVIOUS ? canvas.slice() : null;
 
-    width = image.displayWidth;
-    height = image.displayHeight;
+    for (let y = 0; y < patchHeight; y++) {
+      const canvasY = top + y;
 
-    const canvas = new OffscreenCanvas(width, height);
-    const context = canvas.getContext('2d', { willReadFrequently: true });
+      if (canvasY < 0 || canvasY >= height) {
+        continue;
+      }
 
-    if (!context) {
-      image.close();
-      throw new Error('Could not create canvas context');
+      for (let x = 0; x < patchWidth; x++) {
+        const canvasX = left + x;
+        const source = ((y * patchWidth) + x) * 4;
+
+        if (canvasX < 0 || canvasX >= width || frame.patch[source + 3] === 0) {
+          continue;
+        }
+
+        canvas.set(frame.patch.subarray(source, source + 4), ((canvasY * width) + canvasX) * 4);
+      }
     }
 
-    context.drawImage(image, 0, 0);
+    frames.push({
+      width,
+      height,
+      durationMs: frame.delay || DEFAULT_FRAME_DURATION_MS,
+      buffer: canvas.slice().buffer
+    });
 
-    const imageData = context.getImageData(0, 0, width, height);
-    const durationMs = image.duration ? image.duration / 1000 : DEFAULT_FRAME_DURATION_MS;
-
-    image.close();
-    frames.push(toMessageFrame(imageData, durationMs));
-  }
-
-  decoder.close();
+    if (frame.disposalType === GIF_DISPOSAL_RESTORE_BACKGROUND) {
+      clearRect(canvas, width, height, frame.dims);
+    } else if (previous) {
+      canvas.set(previous);
+    }
+  });
 
   return { width, height, frames };
+}
+
+async function decodeImage (buffer: ArrayBuffer, mime: string) {
+  if (mime !== 'image/gif') {
+    throw new Error('Unsupported image. Use a GIF or a video instead.');
+  }
+
+  return decodeGif(buffer);
 }
 
 self.onmessage = async (event: MessageEvent<DecodeRequest>) => {

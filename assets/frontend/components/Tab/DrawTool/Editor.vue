@@ -701,6 +701,56 @@
           </template>
         </UPopover>
 
+        <UPopover
+          v-if="es.hasVideoShapes"
+          :content="{
+            side: 'top',
+            sideOffset: 16
+          }"
+          :ui="{
+            content: 'rounded-xl bg-surface-container ring-accented/75'
+          }"
+        >
+          <UTooltip
+            :delay-duration="80"
+            :content="{
+              side: 'top',
+              sideOffset: 16
+            }"
+            text="Frame rate"
+          >
+            <UButton
+              data-id="draw-tool-timeline-fps"
+              color="neutral"
+              variant="ghost"
+              square
+              :class="toolbarIconButtonClass"
+            >
+              <UIcon
+                name="i-ri-speed-line"
+                class="size-6"
+              />
+            </UButton>
+          </UTooltip>
+
+          <template #content>
+            <div class="w-60 p-3">
+              <UFormField
+                label="Frame rate, fps"
+                help="All clips on the canvas play and export at this rate"
+                :ui="{ help: 'text-xs' }"
+              >
+                <USelect
+                  :model-value="es.timelineFps"
+                  :items="timelineFpsOptions"
+                  class="w-full"
+                  @update:model-value="value => es.setTimelineFps(Number(value))"
+                />
+              </UFormField>
+            </div>
+          </template>
+        </UPopover>
+
         <UTooltip
           :delay-duration="80"
           :content="{
@@ -1013,7 +1063,8 @@ import {
   Transformer as VTransformer
 } from 'vue-konva';
 import drawToolIconsData from '@/generated/drawTool/icons.json';
-import { DRAW_TOOL_DISPLAY_PRIORITY, DRAW_TOOL_EXPORT_PIXEL_SIZE, pixelateImageData } from '@/util/drawTool';
+import { DRAW_TOOL_DISPLAY_PRIORITY, DRAW_TOOL_EXPORT_PIXEL_SIZE, DRAW_TOOL_VIDEO_MAX_FPS, pixelateImageData } from '@/util/drawTool';
+import { VIDEO_FPS_OPTIONS } from '@/util/videoFrames';
 import type { TransformerBox } from '@/util/drawTool';
 import { ANIM_FILE_EXTENSION, composeAnimationFromFrames } from '@/util/seq2anim';
 import { createAnimationFromFrames } from '@/util/anim2seq';
@@ -1251,6 +1302,17 @@ const workspaceGridGroupConfig = computed(() => ({
 }));
 
 const hasVisibleBackgroundColor = computed(() => !isColorFullyTransparent(es.backgroundColor));
+
+const timelineFpsOptions = computed(() => {
+  const values = [...new Set([...VIDEO_FPS_OPTIONS.filter(value => value <= DRAW_TOOL_VIDEO_MAX_FPS), es.timelineFps])]
+    .sort((a, b) => a - b);
+
+  return values.map(value => ({
+    label: String(value),
+    value,
+    disabled: !es.canSetTimelineFps(value)
+  }));
+});
 
 const workspaceBackgroundConfig = computed(() => ({
   x: 0,

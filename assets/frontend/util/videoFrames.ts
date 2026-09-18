@@ -155,6 +155,25 @@ export function resampleTimedFrames (
   return { frames: output, fps: grid.fps, startTime: grid.startTime, endTime: grid.endTime };
 }
 
+export function getResampledFrameCount (frameCount: number, fromFps: number, toFps: number) {
+  return Math.max(1, Math.round((frameCount * toFps) / Math.max(1, fromFps)));
+}
+
+export function resampleFrameSequence (frames: ImageData[], fromFps: number, toFps: number, maxFrames: number): ImageData[] {
+  if (!frames.length || fromFps === toFps) {
+    return frames.slice(0, maxFrames);
+  }
+
+  const count = Math.min(maxFrames, getResampledFrameCount(frames.length, fromFps, toFps));
+  const output: ImageData[] = [];
+
+  for (let index = 0; index < count; index++) {
+    output.push(frames[Math.min(frames.length - 1, Math.floor(((index * fromFps) / toFps) + 1e-9))]);
+  }
+
+  return output;
+}
+
 export function sliceFrameCache (cache: FrameCache, startTime: number, endTime: number): FrameCache | null {
   const epsilon = 1 / cache.fps;
 

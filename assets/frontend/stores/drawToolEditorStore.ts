@@ -1,6 +1,7 @@
 import Konva from 'konva';
 import { defineStore } from 'pinia';
-import { cloneShape } from '@/util/drawTool';
+import { cloneShape, DRAW_TOOL_VIDEO_MAX_FRAMES } from '@/util/drawTool';
+import { getResampledFrameCount, resampleFrameSequence } from '@/util/videoFrames';
 
 type OverlayControlPosition = {
   x: number;
@@ -936,6 +937,37 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     isTimelinePlaying.value = !isTimelinePlaying.value;
   }
 
+  function canSetTimelineFps (fps: number, exceptShapeId: string | null = null) {
+    return videoShapes.value
+      .filter(shape => shape.id !== exceptShapeId)
+      .every(shape => getResampledFrameCount(shape.frames.length, shape.fps, fps) <= DRAW_TOOL_VIDEO_MAX_FRAMES);
+  }
+
+  function setTimelineFps (fps: number, options: { exceptShapeId?: string | null; recordHistory?: boolean } = {}) {
+    const nextFps = Math.max(1, Math.round(fps));
+    const previousFps = timelineFps.value;
+    const targets = videoShapes.value.filter(shape => shape.id !== options.exceptShapeId && shape.fps !== nextFps);
+
+    if (!targets.length) {
+      return;
+    }
+
+    targets.forEach(shape => {
+      const frames = resampleFrameSequence(shape.frames, shape.fps, nextFps, DRAW_TOOL_VIDEO_MAX_FRAMES);
+      const source = shape.source
+        ? { ...shape.source, fps: nextFps, trimEnd: shape.source.trimStart + (frames.length / nextFps) }
+        : undefined;
+
+      updateShape(shape.id, current => ({ ...(current as VideoShape), frames, fps: nextFps, source }));
+    });
+
+    setPlayheadFrame((playheadFrame.value * nextFps) / Math.max(1, previousFps));
+
+    if (options.recordHistory !== false) {
+      pushHistorySnapshot();
+    }
+  }
+
   function deleteSelectedShape () {
     if (!selectedShapeId.value) {
       return;
@@ -1251,6 +1283,8 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     setPlayheadFrame,
     stepPlayhead,
     toggleTimelinePlayback,
+    canSetTimelineFps,
+    setTimelineFps,
     markStatusSaved,
     clearStage,
     resetEditor,

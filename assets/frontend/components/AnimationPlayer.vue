@@ -16,15 +16,21 @@ const props = withDefaults(defineProps<{
   animation: DecodedAnimation;
   playing?: boolean;
   loop?: boolean;
+  frame?: number | null;
 }>(), {
   playing: true,
-  loop: true
+  loop: true,
+  frame: null
 });
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 
 let subscriber: AnimationTickerSubscriber | null = null;
 let unsubscribe: (() => void) | null = null;
+
+function clampFrame (index: number) {
+  return Math.min(props.animation.frames.length - 1, Math.max(0, Math.floor(index)));
+}
 
 function teardown () {
   unsubscribe?.();
@@ -41,23 +47,39 @@ function setup () {
     return;
   }
 
+  const frame = props.frame;
+
   subscriber = {
     animation: props.animation,
     context,
     loop: props.loop,
-    playing: props.playing && props.animation.frames.length > 1,
-    frameIndex: 0,
+    playing: frame === null && props.playing && props.animation.frames.length > 1,
+    frameIndex: frame === null ? 0 : clampFrame(frame),
     elapsedInFrame: 0
   };
 
-  drawAnimationFrame(subscriber, 0);
-  unsubscribe = subscribeToAnimationTicker(subscriber);
+  drawAnimationFrame(subscriber, subscriber.frameIndex);
+
+  if (frame === null) {
+    unsubscribe = subscribeToAnimationTicker(subscriber);
+  }
 }
 
 watch(() => props.animation, setup);
 
+watch(() => props.frame === null, setup);
+
+watch(() => props.frame, frame => {
+  if (frame === null || !subscriber) {
+    return;
+  }
+
+  subscriber.frameIndex = clampFrame(frame);
+  drawAnimationFrame(subscriber, subscriber.frameIndex);
+});
+
 watch(() => props.playing, playing => {
-  if (!subscriber) {
+  if (!subscriber || props.frame !== null) {
     return;
   }
 
