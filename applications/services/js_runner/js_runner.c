@@ -699,7 +699,13 @@ static void run_file_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
 
             jerry_value_t link_result = jerry_module_link(parse_result, NULL, NULL);
             if(jerry_value_is_exception(link_result)) {
-                js_log_exception(TAG, "Error linking modules", link_result);
+                if(js_exception_is_null(parse_result)) {
+                    FURI_LOG_E(TAG, "Error linking modules: possibly out of memory");
+                    ret = JsRunnerErrorOutOfMemory;
+                } else {
+                    js_log_exception(TAG, "Error linking modules", link_result);
+                    ret = JsRunnerErrorParseException;
+                }
                 jerry_value_free(link_result);
                 ret = JsRunnerErrorParseException;
                 break;
@@ -713,9 +719,9 @@ static void run_file_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
 
             js_runner_notify(app, JsRunnerEventTypeScriptStarted);
 
-            jerry_value_t result = jerry_module_evaluate(parse_result);
-            if(jerry_value_is_exception(result)) {
-                js_log_exception(TAG, "Error running script", result);
+            jerry_value_t evaluate_result = jerry_module_evaluate(parse_result);
+            if(jerry_value_is_exception(evaluate_result)) {
+                js_log_exception(TAG, "Error running script", evaluate_result);
                 app_terminate_from_app_thread(app);
             }
 
@@ -723,7 +729,7 @@ static void run_file_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
             app->script_evaluation_done = true;
             js_runner_app_stop_if_done(app);
 
-            jerry_value_free(result);
+            jerry_value_free(evaluate_result);
             jerry_value_free(link_result);
         } while(false);
 
