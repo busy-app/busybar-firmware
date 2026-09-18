@@ -39,6 +39,12 @@ typedef struct JsRunnerAppInterval {
     uint32_t last_id;
 } JsRunnerAppInterval;
 
+typedef struct JsRunnerAppInput {
+    FuriPubSubSubscription* pubsub_subscription;
+    jerry_value_t listen_handler;
+    FuriMessageQueue* input_queue;
+} JsRunnerAppInput;
+
 typedef struct JsFetch JsFetch;
 ARRAY_DEF(FetchArray, JsFetch*, M_PTR_OPLIST);
 typedef struct JsRunnerAppFetch {
@@ -99,11 +105,13 @@ typedef struct JsRunnerApp {
     JsRunnerAppConsole console;
     JsRunnerAppInterval interval;
     JsRunnerAppFetch fetch;
+    JsRunnerAppInput input;
 } JsRunnerApp;
 
 typedef struct JsRunner {
     FuriEventLoop* event_loop;
     FuriMessageQueue* message_queue;
+    FuriPubSub* fatal_pubsub;
 } JsRunner;
 
 typedef struct JsRunnerContextHandle {
@@ -116,8 +124,8 @@ typedef struct JsRunnerContextHandle {
 typedef struct JsRunnerExecutionHandle {
     JsRunnerContextHandle* context_handle;
     JsRunnerApp* app;
-    JsRunnerTerminationCallback termination_callback;
-    void* termination_callback_context;
+    JsRunnerEventCallback event_callback;
+    void* event_callback_context;
 } JsRunnerExecutionHandle;
 
 typedef struct JsRunnerStaticContext {

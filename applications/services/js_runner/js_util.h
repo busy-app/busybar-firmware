@@ -13,6 +13,7 @@
             return jerry_throw_sz(JERRY_ERROR_TYPE, "At least " #n " arguments required"); \
         }                                                                                  \
     } while(false)
+
 #define JS_CHECK_INSTANCE()                                                    \
     do {                                                                       \
         if(!instance) {                                                        \
@@ -20,10 +21,54 @@
         }                                                                      \
     } while(false)
 
+#define JS_CHECK_CONSTRUCTOR()                                                          \
+    do {                                                                                \
+        if(!jerry_value_is_object(call_info->this_value)) {                             \
+            return jerry_throw_sz(                                                      \
+                JERRY_ERROR_TYPE, "Class constructor cannot be invoked without 'new'"); \
+        }                                                                               \
+    } while(false)
+
+#define JS_CHECK_ARG_IS_FUNCTION(arg)                                              \
+    do {                                                                           \
+        if(!jerry_value_is_function(arg)) {                                        \
+            return jerry_throw_sz(JERRY_ERROR_TYPE, "Function argument required"); \
+        }                                                                          \
+    } while(false)
+
+#define JS_CHECK_ARG_IS_STRING(arg)                                              \
+    do {                                                                         \
+        if(!jerry_value_is_string(arg)) {                                        \
+            return jerry_throw_sz(JERRY_ERROR_TYPE, "String argument required"); \
+        }                                                                        \
+    } while(false)
+
 /** @brief Check if value is not and exception and free it
  * @param value value to check and free
  */
 void js_check_and_free(jerry_value_t value);
+
+/** @brief Set a prototype object to be used with a constructor
+ *
+ * @param constructor Constructor function (not freed)
+ * @param prototype Prototype value to set (freed)
+ */
+void js_set_constructor_prototype(jerry_value_t constructor, jerry_value_t prototype);
+
+/** @brief Construct an object given the class name
+ *
+ * @p args can be @c NULL if the constructor takes no arguments,
+ * in which case @p args_count must be 0.
+ *
+ * @param name class name as a zero-terminated string
+ * @param args array of arguments to pass to the constructor
+ * @param args_count number of arguments passed to the constructor
+ * @returns constructed object value
+ */
+jerry_value_t js_object_construct(
+    const char* name,
+    const jerry_value_t args[],
+    const jerry_length_t args_count);
 
 /** @brief Set a property in a JS object
  *
@@ -112,6 +157,15 @@ jerry_value_t js_iterator_result(bool done, jerry_value_t value);
  */
 char* js_string_to_c_string(jerry_value_t value);
 
+/** @brief Convert any value to a character string.
+ *
+ * If the value is already a string, it is used as-is,
+ * otherwise it will be converted using the toString method.
+ *
+ * @return a heap-allocated string or NULL if an exception has occurred.
+ */
+char* js_value_to_c_string(jerry_value_t value);
+
 /** @brief If value is a JS string, return its UTF8 representation.
  *
  * @return a new string or NULL if value is not a JS string.
@@ -154,6 +208,14 @@ jerry_value_t js_rejected_promise_from_exception(jerry_value_t exception);
  *  @param exception exception (freed)
  */
 void js_reject_promise_with_exception(jerry_value_t promise, jerry_value_t exception);
+
+/**
+ * @brief Check if the exception holds a null as the value.
+ *
+ * @param exception JS exception. This value is not freed.
+ * @return @c true if the exception holds @c null, @c false otherwise
+ */
+bool js_exception_is_null(jerry_value_t exception);
 
 /** @brief Create a string out of a JS exception.
  *

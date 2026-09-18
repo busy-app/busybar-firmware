@@ -15,15 +15,25 @@ typedef struct AnimFile AnimFile;
 
 #define ANIM_FILE_OUT_BYTES_PER_PIXEL 4
 
+typedef enum {
+    AnimFileOptionNone = 0,
+    AnimFileOptionIntermediateInternalBuffer =
+        (1
+         << 0), //<! Allow subpixel movement of resulting images (using @c anim_file_set_offset) and resizing/changing of output buffer (using @c anim_file_set_out_buf more than once)
+    AnimFileOptionMAX,
+} AnimFileOption;
+
 /**
  * @brief Loads an `AnimFile` from the specified path
  * 
  * @param[in] storage `Storage` service
  * @param[in] path Path to `.anim` file
+ * @param[in] options Bitmask of options (see @c AnimFileOption documentation)
  * 
  * @returns Allocated and loaded `AnimFile`, or `NULL` on error.
  */
-AnimFile* FURI_WARN_UNUSED anim_file_alloc(Storage* storage, const char* path);
+AnimFile* FURI_WARN_UNUSED
+    anim_file_alloc(Storage* storage, const char* path, AnimFileOption options);
 
 /**
  * @brief Unloads an `AnimFile`
@@ -82,6 +92,10 @@ typedef struct {
  * with `anim_file_set_cutout`.
  * 
  * The buffer will not be touched until the next call to `anim_file_frame`.
+ * 
+ * If option `IntermediateInternalBuffer` was not set, the contents of the
+ * provided buffer must never change. It may be reallocated, but its contents
+ * must stay the same.
  * 
  * @param[in] anim `AnimFile` instance
  * @param[in] width Buffer width in pixels

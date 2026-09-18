@@ -30,9 +30,14 @@ void jerry_port_context_free(void) {
 void jerry_port_init(void) {
 }
 
+void jerry_port_log(const char* message) {
+    FURI_LOG_D(TAG, "%s", message);
+}
+
 void jerry_port_fatal(jerry_fatal_code_t code) {
     FURI_LOG_E(TAG, "jerryscript fatal error %d", code);
-    furi_crash(code);
+    js_runner_handle_fatal_error(code);
+    furi_thread_suspend(furi_thread_get_current_id());
 }
 
 double jerry_port_current_time(void) {

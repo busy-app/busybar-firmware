@@ -39,6 +39,7 @@ for libname in [
     "storage_utils",
     "js_app",
     "xpm",
+    "http",
     ## SI917
     "sl_glue",
     "simplicity_sdk",

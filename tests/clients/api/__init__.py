@@ -67,6 +67,16 @@ from .assets import (
     DisplayElement,
 )
 
+# JavaScript Apps API
+from .apps import (
+    AppInfo,
+    AppListResponse,
+    AppSettingsDocument,
+    AppsAPI,
+    AppsResultResponse,
+    AppStageResponse,
+)
+
 # Account API
 from .account import (
     AccountAPI,
@@ -173,6 +183,12 @@ __all__ = [
     "DisplayElement",
     "DisplayDrawRequest",
     "DisplayDeleteRequest",
+    "AppsAPI",
+    "AppInfo",
+    "AppListResponse",
+    "AppSettingsDocument",
+    "AppStageResponse",
+    "AppsResultResponse",
     "AccountAPI",
     "AccountBackend",
     "AccountInfoResponse",
