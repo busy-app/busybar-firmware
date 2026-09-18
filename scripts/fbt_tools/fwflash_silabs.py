@@ -30,7 +30,7 @@ def generate(env):
                     [
                         "${PYTHON3}",
                         "${SILABS_FLASH_SCRIPT}",
-                        "-d" if env["VERBOSE"] else "",
+                        *(["-d", "4"] if env["VERBOSE"] else []),
                         "-p",
                         "${SI917_PORT}",
                         "${SOURCE}",

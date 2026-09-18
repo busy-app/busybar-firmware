@@ -18,6 +18,7 @@ static const char* const intercom_channel_names[IntercomChannelIdMax] = {
     [IntercomChannelIdMatter] = "Matter",
     [IntercomChannelIdSlInfo] = "SlInfo",
     [IntercomChannelIdDebug] = "Debug",
+    [IntercomChannelIdPower] = "Power",
 };
 
 void intercom_channel_init(IntercomChannel* channel, Intercom* owner) {

@@ -203,12 +203,34 @@ typedef enum {
     GpioAltFnUnused = 16, /*!< just dummy value */
 } GpioAltFn;
 
+typedef enum {
+    GpioWakeupLineNone = 0,
+    GpioWakeupLine1 = 1,
+    GpioWakeupLine2 = 2,
+    GpioWakeupLine3 = 3,
+    GpioWakeupLine4 = 4,
+    GpioWakeupLine5 = 5,
+    GpioWakeupLine6 = 6,
+    GpioWakeupLine7 = 7,
+    GpioWakeupLine8 = 8,
+} GpioWakeupLine;
+
+typedef enum {
+    GpioWakeupMultiplex0 = 0,
+    GpioWakeupMultiplex1 = 1,
+    GpioWakeupMultiplex2 = 2,
+    GpioWakeupMultiplex3 = 3,
+    GpioWakeupMultiplexNone,
+} GpioWakeupMultiplex;
+
 /**
  * Gpio structure
  */
 typedef struct {
     GPIO_TypeDef* port;
     uint16_t pin;
+    GpioWakeupLine wakeup_line;
+    GpioWakeupMultiplex wakeup_mux;
 } GpioPin;
 
 /**

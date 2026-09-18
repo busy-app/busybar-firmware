@@ -81,6 +81,7 @@ App(
         "matter",
         "startup_dfu_hook",
         "device_info",
+        "power_srv",
     ],
     targets=["f64", "f65"],
 )

@@ -1,9 +1,14 @@
 #pragma once
 
 #include "power.h"
+#include "../power_intercom_i.h"
 #include "settings/settings_i.h"
 #include <furi_hal.h>
 #include <toolbox/api_lock.h>
+
+#if defined(SRV_INTERCOM)
+#include <intercom/intercom.h>
+#endif
 
 // =========================================
 // Battery state of charge (power_battery.c)
@@ -77,6 +82,9 @@ typedef enum {
     PowerMessageTypePdGetInfo,
     PowerMessageTypePdRequest,
     PowerMessageTypeLoadBatCal,
+#if defined(SRV_INTERCOM)
+    PowerMessageTypeDeepSleep,
+#endif
 
     // TODO: separate queue for internal messages?
     PowerMessageTypeUsbPdUpdate,
@@ -133,6 +141,11 @@ struct Power {
     float charge_last;
     bool settings_first_loaded;
     PowerSettings settings;
+
+#if defined(SRV_INTERCOM)
+    Intercom* intercom;
+    IntercomChannel* intercom_power;
+#endif
 
 #ifndef FURI_RAM_EXEC
     bool shipping_mode_wait;
