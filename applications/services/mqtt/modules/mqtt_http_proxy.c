@@ -73,7 +73,7 @@ static const MqttHttpProxyBlocklistEntry mqtt_http_proxy_blocklist[] = {
     },
     {
         .name = "apps/settings",
-        .id = MqttHttpProxyMethodIdPost,
+        .id = MqttHttpProxyMethodIdPut,
     },
     {
         .name = "apps/settings",
