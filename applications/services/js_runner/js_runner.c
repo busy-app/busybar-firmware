@@ -45,6 +45,25 @@ void* js_runner_thread_context_get(void) {
     return result;
 }
 
+void js_runner_handle_fatal_error(jerry_fatal_code_t code) {
+    JsRunnerFatal error = JsRunnerFatalGeneric;
+    switch(code) {
+    case JERRY_FATAL_OUT_OF_MEMORY:
+        error = JsRunnerFatalOutOfMemory;
+        break;
+    default:
+        error = JsRunnerFatalGeneric;
+        break;
+    }
+    JsRunner* instance = furi_record_open(RECORD_JS_RUNNER);
+    furi_pubsub_publish(instance->fatal_pubsub, &error);
+    furi_record_close(RECORD_JS_RUNNER);
+}
+
+FuriPubSub* js_runner_get_fatal_pubsub(JsRunner* instance) {
+    return instance->fatal_pubsub;
+}
+
 bool js_runner_get_root_path(FuriString* path) {
     bool result = false;
     WITH_JS_RUNNER_APP(app, {
@@ -577,6 +596,7 @@ JsRunnerError js_runner_join(JsRunnerExecutionHandle* handle, uint32_t timeout) 
 static JsRunner* js_runner_alloc(void) {
     JsRunner* instance = malloc(sizeof(JsRunner));
     instance->event_loop = furi_event_loop_alloc();
+    instance->fatal_pubsub = furi_pubsub_alloc();
     furi_record_create(RECORD_JS_RUNNER, instance);
     return instance;
 }
