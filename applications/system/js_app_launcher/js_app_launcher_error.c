@@ -106,6 +106,8 @@ JsAppLauncherError js_app_launcher_translate_from_js_runner_error(JsRunnerError 
         translated_error = JsAppLauncherErrorNone;
     } else if(js_runner_error == JsRunnerErrorParseException) {
         translated_error = JsAppLauncherErrorSyntaxError;
+    } else if(js_runner_error == JsRunnerErrorOutOfMemory) {
+        translated_error = JsAppLauncherErrorProgramCrashed;
     } else {
         translated_error = JsAppLauncherErrorLoadFailed;
     }
