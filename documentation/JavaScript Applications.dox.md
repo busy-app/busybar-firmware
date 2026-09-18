@@ -42,7 +42,7 @@ The firmware will look for these hardcoded file names when looking for applicati
 
 Required. The name must be at most 32 characters long and contain only ASCII alphanumeric characters.
 
-The only allowed special characters are: `_` (underscore), `-` (minus) and `.` (period).
+The only allowed special characters are: `_` (underscore), `-` (minus) and `.` (period). The name cannot start with a period.
 
 To improve the name uniqueness, a reverse domain name scheme is recommended, but is not required.
 
@@ -95,7 +95,7 @@ Application manifest file is a JSON file that matches the following schema:
             "type": "string",
             "minLength": 1,
             "maxLength": 32,
-            "pattern": "^[a-zA-Z0-9._-]+$",
+            "pattern": "^[a-zA-Z0-9_\\-][a-zA-Z0-9_\\-.]{0,31}$",
             "description": "Unique application ID (must match the root directory name)"
         },
         "name": {

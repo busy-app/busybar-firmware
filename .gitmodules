@@ -15,7 +15,7 @@
 	url = https://github.com/flipperdevices/wiseconnect.git
 [submodule "lib/microtar"]
 	path = lib/microtar
-	url = https://github.com/amachronic/microtar.git
+	url = https://github.com/busy-app/microtar.git
 [submodule "lib/mbedtls"]
 	path = lib/mbedtls
 	url = https://github.com/Mbed-TLS/mbedtls.git
