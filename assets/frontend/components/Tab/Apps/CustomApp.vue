@@ -44,10 +44,29 @@
           label="Delete app"
           color="neutral"
           variant="ghost"
-          :loading="deleting"
-          @click="deleteApp"
+          @click="() => { showDeleteModal = true; }"
         />
       </div>
+
+      <ModalGeneric
+        v-model:open="showDeleteModal"
+        data-id="modal-delete-app"
+        title="Delete this app?"
+        description="This app will be deleted from your BUSY Bar and the local web interface."
+        :primary-action-props="{
+          label: 'Delete app',
+          variant: 'soft',
+          color: 'error',
+          loading: deleting,
+          onClick: deleteApp
+        }"
+        :secondary-action-props="{
+          label: 'Cancel',
+          variant: 'ghost',
+          disabled: deleting,
+          onClick: () => { showDeleteModal = false; }
+        }"
+      />
     </template>
   </SectionCard>
 </template>
@@ -71,6 +90,7 @@ const appsStore = useAppsStore();
 
 const loading = ref(true);
 const deleting = ref(false);
+const showDeleteModal = ref(false);
 const schema = ref<AppSettingsSchema>();
 const settings = ref<AppSettingsDocument>();
 
@@ -123,6 +143,7 @@ async function deleteApp () {
 
   try {
     await appsStore.removeApp(props.app.id);
+    showDeleteModal.value = false;
     emit('deleted', props.app);
   } catch (error) {
     await handleHTTPError(error, 'Couldn\'t delete the app');

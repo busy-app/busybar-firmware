@@ -50,14 +50,17 @@ export const useAppsStore = defineStore('apps', () => {
 
     try {
       const result = await deviceStore.busyBar.AppsList();
-      apps.value = result.apps;
+      const loadedIcons: Record<string, string> = {};
 
       for (const app of result.apps) {
         const icon = await readIcon(app.icon_path);
         if (icon) {
-          icons.value[app.id] = icon;
+          loadedIcons[app.id] = icon;
         }
       }
+
+      apps.value = result.apps;
+      icons.value = loadedIcons;
     } catch (error) {
       await handleHTTPError(error, 'Couldn\'t load apps', true);
     } finally {
@@ -89,7 +92,6 @@ export const useAppsStore = defineStore('apps', () => {
 
   async function removeApp (appId: string) {
     await deviceStore.busyBar.AppsRemove({ app_id: appId }, { timeout: 0 });
-    delete icons.value[appId];
     await fetchApps();
   }
 

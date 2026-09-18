@@ -5,6 +5,7 @@
       v-if="currentAppView"
       v-bind="currentAppView.props"
       @back="openApp = undefined"
+      @deleted="onAppDeleted"
     />
     <TabAppsCard
       v-else
@@ -80,6 +81,17 @@ function onAppInstalled (app: AppInfo) {
   toast.add({
     title: 'App added',
     description: `${app.name} has been added to your BUSY Bar.`,
+    icon: 'i-bi-checkmark-circle-fill',
+    color: 'success'
+  });
+}
+
+function onAppDeleted (app: AppInfo) {
+  openApp.value = undefined;
+
+  toast.add({
+    title: 'App deleted',
+    description: `${app.name} has been removed from your BUSY Bar.`,
     icon: 'i-bi-checkmark-circle-fill',
     color: 'success'
   });
