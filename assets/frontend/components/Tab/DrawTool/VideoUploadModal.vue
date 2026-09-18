@@ -169,7 +169,7 @@
                   @pointercancel="handleZoomPointerUp"
                 >
                   <UIcon
-                    name="i-ri-zoom-in-line"
+                    name="i-bi-resize"
                     class="pointer-events-none size-3"
                   />
                 </span>
