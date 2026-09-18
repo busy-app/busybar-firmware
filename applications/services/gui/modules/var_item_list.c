@@ -15,10 +15,12 @@
 #define SYM_EDIT_ARROW_LEFT  "‹" // U+2039
 #define SYM_EDIT_ARROW_RIGHT "›" // U+203A
 
-#define CHECK_RANGE_AND_STEP(min, max, step)                                               \
-    do {                                                                                   \
-        furi_check(max >= min, "Range error: min > max");                                  \
-        furi_check((max - min) % step == 0, "Step error: range must be evenly divisible"); \
+#define CHECK_RANGE_AND_STEP(min, max, step)                                                 \
+    do {                                                                                     \
+        furi_check(max >= min, "Range error: min > max");                                    \
+        furi_check(step != 0, "Step error: step must be non-zero");                          \
+        furi_check(                                                                          \
+            ((int64_t)max - min) % step == 0, "Step error: range must be evenly divisible"); \
     } while(0)
 
 typedef enum {
@@ -41,7 +43,7 @@ typedef struct {
     lv_obj_t* arrow_right;
     int32_t min;
     int32_t max;
-    int32_t step;
+    uint32_t step;
     int32_t value;
     uint32_t flags;
     char* suffix;
@@ -166,7 +168,7 @@ static void var_item_editor_set_range_and_step(
     VarItemEditor* instance,
     int32_t min,
     int32_t max,
-    int32_t step) {
+    uint32_t step) {
     instance->min = min;
     instance->max = max;
     instance->step = step;
@@ -298,7 +300,8 @@ static void var_item_editor_update(VarItemEditor* instance) {
 
 static void var_item_editor_increment(VarItemEditor* instance) {
     if(instance->value < instance->max) {
-        instance->value += instance->step - (instance->value % instance->step);
+        const int64_t step_index = ((int64_t)instance->value - instance->min) / instance->step + 1;
+        instance->value = instance->min + step_index * instance->step;
 
         if(instance->callback) {
             instance->callback(var_item_editor_get_item(instance), instance->context);
@@ -310,7 +313,8 @@ static void var_item_editor_increment(VarItemEditor* instance) {
 
 static void var_item_editor_decrement(VarItemEditor* instance) {
     if(instance->value > instance->min) {
-        instance->value -= instance->step + (instance->value % instance->step);
+        const int64_t step_index = ((int64_t)instance->value - instance->min - 1) / instance->step;
+        instance->value = instance->min + step_index * instance->step;
 
         if(instance->callback) {
             instance->callback(var_item_editor_get_item(instance), instance->context);
@@ -445,7 +449,7 @@ VarItem* var_item_list_add_timebox(
     const char* label,
     int32_t min_mn,
     int32_t max_mn,
-    int32_t step_mn,
+    uint32_t step_mn,
     VarItemChangeCallback callback,
     void* context) {
     furi_check(instance);
@@ -467,7 +471,7 @@ VarItem* var_item_list_add_spinbox(
     const char* suffix,
     int32_t min,
     int32_t max,
-    int32_t step,
+    uint32_t step,
     VarItemChangeCallback callback,
     void* context) {
     furi_check(instance);
@@ -554,6 +558,9 @@ void var_item_set_value(VarItem* item, int32_t value) {
 
     VarItemEditor* editor = item->editor;
     value = CLAMP(value, editor->max, editor->min);
+
+    const int64_t offset = (int64_t)value - editor->min;
+    value = editor->min + offset / editor->step * editor->step;
 
     if(editor->value != value) {
         editor->value = value;

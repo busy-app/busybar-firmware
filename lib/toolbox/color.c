@@ -2,7 +2,8 @@
 
 #include <core/check.h>
 #include <limits.h>
-#include "strint.h"
+
+#include "hex.h"
 
 // https://stackoverflow.com/questions/24152553/hsv-to-rgb-and-back-without-floating-point-math-in-python
 Color color_hsv_to_rgb(ColorHsv hsv) {
@@ -90,14 +91,23 @@ Color color_hexa_to_rgb(uint32_t hexa) {
     return rgb;
 }
 
+bool color_parse_hex_string(const char* hex, Color* color_out) {
+    if(strlen(hex) != strlen("#RRGGBB") || *hex != '#') return false;
+
+    uint8_t rgb[3];
+    if(!hex_chars_to_uint8(hex + 1, rgb)) return false;
+
+    *color_out = (Color)COLOR_MAKE_RGB(rgb[0], rgb[1], rgb[2]);
+    return true;
+}
+
 bool color_parse_hexa_string(const char* hexa, Color* color_out) {
-    if(strlen(hexa) != strlen("#RRGGBBAA")) return false;
-    hexa++;
+    if(strlen(hexa) != strlen("#RRGGBBAA") || *hexa != '#') return false;
 
-    uint32_t hexa_int;
-    if(strint_to_uint32(hexa, NULL, &hexa_int, 16) != StrintParseNoError) return false;
+    uint8_t rgba[4];
+    if(!hex_chars_to_uint8(hexa + 1, rgba)) return false;
 
-    *color_out = color_hexa_to_rgb(hexa_int);
+    *color_out = (Color)COLOR_MAKE_RGBA(rgba[0], rgba[1], rgba[2], rgba[3]);
     return true;
 }
 

@@ -10,12 +10,17 @@
 #include <js_runner/js_runner.h>
 
 #include <js_app/js_app.h>
+#include <js_app/js_app_settings_storage.h>
 
 #define TAG "JsAppLauncher"
 
 typedef enum {
     JsAppLauncherErrorNone,
     JsAppLauncherErrorLoadFailed,
+    JsAppLauncherErrorSettingsSchemaMissing,
+    JsAppLauncherErrorSettingsSchemaInvalid,
+    JsAppLauncherErrorSettingsStorageFailure,
+    JsAppLauncherErrorSettingsLoadFailed,
     JsAppLauncherErrorSyntaxError,
     JsAppLauncherErrorProgramCrashed,
     JsAppLauncherErrorMax,
@@ -44,12 +49,14 @@ typedef struct {
     NavBar* nav_bar;
 
     JsApp* js_app;
+    JsAppSettingsStorage* settings_storage;
     JsAppLauncherError error;
 } JsAppLauncher;
 
 typedef enum {
     JsAppLauncherCustomEventIndexMax = 0x7F,
     JsAppLauncherCustomEventScriptFinished,
+    JsAppLauncherCustomEventSettingsChanged,
 } JsAppLauncherCustomEvent;
 
 void js_app_launcher_send_custom_event(JsAppLauncher* instance, uint32_t event);
