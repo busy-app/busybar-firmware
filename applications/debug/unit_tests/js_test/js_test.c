@@ -278,9 +278,11 @@ MU_TEST(js_tests_handle) {
     furi_record_close(RECORD_JS_RUNNER);
 }
 
-static void terminate_callback(void* context) {
-    bool* done = context;
-    *done = true;
+static void event_callback(const JsRunnerEvent* event, void* context) {
+    if(event->type == JsRunnerEventTypeScriptFinished) {
+        bool* done = context;
+        *done = true;
+    }
 }
 
 MU_TEST(js_tests_callback) {
@@ -293,7 +295,7 @@ MU_TEST(js_tests_callback) {
 
     bool done = false;
     JsRunnerRunResult run_result =
-        js_runner_run_snippet(result.handle, "2+2", false, terminate_callback, &done);
+        js_runner_run_snippet(result.handle, "2+2", false, event_callback, &done);
     mu_assert_int_eq(JsRunnerErrorNone, run_result.error);
     mu_assert_not_null(run_result.handle);
 
