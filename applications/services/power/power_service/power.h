@@ -94,6 +94,9 @@ typedef struct {
 FuriPubSub* power_get_pubsub(Power* power);
 bool power_off(Power* power);
 void power_reboot(Power* power, PowerRebootMode mode);
+#if defined(SRV_INTERCOM)
+void power_deep_sleep(Power* power);
+#endif
 bool power_is_usb_connected(Power* power);
 bool power_is_battery_ready(Power* power);
 void power_get_info(Power* power, PowerInfo* info);

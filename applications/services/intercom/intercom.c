@@ -1,4 +1,5 @@
 #include "intercom_i.h"
+#include <furi_hal_power.h>
 
 #define TAG "Intercom"
 
@@ -37,8 +38,18 @@ static void intercom_startup_sequence(Intercom* instance) {
     IntercomStatus status;
 
 #if defined(BSB_MCU_U5)
-    intercom_reset_other_side();
+    if(furi_hal_power_get_reset_source() != FuriHalPowerResetSourceWakeup) {
+        FURI_LOG_D(TAG, "Resetting other side");
+        intercom_reset_other_side();
+    } else {
+        FURI_LOG_D(TAG, "Not resetting other side - we were woken up by it");
+    }
 #endif // BSB_MCU_U5
+
+#if defined(BSB_MCU_SI917)
+    FURI_LOG_D(TAG, "Waking up other side");
+    intercom_wakeup_other_side();
+#endif // BSB_MCU_SI917
 
     if(intercom_sync_serial(instance->serial)) {
         status = IntercomStatusOk;

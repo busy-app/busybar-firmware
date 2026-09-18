@@ -75,12 +75,15 @@ static void
     UULP_GPIO->NPSS_GPIO_CNTRL[gpio->pin].NPSS_GPIO_CTRLS_b.NPSS_GPIO_MODE = alt_fn;
 
     if(mode == GpioModeInput) {
+        UULP_GPIO->NPSS_GPIO_CNTRL[gpio->pin].NPSS_GPIO_CTRLS_b.NPSS_GPIO_REN = 1; // ????
         UULP_GPIO->NPSS_GPIO_CNTRL[gpio->pin].NPSS_GPIO_CTRLS_b.NPSS_GPIO_OEN = 1;
 
     } else if(mode == GpioModeOutputPushPull) {
+        UULP_GPIO->NPSS_GPIO_CNTRL[gpio->pin].NPSS_GPIO_CTRLS_b.NPSS_GPIO_REN = 0;
         UULP_GPIO->NPSS_GPIO_CNTRL[gpio->pin].NPSS_GPIO_CTRLS_b.NPSS_GPIO_OEN = 0;
 
     } else if(mode == GpioModeOutputOpenDrain) {
+        UULP_GPIO->NPSS_GPIO_CNTRL[gpio->pin].NPSS_GPIO_CTRLS_b.NPSS_GPIO_REN = 0;
         UULP_GPIO->NPSS_GPIO_CNTRL[gpio->pin].NPSS_GPIO_CTRLS_b.NPSS_GPIO_OEN = 1;
         UULP_GPIO->NPSS_GPIO_CNTRL[gpio->pin].NPSS_GPIO_CTRLS_b.NPSS_GPIO_OUT = 0;
 
@@ -260,8 +263,10 @@ static void furi_hal_gpio_add_int_callback_uulp(
     const uint32_t bit = 1UL << gpio->pin;
 
     if(cond == GpioConditionRise) {
+        UULP_GPIO->NPSS_GPIO_CNTRL[gpio->pin].NPSS_GPIO_CTRLS_b.NPSS_GPIO_POLARITY = 1;
         GPIO_NPSS_GPIO_CONFIG_REG |= bit;
     } else if(cond == GpioConditionFall) {
+        UULP_GPIO->NPSS_GPIO_CNTRL[gpio->pin].NPSS_GPIO_CTRLS_b.NPSS_GPIO_POLARITY = 0;
         GPIO_NPSS_GPIO_CONFIG_REG |= bit << 8;
     } else if(cond == GpioConditionRiseFall) {
         GPIO_NPSS_GPIO_CONFIG_REG |= bit | (bit << 8);

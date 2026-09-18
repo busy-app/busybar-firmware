@@ -1,6 +1,8 @@
 #include "intercom_i.h"
 
 #include <furi_hal_power.h>
+#include <furi_hal_gpio.h>
+#include <furi_hal_resources.h>
 
 #ifdef INTERCOM_DEBUG
 static void intercom_mark_frame(IntercomFrame* frame) {
@@ -56,3 +58,15 @@ void intercom_reset_other_side(void) {
     furi_hal_power_reset_917(false);
 }
 #endif //BSB_MCU_U5
+
+#if defined(BSB_MCU_SI917)
+void intercom_wakeup_other_side(void) {
+    furi_hal_gpio_init(&gpio_u5_irq, GpioModeOutputPushPull, GpioPullUp, GpioSpeedHigh);
+
+    furi_hal_gpio_write(&gpio_u5_irq, false);
+    furi_delay_ms(10);
+    furi_hal_gpio_write(&gpio_u5_irq, true);
+
+    furi_hal_gpio_init(&gpio_u5_irq, GpioModeInput, GpioPullNo, GpioSpeedLow);
+}
+#endif //BSB_MCU_SI917

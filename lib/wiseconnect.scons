@@ -73,7 +73,8 @@ env.Append(
         "SL_WIFI_COMPONENT_INCLUDED=1",
         "SLI_SI91X_ENABLE_OS",
         "SLI_MULTITHREAD_DEVICE_SI91X",
-        "ENABLE_DEBUG_MODULE",  # This is for debug power down mode
+        # "ENABLE_DEBUG_MODULE",  # This is for debug power down mode
+        "SLI_SI91X_MCU_ENABLE_FLASH_BASED_EXECUTION",
         # SDK BLE Silabs
         "SLI_SI91X_ENABLE_BLE",
         "SL_SI91X_ENABLE_LITTLE_ENDIAN=1",
@@ -104,6 +105,7 @@ sources = [
     f"{MCU_DIR}/drivers/systemlevel/src/rsi_pll.c",
     f"{MCU_DIR}/drivers/systemlevel/src/rsi_ipmu.c",
     f"{MCU_DIR}/drivers/systemlevel/src/rsi_ulpss_clk.c",
+    f"{MCU_DIR}/drivers/systemlevel/src/rsi_temp_sensor.c",
     f"{MCU_DIR}/drivers/service/clock_manager/src/sl_si91x_clock_manager.c",
     # SDK Wifi Silabs
     f"{WISECONNECT_DIR}/common/src/sl_utility.c",
