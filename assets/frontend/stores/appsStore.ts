@@ -53,6 +53,7 @@ export interface AppSettingsSchema {
 const APPS_PATH = '/ext/user_assets';
 const SETTINGS_SCHEMA_PATH = 'appmeta/settings.json';
 const ICON_EXTENSION = '.png';
+const STORAGE_READ_PATH_MAX_LENGTH = 63;
 
 export const useAppsStore = defineStore('apps', () => {
   const deviceStore = useDeviceStore();
@@ -85,7 +86,7 @@ export const useAppsStore = defineStore('apps', () => {
   }
 
   async function readIcon (iconPath: string) {
-    if (!iconPath.endsWith(ICON_EXTENSION)) {
+    if (!iconPath.endsWith(ICON_EXTENSION) || iconPath.length > STORAGE_READ_PATH_MAX_LENGTH) {
       return undefined;
     }
 
@@ -97,8 +98,38 @@ export const useAppsStore = defineStore('apps', () => {
     }
   }
 
-  function stageApp (file: File, signal: AbortSignal): Promise<AppStageResult> {
-    return deviceStore.busyBar.AppsStage({ file }, { signal, timeout: 0 });
+  function stageApp (file: File, signal: AbortSignal, onProgress: (percent: number) => void): Promise<AppStageResult> {
+    return new Promise((resolve, reject) => {
+      const apiStore = useApiStore();
+      const xhr = new XMLHttpRequest();
+
+      xhr.open('POST', `${useRuntimeConfig().public.barUrl || window.location.origin}/api/apps/stage`);
+      xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+      if (apiStore.apiKey) {
+        xhr.setRequestHeader('X-API-Token', apiStore.apiKey);
+      }
+      xhr.responseType = 'json';
+
+      xhr.upload.onprogress = event => {
+        if (event.lengthComputable) {
+          onProgress(Math.round((event.loaded / event.total) * 100));
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(xhr.response as AppStageResult);
+        } else {
+          reject(Object.assign(new Error(`App staging failed with status ${xhr.status}`), { status: xhr.status, data: xhr.response }));
+        }
+      };
+      xhr.onerror = () => reject(new Error('App staging failed: network error'));
+      xhr.onabort = () => reject(new DOMException('App staging aborted', 'AbortError'));
+
+      signal.addEventListener('abort', () => xhr.abort(), { once: true });
+
+      xhr.send(file);
+    });
   }
 
   async function installApp (installKey: number) {

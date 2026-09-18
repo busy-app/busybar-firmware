@@ -1,20 +1,11 @@
 <template>
-  <SectionCard
-    data-id="apps-section-weather"
+  <TabAppsAppScreen
+    app-id="weather"
     title="Weather"
-    :ui="{ title: 'font-medium', titleWrapper: 'gap-2' }"
+    @back="emit('back')"
   >
-    <template #leading-actions>
-      <SectionBackButton
-        data-id="apps-section-weather-back-button"
-        @click="emit('back')"
-      />
-    </template>
-
-    <template #raw-body>
-      <TabAppsGeolocation />
-    </template>
-  </SectionCard>
+    <TabAppsGeolocation />
+  </TabAppsAppScreen>
 </template>
 
 <script setup lang="ts">

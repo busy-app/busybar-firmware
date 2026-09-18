@@ -3,13 +3,15 @@
     <component
       :is="currentAppView.component"
       v-if="currentAppView"
+      :key="currentAppView.key"
       v-bind="currentAppView.props"
       @back="openApp = undefined"
+      @update="openUploader(currentApp?.id)"
       @deleted="onAppDeleted"
     />
     <TabAppsCard
       v-else
-      @add="showAddAppModal = true"
+      @add="openUploader()"
     >
       <TabAppsAppCard
         v-for="app in apps"
@@ -23,6 +25,7 @@
 
     <TabAppsUploaderModal
       v-model:open="showAddAppModal"
+      :update-app-id="updateAppId"
       @installed="onAppInstalled"
     />
   </div>
@@ -43,7 +46,7 @@ interface AppListItem {
 }
 
 const NATIVE_APPS: AppListItem[] = [
-  { id: 'weather', name: 'Weather', icon: weatherIcon, native: true }
+  { id: 'weather', name: 'Weather', icon: weatherIcon }
 ];
 
 const NATIVE_VIEWS: Record<string, Component> = { weather: markRaw(TabAppsWeather) };
@@ -53,9 +56,10 @@ const appsStore = useAppsStore();
 
 const openApp = ref<string>();
 const showAddAppModal = ref(false);
+const updateAppId = ref<string>();
 
 const apps = computed<AppListItem[]>(() => [
-  ...NATIVE_APPS,
+  ...NATIVE_APPS.map(app => ({ ...app, native: true })),
   ...appsStore.apps.map(app => ({ id: app.id, name: app.name, icon: appsStore.icons[app.id], info: app }))
 ]);
 
@@ -67,20 +71,35 @@ const currentAppView = computed(() => {
   }
 
   if (currentApp.value.native) {
-    return { component: NATIVE_VIEWS[currentApp.value.id]!, props: {} };
+    return {
+      key: appKey(currentApp.value),
+      component: NATIVE_VIEWS[currentApp.value.id]!,
+      props: {}
+    };
   }
 
-  return { component: markRaw(TabAppsCustomApp), props: { app: currentApp.value.info } };
+  return {
+    key: `${appKey(currentApp.value)}-${currentApp.value.info?.version}`,
+    component: markRaw(TabAppsCustomApp),
+    props: { app: currentApp.value.info }
+  };
 });
+
+function openUploader (appId?: string) {
+  updateAppId.value = appId;
+  showAddAppModal.value = true;
+}
 
 function appKey (app: AppListItem) {
   return `${app.native ? 'native' : 'custom'}-${app.id}`;
 }
 
-function onAppInstalled (app: AppInfo) {
+function onAppInstalled (app: AppInfo, updated: boolean) {
   toast.add({
-    title: 'App added',
-    description: `${app.name} has been added to your BUSY Bar.`,
+    title: updated ? 'App updated' : 'App added',
+    description: updated
+      ? `${app.name} has been updated to version ${app.version}.`
+      : `${app.name} has been added to your BUSY Bar.`,
     icon: 'i-bi-checkmark-circle-fill',
     color: 'success'
   });

@@ -66,12 +66,25 @@
             class="size-6 shrink-0 text-error"
           />
 
-          <div class="min-w-0 flex-1">
+          <div
+            v-if="appMismatch"
+            data-id="modal-uploader-app-error-mismatch"
+            class="min-w-0 flex-1"
+          >
+            This file contains a different app. Select an update package for this app.
+          </div>
+          <div
+            v-else
+            class="min-w-0 flex-1"
+          >
             Unable to upload this file. Try these steps until the issue is resolved:
           </div>
         </div>
 
-        <div class="rounded-xl bg-accented/25 p-4">
+        <div
+          v-if="!appMismatch"
+          class="rounded-xl bg-accented/25 p-4"
+        >
           <ul class="list-disc space-y-5 ps-5 text-sm text-highlighted/90">
             <li>Check the file format — only .tgz files are supported</li>
             <li>Check the API version — the app must use a supported version</li>
@@ -92,11 +105,20 @@
           />
 
           <div class="min-w-0 flex-1">
-            Uploading the file. Do not disconnect your BUSY Bar.
+            {{ uploaded ? 'Checking the app. Do not disconnect your BUSY Bar.' : 'Uploading the file. Do not disconnect your BUSY Bar.' }}
+          </div>
+
+          <div
+            v-if="!uploaded"
+            data-id="modal-uploader-app-progress-value"
+            class="text-muted"
+          >
+            {{ progress }}%
           </div>
         </div>
 
         <UProgress
+          :model-value="uploaded ? null : progress"
           color="success"
           size="lg"
         />
@@ -143,7 +165,31 @@
 
     <template #actions>
       <div
-        v-if="file && !failed"
+        v-if="appMismatch"
+        class="mt-2 flex justify-end gap-2"
+      >
+        <UButton
+          data-id="modal-uploader-app-error-cancel-button"
+          label="Cancel"
+          color="neutral"
+          variant="ghost"
+          size="lg"
+          class="min-w-20 justify-center"
+          @click="() => { open = false; }"
+        />
+
+        <UButton
+          data-id="modal-uploader-app-error-back-button"
+          label="Back to file selection"
+          color="neutral"
+          size="lg"
+          class="min-w-20 justify-center"
+          @click="resetToStart"
+        />
+      </div>
+
+      <div
+        v-else-if="file && !failed"
         class="mt-2 flex justify-end gap-2"
       >
         <UButton
@@ -185,13 +231,18 @@
 <script setup lang="ts">
 import type { AppInfo, AppStageResult } from '@busy-app/busy-lib';
 
+const props = defineProps<{
+  updateAppId?: string;
+}>();
+
 const emit = defineEmits<{
-  (e: 'installed', app: AppInfo): void;
+  (e: 'installed', app: AppInfo, updated: boolean): void;
 }>();
 
 const open = defineModel<boolean>('open', { default: false });
 
 const APP_FILE_EXTENSION = '.tgz';
+const APP_FILE_MAX_SIZE = 4 * 1024 * 1024;
 
 let uploadController: AbortController | null = null;
 
@@ -203,14 +254,26 @@ const file = ref<File | null>(null);
 const stageResult = ref<AppStageResult>();
 const stagedIcon = ref<string>();
 const uploading = ref(false);
+const progress = ref(0);
 const installing = ref(false);
 const failed = ref(false);
+const appMismatch = ref(false);
 
 const confirming = computed(() => !!stageResult.value && !uploading.value && !failed.value);
+const uploaded = computed(() => progress.value >= 100);
 
 function removeFile () {
   file.value = null;
   stageResult.value = undefined;
+}
+
+function resetToStart () {
+  file.value = null;
+  stageResult.value = undefined;
+  stagedIcon.value = undefined;
+  progress.value = 0;
+  failed.value = false;
+  appMismatch.value = false;
 }
 
 async function stageFile () {
@@ -220,11 +283,22 @@ async function stageFile () {
 
   uploadController = new AbortController();
   uploading.value = true;
+  progress.value = 0;
   failed.value = false;
 
   try {
-    stageResult.value = await appsStore.stageApp(file.value, uploadController.signal);
-    stagedIcon.value = await appsStore.readIcon(stageResult.value.staged.icon_path);
+    const result = await appsStore.stageApp(file.value, uploadController.signal, value => {
+      progress.value = value;
+    });
+
+    if (props.updateAppId && result.staged.id !== props.updateAppId) {
+      appMismatch.value = true;
+      failed.value = true;
+      return;
+    }
+
+    stageResult.value = result;
+    stagedIcon.value = await appsStore.readIcon(result.staged.icon_path);
   } catch (error) {
     if (!uploadController.signal.aborted) {
       console.error('App staging failed', error);
@@ -246,7 +320,7 @@ async function installFile () {
   try {
     await appsStore.installApp(stageResult.value.install_key);
 
-    emit('installed', stageResult.value.staged);
+    emit('installed', stageResult.value.staged, !!stageResult.value.installed);
     open.value = false;
   } catch (error) {
     console.error('App installation failed', error);
@@ -266,26 +340,31 @@ function cancel () {
 }
 
 watch(file, value => {
-  if (!value || value.name.toLowerCase().endsWith(APP_FILE_EXTENSION)) {
+  if (!value) {
     return;
   }
 
+  if (!value.name.toLowerCase().endsWith(APP_FILE_EXTENSION)) {
+    rejectFile('Unsupported file', `Only ${APP_FILE_EXTENSION} app packages can be uploaded.`);
+  } else if (value.size > APP_FILE_MAX_SIZE) {
+    rejectFile('File is too large', `App packages can be up to ${bytesToSize(APP_FILE_MAX_SIZE)}.`);
+  }
+});
+
+function rejectFile (title: string, description: string) {
   toast.add({
-    title: 'Unsupported file',
-    description: `Only ${APP_FILE_EXTENSION} app packages can be uploaded.`,
+    title,
+    description,
     icon: 'i-bi-alert',
     color: 'error'
   });
 
   file.value = null;
-});
+}
 
 watch(open, value => {
   if (value) {
-    file.value = null;
-    stageResult.value = undefined;
-    stagedIcon.value = undefined;
-    failed.value = false;
+    resetToStart();
   }
 });
 </script>
