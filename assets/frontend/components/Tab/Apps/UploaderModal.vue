@@ -2,18 +2,18 @@
   <ModalGeneric
     v-model:open="open"
     data-id="modal-uploader-app"
-    :title="confirming ? appPackage!.manifest.name : 'Add your file'"
+    :title="confirming ? stageResult!.staged.name : 'Add your file'"
     wide
-    :dismissible="!uploading"
+    :dismissible="!uploading && !installing"
     :show-close-button="!file || failed"
     :description="file && !uploading && !failed && !confirming ? 'This file will be added to your BUSY Bar and the local web interface.' : undefined"
   >
     <template
-      v-if="confirming && appPackage!.icon"
+      v-if="confirming && stagedIcon"
       #icon
     >
       <img
-        :src="appPackage!.icon"
+        :src="stagedIcon"
         alt=""
         width="40"
         height="40"
@@ -94,17 +94,9 @@
           <div class="min-w-0 flex-1">
             Uploading the file. Do not disconnect your BUSY Bar.
           </div>
-
-          <div
-            data-id="modal-uploader-app-progress-value"
-            class="text-muted"
-          >
-            {{ progress }}%
-          </div>
         </div>
 
         <UProgress
-          v-model="progress"
           color="success"
           size="lg"
         />
@@ -112,7 +104,8 @@
 
       <TabAppsAppInfo
         v-else-if="confirming"
-        :manifest="appPackage!.manifest"
+        :app="stageResult!.staged"
+        :installed="stageResult!.installed"
       />
 
       <div
@@ -160,6 +153,7 @@
           variant="ghost"
           size="lg"
           class="min-w-20 justify-center"
+          :disabled="installing"
           @click="cancel"
         />
 
@@ -170,7 +164,8 @@
           color="neutral"
           size="lg"
           class="min-w-20 justify-center"
-          @click="uploadFile"
+          :loading="installing"
+          @click="installFile"
         />
 
         <UButton
@@ -180,7 +175,7 @@
           color="neutral"
           size="lg"
           class="min-w-20 justify-center"
-          @click="readPackage"
+          @click="stageFile"
         />
       </div>
     </template>
@@ -188,10 +183,10 @@
 </template>
 
 <script setup lang="ts">
-import type { AppPackage } from '@/util/readAppPackage';
+import type { AppInfo, AppStageResult } from '@busy-app/busy-lib';
 
 const emit = defineEmits<{
-  (e: 'uploaded', appPackage: AppPackage): void;
+  (e: 'installed', app: AppInfo): void;
 }>();
 
 const open = defineModel<boolean>('open', { default: false });
@@ -201,59 +196,63 @@ const APP_FILE_EXTENSION = '.tgz';
 let uploadController: AbortController | null = null;
 
 const toast = useToast();
+const appsStore = useAppsStore();
 
 const file = ref<File | null>(null);
 
-const appPackage = ref<AppPackage>();
+const stageResult = ref<AppStageResult>();
+const stagedIcon = ref<string>();
 const uploading = ref(false);
-const progress = ref(0);
+const installing = ref(false);
 const failed = ref(false);
 
-const confirming = computed(() => !!appPackage.value && !uploading.value && !failed.value);
+const confirming = computed(() => !!stageResult.value && !uploading.value && !failed.value);
 
 function removeFile () {
   file.value = null;
-  appPackage.value = undefined;
+  stageResult.value = undefined;
 }
 
-function onUploadProgress (value: number) {
-  progress.value = value;
-}
-
-async function readPackage () {
+async function stageFile () {
   if (!file.value) {
     return;
   }
 
-  try {
-    appPackage.value = await readAppPackage(file.value);
-  } catch {
-    failed.value = true;
-  }
-}
-
-async function uploadFile () {
-  if (!file.value || !appPackage.value) {
-    return;
-  }
-
-  const confirmedPackage = appPackage.value;
-
   uploadController = new AbortController();
   uploading.value = true;
-  progress.value = 0;
   failed.value = false;
 
   try {
-    await uploadAppPackage(file.value, onUploadProgress, uploadController.signal);
-
-    emit('uploaded', confirmedPackage);
-    open.value = false;
-  } catch {
-    failed.value = !uploadController.signal.aborted;
+    stageResult.value = await appsStore.stageApp(file.value, uploadController.signal);
+    stagedIcon.value = await appsStore.readIcon(stageResult.value.staged.icon_path);
+  } catch (error) {
+    if (!uploadController.signal.aborted) {
+      console.error('App staging failed', error);
+      failed.value = true;
+    }
   } finally {
     uploading.value = false;
     uploadController = null;
+  }
+}
+
+async function installFile () {
+  if (!stageResult.value) {
+    return;
+  }
+
+  installing.value = true;
+
+  try {
+    await appsStore.installApp(stageResult.value.install_key);
+
+    emit('installed', stageResult.value.staged);
+    open.value = false;
+  } catch (error) {
+    console.error('App installation failed', error);
+    failed.value = true;
+  } finally {
+    installing.value = false;
   }
 }
 
@@ -284,8 +283,8 @@ watch(file, value => {
 watch(open, value => {
   if (value) {
     file.value = null;
-    appPackage.value = undefined;
-    progress.value = 0;
+    stageResult.value = undefined;
+    stagedIcon.value = undefined;
     failed.value = false;
   }
 });

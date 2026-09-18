@@ -4,10 +4,10 @@
     class="flex flex-col gap-2"
   >
     <div
-      v-if="manifest.description"
+      v-if="app.description"
       data-id="app-info-description"
     >
-      {{ manifest.description }}
+      {{ app.description }}
     </div>
 
     <div class="flex flex-col gap-1">
@@ -25,14 +25,20 @@
 </template>
 
 <script setup lang="ts">
-import type { AppManifest } from '@/util/readAppPackage';
+import type { AppInfo } from '@busy-app/busy-lib';
 
 const props = defineProps<{
-  manifest: AppManifest;
+  app: AppInfo;
+  installed?: AppInfo;
 }>();
 
 const fields = computed(() => [
-  { label: 'Author', value: props.manifest.author || 'Unknown' },
-  { label: 'Version', value: props.manifest.version }
+  { label: 'Author', value: props.app.author || 'Unknown' },
+  {
+    label: 'Version',
+    value: props.installed && props.installed.version !== props.app.version
+      ? `${props.installed.version} → ${props.app.version}`
+      : props.app.version
+  }
 ]);
 </script>

@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@busy-app/busy-lib':
-        specifier: ^0.18.0
-        version: 0.18.0
+        specifier: ^0.21.0
+        version: 0.21.0
       '@nuxt/eslint':
         specifier: 1.4.1
         version: 1.4.1(@typescript-eslint/utils@8.44.0(eslint@9.35.0(jiti@2.5.1))(typescript@5.9.2))(@vue/compiler-sfc@3.5.21)(eslint@9.35.0(jiti@2.5.1))(magicast@0.3.5)(typescript@5.9.2)(vite-plugin-eslint2@5.0.4(eslint@9.35.0(jiti@2.5.1))(rollup@4.50.2)(vite@7.1.5(@types/node@25.6.0)(jiti@2.5.1)(lightningcss@1.30.1)(terser@5.44.0)(yaml@2.8.2)))(vite@7.1.5(@types/node@25.6.0)(jiti@2.5.1)(lightningcss@1.30.1)(terser@5.44.0)(yaml@2.8.2))
@@ -32,9 +32,6 @@ importers:
       maska:
         specifier: ^3.2.0
         version: 3.2.0
-      nanotar:
-        specifier: ^0.3.0
-        version: 0.3.0
       nuxt:
         specifier: ^3.19.2
         version: 3.19.2(@netlify/blobs@9.1.2)(@parcel/watcher@2.5.1)(@types/node@25.6.0)(@vue/compiler-sfc@3.5.21)(db0@0.3.2)(eslint@9.35.0(jiti@2.5.1))(ioredis@5.7.0)(lightningcss@1.30.1)(magicast@0.3.5)(optionator@0.9.4)(rollup@4.50.2)(terser@5.44.0)(typescript@5.9.2)(vite@7.1.5(@types/node@25.6.0)(jiti@2.5.1)(lightningcss@1.30.1)(terser@5.44.0)(yaml@2.8.2))(vue-tsc@3.3.9(typescript@5.9.2))(yaml@2.8.2)
@@ -234,8 +231,8 @@ packages:
     resolution: {integrity: sha512-LwdZHpScM4Qz8Xw2iKSzS+cfglZzJGvofQICy7W7v4caru4EaAmyUuO6BGrbyQ2mYV11W0U8j5mBhd14dd3B0A==}
     engines: {node: '>=6.9.0'}
 
-  '@busy-app/busy-lib@0.18.0':
-    resolution: {integrity: sha512-3bYaISlM7QrssZcbia0u3tpAeYo5Xe6n16I42o5BxKj4O/xMaXadLgqHcgdrm2MpNXHwOQcVisYjPDedtc2efQ==}
+  '@busy-app/busy-lib@0.21.0':
+    resolution: {integrity: sha512-dhZWnQxXGdenCibhZoydYnNM4ECg5ENAwENVcCN9mnMngDkqXYfvIrGlLsJl7q7ay1kxFp0uKevZgFCG9/D0Ew==}
     engines: {node: '>=18'}
 
   '@capsizecss/metrics@3.5.0':
@@ -3714,9 +3711,6 @@ packages:
   nanotar@0.2.0:
     resolution: {integrity: sha512-9ca1h0Xjvo9bEkE4UOxgAzLV0jHKe6LMaxo37ND2DAhhAtd0j8pR1Wxz+/goMrZO8AEZTWCmyaOsFI/W5AdpCQ==}
 
-  nanotar@0.3.0:
-    resolution: {integrity: sha512-Kv2JYYiCzt16Kt5QwAc9BFG89xfPNBx+oQL4GQXD9nLqPkZBiNaqaCWtwnbk/q7UVsTYevvM1b0UF8zmEI4pCg==}
-
   napi-postinstall@0.3.3:
     resolution: {integrity: sha512-uTp172LLXSxuSYHv/kou+f6KW3SMppU9ivthaVTXian9sOt3XM/zHYHpRZiLgQoxeWfYUnslNWQHF1+G71xcow==}
     engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
@@ -5508,7 +5502,7 @@ snapshots:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.28.5
 
-  '@busy-app/busy-lib@0.18.0':
+  '@busy-app/busy-lib@0.21.0':
     dependencies:
       openapi-fetch: 0.14.1
       protobufjs: 8.0.3
@@ -9561,8 +9555,6 @@ snapshots:
   nanoid@5.1.5: {}
 
   nanotar@0.2.0: {}
-
-  nanotar@0.3.0: {}
 
   napi-postinstall@0.3.3: {}
 
