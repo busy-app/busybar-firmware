@@ -52,6 +52,10 @@ static const MqttHttpProxyBlocklistEntry mqtt_http_proxy_blocklist[] = {
         .id = MqttHttpProxyMethodIdGet,
     },
     {
+        .name = "apps/list",
+        .id = MqttHttpProxyMethodIdGet,
+    },
+    {
         .name = "apps",
         .id = MqttHttpProxyMethodIdDelete,
     },
@@ -62,6 +66,18 @@ static const MqttHttpProxyBlocklistEntry mqtt_http_proxy_blocklist[] = {
     {
         .name = "apps/install",
         .id = MqttHttpProxyMethodIdPost,
+    },
+    {
+        .name = "apps/settings",
+        .id = MqttHttpProxyMethodIdGet,
+    },
+    {
+        .name = "apps/settings",
+        .id = MqttHttpProxyMethodIdPost,
+    },
+    {
+        .name = "apps/settings",
+        .id = MqttHttpProxyMethodIdDelete,
     },
 };
 
