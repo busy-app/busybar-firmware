@@ -1,6 +1,13 @@
 import { defineStore } from 'pinia';
 import type { AppInfo, AppSettingsDocument, AppStageResult } from '@busy-app/busy-lib';
 
+export interface AppSettingsGeolocationValue {
+  mode: 'auto' | 'fixed';
+  name: string;
+  lat?: number;
+  lon?: number;
+}
+
 export type AppSettingsNode = {
   label: string;
   description?: string;
@@ -23,6 +30,15 @@ export type AppSettingsNode = {
   type: 'enum';
   default: string;
   options: { value: string; label: string }[];
+} | {
+  type: 'color';
+  default: string;
+} | {
+  type: 'time';
+  default: string;
+} | {
+  type: 'geolocation';
+  default: AppSettingsGeolocationValue;
 } | {
   type: 'group';
   fields: Record<string, AppSettingsNode>;

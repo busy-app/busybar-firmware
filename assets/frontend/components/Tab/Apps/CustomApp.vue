@@ -86,6 +86,7 @@ const emit = defineEmits<{
 
 const SAVE_DELAY = 500;
 
+const toast = useToast();
 const appsStore = useAppsStore();
 
 const loading = ref(true);
@@ -99,10 +100,8 @@ let saveTimeout: ReturnType<typeof setTimeout> | undefined;
 
 async function loadSettings () {
   try {
-    const [loadedSchema, loadedSettings] = await Promise.all([
-      appsStore.readSettingsSchema(props.app.id),
-      appsStore.getSettings(props.app.id)
-    ]);
+    const loadedSettings = await appsStore.getSettings(props.app.id);
+    const loadedSchema = await appsStore.readSettingsSchema(props.app.id);
 
     schema.value = loadedSchema;
     settings.value = loadedSettings;
@@ -131,6 +130,14 @@ async function saveSettings () {
   try {
     await appsStore.setSettings(props.app.id, settings.value);
     savedSettings = serialized;
+
+    toast.add({
+      id: `app-settings-saved-${props.app.id}`,
+      title: 'Settings saved',
+      description: `Restart ${props.app.name} on your BUSY Bar to apply the changes.`,
+      icon: 'i-bi-checkmark-circle-fill',
+      color: 'success'
+    });
   } catch (error) {
     await handleHTTPError(error, 'Couldn\'t save app settings');
   }

@@ -27,7 +27,8 @@
     <div
       v-else
       :data-id="`app-settings-field-${key}`"
-      class="flex items-center gap-4 rounded-xl bg-accented/25 p-4 dark:bg-elevated/75"
+      class="flex gap-4 rounded-xl bg-accented/25 p-4 dark:bg-elevated/75"
+      :class="field.type === 'geolocation' ? 'flex-col' : 'items-center'"
     >
       <div class="min-w-0 flex-1">
         <div class="truncate">{{ field.label }}</div>
@@ -71,12 +72,56 @@
         class="w-56 shrink-0"
         @update:model-value="values[key] = $event"
       />
+
+      <UPopover
+        v-else-if="field.type === 'color'"
+        :ui="{ content: 'rounded-xl bg-surface-container ring-accented/75' }"
+      >
+        <UButton
+          :label="values[key] as string"
+          color="neutral"
+          variant="outline"
+          class="shrink-0 font-mono"
+        >
+          <template #leading>
+            <span
+              class="size-5 rounded-md ring-1 ring-default"
+              :style="{ backgroundColor: values[key] as string }"
+            />
+          </template>
+        </UButton>
+
+        <template #content>
+          <ColorPicker
+            :model-value="values[key] as string"
+            format="hex"
+            class="p-3"
+            @update:model-value="values[key] = $event"
+          />
+        </template>
+      </UPopover>
+
+      <UInput
+        v-else-if="field.type === 'time'"
+        :model-value="values[key] as string"
+        type="time"
+        :step="(values[key] as string).length > 5 ? 1 : 60"
+        class="w-36 shrink-0"
+        @update:model-value="values[key] = $event"
+      />
+
+      <TabAppsSettingsGeolocation
+        v-else-if="field.type === 'geolocation'"
+        :model-value="values[key] as AppSettingsGeolocationValue"
+        :default-value="field.default"
+        @update:model-value="values[key] = $event"
+      />
     </div>
   </template>
 </template>
 
 <script setup lang="ts">
-import type { AppSettingsNode } from '@/stores/appsStore';
+import type { AppSettingsGeolocationValue, AppSettingsNode } from '@/stores/appsStore';
 
 defineProps<{
   fields: Record<string, AppSettingsNode>;
