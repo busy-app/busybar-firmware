@@ -7,58 +7,77 @@
   >
 
   <div>Enter your password to unlock</div>
-  <UFormField
+  <form
     class="w-full"
-    :error="pms.currentPasswordValidation"
+    @submit.prevent="attemptUnlock()"
   >
-    <UInput
-      v-model="pms.passwordModel.current"
-      v-maska="'##########'"
-      name="current-password"
-      size="xl"
-      variant="soft"
-      :type="pms.passwordModel.showCurrent ? 'text' : 'password'"
-      placeholder="Password"
-      @update:model-value="pms.passwordModel.currentWrong = false"
-      @keyup.enter="loading ? null : attemptUnlock()"
+    <input
+      value="BUSY Bar"
+      type="text"
+      name="username"
+      autocomplete="username"
+      class="sr-only"
+      tabindex="-1"
+      aria-hidden="true"
+      readonly
     >
-      <template #trailing>
-        <UButton
-          :icon="pms.passwordModel.showCurrent ? 'i-bi-eye' : 'i-bi-eye-shut'"
-          variant="ghost"
-          color="neutral"
-          square
-          class="rounded-full"
-          :ui="{
-            leadingIcon: 'size-6 text-muted'
-          }"
-          @click="() => { pms.passwordModel.showCurrent = !pms.passwordModel.showCurrent; }"
-        />
-      </template>
-    </UInput>
-  </UFormField>
 
-  <div class="w-full flex flex-col items-center gap-2">
-    <UButton
-      data-id="page-login-unlock-button"
-      label="Unlock"
-      color="neutral"
-      size="lg"
-      block
-      :loading="loading"
-      @click="attemptUnlock()"
-    />
+    <UFormField
+      class="w-full"
+      :error="pms.currentPasswordValidation"
+    >
+      <UInput
+        v-model="pms.passwordModel.current"
+        v-maska="'##########'"
+        name="current-password"
+        autocomplete="current-password"
+        inputmode="numeric"
+        size="xl"
+        variant="soft"
+        :type="pms.passwordModel.showCurrent ? 'text' : 'password'"
+        placeholder="Password"
+        @update:model-value="pms.passwordModel.currentWrong = false"
+      >
+        <template #trailing>
+          <UButton
+            :icon="pms.passwordModel.showCurrent ? 'i-bi-eye' : 'i-bi-eye-shut'"
+            type="button"
+            variant="ghost"
+            color="neutral"
+            square
+            class="rounded-full"
+            :ui="{
+              leadingIcon: 'size-6 text-muted'
+            }"
+            @click="() => { pms.passwordModel.showCurrent = !pms.passwordModel.showCurrent; }"
+          />
+        </template>
+      </UInput>
+    </UFormField>
 
-    <UButton
-      data-id="page-login-forgot-password-button"
-      label="Forgot password?"
-      color="neutral"
-      variant="ghost"
-      size="lg"
-      block
-      @click="() => { forgotPasswordModal = true; }"
-    />
-  </div>
+    <div class="w-full flex flex-col items-center gap-2">
+      <UButton
+        data-id="page-login-unlock-button"
+        type="submit"
+        label="Unlock"
+        color="neutral"
+        size="lg"
+        block
+        :loading="loading"
+      />
+
+      <UButton
+        data-id="page-login-forgot-password-button"
+        type="button"
+        label="Forgot password?"
+        color="neutral"
+        variant="ghost"
+        size="lg"
+        block
+        @click="() => { forgotPasswordModal = true; }"
+      />
+    </div>
+  </form>
 
   <ModalIllustrated
     v-model:open="forgotPasswordModal"

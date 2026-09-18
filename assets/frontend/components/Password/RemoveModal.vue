@@ -20,38 +20,62 @@
     }"
   >
     <template #body>
-      <UFormField
+      <form
         v-if="apiStore.apiKey"
-        label="Current password"
-        :error="pms.currentPasswordValidation"
+        @submit.prevent="isInvalid || pms.loading ? null : pms.removePassword()"
       >
-        <UInput
-          v-model="pms.passwordModel.current"
-          v-maska="'##########'"
-          name="current-password"
-          size="xl"
-          variant="soft"
-          :ui="{ base: 'ring-1 ring-glass bg-accented/50' }"
-          :type="pms.passwordModel.showCurrent ? 'text' : 'password'"
-          placeholder="Enter password"
-          @update:model-value="pms.passwordModel.currentWrong = false"
-          @keyup.enter="isInvalid || pms.loading ? null : pms.removePassword()"
+        <input
+          value="BUSY Bar"
+          type="text"
+          name="username"
+          autocomplete="username"
+          class="sr-only"
+          tabindex="-1"
+          aria-hidden="true"
+          readonly
         >
-          <template #trailing>
-            <UButton
-              :icon="pms.passwordModel.showCurrent ? 'i-bi-eye' : 'i-bi-eye-shut'"
-              variant="ghost"
-              color="neutral"
-              square
-              class="rounded-full"
-              :ui="{
-                leadingIcon: 'size-6 text-muted'
-              }"
-              @click="() => { pms.passwordModel.showCurrent = !pms.passwordModel.showCurrent; }"
-            />
-          </template>
-        </UInput>
-      </UFormField>
+
+        <UFormField
+          label="Current password"
+          :error="pms.currentPasswordValidation"
+        >
+          <UInput
+            v-model="pms.passwordModel.current"
+            v-maska="'##########'"
+            name="current-password"
+            autocomplete="current-password"
+            inputmode="numeric"
+            size="xl"
+            variant="soft"
+            :ui="{ base: 'ring-1 ring-glass bg-accented/50' }"
+            :type="pms.passwordModel.showCurrent ? 'text' : 'password'"
+            placeholder="Enter password"
+            @update:model-value="pms.passwordModel.currentWrong = false"
+          >
+            <template #trailing>
+              <UButton
+                :icon="pms.passwordModel.showCurrent ? 'i-bi-eye' : 'i-bi-eye-shut'"
+                type="button"
+                variant="ghost"
+                color="neutral"
+                square
+                class="rounded-full"
+                :ui="{
+                  leadingIcon: 'size-6 text-muted'
+                }"
+                @click="() => { pms.passwordModel.showCurrent = !pms.passwordModel.showCurrent; }"
+              />
+            </template>
+          </UInput>
+        </UFormField>
+
+        <button
+          type="submit"
+          class="hidden"
+          tabindex="-1"
+          aria-hidden="true"
+        />
+      </form>
     </template>
   </ModalGeneric>
 </template>

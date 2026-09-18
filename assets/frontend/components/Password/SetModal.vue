@@ -25,36 +25,59 @@
       />
     </template>
     <template #body>
-      <UFormField
-        label="Password"
-        :error="pms.newPasswordValidation"
-      >
-        <UInput
-          v-model="pms.passwordModel.new"
-          v-maska="'##########'"
-          name="new-password"
-          size="xl"
-          variant="soft"
-          :ui="{ base: 'ring-1 ring-glass bg-accented/50' }"
-          :type="pms.passwordModel.showNew ? 'text' : 'password'"
-          placeholder="From 4 to 10 digits"
-          @keyup.enter="isInvalid || pms.loading ? null : pms.setPassword()"
+      <form @submit.prevent="isInvalid || pms.loading ? null : pms.setPassword()">
+        <input
+          value="BUSY Bar"
+          type="text"
+          name="username"
+          autocomplete="username"
+          class="sr-only"
+          tabindex="-1"
+          aria-hidden="true"
+          readonly
         >
-          <template #trailing>
-            <UButton
-              :icon="pms.passwordModel.showNew ? 'i-bi-eye' : 'i-bi-eye-shut'"
-              variant="ghost"
-              color="neutral"
-              square
-              class="rounded-full"
-              :ui="{
-                leadingIcon: 'size-6 text-muted'
-              }"
-              @click="() => { pms.passwordModel.showNew = !pms.passwordModel.showNew; }"
-            />
-          </template>
-        </UInput>
-      </UFormField>
+
+        <UFormField
+          label="Password"
+          :error="pms.newPasswordValidation"
+        >
+          <UInput
+            v-model="pms.passwordModel.new"
+            v-maska="'##########'"
+            name="new-password"
+            autocomplete="new-password"
+            passwordrules="required: digit; allowed: digit; minlength: 4; maxlength: 10;"
+            inputmode="numeric"
+            size="xl"
+            variant="soft"
+            :ui="{ base: 'ring-1 ring-glass bg-accented/50' }"
+            :type="pms.passwordModel.showNew ? 'text' : 'password'"
+            placeholder="From 4 to 10 digits"
+          >
+            <template #trailing>
+              <UButton
+                :icon="pms.passwordModel.showNew ? 'i-bi-eye' : 'i-bi-eye-shut'"
+                type="button"
+                variant="ghost"
+                color="neutral"
+                square
+                class="rounded-full"
+                :ui="{
+                  leadingIcon: 'size-6 text-muted'
+                }"
+                @click="() => { pms.passwordModel.showNew = !pms.passwordModel.showNew; }"
+              />
+            </template>
+          </UInput>
+        </UFormField>
+
+        <button
+          type="submit"
+          class="hidden"
+          tabindex="-1"
+          aria-hidden="true"
+        />
+      </form>
     </template>
   </ModalGeneric>
 </template>
