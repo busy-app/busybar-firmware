@@ -1305,13 +1305,10 @@ const hasVisibleBackgroundColor = computed(() => !isColorFullyTransparent(es.bac
 
 const timelineFpsOptions = computed(() => {
   const values = [...new Set([...VIDEO_FPS_OPTIONS.filter(value => value <= DRAW_TOOL_VIDEO_MAX_FPS), es.timelineFps])]
+    .filter(value => value === es.timelineFps || es.canSetTimelineFps(value))
     .sort((a, b) => a - b);
 
-  return values.map(value => ({
-    label: String(value),
-    value,
-    disabled: !es.canSetTimelineFps(value)
-  }));
+  return values.map(value => ({ label: String(value), value }));
 });
 
 const workspaceBackgroundConfig = computed(() => ({

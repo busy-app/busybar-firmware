@@ -365,13 +365,11 @@ const willConvertClips = computed(() => canvasFps.value !== null && fps.value !=
 const fpsOptions = computed(() => {
   const allowed = getAllowedFps(handle.value?.nativeFps);
   const extra = [fps.value, canvasFps.value].filter((value): value is number => value !== null);
-  const values = [...new Set([...allowed, ...extra])].sort((a, b) => a - b);
+  const values = [...new Set([...allowed, ...extra])]
+    .filter(value => canvasFps.value === null || value === canvasFps.value || value === fps.value || es.canSetTimelineFps(value, editTargetId.value))
+    .sort((a, b) => a - b);
 
-  return values.map(value => ({
-    label: String(value),
-    value,
-    disabled: canvasFps.value !== null && value !== canvasFps.value && !es.canSetTimelineFps(value, editTargetId.value)
-  }));
+  return values.map(value => ({ label: String(value), value }));
 });
 
 const barPreviewFrame = computed(() => {
