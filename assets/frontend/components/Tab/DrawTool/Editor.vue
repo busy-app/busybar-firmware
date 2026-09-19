@@ -4,7 +4,7 @@
       data-id="draw-tool-section-primary"
       class="overflow-visible"
       :title="statusFileName"
-      :subtitle="es.hasUnsavedChanges ? 'Unsaved changes' : statusFileName !== DEFAULT_STATUS_FILE_NAME ? 'Saved to file' : undefined"
+      :subtitle="isExportingAnimation ? `Rendering frames ${exportProgress} / ${es.timelineFrameCount}` : es.hasUnsavedChanges ? 'Unsaved changes' : statusFileName !== DEFAULT_STATUS_FILE_NAME ? 'Saved to file' : undefined"
       :ui="{
         title: 'text-lg',
         subtitle: 'text-sm',
@@ -51,10 +51,19 @@
                   ]
                   : []),
                 {
-                  label: 'Download PNG',
+                  label: es.hasVideoShapes ? 'Download animation' : 'Download PNG',
                   icon: 'i-bi-download',
                   onClick: downloadImage
-                }
+                },
+                ...(es.hasVideoShapes
+                  ? [
+                    {
+                      label: 'Download GIF',
+                      icon: 'i-bi-download',
+                      onClick: downloadGif
+                    }
+                  ]
+                  : [])
               ]"
               :content="{
                 align: 'end',
@@ -165,7 +174,7 @@
                             </span>
                             <UKbd
                               v-else
-                              class="size-6 justify-center px-1.5 bg-accented/25"
+                              class="h-6 min-w-6 justify-center px-1.5 bg-accented/25"
                               :value="token.label"
                             />
                           </template>
@@ -211,6 +220,10 @@
                         :config="getDisplayTextConfig(shape)"
                       />
                       <VImage
+                        v-else-if="shape.type === 'video'"
+                        :config="getDisplayVideoConfig(shape)"
+                      />
+                      <VImage
                         v-else
                         :config="getDisplayImageConfig(shape)"
                       />
@@ -234,6 +247,10 @@
                     <VText
                       v-else-if="shape.type === 'text'"
                       :config="getOverflowPreviewTextConfig(shape)"
+                    />
+                    <VImage
+                      v-else-if="shape.type === 'video'"
+                      :config="getOverflowPreviewVideoConfig(shape)"
                     />
                     <VImage
                       v-else
@@ -290,6 +307,18 @@
                         @transformend="es.handleShapeTransformEnd"
                       />
                       <VImage
+                        v-else-if="shape.type === 'video'"
+                        :config="getVideoConfig(shape)"
+                        @mousedown="es.handleShapePointerDown"
+                        @tap="es.handleShapePointerDown"
+                        @dblclick="() => es.requestVideoEdit(shape.id)"
+                        @dbltap="() => es.requestVideoEdit(shape.id)"
+                        @dragmove="es.handleShapeDragMove"
+                        @transform="es.handleShapeTransform"
+                        @dragend="es.handleShapeDragEnd"
+                        @transformend="es.handleShapeTransformEnd"
+                      />
+                      <VImage
                         v-else
                         :config="getImageConfig(shape)"
                         @mousedown="es.handleShapePointerDown"
@@ -324,6 +353,25 @@
                   @pointerdown.stop.prevent
                   @click.stop="es.deleteSelectedShape"
                 />
+
+                <UTooltip
+                  v-if="editButtonStyle"
+                  :delay-duration="80"
+                  text="Edit video"
+                >
+                  <UButton
+                    data-id="draw-tool-edit-video"
+                    color="neutral"
+                    variant="solid"
+                    square
+                    size="xs"
+                    icon="i-bi-edit"
+                    class="pointer-events-auto absolute rounded-full"
+                    :style="editButtonStyle"
+                    @pointerdown.stop.prevent
+                    @click.stop="editSelectedVideo"
+                  />
+                </UTooltip>
 
                 <UButton
                   v-if="selectionHandleStyle"
@@ -493,6 +541,8 @@
             </template>
           </ModalGeneric>
 
+          <TabDrawToolVideoUploadModal v-model:open="es.showVideoUploadModal" />
+
         </div>
       </template>
     </SectionCard>
@@ -651,6 +701,56 @@
           </template>
         </UPopover>
 
+        <UPopover
+          v-if="es.hasVideoShapes"
+          :content="{
+            side: 'top',
+            sideOffset: 16
+          }"
+          :ui="{
+            content: 'rounded-xl bg-surface-container ring-accented/75'
+          }"
+        >
+          <UTooltip
+            :delay-duration="80"
+            :content="{
+              side: 'top',
+              sideOffset: 16
+            }"
+            text="Frame rate"
+          >
+            <UButton
+              data-id="draw-tool-timeline-fps"
+              color="neutral"
+              variant="ghost"
+              square
+              :class="toolbarIconButtonClass"
+            >
+              <UIcon
+                name="i-ri-speed-line"
+                class="size-6"
+              />
+            </UButton>
+          </UTooltip>
+
+          <template #content>
+            <div class="w-60 p-3">
+              <UFormField
+                label="Frame rate, fps"
+                help="All clips on the canvas play and export at this rate"
+                :ui="{ help: 'text-xs' }"
+              >
+                <USelect
+                  :model-value="es.timelineFps"
+                  :items="timelineFpsOptions"
+                  class="w-full"
+                  @update:model-value="value => es.setTimelineFps(Number(value))"
+                />
+              </UFormField>
+            </div>
+          </template>
+        </UPopover>
+
         <UTooltip
           :delay-duration="80"
           :content="{
@@ -775,6 +875,28 @@
           >
             <UIcon
               name="i-bi-image"
+              class="size-6"
+            />
+          </UButton>
+        </UTooltip>
+
+        <UTooltip
+          :delay-duration="80"
+          :content="{
+            side: 'top',
+            sideOffset: 16
+          }"
+          text="Video"
+        >
+          <UButton
+            color="neutral"
+            variant="ghost"
+            square
+            :class="toolbarIconButtonClass"
+            @click="() => { es.showVideoUploadModal = true; }"
+          >
+            <UIcon
+              name="i-bi-video"
               class="size-6"
             />
           </UButton>
@@ -941,8 +1063,12 @@ import {
   Transformer as VTransformer
 } from 'vue-konva';
 import drawToolIconsData from '@/generated/drawTool/icons.json';
-import { DRAW_TOOL_DISPLAY_PRIORITY, DRAW_TOOL_EXPORT_PIXEL_SIZE, pixelateImageData } from '@/util/drawTool';
+import { DRAW_TOOL_DISPLAY_PRIORITY, DRAW_TOOL_EXPORT_PIXEL_SIZE, DRAW_TOOL_VIDEO_MAX_FPS, pixelateImageData } from '@/util/drawTool';
+import { VIDEO_FPS_OPTIONS } from '@/util/videoFrames';
 import type { TransformerBox } from '@/util/drawTool';
+import { ANIM_FILE_EXTENSION, composeAnimationFromFrames } from '@/util/seq2anim';
+import { createAnimationFromFrames } from '@/util/anim2seq';
+import { encodeAnimationToGif } from '@/util/anim2gif';
 import type { DisplayDrawParams } from '@busy-app/busy-lib';
 
 type DrawToolIcon = {
@@ -969,6 +1095,9 @@ const drawToolRootRef = ref<HTMLDivElement | null>(null);
 const resizeObserver = ref<ResizeObserver | null>(null);
 const pixelatedDisplayFrame = ref<number | null>(null);
 const transformerFrame = ref<number | null>(null);
+const timelinePlaybackFrame = ref<number | null>(null);
+const timelinePlaybackLastTimestamp = ref<number | null>(null);
+const timelinePlaybackElapsed = ref(0);
 const stageContainerViewportTop = ref(0);
 const preserveSelectionUntilClick = ref(false);
 const isResizeAspectRatioUnlocked = ref(false);
@@ -1045,6 +1174,19 @@ const toolbarKeyboardShortcuts: Array<{ label: string; tokens: ShortcutToken[] }
     ]
   },
   {
+    label: 'Play/pause video',
+    tokens: [
+      { kind: 'key', label: 'space' }
+    ]
+  },
+  {
+    label: 'Previous/next frame',
+    tokens: [
+      { kind: 'key', label: ',' },
+      { kind: 'key', label: '.' }
+    ]
+  },
+  {
     label: 'Save status to device',
     tokens: [
       { kind: 'key', label: 'meta' },
@@ -1055,6 +1197,10 @@ const toolbarKeyboardShortcuts: Array<{ label: string; tokens: ShortcutToken[] }
 
 const isSavingStatus = ref(false);
 const isShowingStatusOnDevice = ref(false);
+const isExportingAnimation = ref(false);
+const exportProgress = ref(0);
+const EXPORT_YIELD_EVERY_FRAMES = 8;
+const dts = useDrawToolStore();
 
 const isIconPickerOpen = ref(false);
 const isIconTooltipOpen = ref(false);
@@ -1156,6 +1302,14 @@ const workspaceGridGroupConfig = computed(() => ({
 }));
 
 const hasVisibleBackgroundColor = computed(() => !isColorFullyTransparent(es.backgroundColor));
+
+const timelineFpsOptions = computed(() => {
+  const values = [...new Set([...VIDEO_FPS_OPTIONS.filter(value => value <= DRAW_TOOL_VIDEO_MAX_FPS), es.timelineFps])]
+    .filter(value => value === es.timelineFps || es.canSetTimelineFps(value))
+    .sort((a, b) => a - b);
+
+  return values.map(value => ({ label: String(value), value }));
+});
 
 const workspaceBackgroundConfig = computed(() => ({
   x: 0,
@@ -1418,6 +1572,24 @@ const deleteButtonStyle = computed(() => {
     transform: 'translate(-50%, -50%)'
   };
 });
+const editButtonStyle = computed(() => {
+  if (!es.editButtonPosition) {
+    return '';
+  }
+
+  return {
+    left: `${es.editButtonPosition.x}px`,
+    top: `${es.editButtonPosition.y}px`,
+    transform: 'translate(-50%, -50%)'
+  };
+});
+
+function editSelectedVideo () {
+  if (es.selectedShapeId) {
+    es.requestVideoEdit(es.selectedShapeId);
+  }
+}
+
 const rotationHandleStyle = computed(() => {
   if (!es.rotationHandlePosition || selectedTextShape.value) {
     return '';
@@ -1629,6 +1801,21 @@ function handleWindowKeyDown (event: KeyboardEvent) {
     return;
   }
 
+  if (es.hasVideoShapes && !event.ctrlKey && !event.metaKey && !event.altKey) {
+    if (event.code === 'Space') {
+      event.preventDefault();
+      es.toggleTimelinePlayback();
+      return;
+    }
+
+    if (event.code === 'Comma' || event.code === 'Period') {
+      event.preventDefault();
+      es.isTimelinePlaying = false;
+      es.stepPlayhead(event.code === 'Comma' ? -1 : 1);
+      return;
+    }
+  }
+
   if (!es.selectedShapeId || event.ctrlKey || event.metaKey || event.altKey) {
     return;
   }
@@ -1726,6 +1913,13 @@ async function insertImage () {
     return;
   }
 
+  if (es.imageUploadFile.type === 'image/gif' || /\.gif$/i.test(es.imageUploadFile.name)) {
+    es.pendingVideoUploadFile = es.imageUploadFile;
+    es.resetImageUploadModal();
+    es.showVideoUploadModal = true;
+    return;
+  }
+
   try {
     const imageElement = await loadImageFile(es.imageUploadFile);
     const pixelArt = es.imageUploadFile.type === 'image/svg+xml' ? false : undefined;
@@ -1789,6 +1983,57 @@ function getOverflowPreviewTextConfig (shape: Parameters<typeof getDisplayTextCo
     opacity: OVERFLOW_PREVIEW_OPACITY
   };
 }
+
+function getOverflowPreviewVideoConfig (shape: Parameters<typeof getDisplayVideoConfig>[0]) {
+  return {
+    ...getDisplayVideoConfig(shape),
+    opacity: OVERFLOW_PREVIEW_OPACITY
+  };
+}
+
+function stopTimelinePlaybackLoop () {
+  if (timelinePlaybackFrame.value !== null) {
+    cancelAnimationFrame(timelinePlaybackFrame.value);
+    timelinePlaybackFrame.value = null;
+  }
+
+  timelinePlaybackLastTimestamp.value = null;
+  timelinePlaybackElapsed.value = 0;
+}
+
+function timelinePlaybackTick (timestamp: number) {
+  timelinePlaybackFrame.value = null;
+
+  if (!es.isTimelinePlaying || !es.hasVideoShapes) {
+    stopTimelinePlaybackLoop();
+    return;
+  }
+
+  const frameDuration = 1000 / Math.max(1, es.timelineFps);
+
+  if (timelinePlaybackLastTimestamp.value !== null) {
+    timelinePlaybackElapsed.value += timestamp - timelinePlaybackLastTimestamp.value;
+  }
+
+  timelinePlaybackLastTimestamp.value = timestamp;
+
+  const framesToAdvance = Math.floor(timelinePlaybackElapsed.value / frameDuration);
+
+  if (framesToAdvance > 0) {
+    timelinePlaybackElapsed.value -= framesToAdvance * frameDuration;
+    es.stepPlayhead(framesToAdvance);
+  }
+
+  timelinePlaybackFrame.value = requestAnimationFrame(timelinePlaybackTick);
+}
+
+watch(() => es.isTimelinePlaying, playing => {
+  stopTimelinePlaybackLoop();
+
+  if (playing) {
+    timelinePlaybackFrame.value = requestAnimationFrame(timelinePlaybackTick);
+  }
+});
 
 async function insertDrawToolIcon (icon: ResolvedDrawToolIcon) {
   try {
@@ -1857,6 +2102,12 @@ function buildExportLayer (scale = 1): Konva.Layer {
       return;
     }
 
+    if (shape.type === 'video') {
+      displayGroup.add(new Konva.Image(getExportVideoConfig(shape)));
+
+      return;
+    }
+
     displayGroup.add(new Konva.Image(getExportImageConfig(shape)));
   });
 
@@ -1879,42 +2130,40 @@ function buildExportLayer (scale = 1): Konva.Layer {
   return layer;
 }
 
-function captureExportSourceCanvas () {
-  let exportStage: Konva.Stage | null = null;
-  let exportContainer: HTMLDivElement | null = null;
+function createExportRenderer () {
+  const exportCellSize = Math.max(1, stageMetrics.value.cellSize);
+  const { stage, container } = createExportStage(
+    WORKSPACE_WIDTH * exportCellSize,
+    WORKSPACE_HEIGHT * exportCellSize
+  );
+  const layer = buildExportLayer(exportCellSize);
 
-  try {
-    const exportCellSize = Math.max(1, stageMetrics.value.cellSize);
-    const exportSurface = createExportStage(
-      WORKSPACE_WIDTH * exportCellSize,
-      WORKSPACE_HEIGHT * exportCellSize
-    );
-    exportStage = exportSurface.stage;
-    exportContainer = exportSurface.container;
+  stage.add(layer);
 
-    const layer = buildExportLayer(exportCellSize);
-    exportStage.add(layer);
-    layer.draw();
+  return {
+    render (): ImageData {
+      layer.draw();
 
-    return exportStage.toCanvas({ pixelRatio: 1 });
-  } finally {
-    exportStage?.destroy();
-    exportContainer?.remove();
-  }
+      const sourceCanvas = stage.toCanvas({ pixelRatio: 1 });
+      const sourceContext = sourceCanvas.getContext('2d', { willReadFrequently: true });
+
+      if (!sourceContext) {
+        throw new Error('Could not read export canvas pixels');
+      }
+
+      const sourceImageData = sourceContext.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
+
+      return buildLogicalExportImageData(pixelateImageData(sourceImageData, DRAW_TOOL_EXPORT_PIXEL_SIZE));
+    },
+    destroy () {
+      stage.destroy();
+      container.remove();
+    }
+  };
 }
 
-function buildLogicalExportCanvas (sourceImageData: ImageData) {
-  const logicalCanvas = document.createElement('canvas');
-  const logicalContext = logicalCanvas.getContext('2d');
-
-  logicalCanvas.width = WORKSPACE_WIDTH;
-  logicalCanvas.height = WORKSPACE_HEIGHT;
-
-  if (!logicalContext) {
-    throw new Error('Could not create export canvas context');
-  }
-
-  const logicalImageData = logicalContext.createImageData(WORKSPACE_WIDTH, WORKSPACE_HEIGHT);
+function buildLogicalExportImageData (sourceImageData: ImageData) {
+  const logicalImageData = new ImageData(WORKSPACE_WIDTH, WORKSPACE_HEIGHT);
   const cellWidth = sourceImageData.width / WORKSPACE_WIDTH;
   const cellHeight = sourceImageData.height / WORKSPACE_HEIGHT;
 
@@ -1933,48 +2182,77 @@ function buildLogicalExportCanvas (sourceImageData: ImageData) {
     }
   }
 
-  logicalContext.putImageData(logicalImageData, 0, 0);
-
-  return logicalCanvas;
+  return logicalImageData;
 }
 
-function createExportImageData () {
-  const sourceCanvas = captureExportSourceCanvas();
-  const sourceContext = sourceCanvas.getContext('2d', { willReadFrequently: true });
+function renderExportImageData () {
+  const renderer = createExportRenderer();
 
-  if (!sourceContext) {
-    throw new Error('Could not read export canvas pixels');
+  try {
+    return renderer.render();
+  } finally {
+    renderer.destroy();
+  }
+}
+
+async function renderExportAnimationFrames () {
+  const frameCount = es.timelineFrameCount;
+  const renderer = createExportRenderer();
+  const frames: ImageData[] = [];
+  const wasPlaying = es.isTimelinePlaying;
+
+  es.isTimelinePlaying = false;
+  isExportingAnimation.value = true;
+  exportProgress.value = 0;
+
+  try {
+    for (let frame = 0; frame < frameCount; frame += 1) {
+      es.applyPlayheadToVideoShapes(frame);
+      frames.push(renderer.render());
+      exportProgress.value = frame + 1;
+
+      if (frame % EXPORT_YIELD_EVERY_FRAMES === 0) {
+        await new Promise(resolve => setTimeout(resolve));
+      }
+    }
+  } finally {
+    renderer.destroy();
+    es.applyPlayheadToVideoShapes(es.playheadFrame);
+    es.syncPixelatedDisplay();
+    isExportingAnimation.value = false;
+    es.isTimelinePlaying = wasPlaying && es.hasVideoShapes;
   }
 
-  const sourceImageData = sourceContext.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
-
-  return pixelateImageData(sourceImageData, DRAW_TOOL_EXPORT_PIXEL_SIZE);
+  return frames;
 }
 
-function createStatusTimestamp (date = new Date()) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  const seconds = String(date.getSeconds()).padStart(2, '0');
-
-  return `${year}-${month}-${day}_${hours}-${minutes}-${seconds}`;
+function getStatusExportExtension () {
+  return es.hasVideoShapes ? ANIM_FILE_EXTENSION : '.png';
 }
 
 function createNextStatusFileName () {
-  let candidate = `${createStatusTimestamp()}.png`;
+  const extension = getStatusExportExtension();
+  let candidate = `${createStatusTimestamp()}${extension}`;
 
   if (candidate === statusFileName.value) {
-    candidate = `${createStatusTimestamp(new Date(Date.now() + 1000))}.png`;
+    candidate = `${createStatusTimestamp(new Date(Date.now() + 1000))}${extension}`;
   }
 
   return candidate;
 }
 
 function renderExportPngDataUrl () {
-  const exportImageData = createExportImageData();
-  const logicalCanvas = buildLogicalExportCanvas(exportImageData);
+  const logicalCanvas = document.createElement('canvas');
+  const logicalContext = logicalCanvas.getContext('2d');
+
+  logicalCanvas.width = WORKSPACE_WIDTH;
+  logicalCanvas.height = WORKSPACE_HEIGHT;
+
+  if (!logicalContext) {
+    throw new Error('Could not create export canvas context');
+  }
+
+  logicalContext.putImageData(renderExportImageData(), 0, 0);
 
   return logicalCanvas.toDataURL('image/png');
 }
@@ -1985,6 +2263,19 @@ async function createExportPngFile (fileName: string) {
   const blob = await response.blob();
 
   return new File([blob], fileName, { type: 'image/png' });
+}
+
+async function createExportAnimationFile (fileName: string) {
+  const frames = await renderExportAnimationFrames();
+  const blob = composeAnimationFromFrames(frames, { fps: es.timelineFps, colorMode: 'rgb888' });
+
+  return new File([blob], fileName, { type: 'application/octet-stream' });
+}
+
+async function createExportFile (fileName: string) {
+  return es.hasVideoShapes
+    ? await createExportAnimationFile(fileName)
+    : await createExportPngFile(fileName);
 }
 
 async function clearStatusDisplay (): Promise<void> {
@@ -2089,8 +2380,9 @@ async function saveStatus (options?: { saveAsNew?: boolean }) {
     return false;
   }
 
-  const saveAsNew = !!options?.saveAsNew;
   const hadSavedStatusFile = hasSavedStatusFile.value;
+  const savedKindMatches = !!savedStatusFilePath.value && savedStatusFilePath.value.toLowerCase().endsWith(getStatusExportExtension());
+  const saveAsNew = !!options?.saveAsNew || !savedKindMatches;
   const fileName = saveAsNew || !savedStatusFilePath.value
     ? createNextStatusFileName()
     : statusFileName.value;
@@ -2105,7 +2397,7 @@ async function saveStatus (options?: { saveAsNew?: boolean }) {
   isSavingStatus.value = true;
 
   try {
-    const file = await createExportPngFile(fileName);
+    const file = await createExportFile(fileName);
 
     try {
       await writeStatusFile(targetPath, file);
@@ -2156,15 +2448,22 @@ async function showStatusOnBusyBar () {
   isShowingStatusOnDevice.value = true;
 
   try {
-    if (!hasSavedStatusFile.value || es.hasUnsavedChanges) {
-      const image = await createExportPngFile(DRAW_TOOL_TEMP_FILE_NAME);
+    const savedKindMatches = hasSavedStatusFile.value && statusFileName.value.toLowerCase().endsWith(getStatusExportExtension());
 
-      await uploadStatusAsset(image);
-      await clearStatusDisplay();
-      await drawStatusOnBusyBar(DRAW_TOOL_TEMP_FILE_NAME);
+    if (!savedKindMatches || es.hasUnsavedChanges) {
+      if (es.hasVideoShapes) {
+        const animation = await createExportAnimationFile(DRAW_TOOL_TEMP_ANIMATION_FILE_NAME);
+
+        await dts.showTempAnimationOnBusyBar(animation);
+      } else {
+        const image = await createExportPngFile(DRAW_TOOL_TEMP_FILE_NAME);
+
+        await uploadStatusAsset(image);
+        await clearStatusDisplay();
+        await drawStatusOnBusyBar(DRAW_TOOL_TEMP_FILE_NAME);
+      }
     } else {
-      await clearStatusDisplay();
-      await drawStatusOnBusyBar(statusFileName.value);
+      await dts.showSavedStatusOnBusyBar(statusFileName.value);
     }
 
     showStatusCheckmarkIcon.value = true;
@@ -2178,16 +2477,31 @@ async function showStatusOnBusyBar () {
   }
 }
 
+async function downloadGif () {
+  try {
+    const frames = await renderExportAnimationFrames();
+    const gif = encodeAnimationToGif(createAnimationFromFrames(frames, es.timelineFps));
+
+    downloadFile(gif, 'draw-tool.gif');
+  } catch (error) {
+    toast.add({
+      id: 'draw-tool-download-error',
+      title: 'Could not download GIF',
+      description: error instanceof Error ? error.message : String(error),
+      icon: 'i-bi-alert',
+      color: 'error',
+      duration: 0,
+      close: true,
+      closeIcon: 'i-bi-cross'
+    });
+  }
+}
+
 async function downloadImage () {
   try {
-    const file = await createExportPngFile('draw-tool.png');
-    const link = document.createElement('a');
-    const objectUrl = URL.createObjectURL(file);
+    const file = await createExportFile(`draw-tool${getStatusExportExtension()}`);
 
-    link.href = objectUrl;
-    link.download = file.name;
-    link.click();
-    URL.revokeObjectURL(objectUrl);
+    downloadFile(file, file.name);
   } catch (error) {
     toast.add({
       id: 'draw-tool-download-error',
@@ -2249,5 +2563,8 @@ onBeforeUnmount(() => {
   if (transformerFrame.value !== null) {
     cancelAnimationFrame(transformerFrame.value);
   }
+
+  es.isTimelinePlaying = false;
+  stopTimelinePlaybackLoop();
 });
 </script>
