@@ -1,11 +1,15 @@
 <template>
-  <SectionCard
-    data-id="apps-section-weather"
+  <TabAppsAppScreen
+    app-id="weather"
     title="Weather"
-    :ui="{ title: 'font-medium' }"
+    @back="emit('back')"
   >
-    <template #raw-body>
-      <TabAppsGeolocation />
-    </template>
-  </SectionCard>
+    <TabAppsGeolocation />
+  </TabAppsAppScreen>
 </template>
+
+<script setup lang="ts">
+const emit = defineEmits<{
+  back: [];
+}>();
+</script>
