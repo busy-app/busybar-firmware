@@ -118,9 +118,18 @@ bool loader_is_locked(Loader* instance);
 /**
  * @brief Get loader pubsub
  * @param[in] instance loader instance
- * @return FuriPubSub* 
+ * @return FuriPubSub*
  */
 FuriPubSub* loader_get_pubsub(Loader* instance);
+
+/**
+ * @brief Get the id of the currently running application
+ *
+ * @param[in] instance pointer to the loader instance
+ * @param[in,out] app_id pointer to the string to contain the id (must be allocated)
+ * @return true if it was possible to get an application name, false otherwise
+ */
+bool loader_get_application_id(Loader* instance, FuriString* app_id);
 
 /**
  * @brief Get the name of the currently running application

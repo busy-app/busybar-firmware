@@ -1,10 +1,14 @@
 #include "http_api.h"
 
+#include <desktop/desktop.h>
+#include <loader/loader.h>
+
 #include <storage_utils/temp_file.h>
 #include <toolbox/timers.h>
 
 #include <js_app_installer/js_app_installer_paths.h>
 #include <js_app_installer/js_app_installer.h>
+#include <js_app_launcher/js_app_launcher.h>
 #include <js_app/js_app_registry.h>
 #include <js_app/js_app_settings_storage.h>
 #include <js_app/js_app_common.h>
@@ -355,6 +359,90 @@ static bool api_apps_install_request_callback(
     return true;
 }
 
+static bool api_apps_launch_request_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(method);
+    UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
+    char app_id[APP_ID_LEN_MAX];
+    if(mg_http_get_var(&msg->query, "app_id", app_id, APP_ID_LEN_MAX) <= 0) {
+        MG_REPLY_BAD_REQUEST(conn);
+        return true;
+    }
+
+    if(!js_app_registry_is_valid_app_id(app_id)) {
+        MG_REPLY_BAD_REQUEST(conn);
+        return true;
+    }
+
+    JsApp* app = js_app_registry_get_app(app_id);
+    if(app == NULL) {
+        MG_REPLY_NOT_FOUND(conn);
+        return true;
+    }
+    js_app_free(app);
+
+    Desktop* desktop = furi_record_open(RECORD_DESKTOP);
+    if(desktop_replace_current_app(desktop, JS_APP_LAUNCHER_APP_ID, app_id)) {
+        MG_REPLY_OK(conn);
+    } else {
+        MG_REPLY_ERROR(conn, 500, "failed to lauch application");
+    }
+    furi_record_close(RECORD_DESKTOP);
+
+    return true;
+}
+
+static bool api_apps_quit_request_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(method);
+    UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
+    bool success = false;
+
+    FuriString* app_id = furi_string_alloc();
+    Loader* loader = furi_record_open(RECORD_LOADER);
+
+    do {
+        if(!loader_get_application_id(loader, app_id)) {
+            break;
+        }
+
+        if(!furi_string_equal(app_id, JS_APP_LAUNCHER_APP_ID)) {
+            break;
+        }
+
+        if(!loader_send_signal(loader, FuriSignalExit, NULL)) {
+            break;
+        }
+
+        success = true;
+    } while(false);
+
+    furi_record_close(RECORD_LOADER);
+    furi_string_free(app_id);
+
+    if(success) {
+        MG_REPLY_OK(conn);
+    } else {
+        MG_REPLY_ERROR(conn, 500, "failed quit from application");
+    }
+
+    return true;
+}
+
 static cJSON* serialize_app_info(const JsAppInfo* info) {
     cJSON* entry = cJSON_CreateObject();
     cJSON_AddStringToObject(entry, "id", info->manifest.id);
@@ -561,6 +649,18 @@ static const HttpHandler api_apps_handlers[] = {
         .method = HttpMethodPost,
         .type = HttpHandlerCustom,
         .on_request = api_apps_install_request_callback,
+    },
+    {
+        .uri = "launch",
+        .method = HttpMethodPost,
+        .type = HttpHandlerCustom,
+        .on_request = api_apps_launch_request_callback,
+    },
+    {
+        .uri = "quit",
+        .method = HttpMethodPost,
+        .type = HttpHandlerCustom,
+        .on_request = api_apps_quit_request_callback,
     },
     {
         .uri = "list",
