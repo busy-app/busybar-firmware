@@ -26,6 +26,12 @@ typedef enum {
     JsAppLauncherErrorMax,
 } JsAppLauncherError;
 
+typedef enum {
+    JsAppLauncherModeNormal,
+    JsAppLauncherModeSkipMenu,
+    JsAppLauncherModeMax,
+} JsAppLauncherMode;
+
 typedef struct {
     struct {
         const char* front;
@@ -51,6 +57,7 @@ typedef struct {
     JsApp* js_app;
     JsAppSettingsStorage* settings_storage;
     JsAppLauncherError error;
+    JsAppLauncherMode mode;
 } JsAppLauncher;
 
 typedef enum {

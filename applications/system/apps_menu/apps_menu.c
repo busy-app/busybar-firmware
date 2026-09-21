@@ -5,6 +5,8 @@
 
 #include <storage/storage.h>
 #include <gui/modules/submenu.h>
+
+#include <js_app/js_app_common.h>
 #include <js_app_launcher/js_app_launcher.h>
 
 #define TAG "AppsMenu"
@@ -13,6 +15,8 @@
 #define APPS_MENU_ARG_RESET       "reset"
 #define APPS_MENU_ARG_SKIP_MENU   "-s"
 #define APPS_MENU_ACTIVE_APP_NONE ""
+
+#define APPS_MENU_JS_APP_ID_LEN_EXTRA (sizeof(JS_APP_LAUNCHER_FLAG_SKIP_MENU))
 
 #define APPS_MENU_JS_APPS_ENABLE_FLAG_PATH APP_DATA_PATH("js_apps_enabled")
 
@@ -223,6 +227,7 @@ bool apps_menu_start_application(const char* app_id, bool is_skip_menu) {
 
     const char* id;
     const char* args;
+    char js_app_id[JS_APP_ID_LEN_MAX + APPS_MENU_JS_APP_ID_LEN_EXTRA];
 
     if(apps_list_contains(app_id)) {
         id = app_id;
@@ -230,7 +235,12 @@ bool apps_menu_start_application(const char* app_id, bool is_skip_menu) {
 
     } else if(apps_menu_is_js_apps_enabled()) {
         id = JS_APP_LAUNCHER_APP_ID;
-        args = app_id;
+        args = js_app_id;
+
+        strlcpy(js_app_id, app_id, sizeof(js_app_id) - strlen(JS_APP_LAUNCHER_FLAG_SKIP_MENU));
+        if(is_skip_menu) {
+            strlcat(js_app_id, JS_APP_LAUNCHER_FLAG_SKIP_MENU, sizeof(js_app_id));
+        }
 
     } else {
         id = NULL;

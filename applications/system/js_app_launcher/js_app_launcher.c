@@ -1,3 +1,4 @@
+#include "js_app_launcher.h"
 #include "js_app_launcher_i.h"
 
 #include <apps_menu/apps_menu.h>
@@ -6,6 +7,8 @@
 #include <js_app/js_app_registry.h>
 
 #include "scenes/js_app_launcher_scenes.h"
+
+#include <js_app/js_app_common.h>
 
 #define INPUT_QUEUE_SIZE       (8)
 #define EVENT_QUEUE_SIZE       (8)
@@ -81,6 +84,26 @@ static void js_app_launcher_set_navbar_text(const JsAppLauncher* instance) {
     }
 }
 
+static void js_app_launcher_init_app(JsAppLauncher* instance, const char* app_id) {
+    const size_t app_id_len = strlen(app_id);
+    if((app_id_len == 0) ||
+       (app_id_len > (JS_APP_ID_LEN_MAX + strlen(JS_APP_LAUNCHER_FLAG_SKIP_MENU)))) {
+        return;
+    }
+
+    char app_id_tmp[app_id_len + 1];
+    strcpy(app_id_tmp, app_id);
+
+    const size_t flag_idx = app_id_len - strlen(JS_APP_LAUNCHER_FLAG_SKIP_MENU);
+
+    if(strcmp(&app_id_tmp[flag_idx], JS_APP_LAUNCHER_FLAG_SKIP_MENU) == 0) {
+        app_id_tmp[flag_idx] = '\0';
+        instance->mode = JsAppLauncherModeSkipMenu;
+    }
+
+    instance->js_app = js_app_registry_get_app(app_id_tmp);
+}
+
 static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
     JsAppLauncher* instance = malloc(sizeof(JsAppLauncher));
 
@@ -90,7 +113,8 @@ static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
     instance->scene_manager =
         scene_manager_alloc(js_app_launcher_scenes, JsAppLauncherSceneIdMax, instance);
     instance->gui = furi_record_open(RECORD_GUI);
-    instance->js_app = js_app_registry_get_app(app_id);
+
+    js_app_launcher_init_app(instance, app_id);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -129,24 +153,28 @@ static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
         js_app_launcher_event_queue_callback,
         instance);
 
-    JsAppLauncherSceneId scene_id;
+    uint32_t scene_ids[2] = {JsAppLauncherSceneIdError, JsAppLauncherSceneIdMax};
+    size_t scene_ids_count = 1;
+
     if(instance->js_app) {
         JsAppSettingsStorageStatus status;
         instance->settings_storage = js_app_settings_storage_alloc(app_id, &status);
 
         if(instance->settings_storage || status == JsAppSettingsStorageStatusSchemaMissing) {
-            scene_id = JsAppLauncherSceneIdStart;
+            scene_ids[0] = JsAppLauncherSceneIdStart;
+            if(instance->mode == JsAppLauncherModeSkipMenu) {
+                scene_ids[1] = JsAppLauncherSceneIdRun;
+                scene_ids_count = 2;
+            }
         } else {
             instance->error = js_app_launcher_settings_storage_error_map[status];
-            scene_id = JsAppLauncherSceneIdError;
         }
     } else {
         instance->settings_storage = NULL;
         instance->error = JsAppLauncherErrorLoadFailed;
-        scene_id = JsAppLauncherSceneIdError;
     }
 
-    scene_manager_next_scene(instance->scene_manager, scene_id);
+    scene_manager_next_scenes(instance->scene_manager, scene_ids, scene_ids_count);
 
     return instance;
 }
