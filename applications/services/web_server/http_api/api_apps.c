@@ -376,7 +376,7 @@ static bool api_apps_launch_request_callback(
         return true;
     }
 
-    if(!js_app_registry_is_valid_app_id(app_id)) {
+    if(!js_app_is_valid_id(app_id)) {
         MG_REPLY_BAD_REQUEST(conn);
         return true;
     }
@@ -597,7 +597,7 @@ static bool api_apps_settings_callback(
         return true;
     }
 
-    if(!js_app_registry_is_valid_app_id(app_id)) {
+    if(!js_app_is_valid_id(app_id)) {
         MG_REPLY_BAD_REQUEST(conn);
         return true;
     }

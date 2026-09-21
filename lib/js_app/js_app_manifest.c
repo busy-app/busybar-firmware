@@ -100,7 +100,7 @@ static bool
         }
 
         info->id = cJSON_GetStringValue(item);
-        if(!js_app_registry_is_valid_app_id(info->id)) {
+        if(!js_app_is_valid_id(info->id)) {
             break;
         }
 

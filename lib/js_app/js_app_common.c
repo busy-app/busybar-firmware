@@ -2,7 +2,7 @@
 #include <stddef.h>
 #include <string.h>
 
-bool js_app_registry_is_valid_app_id(const char* app_id) {
+bool js_app_is_valid_id(const char* app_id) {
     size_t len = strnlen(app_id, JS_APP_ID_LEN_MAX + 1);
     if(len == 0 || len > JS_APP_ID_LEN_MAX) {
         return false;
