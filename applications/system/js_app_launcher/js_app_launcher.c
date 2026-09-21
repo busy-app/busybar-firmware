@@ -62,19 +62,7 @@ static void js_app_launcher_event_queue_callback(FuriEventLoopObject* object, vo
     }
 }
 
-static void js_app_launcher_set_navbar_text(const JsAppLauncher* instance) {
-    JsAppInfo info;
-
-    if(js_app_get_info(instance->js_app, &info)) {
-        FuriString* tmp = furi_string_alloc_set(info.manifest.name);
-        furi_string_to_upper_in_place(tmp);
-
-        nav_bar_push_location(instance->nav_bar, furi_string_get_cstr(tmp));
-        furi_string_free(tmp);
-    }
-}
-
-static void js_app_launcher_init_app(JsAppLauncher* instance, const char* app_id) {
+static void js_app_launcher_init_current_app(JsAppLauncher* instance, const char* app_id) {
     JsAppLauncherMode mode = JsAppLauncherModeNormal;
 
     do {
@@ -146,6 +134,43 @@ static void js_app_launcher_init_settings_storage(JsAppLauncher* instance) {
     instance->error = error;
 }
 
+static void js_app_launcher_set_navbar_text(const JsAppLauncher* instance) {
+    JsAppInfo info;
+
+    if(js_app_get_info(instance->js_app, &info)) {
+        FuriString* tmp = furi_string_alloc_set(info.manifest.name);
+        furi_string_to_upper_in_place(tmp);
+
+        nav_bar_push_location(instance->nav_bar, furi_string_get_cstr(tmp));
+        furi_string_free(tmp);
+    }
+}
+
+static void js_app_launcher_init_gui(JsAppLauncher* instance) {
+    with_gui(instance->gui, {
+        GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        gui_layer_add_input_callback(layer, js_app_launcher_gui_input_callback, instance);
+
+        instance->front_window = widget_alloc(gui_layer_get_root_widget(layer, GuiDisplayIdFront));
+        instance->back_container = flex_layout_alloc(
+            gui_layer_get_root_widget(layer, GuiDisplayIdBack), FlexLayoutTypeColumn);
+
+        instance->nav_bar = nav_bar_alloc(flex_layout_get_base(instance->back_container));
+        widget_set_height(nav_bar_get_base(instance->nav_bar), NAV_BAR_HEIGHT);
+        widget_set_margin(nav_bar_get_base(instance->nav_bar), 1, 0, 0, 2);
+        nav_bar_set_header_image(instance->nav_bar, SHARED_IMG_PATH("apps_menu_back_12x12.image"));
+        flex_layout_set_child_widget_grow(
+            instance->back_container, nav_bar_get_base(instance->nav_bar), 0);
+
+        instance->back_window = widget_alloc(flex_layout_get_base(instance->back_container));
+        flex_layout_set_child_widget_grow(instance->back_container, instance->back_window, 1);
+
+        if(instance->js_app) {
+            js_app_launcher_set_navbar_text(instance);
+        }
+    });
+}
+
 static void js_app_launcher_go_to_next_scene(const JsAppLauncher* instance) {
     uint32_t scene_ids[2];
     size_t scene_ids_count;
@@ -177,31 +202,9 @@ static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
         scene_manager_alloc(js_app_launcher_scenes, JsAppLauncherSceneIdMax, instance);
     instance->gui = furi_record_open(RECORD_GUI);
 
-    js_app_launcher_init_app(instance, app_id);
+    js_app_launcher_init_current_app(instance, app_id);
     js_app_launcher_init_settings_storage(instance);
-
-    with_gui(instance->gui, {
-        GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
-        gui_layer_add_input_callback(layer, js_app_launcher_gui_input_callback, instance);
-
-        instance->front_window = widget_alloc(gui_layer_get_root_widget(layer, GuiDisplayIdFront));
-        instance->back_container = flex_layout_alloc(
-            gui_layer_get_root_widget(layer, GuiDisplayIdBack), FlexLayoutTypeColumn);
-
-        instance->nav_bar = nav_bar_alloc(flex_layout_get_base(instance->back_container));
-        widget_set_height(nav_bar_get_base(instance->nav_bar), NAV_BAR_HEIGHT);
-        widget_set_margin(nav_bar_get_base(instance->nav_bar), 1, 0, 0, 2);
-        nav_bar_set_header_image(instance->nav_bar, SHARED_IMG_PATH("apps_menu_back_12x12.image"));
-        flex_layout_set_child_widget_grow(
-            instance->back_container, nav_bar_get_base(instance->nav_bar), 0);
-
-        instance->back_window = widget_alloc(flex_layout_get_base(instance->back_container));
-        flex_layout_set_child_widget_grow(instance->back_container, instance->back_window, 1);
-
-        if(instance->js_app) {
-            js_app_launcher_set_navbar_text(instance);
-        }
-    });
+    js_app_launcher_init_gui(instance);
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
