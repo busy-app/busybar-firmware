@@ -407,6 +407,7 @@ static bool api_apps_quit_request_callback(
     void* ctx) {
     UNUSED(method);
     UNUSED(ctx);
+    UNUSED(msg);
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
