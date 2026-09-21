@@ -16,16 +16,6 @@
 
 #define NAV_BAR_HEIGHT (14)
 
-static const JsAppLauncherError js_app_launcher_settings_storage_error_map[] = {
-    [JsAppSettingsStorageStatusOk] = JsAppLauncherErrorNone,
-    [JsAppSettingsStorageStatusSchemaMissing] = JsAppLauncherErrorSettingsSchemaMissing,
-    [JsAppSettingsStorageStatusSchemaInvalid] = JsAppLauncherErrorSettingsSchemaInvalid,
-    [JsAppSettingsStorageStatusStorageFailure] = JsAppLauncherErrorSettingsStorageFailure,
-};
-
-static_assert(
-    COUNT_OF(js_app_launcher_settings_storage_error_map) == JsAppSettingsStorageStatusesCount);
-
 static bool js_app_launcher_gui_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
@@ -111,6 +101,21 @@ static void js_app_launcher_init_app(JsAppLauncher* instance, const char* app_id
     instance->mode = mode;
 }
 
+static JsAppLauncherError
+    js_app_launcher_translate_from_settings_storage_status(JsAppSettingsStorageStatus status) {
+    static const JsAppLauncherError status_map[] = {
+        [JsAppSettingsStorageStatusOk] = JsAppLauncherErrorNone,
+        [JsAppSettingsStorageStatusSchemaMissing] = JsAppLauncherErrorSettingsSchemaMissing,
+        [JsAppSettingsStorageStatusSchemaInvalid] = JsAppLauncherErrorSettingsSchemaInvalid,
+        [JsAppSettingsStorageStatusStorageFailure] = JsAppLauncherErrorSettingsStorageFailure,
+    };
+
+    static_assert(COUNT_OF(status_map) == JsAppSettingsStorageStatusesCount);
+    furi_assert(status < JsAppSettingsStorageStatusesCount);
+
+    return status_map[status];
+}
+
 static void js_app_launcher_init_settings_storage(JsAppLauncher* instance) {
     JsAppLauncherError error;
 
@@ -131,7 +136,7 @@ static void js_app_launcher_init_settings_storage(JsAppLauncher* instance) {
 
         if((instance->settings_storage == NULL) &&
            (status != JsAppSettingsStorageStatusSchemaMissing)) {
-            error = js_app_launcher_settings_storage_error_map[status];
+            error = js_app_launcher_translate_from_settings_storage_status(status);
             break;
         }
 
