@@ -50,6 +50,17 @@ export const VIDEO_FIT_OPTIONS: Array<{ label: string; value: VideoFitMode }> = 
 
 export const VIDEO_FPS_OPTIONS = [10, 15, 24, 30, 60];
 
+export const VIDEO_DEFAULT_FPS = 15;
+export const VIDEO_MAX_FPS = 60;
+export const VIDEO_MAX_FRAMES = 450;
+export const VIDEO_MAX_DURATION_SECONDS = 15;
+export const VIDEO_MAX_FILE_BYTES = 4 * 1024 * 1024 * 1024;
+export const VIDEO_SOURCE_MAX_FRAMES = 2000;
+
+export function getVideoMaxDurationSeconds (fps: number): number {
+  return Math.min(VIDEO_MAX_DURATION_SECONDS, VIDEO_MAX_FRAMES / Math.max(1, fps));
+}
+
 export function getCoverCropRect (
   sourceWidth: number,
   sourceHeight: number,

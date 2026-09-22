@@ -30,16 +30,6 @@ export const DRAW_TOOL_TEMP_FILE_NAME = 'temp.png';
 export const DRAW_TOOL_TEMP_ANIMATION_FILE_NAME = 'temp.anim';
 export const DRAW_TOOL_SAVE_DIR = `${USER_ASSETS_DIR}/${DRAW_TOOL_DISPLAY_APPLICATION_NAME}`;
 export const DRAW_TOOL_DISPLAY_PRIORITY = 40;
-export const DRAW_TOOL_VIDEO_MAX_DURATION_SECONDS = 15;
-export const DRAW_TOOL_VIDEO_DEFAULT_FPS = 15;
-export const DRAW_TOOL_VIDEO_MAX_FPS = 60;
-export const DRAW_TOOL_VIDEO_MAX_FRAMES = 450;
-export const DRAW_TOOL_VIDEO_MAX_FILE_BYTES = 4 * 1024 * 1024 * 1024;
-
-export function getVideoMaxDurationSeconds (fps: number): number {
-  return Math.min(DRAW_TOOL_VIDEO_MAX_DURATION_SECONDS, DRAW_TOOL_VIDEO_MAX_FRAMES / Math.max(1, fps));
-}
-
 export type DrawToolStatusKind = 'image' | 'animation';
 
 export function getStatusFileKind (fileName: string): DrawToolStatusKind {

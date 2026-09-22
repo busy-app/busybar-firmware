@@ -24,7 +24,7 @@
         :accept="FRAME_SOURCE_ACCEPT"
         class="w-full rounded-xl"
         label="Upload video, GIF or .anim"
-        :description="`Drag and drop to upload. Files up to ${bytesToSize(DRAW_TOOL_VIDEO_MAX_FILE_BYTES)}.`"
+        :description="`Drag and drop to upload. Files up to ${bytesToSize(VIDEO_MAX_FILE_BYTES)}.`"
         :ui="{
           base: 'cursor-pointer',
           icon: 'size-6',
@@ -267,20 +267,24 @@
 </template>
 
 <script setup lang="ts">
-import { createAnimationFromFrames } from '@/util/anim2seq';
-import type { DecodedAnimation } from '@/util/anim2seq';
 import {
   getCoverCropRect,
-  renderVideoFrames,
+  getVideoMaxDurationSeconds,
   sliceFrameCache,
   VIDEO_CROP_MIN_SCALE,
+  VIDEO_DEFAULT_FPS,
   VIDEO_FIT_OPTIONS,
-  VIDEO_FPS_OPTIONS
+  VIDEO_FPS_OPTIONS,
+  VIDEO_MAX_FILE_BYTES,
+  VIDEO_MAX_FPS
 } from '@/util/videoFrames';
 import type { FrameCache, VideoCropState, VideoFitMode } from '@/util/videoFrames';
 import { FRAME_SOURCE_ACCEPT, resolveFrameSourceAdapter } from '@/util/frameSources';
 import type { FrameSourceAdapter, FrameSourceHandle } from '@/util/frameSources';
 import type { VideoShapeSource } from '@/util/drawTool';
+import { TRIM_STEP_SECONDS, useVideoDecodePipeline } from '@/composables/useVideoDecodePipeline';
+import { useVideoSourcePreview } from '@/composables/useVideoSourcePreview';
+import { useCropGesture } from '@/composables/useCropGesture';
 
 type RetainedSession = {
   file: File;
@@ -289,16 +293,12 @@ type RetainedSession = {
   fps: number;
 };
 
-const FPS_CHOICES = VIDEO_FPS_OPTIONS.filter(value => value <= DRAW_TOOL_VIDEO_MAX_FPS);
-const RENDER_DEBOUNCE_MS = 60;
+const FPS_CHOICES = VIDEO_FPS_OPTIONS.filter(value => value <= VIDEO_MAX_FPS);
 const RETAINED_CACHE_MAX_BYTES = 32 * 1024 * 1024;
-const TRIM_STEP_SECONDS = 0.1;
 const PREVIEW_MAX_HEIGHT_PX = 360;
 
 let retained: RetainedSession | null = null;
 let isRestoring = false;
-let backdropFrameHandle: number | null = null;
-let backdropSeekMs: number | null = null;
 
 const isOpen = defineModel<boolean>('open', { default: false });
 
@@ -307,52 +307,84 @@ const es = useDrawToolEditorStore();
 const sourceFile = ref<File | null>(null);
 const adapter = shallowRef<FrameSourceAdapter | null>(null);
 const handle = shallowRef<FrameSourceHandle | null>(null);
-const frameCache = shallowRef<FrameCache | null>(null);
-const sourceCache = shallowRef<FrameCache | null>(null);
-const fps = ref<number>(DRAW_TOOL_VIDEO_DEFAULT_FPS);
+const fps = ref<number>(VIDEO_DEFAULT_FPS);
 const fit = ref<VideoFitMode>('cover');
 const crop = ref<VideoCropState>({ offsetX: 0.5, offsetY: 0.5, scale: 1 });
 const trimStart = ref(0);
 const trimEnd = ref(0);
+const fileError = ref<string | null>(null);
+const editTargetId = ref<string | null>(null);
+const isTrimDragging = ref(false);
+
 const cropContainerRef = ref<HTMLDivElement | null>(null);
 const previewVideoRef = ref<HTMLVideoElement | null>(null);
 const backdropCanvasRef = ref<HTMLCanvasElement | null>(null);
 const replaceInputRef = ref<HTMLInputElement | null>(null);
 const trimRangeRef = ref<{ focus: () => void } | null>(null);
-const cropDrag = ref<{ pointerId: number; startX: number; startY: number; startOffsetX: number; startOffsetY: number } | null>(null);
-const zoomDrag = ref<{ pointerId: number; startX: number; startY: number; startScale: number; startWidth: number } | null>(null);
-const animation = shallowRef<DecodedAnimation | null>(null);
-const isDecoding = ref(false);
-const decodeDone = ref(0);
-const decodeTotal = ref(0);
-const errorMessage = ref<string | null>(null);
-const fileError = ref<string | null>(null);
-const appliedPreview = ref<{ fps: number; trimStart: number; trimEnd: number } | null>(null);
-const editTargetId = ref<string | null>(null);
-const decodeAbortController = ref<AbortController | null>(null);
-const renderTimer = ref<ReturnType<typeof setTimeout> | null>(null);
-const previewFrameHandle = ref<number | null>(null);
-const previewPlaying = ref(true);
-const previewTime = ref(0);
-const isTrimDragging = ref(false);
 
 const isEditing = computed(() => !!editTargetId.value);
 
-const isDraggingCrop = computed(() => !!cropDrag.value);
-
-const isPreviewStale = computed(() => {
-  const applied = appliedPreview.value;
-
-  if (!animation.value || !applied) {
-    return false;
+const cropRect = computed(() => {
+  if (!handle.value) {
+    return null;
   }
 
-  return applied.fps !== fps.value
-    || Math.abs(applied.trimStart - trimStart.value) > TRIM_STEP_SECONDS / 2
-    || Math.abs(applied.trimEnd - trimEnd.value) > TRIM_STEP_SECONDS / 2;
+  return getCoverCropRect(handle.value.width, handle.value.height, WORKSPACE_WIDTH, WORKSPACE_HEIGHT, crop.value);
 });
 
-const isInstantSource = computed(() => handle.value?.kind === 'frames');
+const {
+  animation,
+  isDecoding,
+  decodeDone,
+  decodeTotal,
+  errorMessage,
+  isInstantSource,
+  isPreviewStale,
+  needsFirstRender,
+  frameCache,
+  sourceCache,
+  reset: resetPipeline,
+  runDecode,
+  scheduleRender,
+  commitTrim,
+  adoptCache
+} = useVideoDecodePipeline({ adapter, handle, fps, fit, cropRect, trimStart, trimEnd });
+
+const {
+  playing: previewPlaying,
+  time: previewTime,
+  start: startPreviews,
+  startVideoLoop: startPreviewLoop,
+  stop: stopPreviewLoop,
+  toggle: togglePreviewPlayback,
+  seek: seekPreview,
+  syncToTrim,
+  reset: resetPreview
+} = useVideoSourcePreview({
+  handle,
+  trimStart,
+  trimEnd,
+  videoRef: previewVideoRef,
+  canvasRef: backdropCanvasRef,
+  isActive: isOpen
+});
+
+const {
+  isMoving: isDraggingCrop,
+  reset: resetCropGesture,
+  onMoveDown: handleCropPointerDown,
+  onMoveMove: handleCropPointerMove,
+  onMoveUp: handleCropPointerUp,
+  onZoomDown: handleZoomPointerDown,
+  onZoomMove: handleZoomPointerMove,
+  onZoomUp: handleZoomPointerUp
+} = useCropGesture({
+  crop,
+  cropRect,
+  containerRef: cropContainerRef,
+  disabled: isDecoding,
+  onCommit: scheduleRender
+});
 
 const canvasFps = computed(() => {
   const other = es.videoShapes.find(shape => shape.id !== editTargetId.value);
@@ -385,12 +417,6 @@ const barPreviewFrame = computed(() => {
   return Math.min(frameCount - 1, Math.max(0, index));
 });
 
-const needsFirstRender = computed(() => !!handle.value
-  && !animation.value
-  && !appliedPreview.value
-  && !isDecoding.value
-  && !errorMessage.value);
-
 const maxWindowSeconds = computed(() => getVideoMaxDurationSeconds(fps.value));
 
 const minWindowSeconds = computed(() => Math.min(handle.value?.duration ?? 0, 1 / fps.value));
@@ -401,14 +427,6 @@ const cropRectClass = computed(() => {
   }
 
   return isDraggingCrop.value ? 'cursor-grabbing ring-primary' : 'cursor-move ring-white/90';
-});
-
-const cropRect = computed(() => {
-  if (!handle.value) {
-    return null;
-  }
-
-  return getCoverCropRect(handle.value.width, handle.value.height, WORKSPACE_WIDTH, WORKSPACE_HEIGHT, crop.value);
 });
 
 const fitHint = computed(() => fit.value === 'contain'
@@ -434,7 +452,7 @@ function getAllowedFps (nativeFps?: number) {
     return FPS_CHOICES;
   }
 
-  const native = Math.max(1, Math.min(DRAW_TOOL_VIDEO_MAX_FPS, Math.round(nativeFps)));
+  const native = Math.max(1, Math.min(VIDEO_MAX_FPS, Math.round(nativeFps)));
   const allowed = FPS_CHOICES.filter(value => value <= native);
 
   return allowed.includes(native) ? allowed : [...allowed, native];
@@ -443,7 +461,7 @@ function getAllowedFps (nativeFps?: number) {
 function getInitialFps (nativeFps?: number) {
   const allowed = getAllowedFps(nativeFps);
 
-  return allowed.includes(DRAW_TOOL_VIDEO_DEFAULT_FPS) ? DRAW_TOOL_VIDEO_DEFAULT_FPS : Math.max(...allowed);
+  return allowed.includes(VIDEO_DEFAULT_FPS) ? VIDEO_DEFAULT_FPS : Math.max(...allowed);
 }
 
 function formatSeconds (seconds: number) {
@@ -452,37 +470,6 @@ function formatSeconds (seconds: number) {
 
 function close () {
   isOpen.value = false;
-}
-
-function abortDecode () {
-  if (renderTimer.value) {
-    clearTimeout(renderTimer.value);
-    renderTimer.value = null;
-  }
-
-  decodeAbortController.value?.abort();
-  decodeAbortController.value = null;
-  isDecoding.value = false;
-}
-
-function resetAnimation () {
-  animation.value = null;
-  errorMessage.value = null;
-  appliedPreview.value = null;
-}
-
-function markPreviewApplied (cache: FrameCache) {
-  const frameSeconds = 1 / cache.fps;
-
-  if (Math.abs(cache.startTime - trimStart.value) >= frameSeconds) {
-    trimStart.value = cache.startTime;
-  }
-
-  if (Math.abs(cache.endTime - trimEnd.value) >= frameSeconds) {
-    trimEnd.value = cache.endTime;
-  }
-
-  appliedPreview.value = { fps: cache.fps, trimStart: trimStart.value, trimEnd: trimEnd.value };
 }
 
 function releaseRetained () {
@@ -501,20 +488,16 @@ function releaseHandle () {
 }
 
 function resetState () {
-  abortDecode();
-  resetAnimation();
+  resetPipeline();
   releaseHandle();
-  frameCache.value = null;
-  sourceCache.value = null;
+  resetCropGesture();
   sourceFile.value = null;
   adapter.value = null;
   fileError.value = null;
   editTargetId.value = null;
-  cropDrag.value = null;
-  zoomDrag.value = null;
   isTrimDragging.value = false;
   crop.value = { offsetX: 0.5, offsetY: 0.5, scale: 1 };
-  fps.value = DRAW_TOOL_VIDEO_DEFAULT_FPS;
+  fps.value = VIDEO_DEFAULT_FPS;
   fit.value = 'cover';
   trimStart.value = 0;
   trimEnd.value = 0;
@@ -590,301 +573,14 @@ function clampTrim (start: number, end: number, movedStart: boolean) {
   trimEnd.value = nextEnd;
 }
 
-function commitTrim () {
-  const cache = sourceCache.value ?? frameCache.value;
-  const sliced = cache && cache.fps === fps.value
-    ? sliceFrameCache(cache, trimStart.value, trimEnd.value)
-    : null;
-
-  if (!sliced) {
-    if (isInstantSource.value) {
-      runDecode({ quiet: true });
-    }
-
-    return;
-  }
-
-  frameCache.value = sliced;
-  markPreviewApplied(sliced);
-  runRender();
-}
-
-function scheduleRender () {
-  if (!frameCache.value) {
-    return;
-  }
-
-  if (renderTimer.value) {
-    clearTimeout(renderTimer.value);
-  }
-
-  renderTimer.value = setTimeout(() => {
-    renderTimer.value = null;
-    runRender();
-  }, RENDER_DEBOUNCE_MS);
-}
-
-function runRender () {
-  const cache = frameCache.value;
-
-  if (!cache) {
-    return;
-  }
-
-  try {
-    const frames = renderVideoFrames(cache, {
-      width: WORKSPACE_WIDTH,
-      height: WORKSPACE_HEIGHT,
-      fit: fit.value,
-      crop: cropRect.value ?? undefined
-    });
-
-    animation.value = createAnimationFromFrames(frames, cache.fps);
-    errorMessage.value = null;
-  } catch (error) {
-    resetAnimation();
-    errorMessage.value = error instanceof Error ? error.message : String(error);
-  }
-}
-
-async function runDecode (options?: { quiet?: boolean }) {
-  const activeAdapter = adapter.value;
-  const activeHandle = handle.value;
-
-  if (!activeAdapter || !activeHandle) {
-    return;
-  }
-
-  const quiet = options?.quiet === true;
-
-  abortDecode();
-
-  if (!quiet) {
-    resetAnimation();
-    frameCache.value = null;
-    sourceCache.value = null;
-  }
-
-  const controller = new AbortController();
-  decodeAbortController.value = controller;
-  isDecoding.value = !quiet;
-  decodeDone.value = 0;
-  decodeTotal.value = 0;
-
-  try {
-    const cache = await activeAdapter.decode(activeHandle, {
-      fps: fps.value,
-      startTime: trimStart.value,
-      endTime: trimEnd.value,
-      maxFrames: DRAW_TOOL_VIDEO_MAX_FRAMES,
-      signal: controller.signal,
-      onProgress: (done, total) => {
-        decodeDone.value = done;
-        decodeTotal.value = total;
-      }
-    });
-
-    if (controller.signal.aborted) {
-      return;
-    }
-
-    frameCache.value = cache;
-    sourceCache.value = cache;
-    markPreviewApplied(cache);
-    runRender();
-  } catch (error) {
-    if (controller.signal.aborted) {
-      return;
-    }
-
-    resetAnimation();
-    errorMessage.value = error instanceof Error ? error.message : String(error);
-  } finally {
-    if (decodeAbortController.value === controller) {
-      decodeAbortController.value = null;
-      isDecoding.value = false;
-    }
-  }
-}
-
-function stopBackdropLoop () {
-  if (backdropFrameHandle !== null) {
-    cancelAnimationFrame(backdropFrameHandle);
-    backdropFrameHandle = null;
-  }
-}
-
-function startBackdropLoop () {
-  stopBackdropLoop();
-
-  const canvas = backdropCanvasRef.value;
-  const frames = handle.value?.frames;
-  const context = canvas?.getContext('2d');
-
-  if (!canvas || !context || !frames?.length) {
-    return;
-  }
-
-  canvas.width = frames[0].imageData.width;
-  canvas.height = frames[0].imageData.height;
-
-  const frameEnds: number[] = [];
-  let totalMs = 0;
-
-  for (const frame of frames) {
-    totalMs += Math.max(1, frame.durationMs);
-    frameEnds.push(totalMs);
-  }
-
-  let lastTimestamp: number | null = null;
-  let elapsedMs = 0;
-  let drawnIndex = -1;
-
-  const step = (timestamp: number) => {
-    const startMs = Math.min(trimStart.value * 1000, totalMs);
-    const endMs = trimEnd.value > 0 ? Math.min(trimEnd.value * 1000, totalMs) : totalMs;
-    const windowMs = Math.max(1, endMs - startMs);
-
-    if (previewPlaying.value && lastTimestamp !== null) {
-      elapsedMs += timestamp - lastTimestamp;
-    }
-
-    lastTimestamp = timestamp;
-
-    if (backdropSeekMs !== null) {
-      elapsedMs = backdropSeekMs - startMs;
-      backdropSeekMs = null;
-    }
-
-    const timeMs = startMs + (((elapsedMs % windowMs) + windowMs) % windowMs);
-
-    previewTime.value = timeMs / 1000;
-    const foundIndex = frameEnds.findIndex(end => timeMs < end);
-    const index = foundIndex < 0 ? frames.length - 1 : foundIndex;
-
-    if (index !== drawnIndex) {
-      context.putImageData(frames[index].imageData, 0, 0);
-      drawnIndex = index;
-    }
-
-    backdropFrameHandle = requestAnimationFrame(step);
-  };
-
-  backdropFrameHandle = requestAnimationFrame(step);
-}
-
-function cancelPreviewWatchers () {
-  const video = previewVideoRef.value;
-
-  if (video && previewFrameHandle.value !== null && typeof video.cancelVideoFrameCallback === 'function') {
-    video.cancelVideoFrameCallback(previewFrameHandle.value);
-  }
-
-  previewFrameHandle.value = null;
-  video?.removeEventListener('timeupdate', handlePreviewTimeUpdate);
-}
-
-function stopPreviewLoop () {
-  stopBackdropLoop();
-  cancelPreviewWatchers();
-  previewVideoRef.value?.pause();
-}
-
-function keepPreviewInTrim (video: HTMLVideoElement, tolerance: number) {
-  const endsAtVideoEnd = Number.isFinite(video.duration) && trimEnd.value >= video.duration - 1 / 30;
-  const pastEnd = !endsAtVideoEnd && video.currentTime >= trimEnd.value - tolerance;
-
-  if (pastEnd || video.currentTime < trimStart.value - tolerance) {
-    video.currentTime = trimStart.value;
-  }
-
-  previewTime.value = video.currentTime;
-
-  if (previewPlaying.value && video.paused && !video.seeking && isOpen.value) {
-    video.play().catch(() => undefined);
-  }
-}
-
-function handlePreviewTimeUpdate () {
-  const video = previewVideoRef.value;
-
-  if (video) {
-    keepPreviewInTrim(video, 0.05);
-  }
-}
-
-function togglePreviewPlayback () {
-  previewPlaying.value = !previewPlaying.value;
-
-  const video = previewVideoRef.value;
-
-  if (!video || handle.value?.kind !== 'video') {
-    return;
-  }
-
-  if (previewPlaying.value) {
-    keepPreviewInTrim(video, 0.02);
-  } else {
-    video.pause();
-  }
-}
-
-function seekPreview (time: number) {
-  const latestTime = Math.max(trimStart.value, trimEnd.value - 0.05);
-  const nextTime = Math.min(Math.max(time, trimStart.value), latestTime);
-  const video = previewVideoRef.value;
-
-  previewTime.value = nextTime;
-
-  if (handle.value?.kind === 'video' && video) {
-    video.currentTime = nextTime;
-  } else {
-    backdropSeekMs = nextTime * 1000;
-  }
-}
-
-function startPreviewLoop () {
-  const video = previewVideoRef.value;
-
-  if (!video || handle.value?.kind !== 'video') {
-    return;
-  }
-
-  cancelPreviewWatchers();
-  keepPreviewInTrim(video, 0.02);
-
-  if (previewPlaying.value && video.paused) {
-    video.play().catch(() => undefined);
-  }
-
-  video.addEventListener('timeupdate', handlePreviewTimeUpdate);
-
-  if (typeof video.requestVideoFrameCallback === 'function') {
-    const step = () => {
-      if (previewFrameHandle.value === null) {
-        return;
-      }
-
-      keepPreviewInTrim(video, 0.02);
-      previewFrameHandle.value = video.requestVideoFrameCallback(step);
-    };
-
-    previewFrameHandle.value = video.requestVideoFrameCallback(step);
-  }
-}
-
 async function openFile (file: File, restoreFrom?: VideoShapeSource) {
-  abortDecode();
-  resetAnimation();
+  resetPipeline();
   releaseHandle();
-  frameCache.value = null;
-  sourceCache.value = null;
+  resetPreview();
   fileError.value = null;
-  previewPlaying.value = true;
-  previewTime.value = 0;
 
-  if (file.size > DRAW_TOOL_VIDEO_MAX_FILE_BYTES) {
-    fileError.value = `This file is ${bytesToSize(file.size)}. The limit is ${bytesToSize(DRAW_TOOL_VIDEO_MAX_FILE_BYTES)}.`;
+  if (file.size > VIDEO_MAX_FILE_BYTES) {
+    fileError.value = `This file is ${bytesToSize(file.size)}. The limit is ${bytesToSize(VIDEO_MAX_FILE_BYTES)}.`;
     return;
   }
 
@@ -924,18 +620,14 @@ async function openFile (file: File, restoreFrom?: VideoShapeSource) {
 
     await nextTick();
     isRestoring = false;
-    startBackdropLoop();
-    startPreviewLoop();
+    startPreviews();
     trimRangeRef.value?.focus();
 
     if (reusable?.cache && reusable.fps === fps.value) {
       const sliced = sliceFrameCache(reusable.cache, trimStart.value, trimEnd.value);
 
       if (sliced) {
-        sourceCache.value = reusable.cache;
-        frameCache.value = sliced;
-        markPreviewApplied(sliced);
-        runRender();
+        adoptCache(reusable.cache, sliced);
         return;
       }
     }
@@ -948,120 +640,6 @@ async function openFile (file: File, restoreFrom?: VideoShapeSource) {
   }
 }
 
-function handleCropPointerDown (event: PointerEvent) {
-  if (!cropContainerRef.value || isDecoding.value) {
-    return;
-  }
-
-  event.preventDefault();
-  (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
-  cropDrag.value = {
-    pointerId: event.pointerId,
-    startX: event.clientX,
-    startY: event.clientY,
-    startOffsetX: crop.value.offsetX,
-    startOffsetY: crop.value.offsetY
-  };
-}
-
-function handleCropPointerMove (event: PointerEvent) {
-  const drag = cropDrag.value;
-  const container = cropContainerRef.value;
-  const rect = cropRect.value;
-
-  if (!drag || drag.pointerId !== event.pointerId || !container || !rect) {
-    return;
-  }
-
-  const bounds = container.getBoundingClientRect();
-  const freeWidth = (1 - rect.width) * bounds.width;
-  const freeHeight = (1 - rect.height) * bounds.height;
-  const nextOffsetX = freeWidth > 0 ? drag.startOffsetX + (event.clientX - drag.startX) / freeWidth : drag.startOffsetX;
-  const nextOffsetY = freeHeight > 0 ? drag.startOffsetY + (event.clientY - drag.startY) / freeHeight : drag.startOffsetY;
-
-  crop.value = {
-    ...crop.value,
-    offsetX: Math.min(1, Math.max(0, nextOffsetX)),
-    offsetY: Math.min(1, Math.max(0, nextOffsetY))
-  };
-}
-
-function handleCropPointerUp (event: PointerEvent) {
-  const drag = cropDrag.value;
-
-  if (!drag || drag.pointerId !== event.pointerId) {
-    return;
-  }
-
-  (event.currentTarget as HTMLElement).releasePointerCapture(event.pointerId);
-  cropDrag.value = null;
-
-  if (drag.startOffsetX !== crop.value.offsetX || drag.startOffsetY !== crop.value.offsetY) {
-    scheduleRender();
-  }
-}
-
-function handleZoomPointerDown (event: PointerEvent) {
-  const rect = cropRect.value;
-
-  if (!rect || isDecoding.value) {
-    return;
-  }
-
-  event.preventDefault();
-  event.stopPropagation();
-  (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
-  zoomDrag.value = {
-    pointerId: event.pointerId,
-    startX: event.clientX,
-    startY: event.clientY,
-    startScale: crop.value.scale,
-    startWidth: rect.width
-  };
-}
-
-function handleZoomPointerMove (event: PointerEvent) {
-  const drag = zoomDrag.value;
-  const container = cropContainerRef.value;
-
-  if (!drag || drag.pointerId !== event.pointerId || !container) {
-    return;
-  }
-
-  event.stopPropagation();
-
-  const bounds = container.getBoundingClientRect();
-
-  if (bounds.width <= 0 || bounds.height <= 0) {
-    return;
-  }
-
-  const delta = (((event.clientX - drag.startX) / bounds.width) + ((event.clientY - drag.startY) / bounds.height)) / 2;
-  const widthPerScale = drag.startWidth / Math.max(0.001, drag.startScale);
-  const nextScale = drag.startScale + (delta / widthPerScale);
-
-  crop.value = {
-    ...crop.value,
-    scale: Math.min(1, Math.max(VIDEO_CROP_MIN_SCALE, nextScale))
-  };
-}
-
-function handleZoomPointerUp (event: PointerEvent) {
-  const drag = zoomDrag.value;
-
-  if (!drag || drag.pointerId !== event.pointerId) {
-    return;
-  }
-
-  event.stopPropagation();
-  (event.currentTarget as HTMLElement).releasePointerCapture(event.pointerId);
-  zoomDrag.value = null;
-
-  if (drag.startScale !== crop.value.scale) {
-    scheduleRender();
-  }
-}
-
 async function insertVideo () {
   if (!animation.value || isPreviewStale.value) {
     await runDecode();
@@ -1069,10 +647,6 @@ async function insertVideo () {
 
   if (!animation.value || !sourceFile.value) {
     return;
-  }
-
-  if (canvasFps.value !== null && animation.value.fps !== canvasFps.value) {
-    es.setTimelineFps(animation.value.fps, { exceptShapeId: editTargetId.value, recordHistory: false });
   }
 
   const frames = animation.value.frames.map(frame => frame.imageData);
@@ -1086,17 +660,20 @@ async function insertVideo () {
   };
 
   const shapeId = editTargetId.value
-    ? (es.updateVideoShape(editTargetId.value, frames, animation.value.fps, source), editTargetId.value)
+    ? (es.updateVideoShape(editTargetId.value, frames, animation.value.fps, source) ? editTargetId.value : null)
     : es.addVideoShape(frames, animation.value.fps, sourceFile.value.name, source);
+
+  if (!shapeId) {
+    errorMessage.value = `Could not apply ${animation.value.fps} fps to the clips already on the canvas.`;
+    return;
+  }
 
   retainSession();
   close();
 
-  if (shapeId) {
-    setTimeout(() => {
-      es.selectedShapeId = shapeId;
-    });
-  }
+  setTimeout(() => {
+    es.selectedShapeId = shapeId;
+  });
 }
 
 function openForEdit (shapeId: string) {
@@ -1136,13 +713,7 @@ watch(fit, () => {
   }
 });
 
-watch([trimStart, trimEnd], () => {
-  const video = previewVideoRef.value;
-
-  if (video && handle.value?.kind === 'video') {
-    keepPreviewInTrim(video, 0.02);
-  }
-});
+watch([trimStart, trimEnd], syncToTrim);
 
 watch(isOpen, open => {
   if (open) {

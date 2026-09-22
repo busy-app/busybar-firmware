@@ -1063,8 +1063,8 @@ import {
   Transformer as VTransformer
 } from 'vue-konva';
 import drawToolIconsData from '@/generated/drawTool/icons.json';
-import { DRAW_TOOL_DISPLAY_PRIORITY, DRAW_TOOL_EXPORT_PIXEL_SIZE, DRAW_TOOL_VIDEO_MAX_FPS, pixelateImageData } from '@/util/drawTool';
-import { VIDEO_FPS_OPTIONS } from '@/util/videoFrames';
+import { DRAW_TOOL_DISPLAY_PRIORITY, DRAW_TOOL_EXPORT_PIXEL_SIZE, pixelateImageData } from '@/util/drawTool';
+import { VIDEO_FPS_OPTIONS, VIDEO_MAX_FPS } from '@/util/videoFrames';
 import type { TransformerBox } from '@/util/drawTool';
 import { ANIM_FILE_EXTENSION, composeAnimationFromFrames } from '@/util/seq2anim';
 import { createAnimationFromFrames } from '@/util/anim2seq';
@@ -1304,7 +1304,7 @@ const workspaceGridGroupConfig = computed(() => ({
 const hasVisibleBackgroundColor = computed(() => !isColorFullyTransparent(es.backgroundColor));
 
 const timelineFpsOptions = computed(() => {
-  const values = [...new Set([...VIDEO_FPS_OPTIONS.filter(value => value <= DRAW_TOOL_VIDEO_MAX_FPS), es.timelineFps])]
+  const values = [...new Set([...VIDEO_FPS_OPTIONS.filter(value => value <= VIDEO_MAX_FPS), es.timelineFps])]
     .filter(value => value === es.timelineFps || es.canSetTimelineFps(value))
     .sort((a, b) => a - b);
 

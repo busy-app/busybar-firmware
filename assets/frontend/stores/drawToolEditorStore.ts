@@ -1,7 +1,7 @@
 import Konva from 'konva';
 import { defineStore } from 'pinia';
-import { cloneShape, DRAW_TOOL_VIDEO_MAX_FRAMES } from '@/util/drawTool';
-import { getResampledFrameCount, resampleFrameSequence } from '@/util/videoFrames';
+import { cloneShape } from '@/util/drawTool';
+import { getResampledFrameCount, resampleFrameSequence, VIDEO_DEFAULT_FPS, VIDEO_MAX_FRAMES } from '@/util/videoFrames';
 
 type OverlayControlPosition = {
   x: number;
@@ -100,7 +100,7 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
   const videoShapes = computed(() => shapes.value.filter((shape): shape is VideoShape => shape.type === 'video'));
   const hasVideoShapes = computed(() => videoShapes.value.length > 0);
   const timelineFrameCount = computed(() => videoShapes.value.reduce((max, shape) => Math.max(max, shape.frames.length), 0));
-  const timelineFps = computed(() => videoShapes.value[0]?.fps ?? DRAW_TOOL_VIDEO_DEFAULT_FPS);
+  const timelineFps = computed(() => videoShapes.value[0]?.fps ?? VIDEO_DEFAULT_FPS);
   const hasEditorContent = computed(() => {
     return !areEditorSnapshotsEqual(defaultEditorSnapshot, createEditorSnapshot());
   });
@@ -843,6 +843,10 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
       return null;
     }
 
+    if (!setTimelineFps(fps, { recordHistory: false })) {
+      return null;
+    }
+
     const canvas = createVideoShapeCanvas(frames[0].width, frames[0].height);
     const videoShape: VideoShape = {
       id: createShapeId(),
@@ -872,7 +876,11 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     const existing = shapes.value.find((shape): shape is VideoShape => shape.type === 'video' && shape.id === shapeId);
 
     if (!existing || !frames.length) {
-      return;
+      return false;
+    }
+
+    if (!setTimelineFps(fps, { exceptShapeId: shapeId, recordHistory: false })) {
+      return false;
     }
 
     const sizeChanged = frames[0].width !== existing.frames[0]?.width || frames[0].height !== existing.frames[0]?.height;
@@ -891,6 +899,8 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     selectedShapeId.value = shapeId;
     pushHistorySnapshot();
     isTimelinePlaying.value = true;
+
+    return true;
   }
 
   function getVideoShape (shapeId: string): VideoShape | null {
@@ -940,7 +950,7 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
   function canSetTimelineFps (fps: number, exceptShapeId: string | null = null) {
     return videoShapes.value
       .filter(shape => shape.id !== exceptShapeId)
-      .every(shape => getResampledFrameCount(shape.frames.length, shape.fps, fps) <= DRAW_TOOL_VIDEO_MAX_FRAMES);
+      .every(shape => getResampledFrameCount(shape.frames.length, shape.fps, fps) <= VIDEO_MAX_FRAMES);
   }
 
   function setTimelineFps (fps: number, options: { exceptShapeId?: string | null; recordHistory?: boolean } = {}) {
@@ -962,7 +972,7 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     const previousFps = targets[0].fps;
 
     targets.forEach(shape => {
-      const frames = resampleFrameSequence(shape.frames, shape.fps, nextFps, DRAW_TOOL_VIDEO_MAX_FRAMES);
+      const frames = resampleFrameSequence(shape.frames, shape.fps, nextFps, VIDEO_MAX_FRAMES);
       const source = shape.source
         ? { ...shape.source, fps: nextFps, trimEnd: shape.source.trimStart + (frames.length / nextFps) }
         : undefined;

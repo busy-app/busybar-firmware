@@ -1,6 +1,6 @@
 import { decompressFrames, parseGIF } from 'gifuct-js';
 import { decodeAnimation } from '../util/anim2seq';
-import { getVideoFrameCacheSize } from '../util/videoFrames';
+import { getVideoFrameCacheSize, VIDEO_SOURCE_MAX_FRAMES } from '../util/videoFrames';
 
 type DecodeRequest
   = | { id: number; type: 'anim'; buffer: ArrayBuffer }
@@ -20,7 +20,6 @@ type DecodeResponse
 const DEFAULT_FRAME_DURATION_MS = 100;
 const GIF_DISPOSAL_RESTORE_BACKGROUND = 2;
 const GIF_DISPOSAL_RESTORE_PREVIOUS = 3;
-const GIF_MAX_FRAMES = 2000;
 
 function toMessageFrame (imageData: ImageData, durationMs: number): DecodedFrameMessage {
   return {
@@ -94,8 +93,8 @@ function decodeGif (buffer: ArrayBuffer) {
     throw new Error('GIF has no decodable frames');
   }
 
-  if (parsedFrames.length > GIF_MAX_FRAMES) {
-    throw new Error(`This GIF has ${parsedFrames.length} frames. The limit is ${GIF_MAX_FRAMES}.`);
+  if (parsedFrames.length > VIDEO_SOURCE_MAX_FRAMES) {
+    throw new Error(`This GIF has ${parsedFrames.length} frames. The limit is ${VIDEO_SOURCE_MAX_FRAMES}.`);
   }
 
   const size = getVideoFrameCacheSize(width, height, parsedFrames.length);
