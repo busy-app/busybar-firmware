@@ -11,14 +11,15 @@ import {
 
 export interface AnimationFrame {
   imageData: ImageData;
-  duration: number;
+  // Ticks at the animation fps, not milliseconds.
+  holdFrames: number;
 }
 
 export interface DecodedAnimation {
   width: number;
   height: number;
   fps: number;
-  frames: AnimationFrame[];
+  frames: readonly AnimationFrame[];
 }
 
 const LEGACY_SIGNATURE = 'bicycle0';
@@ -33,7 +34,7 @@ const ColorFormat = {
 
 type ColorFormat = typeof ColorFormat[keyof typeof ColorFormat];
 
-export function createAnimationFromFrames (frames: ImageData[], fps: number): DecodedAnimation {
+export function createAnimationFromFrames (frames: readonly ImageData[], fps: number): DecodedAnimation {
   if (!frames.length) {
     throw new Error('No frames provided');
   }
@@ -42,12 +43,12 @@ export function createAnimationFromFrames (frames: ImageData[], fps: number): De
     width: frames[0].width,
     height: frames[0].height,
     fps,
-    frames: frames.map(imageData => ({ imageData, duration: 1 }))
+    frames: frames.map(imageData => ({ imageData, holdFrames: 1 }))
   };
 }
 
 export function getAnimationDisplayFrameCount (animation: DecodedAnimation): number {
-  return animation.frames.reduce((total, frame) => total + frame.duration, 0);
+  return animation.frames.reduce((total, frame) => total + frame.holdFrames, 0);
 }
 
 export function decodeAnimation (buffer: ArrayBuffer): DecodedAnimation {
@@ -107,6 +108,7 @@ function decodeInterframeAnimation (bytes: Uint8Array): DecodedAnimation {
   }
 
   const pixelCount = width * height;
+  // Frames carry only changed pixels, applied onto a canvas that persists between frames.
   const canvas = new Uint8ClampedArray(pixelCount * 4);
 
   for (let offset = 3; offset < canvas.length; offset += 4) {
@@ -144,7 +146,7 @@ function decodeInterframeAnimation (bytes: Uint8Array): DecodedAnimation {
 
     frames.push({
       imageData: new ImageData(new Uint8ClampedArray(canvas), width, height),
-      duration: 1
+      holdFrames: 1
     });
   }
 
@@ -422,7 +424,7 @@ function decodeLegacyAnimation (bytes: Uint8Array): DecodedAnimation {
 
   for (let index = 0; index < fileFrameCount && ptr + LEGACY_FRAME_HEADER_LENGTH <= framesEnd; index++) {
     const encoding = view.getUint8(ptr);
-    const duration = view.getUint8(ptr + 1);
+    const holdFrames = view.getUint8(ptr + 1);
     const encodedLength = view.getUint16(ptr + 2, true);
     ptr += LEGACY_FRAME_HEADER_LENGTH;
 
@@ -442,7 +444,7 @@ function decodeLegacyAnimation (bytes: Uint8Array): DecodedAnimation {
 
     frames.push({
       imageData: new ImageData(rgba, width, height),
-      duration: Math.max(1, duration)
+      holdFrames: Math.max(1, holdFrames)
     });
   }
 

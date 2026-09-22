@@ -214,6 +214,7 @@ function handleRootKeyDown (event: KeyboardEvent) {
     return;
   }
 
+  // Buttons already toggle on Space natively; handling it here too would toggle twice.
   if ((event.target as HTMLElement | null)?.closest('button')) {
     return;
   }
@@ -231,6 +232,7 @@ function handlePlayheadKeyDown (event: KeyboardEvent) {
 
   event.preventDefault();
 
+  // Pause first, otherwise playback immediately overwrites the stepped frame.
   if (props.playing) {
     emit('togglePlay');
   }
@@ -259,6 +261,7 @@ function handleScrubDown (event: PointerEvent) {
   const target = event.currentTarget as HTMLElement;
 
   target.setPointerCapture(event.pointerId);
+  // preventDefault above also cancels focus-on-click; restore it so arrow keys work.
   target.focus();
 
   scrubPointerId.value = event.pointerId;

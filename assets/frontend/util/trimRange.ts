@@ -86,6 +86,7 @@ export function useTrimRange (
     const target = event.currentTarget as HTMLElement;
 
     target.setPointerCapture(event.pointerId);
+    // preventDefault above also cancels focus-on-click; restore it so arrow keys work.
     target.focus();
 
     drag.value = { pointerId: event.pointerId, mode, clientX: event.clientX, start: start.value, end: end.value, moved: false };

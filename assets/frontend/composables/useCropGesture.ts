@@ -1,5 +1,5 @@
 import type { Ref } from 'vue';
-import { VIDEO_CROP_MIN_SCALE } from '@/util/videoFrames';
+import { VIDEO_CROP_MIN_SCALE } from '@/util/videoLimits';
 import type { VideoCropRect, VideoCropState } from '@/util/videoFrames';
 
 interface CropGestureOptions {

@@ -2,10 +2,9 @@ import {
   createFrameScaler,
   getFrameGrid,
   getVideoFrameCacheSize,
-  seekVideo,
-  VIDEO_METADATA_TIMEOUT_MS,
-  VIDEO_SEEK_TIMEOUT_MS
+  seekVideo
 } from '@/util/videoFrames';
+import { VIDEO_METADATA_TIMEOUT_MS, VIDEO_SEEK_TIMEOUT_MS } from '@/util/videoLimits';
 import type { FrameCache } from '@/util/videoFrames';
 import { getFileExtension } from './types';
 import type { DecodeFramesOptions, FrameSourceAdapter, FrameSourceHandle } from './types';
@@ -29,6 +28,7 @@ async function resolveVideoDuration (video: HTMLVideoElement): Promise<number> {
 
     video.addEventListener('durationchange', finish);
     video.addEventListener('seeked', finish);
+    // Workaround: some files (e.g. MediaRecorder WebM) report Infinity until seeked past the end.
     video.currentTime = Number.MAX_SAFE_INTEGER;
   });
 
@@ -39,6 +39,7 @@ async function resolveVideoDuration (video: HTMLVideoElement): Promise<number> {
   return duration;
 }
 
+// Heuristic: plays the clip briefly and counts presented frames; UI hint only, never used for decoding.
 async function estimateNativeFps (video: HTMLVideoElement): Promise<number | undefined> {
   if (!('requestVideoFrameCallback' in video)) {
     return undefined;
@@ -168,6 +169,7 @@ async function decodeVideo (handle: FrameSourceHandle, options: DecodeFramesOpti
   const scaler = createFrameScaler(size.width, size.height);
   const frames: ImageData[] = [];
 
+  // One seek per frame is slow. WebCodecs would be far faster, but needs a demuxer and manual rotation handling.
   for (let index = 0; index < grid.frameCount; index++) {
     if (options.signal?.aborted) {
       throw new DOMException('Video frame decoding aborted', 'AbortError');

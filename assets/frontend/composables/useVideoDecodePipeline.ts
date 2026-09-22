@@ -2,7 +2,8 @@ import type { Ref } from 'vue';
 import { createAnimationFromFrames } from '@/util/anim2seq';
 import type { DecodedAnimation } from '@/util/anim2seq';
 import { WORKSPACE_HEIGHT, WORKSPACE_WIDTH } from '@/util/drawTool';
-import { renderVideoFrames, sliceFrameCache, VIDEO_MAX_FRAMES } from '@/util/videoFrames';
+import { renderVideoFrames, sliceFrameCache } from '@/util/videoFrames';
+import { VIDEO_MAX_FRAMES } from '@/util/videoLimits';
 import type { FrameCache, VideoCropRect, VideoFitMode } from '@/util/videoFrames';
 import type { FrameSourceAdapter, FrameSourceHandle } from '@/util/frameSources';
 
@@ -13,7 +14,7 @@ const RENDER_DEBOUNCE_MS = 60;
 interface VideoDecodePipelineOptions {
   adapter: Ref<FrameSourceAdapter | null>;
   handle: Ref<FrameSourceHandle | null>;
-  fps: Ref<number>;
+  targetFps: Ref<number>;
   fit: Ref<VideoFitMode>;
   cropRect: Ref<VideoCropRect | null>;
   trimStart: Ref<number>;
@@ -42,7 +43,7 @@ export function useVideoDecodePipeline (options: VideoDecodePipelineOptions) {
       return false;
     }
 
-    return applied.fps !== options.fps.value
+    return applied.fps !== options.targetFps.value
       || Math.abs(applied.trimStart - options.trimStart.value) > TRIM_STEP_SECONDS / 2
       || Math.abs(applied.trimEnd - options.trimEnd.value) > TRIM_STEP_SECONDS / 2;
   });
@@ -77,6 +78,7 @@ export function useVideoDecodePipeline (options: VideoDecodePipelineOptions) {
     sourceCache.value = null;
   }
 
+  // Snap trim to the decoded grid only on a whole-frame drift, so rounding never nudges the handles.
   function markApplied (cache: FrameCache) {
     const frameSeconds = 1 / cache.fps;
 
@@ -129,6 +131,7 @@ export function useVideoDecodePipeline (options: VideoDecodePipelineOptions) {
     }, RENDER_DEBOUNCE_MS);
   }
 
+  // quiet keeps the current preview on screen; used for instant sources where decoding takes no visible time.
   async function runDecode (decodeOptions?: { quiet?: boolean }) {
     const activeAdapter = options.adapter.value;
     const activeHandle = options.handle.value;
@@ -156,7 +159,7 @@ export function useVideoDecodePipeline (options: VideoDecodePipelineOptions) {
 
     try {
       const cache = await activeAdapter.decode(activeHandle, {
-        fps: options.fps.value,
+        fps: options.targetFps.value,
         startTime: options.trimStart.value,
         endTime: options.trimEnd.value,
         maxFrames: VIDEO_MAX_FRAMES,
@@ -192,7 +195,7 @@ export function useVideoDecodePipeline (options: VideoDecodePipelineOptions) {
 
   function commitTrim () {
     const cache = sourceCache.value ?? frameCache.value;
-    const sliced = cache && cache.fps === options.fps.value
+    const sliced = cache && cache.fps === options.targetFps.value
       ? sliceFrameCache(cache, options.trimStart.value, options.trimEnd.value)
       : null;
 

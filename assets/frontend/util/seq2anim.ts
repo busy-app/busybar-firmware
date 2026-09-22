@@ -104,9 +104,12 @@ export async function composeAnimation (
   return composeAnimationFromFrames(frames, meta);
 }
 
-/** Compose animation from already decoded RGBA frames of identical dimensions. */
+/**
+ * Compose animation from already decoded RGBA frames of identical dimensions.
+ * Output must stay byte-identical to scripts/seq2anim.py, the firmware reference encoder.
+ */
 export function composeAnimationFromFrames (
-  frames: ImageData[],
+  frames: readonly ImageData[],
   meta: AnimationMeta
 ): ComposeResult {
   if (!frames || frames.length === 0) {

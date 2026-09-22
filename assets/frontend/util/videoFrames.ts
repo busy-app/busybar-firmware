@@ -1,3 +1,10 @@
+import {
+  VIDEO_CROP_MIN_SCALE,
+  VIDEO_FRAME_CACHE_MAX_WIDTH,
+  VIDEO_FRAME_CACHE_MEMORY_BUDGET,
+  VIDEO_SEEK_TIMEOUT_MS
+} from './videoLimits';
+
 export type VideoFitMode = 'cover' | 'contain' | 'stretch';
 
 export interface VideoCropRect {
@@ -19,7 +26,8 @@ export interface TimedFrame {
 }
 
 export interface FrameCache {
-  frames: ImageData[];
+  // Entries are shared by reference across positions; never mutate pixels in place.
+  frames: readonly ImageData[];
   width: number;
   height: number;
   fps: number;
@@ -34,32 +42,8 @@ export interface RenderVideoFramesOptions {
   crop?: VideoCropRect;
 }
 
+// A single drawImage downscale to 72x16 looks mushy, so render through a 4x canvas first.
 export const VIDEO_FRAME_SUPERSAMPLE = 4;
-export const VIDEO_SEEK_TIMEOUT_MS = 8000;
-export const VIDEO_METADATA_TIMEOUT_MS = 15000;
-export const VIDEO_CROP_MIN_SCALE = 0.2;
-export const VIDEO_FRAME_CACHE_MEMORY_BUDGET = 64 * 1024 * 1024;
-export const VIDEO_FRAME_CACHE_MAX_WIDTH = 720;
-export const VIDEO_DEFAULT_FRAME_DURATION_MS = 100;
-
-export const VIDEO_FIT_OPTIONS: Array<{ label: string; value: VideoFitMode }> = [
-  { label: 'Fill (crop)', value: 'cover' },
-  { label: 'Fit (letterbox)', value: 'contain' },
-  { label: 'Stretch', value: 'stretch' }
-];
-
-export const VIDEO_FPS_OPTIONS = [10, 15, 24, 30, 60];
-
-export const VIDEO_DEFAULT_FPS = 15;
-export const VIDEO_MAX_FPS = 60;
-export const VIDEO_MAX_FRAMES = 450;
-export const VIDEO_MAX_DURATION_SECONDS = 15;
-export const VIDEO_MAX_FILE_BYTES = 4 * 1024 * 1024 * 1024;
-export const VIDEO_SOURCE_MAX_FRAMES = 2000;
-
-export function getVideoMaxDurationSeconds (fps: number): number {
-  return Math.min(VIDEO_MAX_DURATION_SECONDS, VIDEO_MAX_FRAMES / Math.max(1, fps));
-}
 
 export function getCoverCropRect (
   sourceWidth: number,
@@ -92,6 +76,7 @@ export function getVideoFrameCacheSize (
   const aspect = sourceWidth / Math.max(1, sourceHeight);
   const budgetPerFrame = VIDEO_FRAME_CACHE_MEMORY_BUDGET / Math.max(1, frameCount);
   const budgetWidth = Math.sqrt((budgetPerFrame * aspect) / 4);
+  // Budget wins over VIDEO_FRAME_SUPERSAMPLE: long clips cache below 4x (about 257px wide at 450 frames).
   const affordableWidth = Math.min(VIDEO_FRAME_CACHE_MAX_WIDTH, budgetWidth);
   const width = Math.max(1, Math.floor(Math.min(sourceWidth, affordableWidth)));
 
@@ -134,7 +119,7 @@ export function createFrameScaler (targetWidth: number, targetHeight: number) {
 }
 
 export function resampleTimedFrames (
-  frames: TimedFrame[],
+  frames: readonly TimedFrame[],
   fps: number,
   startTime: number,
   endTime: number,
@@ -148,6 +133,7 @@ export function resampleTimedFrames (
   const grid = getFrameGrid(fps, startTime, Math.min(endTime, totalMs / 1000), maxFrames);
   const output: ImageData[] = [];
 
+  // Zero-order hold: each grid time takes the frame active at that moment, with no blending.
   let sourceIndex = 0;
   let sourceEndMs = Math.max(1, frames[0].durationMs);
 
@@ -169,7 +155,7 @@ export function getResampledFrameCount (frameCount: number, fromFps: number, toF
   return Math.max(1, Math.round((frameCount * toFps) / Math.max(1, fromFps)));
 }
 
-export function resampleFrameSequence (frames: ImageData[], fromFps: number, toFps: number, maxFrames: number): ImageData[] {
+export function resampleFrameSequence (frames: readonly ImageData[], fromFps: number, toFps: number, maxFrames: number): ImageData[] {
   if (!frames.length || fromFps === toFps) {
     return frames.slice(0, maxFrames);
   }
@@ -185,6 +171,7 @@ export function resampleFrameSequence (frames: ImageData[], fromFps: number, toF
 }
 
 export function sliceFrameCache (cache: FrameCache, startTime: number, endTime: number): FrameCache | null {
+  // Tolerate one frame of float drift at the window edges.
   const epsilon = 1 / cache.fps;
 
   if (startTime < cache.startTime - epsilon || endTime > cache.endTime + epsilon) {

@@ -105,6 +105,7 @@ export function useVideoSourcePreview (options: VideoSourcePreviewOptions) {
   }
 
   function keepInTrim (video: HTMLVideoElement, tolerance: number) {
+    // At the real end, let the native loop wrap: seeking back ourselves fights it and stalls playback.
     const endsAtVideoEnd = Number.isFinite(video.duration) && options.trimEnd.value >= video.duration - 1 / 30;
     const pastEnd = !endsAtVideoEnd && video.currentTime >= options.trimEnd.value - tolerance;
 
@@ -149,6 +150,7 @@ export function useVideoSourcePreview (options: VideoSourcePreviewOptions) {
     }
   }
 
+  // Video is driven by rVFC; GIF/.anim have no media element, so their frames are drawn on a canvas.
   function start () {
     startBackdropLoop();
     startVideoLoop();

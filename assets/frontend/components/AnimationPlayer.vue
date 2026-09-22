@@ -16,6 +16,7 @@ const props = withDefaults(defineProps<{
   animation: DecodedAnimation;
   playing?: boolean;
   loop?: boolean;
+  // When set, the parent drives the frame and the internal ticker stays off.
   frame?: number | null;
 }>(), {
   playing: true,

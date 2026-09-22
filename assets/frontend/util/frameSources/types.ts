@@ -11,7 +11,7 @@ export interface FrameSourceHandle {
   nativeFps?: number;
   previewUrl?: string;
   video?: HTMLVideoElement;
-  frames?: TimedFrame[];
+  frames?: readonly TimedFrame[];
   release: () => void;
 }
 

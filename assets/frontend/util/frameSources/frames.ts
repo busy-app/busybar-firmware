@@ -42,10 +42,12 @@ async function decodeFrames (handle: FrameSourceHandle, options: DecodeFramesOpt
 
   if (needsScale) {
     const scaler = createFrameScaler(size.width, size.height);
+    // Held frames repeat the same ImageData; scale each one only once.
     const scaledByFrame = new Map<ImageData, ImageData>();
     const scaled: ImageData[] = [];
 
     for (let index = 0; index < resampled.frames.length; index++) {
+      // Yield so an abort can be observed; a synchronous loop would never see it.
       if (index % SCALE_YIELD_EVERY_FRAMES === 0) {
         await new Promise(resolve => setTimeout(resolve));
 

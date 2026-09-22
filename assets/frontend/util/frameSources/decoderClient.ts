@@ -5,7 +5,7 @@ export interface DecodedFrameSet {
   width: number;
   height: number;
   fps?: number;
-  frames: TimedFrame[];
+  frames: readonly TimedFrame[];
 }
 
 type DecodeRequest
@@ -81,7 +81,7 @@ function decodeAnimOnMainThread (buffer: ArrayBuffer): DecodedFrameSet {
     width: animation.width,
     height: animation.height,
     fps: animation.fps,
-    frames: animation.frames.map(frame => ({ imageData: frame.imageData, durationMs: frame.duration * frameMs }))
+    frames: animation.frames.map(frame => ({ imageData: frame.imageData, durationMs: frame.holdFrames * frameMs }))
   };
 }
 

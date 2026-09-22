@@ -87,11 +87,11 @@
             <UFormField
               v-if="fpsOptions.length > 1"
               label="FPS"
-              :help="willConvertClips ? `Other clips will be converted to ${fps} fps` : undefined"
+              :help="willConvertClips ? `Other clips will be converted to ${targetFps} fps` : undefined"
               :ui="{ help: 'text-xs text-warning' }"
             >
               <USelect
-                v-model="fps"
+                v-model="targetFps"
                 :items="fpsOptions"
                 :disabled="isDecoding"
                 class="w-28"
@@ -198,7 +198,7 @@
             :min-length="minWindowSeconds"
             :max-length="maxWindowSeconds"
             :step="TRIM_STEP_SECONDS"
-            :fps="fps"
+            :fps="targetFps"
             :disabled="isDecoding"
             :current-time="previewTime"
             :playing="previewPlaying"
@@ -267,17 +267,16 @@
 </template>
 
 <script setup lang="ts">
+import { getCoverCropRect, sliceFrameCache } from '@/util/videoFrames';
 import {
-  getCoverCropRect,
   getVideoMaxDurationSeconds,
-  sliceFrameCache,
   VIDEO_CROP_MIN_SCALE,
   VIDEO_DEFAULT_FPS,
   VIDEO_FIT_OPTIONS,
   VIDEO_FPS_OPTIONS,
   VIDEO_MAX_FILE_BYTES,
   VIDEO_MAX_FPS
-} from '@/util/videoFrames';
+} from '@/util/videoLimits';
 import type { FrameCache, VideoCropState, VideoFitMode } from '@/util/videoFrames';
 import { FRAME_SOURCE_ACCEPT, resolveFrameSourceAdapter } from '@/util/frameSources';
 import type { FrameSourceAdapter, FrameSourceHandle } from '@/util/frameSources';
@@ -294,6 +293,7 @@ type RetainedSession = {
 };
 
 const FPS_CHOICES = VIDEO_FPS_OPTIONS.filter(value => value <= VIDEO_MAX_FPS);
+// Reopening the same small clip stays instant; large caches aren't pinned in memory after close.
 const RETAINED_CACHE_MAX_BYTES = 32 * 1024 * 1024;
 const PREVIEW_MAX_HEIGHT_PX = 360;
 
@@ -307,7 +307,7 @@ const es = useDrawToolEditorStore();
 const sourceFile = ref<File | null>(null);
 const adapter = shallowRef<FrameSourceAdapter | null>(null);
 const handle = shallowRef<FrameSourceHandle | null>(null);
-const fps = ref<number>(VIDEO_DEFAULT_FPS);
+const targetFps = ref<number>(VIDEO_DEFAULT_FPS);
 const fit = ref<VideoFitMode>('cover');
 const crop = ref<VideoCropState>({ offsetX: 0.5, offsetY: 0.5, scale: 1 });
 const trimStart = ref(0);
@@ -348,7 +348,7 @@ const {
   scheduleRender,
   commitTrim,
   adoptCache
-} = useVideoDecodePipeline({ adapter, handle, fps, fit, cropRect, trimStart, trimEnd });
+} = useVideoDecodePipeline({ adapter, handle, targetFps, fit, cropRect, trimStart, trimEnd });
 
 const {
   playing: previewPlaying,
@@ -392,13 +392,13 @@ const canvasFps = computed(() => {
   return other ? other.fps : null;
 });
 
-const willConvertClips = computed(() => canvasFps.value !== null && fps.value !== canvasFps.value);
+const willConvertClips = computed(() => canvasFps.value !== null && targetFps.value !== canvasFps.value);
 
 const fpsOptions = computed(() => {
   const allowed = getAllowedFps(handle.value?.nativeFps);
-  const extra = [fps.value, canvasFps.value].filter((value): value is number => value !== null);
+  const extra = [targetFps.value, canvasFps.value].filter((value): value is number => value !== null);
   const values = [...new Set([...allowed, ...extra])]
-    .filter(value => canvasFps.value === null || value === canvasFps.value || value === fps.value || es.canSetTimelineFps(value, editTargetId.value))
+    .filter(value => canvasFps.value === null || value === canvasFps.value || value === targetFps.value || es.canSetTimelineFps(value, editTargetId.value))
     .sort((a, b) => a - b);
 
   return values.map(value => ({ label: String(value), value }));
@@ -417,9 +417,9 @@ const barPreviewFrame = computed(() => {
   return Math.min(frameCount - 1, Math.max(0, index));
 });
 
-const maxWindowSeconds = computed(() => getVideoMaxDurationSeconds(fps.value));
+const maxWindowSeconds = computed(() => getVideoMaxDurationSeconds(targetFps.value));
 
-const minWindowSeconds = computed(() => Math.min(handle.value?.duration ?? 0, 1 / fps.value));
+const minWindowSeconds = computed(() => Math.min(handle.value?.duration ?? 0, 1 / targetFps.value));
 
 const cropRectClass = computed(() => {
   if (isDecoding.value) {
@@ -497,7 +497,7 @@ function resetState () {
   editTargetId.value = null;
   isTrimDragging.value = false;
   crop.value = { offsetX: 0.5, offsetY: 0.5, scale: 1 };
-  fps.value = VIDEO_DEFAULT_FPS;
+  targetFps.value = VIDEO_DEFAULT_FPS;
   fit.value = 'cover';
   trimStart.value = 0;
   trimEnd.value = 0;
@@ -519,7 +519,7 @@ function retainSession () {
     file: sourceFile.value,
     handle: handle.value?.kind === 'video' ? handle.value : null,
     cache: cacheBytes <= RETAINED_CACHE_MAX_BYTES ? cache : null,
-    fps: fps.value
+    fps: targetFps.value
   };
 
   if (handle.value && handle.value.kind !== 'video') {
@@ -609,12 +609,12 @@ async function openFile (file: File, restoreFrom?: VideoShapeSource) {
     handle.value = openedHandle;
 
     if (restoreFrom) {
-      fps.value = restoreFrom.fps;
+      targetFps.value = restoreFrom.fps;
       fit.value = restoreFrom.fit;
       crop.value = { ...restoreFrom.crop };
       clampTrim(restoreFrom.trimStart, restoreFrom.trimEnd, false);
     } else {
-      fps.value = canvasFps.value ?? getInitialFps(openedHandle.nativeFps);
+      targetFps.value = canvasFps.value ?? getInitialFps(openedHandle.nativeFps);
       clampTrim(0, Math.min(openedHandle.duration, maxWindowSeconds.value), false);
     }
 
@@ -623,7 +623,7 @@ async function openFile (file: File, restoreFrom?: VideoShapeSource) {
     startPreviews();
     trimRangeRef.value?.focus();
 
-    if (reusable?.cache && reusable.fps === fps.value) {
+    if (reusable?.cache && reusable.fps === targetFps.value) {
       const sliced = sliceFrameCache(reusable.cache, trimStart.value, trimEnd.value);
 
       if (sliced) {
@@ -652,7 +652,7 @@ async function insertVideo () {
   const frames = animation.value.frames.map(frame => frame.imageData);
   const source: VideoShapeSource = {
     file: sourceFile.value,
-    fps: fps.value,
+    fps: targetFps.value,
     fit: fit.value,
     crop: { ...crop.value },
     trimStart: trimStart.value,
@@ -695,7 +695,7 @@ watch(sourceFile, file => {
   }
 });
 
-watch(fps, () => {
+watch(targetFps, () => {
   if (!handle.value || isRestoring) {
     return;
   }

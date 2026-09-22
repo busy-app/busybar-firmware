@@ -128,7 +128,7 @@ export interface VideoShapeSource {
 export interface VideoShape extends ShapeBase {
   type: 'video';
   fileName: string;
-  frames: ImageData[];
+  frames: readonly ImageData[];
   fps: number;
   canvas: HTMLCanvasElement;
   source?: VideoShapeSource;

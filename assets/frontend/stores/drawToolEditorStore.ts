@@ -1,7 +1,8 @@
 import Konva from 'konva';
 import { defineStore } from 'pinia';
 import { cloneShape } from '@/util/drawTool';
-import { getResampledFrameCount, resampleFrameSequence, VIDEO_DEFAULT_FPS, VIDEO_MAX_FRAMES } from '@/util/videoFrames';
+import { getResampledFrameCount, resampleFrameSequence } from '@/util/videoFrames';
+import { VIDEO_DEFAULT_FPS, VIDEO_MAX_FRAMES } from '@/util/videoLimits';
 
 type OverlayControlPosition = {
   x: number;
@@ -838,7 +839,7 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     pushHistorySnapshot();
   }
 
-  function addVideoShape (frames: ImageData[], fps: number, fileName: string, source?: VideoShapeSource) {
+  function addVideoShape (frames: readonly ImageData[], fps: number, fileName: string, source?: VideoShapeSource) {
     if (!frames.length) {
       return null;
     }
@@ -872,7 +873,7 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     return videoShape.id;
   }
 
-  function updateVideoShape (shapeId: string, frames: ImageData[], fps: number, source?: VideoShapeSource) {
+  function updateVideoShape (shapeId: string, frames: readonly ImageData[], fps: number, source?: VideoShapeSource) {
     const existing = shapes.value.find((shape): shape is VideoShape => shape.type === 'video' && shape.id === shapeId);
 
     if (!existing || !frames.length) {
@@ -953,6 +954,7 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
       .every(shape => getResampledFrameCount(shape.frames.length, shape.fps, fps) <= VIDEO_MAX_FRAMES);
   }
 
+  // Sole writer of shape.fps: all clips on the canvas share one rate, because .anim has a single fps field.
   function setTimelineFps (fps: number, options: { exceptShapeId?: string | null; recordHistory?: boolean } = {}) {
     if (!Number.isFinite(fps)) {
       return false;

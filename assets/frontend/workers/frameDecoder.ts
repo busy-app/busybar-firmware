@@ -1,6 +1,7 @@
 import { decompressFrames, parseGIF } from 'gifuct-js';
 import { decodeAnimation } from '../util/anim2seq';
-import { getVideoFrameCacheSize, VIDEO_SOURCE_MAX_FRAMES } from '../util/videoFrames';
+import { getVideoFrameCacheSize } from '../util/videoFrames';
+import { VIDEO_SOURCE_MAX_FRAMES } from '../util/videoLimits';
 
 type DecodeRequest
   = | { id: number; type: 'anim'; buffer: ArrayBuffer }
@@ -38,7 +39,7 @@ async function decodeAnim (buffer: ArrayBuffer) {
     width: animation.width,
     height: animation.height,
     fps: animation.fps,
-    frames: animation.frames.map(frame => toMessageFrame(frame.imageData, frame.duration * frameMs))
+    frames: animation.frames.map(frame => toMessageFrame(frame.imageData, frame.holdFrames * frameMs))
   };
 }
 
@@ -83,6 +84,7 @@ function createGifScaler (sourceWidth: number, sourceHeight: number, targetWidth
   };
 }
 
+// Not ImageDecoder: it is unavailable on the device's plain-http origin, so gifuct is the only path.
 function decodeGif (buffer: ArrayBuffer) {
   const gif = parseGIF(buffer);
   const width = gif.lsd.width;
@@ -106,6 +108,7 @@ function decodeGif (buffer: ArrayBuffer) {
   const canvas = new Uint8ClampedArray(width * height * 4);
   const frames: DecodedFrameMessage[] = [];
 
+  // gifuct yields per-frame patches; compositing them and applying disposal is up to us.
   parsedFrames.forEach(frame => {
     const { left, top, width: patchWidth, height: patchHeight } = frame.dims;
     const previous = frame.disposalType === GIF_DISPOSAL_RESTORE_PREVIOUS ? canvas.slice() : null;

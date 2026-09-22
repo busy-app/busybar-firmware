@@ -120,7 +120,7 @@ export const useDrawToolStore = defineStore('drawTool', () => {
             fps,
             frames: decoded.frames.map(frame => ({
               imageData: frame.imageData,
-              duration: Math.max(1, Math.round(frame.durationMs / frameMs))
+              holdFrames: Math.max(1, Math.round(frame.durationMs / frameMs))
             }))
           }
         };

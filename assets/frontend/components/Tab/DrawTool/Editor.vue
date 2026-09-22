@@ -1064,7 +1064,7 @@ import {
 } from 'vue-konva';
 import drawToolIconsData from '@/generated/drawTool/icons.json';
 import { DRAW_TOOL_DISPLAY_PRIORITY, DRAW_TOOL_EXPORT_PIXEL_SIZE, pixelateImageData } from '@/util/drawTool';
-import { VIDEO_FPS_OPTIONS, VIDEO_MAX_FPS } from '@/util/videoFrames';
+import { VIDEO_FPS_OPTIONS, VIDEO_MAX_FPS } from '@/util/videoLimits';
 import type { TransformerBox } from '@/util/drawTool';
 import { ANIM_FILE_EXTENSION, composeAnimationFromFrames } from '@/util/seq2anim';
 import { createAnimationFromFrames } from '@/util/anim2seq';

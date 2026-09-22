@@ -33,8 +33,8 @@ function advance (subscriber: AnimationTickerSubscriber, deltaMs: number) {
 
   subscriber.elapsedInFrame += deltaMs;
 
-  while (subscriber.elapsedInFrame >= frameDuration * frames[subscriber.frameIndex].duration) {
-    subscriber.elapsedInFrame -= frameDuration * frames[subscriber.frameIndex].duration;
+  while (subscriber.elapsedInFrame >= frameDuration * frames[subscriber.frameIndex].holdFrames) {
+    subscriber.elapsedInFrame -= frameDuration * frames[subscriber.frameIndex].holdFrames;
 
     if (subscriber.frameIndex + 1 >= frames.length) {
       if (!subscriber.loop) {
