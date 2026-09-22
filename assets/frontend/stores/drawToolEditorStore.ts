@@ -1,6 +1,8 @@
 import Konva from 'konva';
 import { defineStore } from 'pinia';
 import { cloneShape } from '@/util/drawTool';
+import { getResampledFrameCount, resampleFrameSequence } from '@/util/videoFrames';
+import { VIDEO_DEFAULT_FPS, VIDEO_MAX_FRAMES } from '@/util/videoLimits';
 
 type OverlayControlPosition = {
   x: number;
@@ -52,6 +54,7 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
   const shapes = ref<EditorShape[]>([]);
   const selectedShapeId = ref<string | null>(null);
   const deleteButtonPosition = ref<OverlayControlPosition | null>(null);
+  const editButtonPosition = ref<OverlayControlPosition | null>(null);
   const rotationHandlePosition = ref<OverlayControlPosition | null>(null);
   const selectionHandlePosition = ref<OverlayControlPosition | null>(null);
   const activeSelectionHandleDrag = ref<SelectionHandleDragState | null>(null);
@@ -65,6 +68,11 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
   const textDraftFontId = ref(DEFAULT_TEXT_FONT_ID);
   const showImageUploadModal = ref(false);
   const imageUploadFile = ref<File | null>(null);
+  const showVideoUploadModal = ref(false);
+  const pendingVideoUploadFile = shallowRef<File | null>(null);
+  const videoEditTargetId = ref<string | null>(null);
+  const playheadFrame = ref(0);
+  const isTimelinePlaying = ref(false);
   const showLeaveEditorModal = ref(false);
   const isLeavingEditor = ref(false);
   const statusFileName = ref(DEFAULT_STATUS_FILE_NAME);
@@ -90,6 +98,10 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
   }]);
   const historyIndex = ref(0);
   const hasSavedStatusFile = computed(() => !!savedStatusFilePath.value);
+  const videoShapes = computed(() => shapes.value.filter((shape): shape is VideoShape => shape.type === 'video'));
+  const hasVideoShapes = computed(() => videoShapes.value.length > 0);
+  const timelineFrameCount = computed(() => videoShapes.value.reduce((max, shape) => Math.max(max, shape.frames.length), 0));
+  const timelineFps = computed(() => videoShapes.value[0]?.fps ?? VIDEO_DEFAULT_FPS);
   const hasEditorContent = computed(() => {
     return !areEditorSnapshotsEqual(defaultEditorSnapshot, createEditorSnapshot());
   });
@@ -236,7 +248,20 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     borderDashSize.value = snapshot.borderDashSize;
     borderGapOffset.value = snapshot.borderGapOffset;
     normalizeBorderSettingsState();
+    applyPlayheadToVideoShapes(playheadFrame.value);
   }
+
+  watch(timelineFrameCount, frameCount => {
+    if (frameCount === 0) {
+      playheadFrame.value = 0;
+      isTimelinePlaying.value = false;
+      return;
+    }
+
+    if (playheadFrame.value >= frameCount) {
+      setPlayheadFrame(0);
+    }
+  });
 
   function clearBackgroundColor () {
     if (isColorFullyTransparent(backgroundColor.value)) {
@@ -438,6 +463,7 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
 
     if (!selectedNode) {
       deleteButtonPosition.value = null;
+      editButtonPosition.value = null;
       rotationHandlePosition.value = null;
       selectionHandlePosition.value = null;
       return;
@@ -445,6 +471,7 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
 
     const transform = selectedNode.getAbsoluteTransform();
     const topLeftCorner = transform.point({ x: 0, y: 0 });
+    const topRightCorner = transform.point({ x: selectedNode.width(), y: 0 });
     const topCenterCorner = transform.point({ x: selectedNode.width() / 2, y: 0 });
     const rotationOffset = getStageDeltaFromLocalDelta(0, -stageMetrics.value.cellSize * 6, selectedNode.rotation());
     const bottomRightCorner = transform.point({ x: selectedNode.width(), y: selectedNode.height() });
@@ -453,6 +480,10 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
       x: topLeftCorner.x,
       y: topLeftCorner.y
     };
+
+    editButtonPosition.value = getSelectedShapeState()?.type === 'video'
+      ? { x: topRightCorner.x, y: topRightCorner.y }
+      : null;
 
     rotationHandlePosition.value = {
       x: topCenterCorner.x + rotationOffset.x,
@@ -476,6 +507,7 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     if (!selectedShapeId.value) {
       transformer.nodes([]);
       deleteButtonPosition.value = null;
+      editButtonPosition.value = null;
       rotationHandlePosition.value = null;
       selectionHandlePosition.value = null;
       overlayLayerRef.value?.getNode().batchDraw();
@@ -807,6 +839,158 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     pushHistorySnapshot();
   }
 
+  function addVideoShape (frames: readonly ImageData[], fps: number, fileName: string, source?: VideoShapeSource) {
+    if (!frames.length) {
+      return null;
+    }
+
+    if (!setTimelineFps(fps, { recordHistory: false })) {
+      return null;
+    }
+
+    const canvas = createVideoShapeCanvas(frames[0].width, frames[0].height);
+    const videoShape: VideoShape = {
+      id: createShapeId(),
+      type: 'video',
+      fileName,
+      x: 0,
+      y: 0,
+      width: frames[0].width,
+      height: frames[0].height,
+      rotation: 0,
+      frames,
+      fps,
+      canvas,
+      source
+    };
+
+    blitVideoFrame(videoShape, playheadFrame.value);
+    shapes.value.push(videoShape);
+    selectedShapeId.value = videoShape.id;
+    pushHistorySnapshot();
+    isTimelinePlaying.value = true;
+
+    return videoShape.id;
+  }
+
+  function updateVideoShape (shapeId: string, frames: readonly ImageData[], fps: number, source?: VideoShapeSource) {
+    const existing = shapes.value.find((shape): shape is VideoShape => shape.type === 'video' && shape.id === shapeId);
+
+    if (!existing || !frames.length) {
+      return false;
+    }
+
+    if (!setTimelineFps(fps, { exceptShapeId: shapeId, recordHistory: false })) {
+      return false;
+    }
+
+    const sizeChanged = frames[0].width !== existing.frames[0]?.width || frames[0].height !== existing.frames[0]?.height;
+    const canvas = sizeChanged ? createVideoShapeCanvas(frames[0].width, frames[0].height) : existing.canvas;
+
+    updateShape(shapeId, shape => ({
+      ...(shape as VideoShape),
+      frames,
+      fps,
+      canvas,
+      source
+    }));
+
+    applyPlayheadToVideoShapes(playheadFrame.value);
+    syncPixelatedDisplay();
+    selectedShapeId.value = shapeId;
+    pushHistorySnapshot();
+    isTimelinePlaying.value = true;
+
+    return true;
+  }
+
+  function getVideoShape (shapeId: string): VideoShape | null {
+    return shapes.value.find((shape): shape is VideoShape => shape.type === 'video' && shape.id === shapeId) ?? null;
+  }
+
+  function requestVideoEdit (shapeId: string) {
+    const shape = getVideoShape(shapeId);
+
+    if (!shape?.source) {
+      return false;
+    }
+
+    isTimelinePlaying.value = false;
+    videoEditTargetId.value = shapeId;
+    showVideoUploadModal.value = true;
+
+    return true;
+  }
+
+  function applyPlayheadToVideoShapes (frame: number) {
+    videoShapes.value.forEach(shape => blitVideoFrame(shape, frame));
+  }
+
+  function setPlayheadFrame (frame: number) {
+    const frameCount = timelineFrameCount.value;
+    const nextFrame = frameCount > 0 ? ((Math.round(frame) % frameCount) + frameCount) % frameCount : 0;
+
+    playheadFrame.value = nextFrame;
+    applyPlayheadToVideoShapes(nextFrame);
+    syncPixelatedDisplay();
+  }
+
+  function stepPlayhead (delta: number) {
+    setPlayheadFrame(playheadFrame.value + delta);
+  }
+
+  function toggleTimelinePlayback () {
+    if (!hasVideoShapes.value) {
+      isTimelinePlaying.value = false;
+      return;
+    }
+
+    isTimelinePlaying.value = !isTimelinePlaying.value;
+  }
+
+  function canSetTimelineFps (fps: number, exceptShapeId: string | null = null) {
+    return videoShapes.value
+      .filter(shape => shape.id !== exceptShapeId)
+      .every(shape => getResampledFrameCount(shape.frames.length, shape.fps, fps) <= VIDEO_MAX_FRAMES);
+  }
+
+  // Sole writer of shape.fps: all clips on the canvas share one rate, because .anim has a single fps field.
+  function setTimelineFps (fps: number, options: { exceptShapeId?: string | null; recordHistory?: boolean } = {}) {
+    if (!Number.isFinite(fps)) {
+      return false;
+    }
+
+    const nextFps = Math.max(1, Math.round(fps));
+    const targets = videoShapes.value.filter(shape => shape.id !== options.exceptShapeId && shape.fps !== nextFps);
+
+    if (!targets.length) {
+      return true;
+    }
+
+    if (!canSetTimelineFps(nextFps, options.exceptShapeId ?? null)) {
+      return false;
+    }
+
+    const previousFps = targets[0].fps;
+
+    targets.forEach(shape => {
+      const frames = resampleFrameSequence(shape.frames, shape.fps, nextFps, VIDEO_MAX_FRAMES);
+      const source = shape.source
+        ? { ...shape.source, fps: nextFps, trimEnd: shape.source.trimStart + (frames.length / nextFps) }
+        : undefined;
+
+      updateShape(shape.id, current => ({ ...(current as VideoShape), frames, fps: nextFps, source }));
+    });
+
+    setPlayheadFrame((playheadFrame.value * nextFps) / Math.max(1, previousFps));
+
+    if (options.recordHistory !== false) {
+      pushHistorySnapshot();
+    }
+
+    return true;
+  }
+
   function deleteSelectedShape () {
     if (!selectedShapeId.value) {
       return;
@@ -837,6 +1021,7 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     shapes.value = [];
     selectedShapeId.value = null;
     deleteButtonPosition.value = null;
+    editButtonPosition.value = null;
     rotationHandlePosition.value = null;
     selectionHandlePosition.value = null;
     activeSelectionHandleDrag.value = null;
@@ -848,6 +1033,11 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     textDraftValue.value = DEFAULT_TEXT_VALUE;
     showImageUploadModal.value = false;
     imageUploadFile.value = null;
+    showVideoUploadModal.value = false;
+    pendingVideoUploadFile.value = null;
+    videoEditTargetId.value = null;
+    playheadFrame.value = 0;
+    isTimelinePlaying.value = false;
     statusFileName.value = DEFAULT_STATUS_FILE_NAME;
     savedStatusFilePath.value = null;
     lastSavedSnapshot.value = null;
@@ -1053,6 +1243,7 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     shapes,
     selectedShapeId,
     deleteButtonPosition,
+    editButtonPosition,
     rotationHandlePosition,
     selectionHandlePosition,
     activeSelectionHandleDrag,
@@ -1073,6 +1264,15 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     historyIndex,
     showImageUploadModal,
     imageUploadFile,
+    showVideoUploadModal,
+    pendingVideoUploadFile,
+    videoEditTargetId,
+    playheadFrame,
+    isTimelinePlaying,
+    videoShapes,
+    hasVideoShapes,
+    timelineFrameCount,
+    timelineFps,
     showLeaveEditorModal,
     isLeavingEditor,
     setStageMetrics,
@@ -1098,6 +1298,16 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     addRectangle,
     addText,
     addImageShape,
+    addVideoShape,
+    updateVideoShape,
+    getVideoShape,
+    requestVideoEdit,
+    applyPlayheadToVideoShapes,
+    setPlayheadFrame,
+    stepPlayhead,
+    toggleTimelinePlayback,
+    canSetTimelineFps,
+    setTimelineFps,
     markStatusSaved,
     clearStage,
     resetEditor,
