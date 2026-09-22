@@ -1,5 +1,6 @@
 import { decompressFrames, parseGIF } from 'gifuct-js';
 import { decodeAnimation } from '../util/anim2seq';
+import { getVideoFrameCacheSize } from '../util/videoFrames';
 
 type DecodeRequest
   = | { id: number; type: 'anim'; buffer: ArrayBuffer }
@@ -19,6 +20,7 @@ type DecodeResponse
 const DEFAULT_FRAME_DURATION_MS = 100;
 const GIF_DISPOSAL_RESTORE_BACKGROUND = 2;
 const GIF_DISPOSAL_RESTORE_PREVIOUS = 3;
+const GIF_MAX_FRAMES = 2000;
 
 function toMessageFrame (imageData: ImageData, durationMs: number): DecodedFrameMessage {
   return {
@@ -54,6 +56,34 @@ function clearRect (canvas: Uint8ClampedArray, canvasWidth: number, canvasHeight
   }
 }
 
+function createGifScaler (sourceWidth: number, sourceHeight: number, targetWidth: number, targetHeight: number) {
+  if (typeof OffscreenCanvas === 'undefined') {
+    return null;
+  }
+
+  const source = new OffscreenCanvas(sourceWidth, sourceHeight);
+  const sourceContext = source.getContext('2d');
+  const target = new OffscreenCanvas(targetWidth, targetHeight);
+  const targetContext = target.getContext('2d', { willReadFrequently: true });
+
+  if (!sourceContext || !targetContext) {
+    return null;
+  }
+
+  targetContext.imageSmoothingEnabled = true;
+  targetContext.imageSmoothingQuality = 'high';
+
+  const sourceImage = new ImageData(sourceWidth, sourceHeight);
+
+  return (pixels: Uint8ClampedArray) => {
+    sourceImage.data.set(pixels);
+    sourceContext.putImageData(sourceImage, 0, 0);
+    targetContext.drawImage(source, 0, 0, targetWidth, targetHeight);
+
+    return targetContext.getImageData(0, 0, targetWidth, targetHeight).data.buffer as ArrayBuffer;
+  };
+}
+
 function decodeGif (buffer: ArrayBuffer) {
   const gif = parseGIF(buffer);
   const width = gif.lsd.width;
@@ -64,6 +94,16 @@ function decodeGif (buffer: ArrayBuffer) {
     throw new Error('GIF has no decodable frames');
   }
 
+  if (parsedFrames.length > GIF_MAX_FRAMES) {
+    throw new Error(`This GIF has ${parsedFrames.length} frames. The limit is ${GIF_MAX_FRAMES}.`);
+  }
+
+  const size = getVideoFrameCacheSize(width, height, parsedFrames.length);
+  const scale = size.width === width && size.height === height
+    ? null
+    : createGifScaler(width, height, size.width, size.height);
+  const outputWidth = scale ? size.width : width;
+  const outputHeight = scale ? size.height : height;
   const canvas = new Uint8ClampedArray(width * height * 4);
   const frames: DecodedFrameMessage[] = [];
 
@@ -91,10 +131,10 @@ function decodeGif (buffer: ArrayBuffer) {
     }
 
     frames.push({
-      width,
-      height,
+      width: outputWidth,
+      height: outputHeight,
       durationMs: frame.delay || DEFAULT_FRAME_DURATION_MS,
-      buffer: canvas.slice().buffer
+      buffer: scale ? scale(canvas) : canvas.slice().buffer
     });
 
     if (frame.disposalType === GIF_DISPOSAL_RESTORE_BACKGROUND) {
@@ -104,7 +144,7 @@ function decodeGif (buffer: ArrayBuffer) {
     }
   });
 
-  return { width, height, frames };
+  return { width: outputWidth, height: outputHeight, frames };
 }
 
 async function decodeImage (buffer: ArrayBuffer, mime: string) {

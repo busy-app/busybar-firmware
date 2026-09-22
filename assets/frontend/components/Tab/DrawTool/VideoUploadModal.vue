@@ -275,8 +275,7 @@ import {
   sliceFrameCache,
   VIDEO_CROP_MIN_SCALE,
   VIDEO_FIT_OPTIONS,
-  VIDEO_FPS_OPTIONS,
-  VIDEO_FRAME_SUPERSAMPLE
+  VIDEO_FPS_OPTIONS
 } from '@/util/videoFrames';
 import type { FrameCache, VideoCropState, VideoFitMode } from '@/util/videoFrames';
 import { FRAME_SOURCE_ACCEPT, resolveFrameSourceAdapter } from '@/util/frameSources';
@@ -292,6 +291,7 @@ type RetainedSession = {
 
 const FPS_CHOICES = VIDEO_FPS_OPTIONS.filter(value => value <= DRAW_TOOL_VIDEO_MAX_FPS);
 const RENDER_DEBOUNCE_MS = 60;
+const RETAINED_CACHE_MAX_BYTES = 32 * 1024 * 1024;
 const TRIM_STEP_SECONDS = 0.1;
 const PREVIEW_MAX_HEIGHT_PX = 360;
 
@@ -511,6 +511,8 @@ function resetState () {
   fileError.value = null;
   editTargetId.value = null;
   cropDrag.value = null;
+  zoomDrag.value = null;
+  isTrimDragging.value = false;
   crop.value = { offsetX: 0.5, offsetY: 0.5, scale: 1 };
   fps.value = DRAW_TOOL_VIDEO_DEFAULT_FPS;
   fit.value = 'cover';
@@ -527,10 +529,13 @@ function retainSession () {
     releaseRetained();
   }
 
+  const cache = sourceCache.value ?? frameCache.value;
+  const cacheBytes = cache ? cache.frames.length * cache.width * cache.height * 4 : 0;
+
   retained = {
     file: sourceFile.value,
     handle: handle.value?.kind === 'video' ? handle.value : null,
-    cache: sourceCache.value ?? frameCache.value,
+    cache: cacheBytes <= RETAINED_CACHE_MAX_BYTES ? cache : null,
     fps: fps.value
   };
 
@@ -672,7 +677,6 @@ async function runDecode (options?: { quiet?: boolean }) {
       startTime: trimStart.value,
       endTime: trimEnd.value,
       maxFrames: DRAW_TOOL_VIDEO_MAX_FRAMES,
-      minWidth: WORKSPACE_WIDTH * VIDEO_FRAME_SUPERSAMPLE,
       signal: controller.signal,
       onProgress: (done, total) => {
         decodeDone.value = done;

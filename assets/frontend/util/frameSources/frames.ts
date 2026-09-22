@@ -9,6 +9,8 @@ const IMAGE_MIME_BY_EXTENSION: Record<string, string> = {
   gif: 'image/gif'
 };
 
+const SCALE_YIELD_EVERY_FRAMES = 32;
+
 function toHandle (adapterId: string, decoded: DecodedFrameSet): FrameSourceHandle {
   const totalMs = decoded.frames.reduce((sum, frame) => sum + Math.max(1, frame.durationMs), 0);
   const shortestMs = decoded.frames.reduce((shortest, frame) => Math.min(shortest, Math.max(1, frame.durationMs)), Infinity);
@@ -33,7 +35,7 @@ async function decodeFrames (handle: FrameSourceHandle, options: DecodeFramesOpt
   }
 
   const resampled = resampleTimedFrames(source, options.fps, options.startTime, options.endTime, options.maxFrames);
-  const size = getVideoFrameCacheSize(handle.width, handle.height, resampled.frames.length, options.minWidth);
+  const size = getVideoFrameCacheSize(handle.width, handle.height, resampled.frames.length);
   const needsScale = size.width !== handle.width || size.height !== handle.height;
 
   let frames = resampled.frames;
@@ -41,17 +43,30 @@ async function decodeFrames (handle: FrameSourceHandle, options: DecodeFramesOpt
   if (needsScale) {
     const scaler = createFrameScaler(size.width, size.height);
     const scaledByFrame = new Map<ImageData, ImageData>();
+    const scaled: ImageData[] = [];
 
-    frames = resampled.frames.map(frame => {
-      let scaled = scaledByFrame.get(frame);
+    for (let index = 0; index < resampled.frames.length; index++) {
+      if (index % SCALE_YIELD_EVERY_FRAMES === 0) {
+        await new Promise(resolve => setTimeout(resolve));
 
-      if (!scaled) {
-        scaled = scaler.scale(imageDataToCanvas(frame));
-        scaledByFrame.set(frame, scaled);
+        if (options.signal?.aborted) {
+          throw new DOMException('Frame decoding aborted', 'AbortError');
+        }
       }
 
-      return scaled;
-    });
+      const frame = resampled.frames[index];
+      let cached = scaledByFrame.get(frame);
+
+      if (!cached) {
+        cached = scaler.scale(imageDataToCanvas(frame));
+        scaledByFrame.set(frame, cached);
+      }
+
+      scaled.push(cached);
+      options.onProgress?.(index + 1, resampled.frames.length);
+    }
+
+    frames = scaled;
   }
 
   options.onProgress?.(frames.length, frames.length);

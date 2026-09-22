@@ -76,14 +76,13 @@ export function getCoverCropRect (
 export function getVideoFrameCacheSize (
   sourceWidth: number,
   sourceHeight: number,
-  frameCount: number,
-  minWidth = 1
+  frameCount: number
 ) {
   const aspect = sourceWidth / Math.max(1, sourceHeight);
   const budgetPerFrame = VIDEO_FRAME_CACHE_MEMORY_BUDGET / Math.max(1, frameCount);
   const budgetWidth = Math.sqrt((budgetPerFrame * aspect) / 4);
-  const cappedWidth = Math.min(VIDEO_FRAME_CACHE_MAX_WIDTH, budgetWidth);
-  const width = Math.max(1, Math.floor(Math.min(sourceWidth, Math.max(cappedWidth, minWidth))));
+  const affordableWidth = Math.min(VIDEO_FRAME_CACHE_MAX_WIDTH, budgetWidth);
+  const width = Math.max(1, Math.floor(Math.min(sourceWidth, affordableWidth)));
 
   return {
     width,
@@ -92,9 +91,9 @@ export function getVideoFrameCacheSize (
 }
 
 export function getFrameGrid (fps: number, startTime: number, endTime: number, maxFrames: number) {
-  const safeFps = Math.max(1, Math.round(fps));
-  const safeStart = Math.max(0, startTime);
-  const safeEnd = Math.max(safeStart, endTime);
+  const safeFps = Math.max(1, Math.round(Number.isFinite(fps) ? fps : 1));
+  const safeStart = Math.max(0, Number.isFinite(startTime) ? startTime : 0);
+  const safeEnd = Math.max(safeStart, Number.isFinite(endTime) ? endTime : safeStart);
   const frameCount = Math.max(1, Math.min(maxFrames, Math.floor((safeEnd - safeStart) * safeFps)));
 
   return { fps: safeFps, startTime: safeStart, endTime: safeStart + frameCount / safeFps, frameCount };

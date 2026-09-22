@@ -174,6 +174,8 @@ const {
 
 watch(activeMode, mode => emit('dragging', mode !== null));
 
+onBeforeUnmount(() => emit('dragging', false));
+
 const playheadPercent = computed(() => {
   if (props.currentTime === null || props.duration <= 0) {
     return null;

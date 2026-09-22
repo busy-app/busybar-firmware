@@ -20,7 +20,6 @@ export interface DecodeFramesOptions {
   startTime: number;
   endTime: number;
   maxFrames: number;
-  minWidth?: number;
   signal?: AbortSignal;
   onProgress?: (done: number, total: number) => void;
 }

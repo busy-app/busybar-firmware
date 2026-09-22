@@ -343,6 +343,10 @@ function decompressRle (source: Uint8Array, blockSize: number, maxLength: number
       continue;
     }
 
+    if (sourceIndex + blockSize > source.length) {
+      break;
+    }
+
     for (let repeat = 0; repeat < count && outputIndex < maxLength; repeat++) {
       for (let k = 0; k < blockSize && outputIndex < maxLength; k++) {
         output[outputIndex++] = source[sourceIndex + k];

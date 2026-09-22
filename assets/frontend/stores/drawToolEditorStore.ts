@@ -944,13 +944,22 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
   }
 
   function setTimelineFps (fps: number, options: { exceptShapeId?: string | null; recordHistory?: boolean } = {}) {
+    if (!Number.isFinite(fps)) {
+      return false;
+    }
+
     const nextFps = Math.max(1, Math.round(fps));
-    const previousFps = timelineFps.value;
     const targets = videoShapes.value.filter(shape => shape.id !== options.exceptShapeId && shape.fps !== nextFps);
 
     if (!targets.length) {
-      return;
+      return true;
     }
+
+    if (!canSetTimelineFps(nextFps, options.exceptShapeId ?? null)) {
+      return false;
+    }
+
+    const previousFps = targets[0].fps;
 
     targets.forEach(shape => {
       const frames = resampleFrameSequence(shape.frames, shape.fps, nextFps, DRAW_TOOL_VIDEO_MAX_FRAMES);
@@ -966,6 +975,8 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     if (options.recordHistory !== false) {
       pushHistorySnapshot();
     }
+
+    return true;
   }
 
   function deleteSelectedShape () {

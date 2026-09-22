@@ -164,7 +164,7 @@ async function decodeVideo (handle: FrameSourceHandle, options: DecodeFramesOpti
   }
 
   const grid = getFrameGrid(options.fps, options.startTime, Math.min(options.endTime, handle.duration), options.maxFrames);
-  const size = getVideoFrameCacheSize(handle.width, handle.height, grid.frameCount, options.minWidth);
+  const size = getVideoFrameCacheSize(handle.width, handle.height, grid.frameCount);
   const scaler = createFrameScaler(size.width, size.height);
   const frames: ImageData[] = [];
 
