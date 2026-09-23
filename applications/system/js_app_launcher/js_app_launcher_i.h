@@ -18,7 +18,7 @@
 
 #define JS_APP_LAUNCHER_APP_ID "js_app_launcher"
 
-#define JS_APP_LAUNCHER_ARG_SKIP_MENU "+"
+#define JS_APP_LAUNCHER_ARG_RESUME "+"
 
 #define RECORD_JS_APP_LAUNCHER JS_APP_LAUNCHER_APP_ID
 

@@ -29,11 +29,11 @@ bool js_app_launcher_start(const char* app_id, JsAppLauncherStartMode mode) {
     furi_check(app_id);
     furi_check(mode < JsAppLauncherStartModeMax);
 
-    char args[JS_APP_ID_LEN_MAX + sizeof(JS_APP_LAUNCHER_ARG_SKIP_MENU)];
-    strlcpy(args, app_id, sizeof(args) - strlen(JS_APP_LAUNCHER_ARG_SKIP_MENU));
+    char args[JS_APP_ID_LEN_MAX + sizeof(JS_APP_LAUNCHER_ARG_RESUME)];
+    strlcpy(args, app_id, sizeof(args) - strlen(JS_APP_LAUNCHER_ARG_RESUME));
 
     if(mode == JsAppLauncherStartModeResume) {
-        strlcat(args, JS_APP_LAUNCHER_ARG_SKIP_MENU, sizeof(args));
+        strlcat(args, JS_APP_LAUNCHER_ARG_RESUME, sizeof(args));
     }
 
     Desktop* desktop = furi_record_open(RECORD_DESKTOP);
