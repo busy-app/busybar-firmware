@@ -105,22 +105,6 @@ FuriPubSub* loader_get_pubsub(Loader* loader) {
     return loader->pubsub;
 }
 
-bool loader_get_application_id(Loader* loader, FuriString* app_id) {
-    furi_check(loader);
-    furi_check(app_id);
-
-    LoaderMessageBoolResult result;
-
-    LoaderMessage message = {
-        .type = LoaderMessageTypeGetApplicationId,
-        .application_name = app_id,
-        .bool_value = &result,
-    };
-
-    loader_synchronous_request(loader, &message);
-    return result.value;
-}
-
 bool loader_get_application_name(Loader* loader, FuriString* name) {
     furi_check(loader);
     furi_check(name);
@@ -460,16 +444,6 @@ static bool loader_is_application_running(Loader* loader) {
     return app_thread && (app_thread != (FuriThread*)LOADER_MAGIC_THREAD_VALUE);
 }
 
-static void loader_do_get_application_id(Loader* loader, const LoaderMessage* message) {
-    message->bool_value->value = false;
-    if(loader_is_application_running(loader)) {
-        furi_string_set(
-            message->application_id,
-            furi_thread_get_appid(furi_thread_get_id(loader->app.thread)));
-        message->bool_value->value = true;
-    }
-}
-
 static void loader_do_get_application_name(Loader* loader, const LoaderMessage* message) {
     message->bool_value->value = false;
     if(loader_is_application_running(loader)) {
@@ -584,7 +558,6 @@ static const LoaderMessageHandler loader_handlers[LoaderMessageTypeMax] = {
     [LoaderMessageTypeLock] = loader_lock_handler,
     [LoaderMessageTypeUnlock] = loader_unlock_handler,
     [LoaderMessageTypeIsLocked] = loader_is_locked_handler,
-    [LoaderMessageTypeGetApplicationId] = loader_do_get_application_id,
     [LoaderMessageTypeGetApplicationName] = loader_do_get_application_name,
     [LoaderMessageTypeSendCustomSignal] = loader_do_send_custom_signal,
     [LoaderMessageTypeSetPriority] = loader_do_set_priority,

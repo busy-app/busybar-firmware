@@ -24,7 +24,6 @@ typedef enum {
     LoaderMessageTypeLock,
     LoaderMessageTypeUnlock,
     LoaderMessageTypeIsLocked,
-    LoaderMessageTypeGetApplicationId,
     LoaderMessageTypeGetApplicationName,
     LoaderMessageTypeSendCustomSignal,
     LoaderMessageTypeSetPriority,
@@ -59,7 +58,6 @@ typedef struct {
     union {
         LoaderMessageStartByName start;
         LoaderMessageLoaderSendCustomSignal custom_signal;
-        FuriString* application_id;
         FuriString* application_name;
         size_t* priority;
     };
