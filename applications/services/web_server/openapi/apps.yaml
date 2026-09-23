@@ -102,7 +102,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "400":
-          description: Missing application id
+          description: Missing or invalid application id
           content:
             application/json:
               schema:
