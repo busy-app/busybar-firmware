@@ -50,9 +50,8 @@ static void clock_input_queue_callback(FuriEventLoopObject* object, void* contex
     while(furi_message_queue_get(instance->input_queue, &event, 0) == FuriStatusOk) {
         if(event.type == InputTypeShort && event.key == InputKeyBack) {
             if(!scene_manager_handle_back_event(instance->scene_manager)) {
-                if(!apps_menu_start(AppsMenuModeShowMenu)) {
-                    FURI_LOG_E(TAG, "Failed to exit to apps menu");
-                }
+                furi_event_loop_stop(instance->event_loop);
+                apps_menu_forget_current_app();
             }
         }
     }

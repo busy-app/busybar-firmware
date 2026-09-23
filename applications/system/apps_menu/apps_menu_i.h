@@ -11,6 +11,32 @@
 
 #include "settings/settings.h"
 
+#define RECORD_APPS_MENU_CONTROL "apps_menu_control"
+
+typedef enum {
+    AppsMenuControlFlagResetCurrentApp = (1UL << 0),
+} AppsMenuControlFlag;
+
+typedef struct {
+    FuriEventFlag* flags;
+} AppsMenuControl;
+
+typedef enum {
+    AppsMenuModeResume,
+    AppsMenuModeShowMenu,
+} AppsMenuMode;
+
+typedef enum {
+    AppsMenuCustomEventLaunchMain,
+    AppsMenuCustomEventAboutToExit,
+
+    AppsMenuCustomEventSceneEventsStart,
+
+    AppsMenuCustomEventMAX = 0xFFFFFFFF, // forces enum size, don't use
+} AppsMenuCustomEvent;
+
+static_assert(sizeof(AppsMenuCustomEvent) == sizeof(uint32_t));
+
 typedef struct {
     FuriEventLoop* event_loop;
     FuriMessageQueue* input_queue;
@@ -27,17 +53,6 @@ typedef struct {
 
     AppsMenuSettings settings;
 } AppsMenu;
-
-typedef enum {
-    AppsMenuCustomEventLaunchMain,
-    AppsMenuCustomEventAboutToExit,
-
-    AppsMenuCustomEventSceneEventsStart,
-
-    AppsMenuCustomEventMAX = 0xFFFFFFFF, // forces enum size, don't use
-} AppsMenuCustomEvent;
-
-static_assert(sizeof(AppsMenuCustomEvent) == sizeof(uint32_t));
 
 void apps_menu_send_custom_event(AppsMenu* app, AppsMenuCustomEvent event);
 
