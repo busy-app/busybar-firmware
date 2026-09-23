@@ -169,9 +169,7 @@ static bool api_audio_play_handler(
         }
 
         Audio* audio = furi_record_open(RECORD_AUDIO);
-        audio_enable(audio);
         success = audio_play_file(audio, furi_string_get_cstr(file_path));
-        audio_disable(audio);
         furi_record_close(RECORD_AUDIO);
 
         if(success) {
@@ -243,9 +241,7 @@ static bool api_audio_volume_handler(
                 Audio* audio = furi_record_open(RECORD_AUDIO);
                 audio_set_volume(audio, (float)volume / 100.f);
                 if(!silent) {
-                    audio_enable(audio);
                     audio_play_file(audio, SHARED_SOUND_PATH("volume_change.snd"));
-                    audio_disable(audio);
                 }
                 furi_record_close(RECORD_AUDIO);
                 success = true;
