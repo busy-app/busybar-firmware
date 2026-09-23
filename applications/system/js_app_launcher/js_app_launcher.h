@@ -4,15 +4,37 @@
  */
 #pragma once
 
-/**
- * @brief Application ID to start JsAppLauncher via Loader or Desktop.
- */
-#define JS_APP_LAUNCHER_APP_ID "js_app_launcher"
+#include <stdbool.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
- * @brief Special JS Application ID to skip the start menu.
- *
- * Append this string to the end of the JS application ID (argument string)
- * to skip the start menu and go directly to the application.
+ * @brief Possible modes for launching JS applications
  */
-#define JS_APP_LAUNCHER_FLAG_SKIP_MENU "+"
+typedef enum {
+    JsAppLauncherModeNormal, /**< Normal mode, the start menu will be shown always */
+    JsAppLauncherModeSkipMenu, /**< Skip the start menu on startup, show before exit */
+    JsAppLauncherModeMax, /**< Special value, internal use */
+} JsAppLauncherMode;
+
+/**
+ * @brief Start a JS application by its application ID.
+ *
+ * @param[in] app_id zero-terminated string containing the ID of the app to be started
+ * @param[in] mode mode to start the JS application in
+ * @returns @c true if the app could be started, @c false otherwise
+ */
+bool js_app_launcher_start(const char* app_id, JsAppLauncherMode mode);
+
+/**
+ * @brief Stop the currently running JS application, if any
+ *
+ * @returns @c true if a JS app was running and could be stopped, @c false otherwise
+ */
+bool js_app_launcher_stop(void);
+
+#ifdef __cplusplus
+}
+#endif

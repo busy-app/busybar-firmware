@@ -6,7 +6,6 @@
 #include <storage/storage.h>
 #include <gui/modules/submenu.h>
 
-#include <js_app/js_app_common.h>
 #include <js_app_launcher/js_app_launcher.h>
 
 #define TAG "AppsMenu"
@@ -15,8 +14,6 @@
 #define APPS_MENU_ARG_RESET       "reset"
 #define APPS_MENU_ARG_SKIP_MENU   "-s"
 #define APPS_MENU_ACTIVE_APP_NONE ""
-
-#define APPS_MENU_JS_APP_ID_LEN_EXTRA (sizeof(JS_APP_LAUNCHER_FLAG_SKIP_MENU))
 
 #define APPS_MENU_JS_APPS_ENABLE_FLAG_PATH APP_DATA_PATH("js_apps_enabled")
 
@@ -241,36 +238,17 @@ void apps_menu_set_active_application(AppsMenuSettings* settings, const char* ap
 bool apps_menu_start_application(const char* app_id, bool is_skip_menu) {
     bool success = false;
 
-    const char* id;
-    const char* args;
-    char js_app_id[JS_APP_ID_LEN_MAX + APPS_MENU_JS_APP_ID_LEN_EXTRA];
-
     if(apps_list_contains(app_id)) {
-        id = app_id;
-        args = is_skip_menu ? APPS_MENU_ARG_SKIP_MENU : NULL;
+        const char* args = is_skip_menu ? APPS_MENU_ARG_SKIP_MENU : NULL;
+
+        Desktop* desktop = furi_record_open(RECORD_DESKTOP);
+        success = desktop_replace_current_app(desktop, app_id, args);
+        furi_record_close(RECORD_DESKTOP);
 
     } else if(apps_menu_is_js_apps_enabled()) {
-        id = JS_APP_LAUNCHER_APP_ID;
-        args = js_app_id;
-
-        strlcpy(js_app_id, app_id, sizeof(js_app_id) - strlen(JS_APP_LAUNCHER_FLAG_SKIP_MENU));
-        if(is_skip_menu) {
-            strlcat(js_app_id, JS_APP_LAUNCHER_FLAG_SKIP_MENU, sizeof(js_app_id));
-        }
-
-    } else {
-        id = NULL;
-        args = NULL;
-    }
-
-    if(id != NULL) {
-        Desktop* desktop = furi_record_open(RECORD_DESKTOP);
-
-        if(desktop_replace_current_app(desktop, id, args)) {
-            success = true;
-        }
-
-        furi_record_close(RECORD_DESKTOP);
+        const JsAppLauncherMode mode = is_skip_menu ? JsAppLauncherModeSkipMenu :
+                                                      JsAppLauncherModeNormal;
+        success = js_app_launcher_start(app_id, mode);
     }
 
     return success;

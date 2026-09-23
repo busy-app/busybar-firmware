@@ -1,4 +1,3 @@
-#include "js_app_launcher.h"
 #include "js_app_launcher_i.h"
 
 #include <apps_menu/apps_menu.h>

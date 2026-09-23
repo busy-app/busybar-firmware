@@ -1,14 +1,12 @@
 #include "http_api.h"
 
-#include <desktop/desktop.h>
-#include <loader/loader.h>
-
 #include <storage_utils/temp_file.h>
 #include <toolbox/timers.h>
 
 #include <js_app_installer/js_app_installer_paths.h>
 #include <js_app_installer/js_app_installer.h>
 #include <js_app_launcher/js_app_launcher.h>
+
 #include <js_app/js_app_registry.h>
 #include <js_app/js_app_settings_storage.h>
 #include <js_app/js_app_common.h>
@@ -388,13 +386,11 @@ static bool api_apps_launch_request_callback(
     }
     js_app_free(app);
 
-    Desktop* desktop = furi_record_open(RECORD_DESKTOP);
-    if(desktop_replace_current_app(desktop, JS_APP_LAUNCHER_APP_ID, app_id)) {
+    if(js_app_launcher_start(app_id, JsAppLauncherModeSkipMenu)) {
         MG_REPLY_OK(conn);
     } else {
         MG_REPLY_ERROR(conn, 500, "failed to lauch application");
     }
-    furi_record_close(RECORD_DESKTOP);
 
     return true;
 }
@@ -411,31 +407,7 @@ static bool api_apps_quit_request_callback(
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
-    bool success = false;
-
-    FuriString* app_id = furi_string_alloc();
-    Loader* loader = furi_record_open(RECORD_LOADER);
-
-    do {
-        if(!loader_get_application_id(loader, app_id)) {
-            break;
-        }
-
-        if(!furi_string_equal(app_id, JS_APP_LAUNCHER_APP_ID)) {
-            break;
-        }
-
-        if(!loader_send_signal(loader, FuriSignalExit, NULL)) {
-            break;
-        }
-
-        success = true;
-    } while(false);
-
-    furi_record_close(RECORD_LOADER);
-    furi_string_free(app_id);
-
-    if(success) {
+    if(js_app_launcher_stop()) {
         MG_REPLY_OK(conn);
     } else {
         MG_REPLY_ERROR(conn, 500, "failed quit from application");

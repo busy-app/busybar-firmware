@@ -1,5 +1,7 @@
 #pragma once
 
+#include "js_app_launcher.h"
+
 #include <furi.h>
 
 #include <gui/gui.h>
@@ -14,6 +16,8 @@
 
 #define TAG "JsAppLauncher"
 
+#define JS_APP_LAUNCHER_FLAG_SKIP_MENU "+"
+
 typedef enum {
     JsAppLauncherErrorNone,
     JsAppLauncherErrorLoadFailed,
@@ -25,12 +29,6 @@ typedef enum {
     JsAppLauncherErrorProgramCrashed,
     JsAppLauncherErrorMax,
 } JsAppLauncherError;
-
-typedef enum {
-    JsAppLauncherModeNormal,
-    JsAppLauncherModeSkipMenu,
-    JsAppLauncherModeMax,
-} JsAppLauncherMode;
 
 typedef struct {
     struct {
