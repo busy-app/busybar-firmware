@@ -6,7 +6,6 @@
 #include <js_app_installer/js_app_installer_paths.h>
 #include <js_app_installer/js_app_installer.h>
 #include <js_app_launcher/js_app_launcher.h>
-
 #include <js_app/js_app_registry.h>
 #include <js_app/js_app_settings_storage.h>
 #include <js_app/js_app_common.h>
@@ -366,7 +365,9 @@ static bool api_apps_launch_request_callback(
     UNUSED(method);
     UNUSED(ctx);
 
-    if(!IS_HTTP_ENDPOINT(path)) return false;
+    if(!IS_HTTP_ENDPOINT(path)) {
+        return false;
+    }
 
     char app_id[APP_ID_LEN_MAX];
     if(mg_http_get_var(&msg->query, "app_id", app_id, APP_ID_LEN_MAX) <= 0) {
@@ -405,7 +406,9 @@ static bool api_apps_quit_request_callback(
     UNUSED(ctx);
     UNUSED(msg);
 
-    if(!IS_HTTP_ENDPOINT(path)) return false;
+    if(!IS_HTTP_ENDPOINT(path)) {
+        return false;
+    }
 
     if(js_app_launcher_stop(JsAppLauncherStopModeForget)) {
         MG_REPLY_OK(conn);
