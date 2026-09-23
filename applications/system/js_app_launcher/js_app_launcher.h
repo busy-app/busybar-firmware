@@ -40,7 +40,7 @@ bool js_app_launcher_start(const char* app_id, JsAppLauncherStartMode start_mode
 /**
  * @brief Stop the currently running JS application, if applicable.
  *
- * The start menu will not be shown (unlike pressing the `Back` button).
+ * The start menu will not be shown upon exit.
  *
  * @param[in] stop_mode mode to be used to exit from the JS application
  * @returns @c true if a JS app was running and could be stopped, @c false otherwise
