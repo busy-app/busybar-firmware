@@ -1,22 +1,38 @@
 #include "js_app_launcher_i.h"
 
 #include <desktop/desktop.h>
-#include <loader/loader.h>
 
 #include <js_app/js_app_common.h>
 
-#define JS_APP_LAUNCHER_APP_ID "js_app_launcher"
+#define API_QUEUE_TIMEOUT_TICKS (1000)
+#define RECORD_TIMEOUT_TICKS    (50)
 
-#define APPS_MENU_JS_APP_ID_LEN_EXTRA (sizeof(JS_APP_LAUNCHER_ARG_SKIP_MENU))
+static bool js_app_launcher_send_api_message(
+    JsAppLauncher* instance,
+    const JsAppLauncherApiMessage* message) {
+    bool success;
 
-bool js_app_launcher_start(const char* app_id, JsAppLauncherMode mode) {
+    const FuriStatus status =
+        furi_message_queue_put(instance->api_queue, message, API_QUEUE_TIMEOUT_TICKS);
+
+    if(status == FuriStatusOk) {
+        success = true;
+    } else {
+        furi_check(status == FuriStatusErrorTimeout);
+        success = false;
+    }
+
+    return success;
+}
+
+bool js_app_launcher_start(const char* app_id, JsAppLauncherStartMode mode) {
     furi_check(app_id);
-    furi_check(mode < JsAppLauncherModeMax);
+    furi_check(mode < JsAppLauncherStartModeMax);
 
-    char args[JS_APP_ID_LEN_MAX + APPS_MENU_JS_APP_ID_LEN_EXTRA];
+    char args[JS_APP_ID_LEN_MAX + sizeof(JS_APP_LAUNCHER_ARG_SKIP_MENU)];
     strlcpy(args, app_id, sizeof(args) - strlen(JS_APP_LAUNCHER_ARG_SKIP_MENU));
 
-    if(mode == JsAppLauncherModeSkipMenu) {
+    if(mode == JsAppLauncherStartModeSkipMenu) {
         strlcat(args, JS_APP_LAUNCHER_ARG_SKIP_MENU, sizeof(args));
     }
 
@@ -27,30 +43,21 @@ bool js_app_launcher_start(const char* app_id, JsAppLauncherMode mode) {
     return success;
 }
 
-bool js_app_launcher_stop(void) {
-    bool success = false;
+bool js_app_launcher_stop(JsAppLauncherStopMode mode) {
+    furi_check(mode < JsAppLauncherStopModeMax);
 
-    FuriString* app_id = furi_string_alloc();
-    Loader* loader = furi_record_open(RECORD_LOADER);
+    JsAppLauncher* instance = furi_record_open_ex(RECORD_JS_APP_LAUNCHER, RECORD_TIMEOUT_TICKS);
+    if(instance == NULL) {
+        return false;
+    }
 
-    do {
-        if(!loader_get_application_id(loader, app_id)) {
-            break;
-        }
+    const JsAppLauncherApiMessage message = {
+        .type = JsAppLauncherApiMessageTypeStop,
+        .stop = {.mode = mode},
+    };
 
-        if(!furi_string_equal(app_id, JS_APP_LAUNCHER_APP_ID)) {
-            break;
-        }
+    const bool success = js_app_launcher_send_api_message(instance, &message);
 
-        if(!loader_send_signal(loader, FuriSignalExit, JS_APP_LAUNCHER_ARG_FORGET)) {
-            break;
-        }
-
-        success = true;
-    } while(false);
-
-    furi_record_close(RECORD_LOADER);
-    furi_string_free(app_id);
-
+    furi_record_close(RECORD_JS_APP_LAUNCHER);
     return success;
 }

@@ -14,10 +14,16 @@ extern "C" {
  * @brief Possible modes for launching JS applications
  */
 typedef enum {
-    JsAppLauncherModeNormal, /**< Normal mode, the start menu will be shown always */
-    JsAppLauncherModeSkipMenu, /**< Skip the start menu on startup, show before exit */
-    JsAppLauncherModeMax, /**< Special value, internal use */
-} JsAppLauncherMode;
+    JsAppLauncherStartModeNormal, /**< Normal mode, the start menu will be shown always */
+    JsAppLauncherStartModeSkipMenu, /**< Skip the start menu on startup, show before exit */
+    JsAppLauncherStartModeMax, /**< Special value, internal use */
+} JsAppLauncherStartMode;
+
+typedef enum {
+    JsAppLauncherStopModeNormal,
+    JsAppLauncherStopModeForget,
+    JsAppLauncherStopModeMax,
+} JsAppLauncherStopMode;
 
 /**
  * @brief Start a JS application by its application ID.
@@ -26,14 +32,14 @@ typedef enum {
  * @param[in] mode mode to start the JS application in
  * @returns @c true if the app could be started, @c false otherwise
  */
-bool js_app_launcher_start(const char* app_id, JsAppLauncherMode mode);
+bool js_app_launcher_start(const char* app_id, JsAppLauncherStartMode mode);
 
 /**
  * @brief Stop the currently running JS application, if any
  *
  * @returns @c true if a JS app was running and could be stopped, @c false otherwise
  */
-bool js_app_launcher_stop(void);
+bool js_app_launcher_stop(JsAppLauncherStopMode mode);
 
 #ifdef __cplusplus
 }

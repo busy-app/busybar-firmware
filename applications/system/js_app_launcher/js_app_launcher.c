@@ -9,29 +9,13 @@
 
 #include <js_app/js_app_common.h>
 
-#define INPUT_QUEUE_SIZE       (8)
-#define EVENT_QUEUE_SIZE       (8)
+#define INPUT_QUEUE_SIZE (8)
+#define EVENT_QUEUE_SIZE (8)
+#define API_QUEUE_SIZE   (2)
+
 #define EVENT_QUEUE_TIMEOUT_MS (3000)
 
 #define NAV_BAR_HEIGHT (14)
-
-static bool js_app_launcher_signal_callback(uint32_t signal, void* arg, void* context) {
-    furi_assert(context);
-    JsAppLauncher* instance = context;
-
-    bool is_handled = false;
-
-    if(signal == FuriSignalExit) {
-        if((arg != NULL) && (strcmp(JS_APP_LAUNCHER_ARG_FORGET, arg) == 0)) {
-            apps_menu_forget_current_app();
-        }
-
-        furi_event_loop_stop(instance->event_loop);
-        is_handled = true;
-    }
-
-    return is_handled;
-}
 
 static bool js_app_launcher_gui_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
@@ -78,8 +62,32 @@ static void js_app_launcher_event_queue_callback(FuriEventLoopObject* object, vo
     }
 }
 
+static void js_app_launcher_api_queue_callback(FuriEventLoopObject* object, void* context) {
+    furi_assert(context);
+
+    JsAppLauncher* instance = context;
+    furi_assert(object == instance->api_queue);
+
+    JsAppLauncherApiMessage message;
+    while(furi_message_queue_get(instance->api_queue, &message, 0) == FuriStatusOk) {
+        if(message.type == JsAppLauncherApiMessageTypeStop) {
+            const JsAppLauncherStopMode stop_mode = message.stop.mode;
+            furi_check(stop_mode < JsAppLauncherStopModeMax);
+
+            if(message.stop.mode == JsAppLauncherStopModeForget) {
+                apps_menu_forget_current_app();
+            }
+
+            furi_event_loop_stop(instance->event_loop);
+
+        } else {
+            furi_crash("Invalid JsAppLauncherApiMessageType value");
+        }
+    }
+}
+
 static void js_app_launcher_init_current_app(JsAppLauncher* instance, const char* app_id) {
-    JsAppLauncherMode mode = JsAppLauncherModeNormal;
+    JsAppLauncherStartMode mode = JsAppLauncherStartModeNormal;
 
     do {
         const size_t app_id_len = strlen(app_id);
@@ -95,7 +103,7 @@ static void js_app_launcher_init_current_app(JsAppLauncher* instance, const char
 
         if(strcmp(&app_id_tmp[flag_idx], JS_APP_LAUNCHER_ARG_SKIP_MENU) == 0) {
             app_id_tmp[flag_idx] = '\0';
-            mode = JsAppLauncherModeSkipMenu;
+            mode = JsAppLauncherStartModeSkipMenu;
         }
 
         instance->js_app = js_app_registry_get_app(app_id_tmp);
@@ -195,7 +203,7 @@ static void js_app_launcher_go_to_next_scene(const JsAppLauncher* instance) {
         scene_ids[0] = JsAppLauncherSceneIdStart;
         scene_ids_count = 1;
 
-        if(instance->mode == JsAppLauncherModeSkipMenu) {
+        if(instance->mode == JsAppLauncherStartModeSkipMenu) {
             scene_ids[1] = JsAppLauncherSceneIdRun;
             scene_ids_count = 2;
         }
@@ -214,12 +222,13 @@ static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
     instance->event_loop = furi_event_loop_alloc();
     instance->input_queue = furi_message_queue_alloc(INPUT_QUEUE_SIZE, sizeof(InputEvent));
     instance->event_queue = furi_message_queue_alloc(EVENT_QUEUE_SIZE, sizeof(uint32_t));
+    instance->api_queue =
+        furi_message_queue_alloc(API_QUEUE_SIZE, sizeof(JsAppLauncherApiMessage));
     instance->scene_manager =
         scene_manager_alloc(js_app_launcher_scenes, JsAppLauncherSceneIdMax, instance);
     instance->gui = furi_record_open(RECORD_GUI);
 
-    furi_thread_set_signal_callback(
-        furi_thread_get_current(), js_app_launcher_signal_callback, instance);
+    furi_record_create(RECORD_JS_APP_LAUNCHER, instance);
 
     js_app_launcher_init_current_app(instance, app_id);
     js_app_launcher_init_settings_storage(instance);
@@ -239,21 +248,30 @@ static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
         js_app_launcher_event_queue_callback,
         instance);
 
+    furi_event_loop_subscribe_message_queue(
+        instance->event_loop,
+        instance->api_queue,
+        FuriEventLoopEventIn,
+        js_app_launcher_api_queue_callback,
+        instance);
+
     js_app_launcher_go_to_next_scene(instance);
 
     return instance;
 }
 
 static void js_app_launcher_free(JsAppLauncher* instance) {
-    furi_thread_set_signal_callback(furi_thread_get_current(), NULL, NULL);
+    furi_record_destroy(RECORD_JS_APP_LAUNCHER);
     // TODO [FW-602]: this call MUST be first to avoid use-after-free.
     scene_manager_free(instance->scene_manager);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->input_queue);
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
+    furi_event_loop_unsubscribe(instance->event_loop, instance->api_queue);
 
     furi_message_queue_free(instance->input_queue);
     furi_message_queue_free(instance->event_queue);
+    furi_message_queue_free(instance->api_queue);
 
     furi_event_loop_free(instance->event_loop);
 

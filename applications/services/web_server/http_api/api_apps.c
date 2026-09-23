@@ -386,7 +386,7 @@ static bool api_apps_launch_request_callback(
     }
     js_app_free(app);
 
-    if(js_app_launcher_start(app_id, JsAppLauncherModeSkipMenu)) {
+    if(js_app_launcher_start(app_id, JsAppLauncherStartModeSkipMenu)) {
         MG_REPLY_OK(conn);
     } else {
         MG_REPLY_ERROR(conn, 500, "failed to lauch application");
@@ -407,7 +407,7 @@ static bool api_apps_quit_request_callback(
 
     if(!IS_HTTP_ENDPOINT(path)) return false;
 
-    if(js_app_launcher_stop()) {
+    if(js_app_launcher_stop(JsAppLauncherStopModeForget)) {
         MG_REPLY_OK(conn);
     } else {
         MG_REPLY_ERROR(conn, 500, "failed quit from application");

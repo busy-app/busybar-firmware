@@ -246,8 +246,8 @@ bool apps_menu_start_application(const char* app_id, bool is_skip_menu) {
         furi_record_close(RECORD_DESKTOP);
 
     } else if(apps_menu_is_js_apps_enabled()) {
-        const JsAppLauncherMode mode = is_skip_menu ? JsAppLauncherModeSkipMenu :
-                                                      JsAppLauncherModeNormal;
+        const JsAppLauncherStartMode mode = is_skip_menu ? JsAppLauncherStartModeSkipMenu :
+                                                           JsAppLauncherStartModeNormal;
         success = js_app_launcher_start(app_id, mode);
     }
 

@@ -16,8 +16,11 @@
 
 #define TAG "JsAppLauncher"
 
+#define JS_APP_LAUNCHER_APP_ID "js_app_launcher"
+
 #define JS_APP_LAUNCHER_ARG_SKIP_MENU "+"
-#define JS_APP_LAUNCHER_ARG_FORGET    "forget"
+
+#define RECORD_JS_APP_LAUNCHER JS_APP_LAUNCHER_APP_ID
 
 typedef enum {
     JsAppLauncherErrorNone,
@@ -41,10 +44,28 @@ typedef struct {
     } auxiliary;
 } JsAppLauncherErrorDesc;
 
+typedef enum {
+    JsAppLauncherApiMessageTypeInvalid,
+    JsAppLauncherApiMessageTypeStop,
+    JsAppLauncherApiMessageTypeMax,
+} JsAppLauncherApiMessageType;
+
+typedef struct {
+    JsAppLauncherStopMode mode;
+} JsAppLauncherApiMessageStop;
+
+typedef struct {
+    JsAppLauncherApiMessageType type;
+    union {
+        JsAppLauncherApiMessageStop stop;
+    };
+} JsAppLauncherApiMessage;
+
 typedef struct {
     FuriEventLoop* event_loop;
     FuriMessageQueue* input_queue;
     FuriMessageQueue* event_queue;
+    FuriMessageQueue* api_queue;
     SceneManager* scene_manager;
     Gui* gui;
 
@@ -56,7 +77,7 @@ typedef struct {
     JsApp* js_app;
     JsAppSettingsStorage* settings_storage;
     JsAppLauncherError error;
-    JsAppLauncherMode mode;
+    JsAppLauncherStartMode mode;
 } JsAppLauncher;
 
 typedef enum {
