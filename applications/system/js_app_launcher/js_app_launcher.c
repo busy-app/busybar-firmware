@@ -87,7 +87,7 @@ static void js_app_launcher_api_queue_callback(FuriEventLoopObject* object, void
 }
 
 static void js_app_launcher_init_current_app(JsAppLauncher* instance, const char* app_id) {
-    JsAppLauncherStartMode mode = JsAppLauncherStartModeNormal;
+    JsAppLauncherStartMode mode = JsAppLauncherStartModeShowMenu;
 
     do {
         const size_t app_id_len = strlen(app_id);
@@ -103,7 +103,7 @@ static void js_app_launcher_init_current_app(JsAppLauncher* instance, const char
 
         if(strcmp(&app_id_tmp[flag_idx], JS_APP_LAUNCHER_ARG_SKIP_MENU) == 0) {
             app_id_tmp[flag_idx] = '\0';
-            mode = JsAppLauncherStartModeSkipMenu;
+            mode = JsAppLauncherStartModeResume;
         }
 
         instance->js_app = js_app_registry_get_app(app_id_tmp);
@@ -203,7 +203,7 @@ static void js_app_launcher_go_to_next_scene(const JsAppLauncher* instance) {
         scene_ids[0] = JsAppLauncherSceneIdStart;
         scene_ids_count = 1;
 
-        if(instance->mode == JsAppLauncherStartModeSkipMenu) {
+        if(instance->mode == JsAppLauncherStartModeResume) {
             scene_ids[1] = JsAppLauncherSceneIdRun;
             scene_ids_count = 2;
         }

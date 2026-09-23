@@ -386,7 +386,7 @@ static bool api_apps_launch_request_callback(
     }
     js_app_free(app);
 
-    if(js_app_launcher_start(app_id, JsAppLauncherStartModeSkipMenu)) {
+    if(js_app_launcher_start(app_id, JsAppLauncherStartModeResume)) {
         MG_REPLY_OK(conn);
     } else {
         MG_REPLY_ERROR(conn, 500, "failed to lauch application");

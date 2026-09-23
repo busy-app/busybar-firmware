@@ -32,7 +32,7 @@ bool js_app_launcher_start(const char* app_id, JsAppLauncherStartMode mode) {
     char args[JS_APP_ID_LEN_MAX + sizeof(JS_APP_LAUNCHER_ARG_SKIP_MENU)];
     strlcpy(args, app_id, sizeof(args) - strlen(JS_APP_LAUNCHER_ARG_SKIP_MENU));
 
-    if(mode == JsAppLauncherStartModeSkipMenu) {
+    if(mode == JsAppLauncherStartModeResume) {
         strlcat(args, JS_APP_LAUNCHER_ARG_SKIP_MENU, sizeof(args));
     }
 

@@ -11,25 +11,28 @@ extern "C" {
 #endif
 
 /**
- * @brief Possible modes for launching JS applications
+ * @brief Modes for starting JS applications.
  */
 typedef enum {
-    JsAppLauncherStartModeNormal, /**< Normal mode, the start menu will be shown always */
-    JsAppLauncherStartModeSkipMenu, /**< Skip the start menu on startup, show before exit */
+    JsAppLauncherStartModeShowMenu, /**< Always show start menu */
+    JsAppLauncherStartModeResume, /**< Skip start menu on startup, show before exit */
     JsAppLauncherStartModeMax, /**< Special value, internal use */
 } JsAppLauncherStartMode;
 
+/**
+ * @brief Modes for stopping JS applications.
+ */
 typedef enum {
-    JsAppLauncherStopModeNormal,
-    JsAppLauncherStopModeForget,
-    JsAppLauncherStopModeMax,
+    JsAppLauncherStopModeNormal, /**< Simply exit from the application */
+    JsAppLauncherStopModeForget, /**< Exit and request AppsMenu to forget the most recent app */
+    JsAppLauncherStopModeMax, /**< Special value, internal use */
 } JsAppLauncherStopMode;
 
 /**
  * @brief Start a JS application by its application ID.
  *
  * @param[in] app_id zero-terminated string containing the ID of the app to be started
- * @param[in] mode mode to start the JS application in
+ * @param[in] mode mode to be used to start the JS application
  * @returns @c true if the app could be started, @c false otherwise
  */
 bool js_app_launcher_start(const char* app_id, JsAppLauncherStartMode mode);
@@ -37,6 +40,7 @@ bool js_app_launcher_start(const char* app_id, JsAppLauncherStartMode mode);
 /**
  * @brief Stop the currently running JS application, if any
  *
+ * @param[in] mode mode to be used to exit from the JS application
  * @returns @c true if a JS app was running and could be stopped, @c false otherwise
  */
 bool js_app_launcher_stop(JsAppLauncherStopMode mode);

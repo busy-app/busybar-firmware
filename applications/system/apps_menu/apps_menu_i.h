@@ -22,8 +22,9 @@ typedef struct {
 } AppsMenuControl;
 
 typedef enum {
-    AppsMenuModeResume,
     AppsMenuModeShowMenu,
+    AppsMenuModeResume,
+    AppsMenuModeMax,
 } AppsMenuMode;
 
 typedef enum {
