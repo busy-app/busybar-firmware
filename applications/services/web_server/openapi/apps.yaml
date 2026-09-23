@@ -79,7 +79,7 @@ paths:
       tags:
         - Apps
       summary: Launch an installed JavaScript application
-      description: Launches an installed JavaScrip application by its id
+      description: Launches an installed JavaScript application by its id
       x-local-only: true
       operationId: launchApp
       parameters:
