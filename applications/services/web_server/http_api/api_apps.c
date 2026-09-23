@@ -390,7 +390,7 @@ static bool api_apps_launch_request_callback(
     if(js_app_launcher_start(app_id, JsAppLauncherStartModeResume)) {
         MG_REPLY_OK(conn);
     } else {
-        MG_REPLY_ERROR(conn, 500, "failed to lauch application");
+        MG_REPLY_ERROR(conn, 500, "failed to launch application");
     }
 
     return true;
