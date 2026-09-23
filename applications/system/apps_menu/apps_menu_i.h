@@ -27,17 +27,6 @@ typedef enum {
     AppsMenuModeMax,
 } AppsMenuMode;
 
-typedef enum {
-    AppsMenuCustomEventLaunchMain,
-    AppsMenuCustomEventAboutToExit,
-
-    AppsMenuCustomEventSceneEventsStart,
-
-    AppsMenuCustomEventMAX = 0xFFFFFFFF, // forces enum size, don't use
-} AppsMenuCustomEvent;
-
-static_assert(sizeof(AppsMenuCustomEvent) == sizeof(uint32_t));
-
 typedef struct {
     FuriEventLoop* event_loop;
     FuriMessageQueue* input_queue;
@@ -54,6 +43,17 @@ typedef struct {
 
     AppsMenuSettings settings;
 } AppsMenu;
+
+typedef enum {
+    AppsMenuCustomEventLaunchMain,
+    AppsMenuCustomEventAboutToExit,
+
+    AppsMenuCustomEventSceneEventsStart,
+
+    AppsMenuCustomEventMAX = 0xFFFFFFFF, // forces enum size, don't use
+} AppsMenuCustomEvent;
+
+static_assert(sizeof(AppsMenuCustomEvent) == sizeof(uint32_t));
 
 void apps_menu_send_custom_event(AppsMenu* app, AppsMenuCustomEvent event);
 
