@@ -9,8 +9,6 @@
 
 #define TAG "AppsMenu"
 
-#define APPS_MENU_APP_ID          "apps_menu"
-#define APPS_MENU_ARG_RESET       "reset"
 #define APPS_MENU_ARG_SKIP_MENU   "-s"
 #define APPS_MENU_ACTIVE_APP_NONE ""
 
@@ -85,13 +83,23 @@ static bool apps_menu_gui_input_callback(const InputEvent* event, void* context)
     return consumed;
 }
 
-static AppsMenuMode apps_menu_get_mode(const char* arg_str) {
-    AppsMenuMode mode = AppsMenuModeResume;
+static AppsMenuMode apps_menu_get_mode(void) {
+    AppsMenuControl* control = furi_record_open(RECORD_APPS_MENU_CONTROL);
 
-    if(arg_str != NULL) {
-        if(strcmp(APPS_MENU_ARG_RESET, arg_str) == 0) {
-            mode = AppsMenuModeShowMenu;
-        }
+    const uint32_t flags = furi_event_flag_wait(
+        control->flags, AppsMenuControlFlagResetCurrentApp, FuriFlagWaitAny, 10);
+
+    furi_record_close(RECORD_APPS_MENU_CONTROL);
+
+    if(flags & FuriFlagError) {
+        furi_check(flags == FuriFlagErrorTimeout);
+    }
+
+    AppsMenuMode mode;
+    if(flags & AppsMenuControlFlagResetCurrentApp) {
+        mode = AppsMenuModeShowMenu;
+    } else {
+        mode = AppsMenuModeResume;
     }
 
     return mode;
@@ -101,9 +109,9 @@ static bool apps_menu_has_active_application(const AppsMenuSettings* settings) {
     return strnlen(settings->active_application, sizeof(settings->active_application)) > 0;
 }
 
-static AppsMenu* apps_menu_alloc(void* arg) {
+static AppsMenu* apps_menu_alloc(void) {
     FuriThread* thread = furi_thread_get_current();
-    const AppsMenuMode mode = apps_menu_get_mode(arg);
+    const AppsMenuMode mode = apps_menu_get_mode();
 
     AppsMenuSettings settings;
     apps_menu_settings_load(&settings);
@@ -112,7 +120,7 @@ static AppsMenu* apps_menu_alloc(void* arg) {
         apps_menu_set_active_application(&settings, APPS_MENU_ACTIVE_APP_NONE);
 
     } else if(apps_menu_has_active_application(&settings)) {
-        if(apps_menu_start_application(settings.active_application, true)) {
+        if(apps_menu_start_application(settings.active_application, AppsMenuModeResume)) {
             return NULL;
         }
     }
@@ -205,6 +213,12 @@ static void apps_menu_free(AppsMenu* instance) {
     free(instance);
 }
 
+static AppsMenuControl* apps_menu_control_alloc(void) {
+    AppsMenuControl* control = malloc(sizeof(AppsMenuControl));
+    control->flags = furi_event_flag_alloc();
+    return control;
+}
+
 void apps_menu_send_custom_event(AppsMenu* app, AppsMenuCustomEvent event) {
     furi_assert(app);
     furi_check(furi_message_queue_put(app->event_queue, &event, FuriWaitForever) == FuriStatusOk);
@@ -218,33 +232,28 @@ void apps_menu_set_active_application(AppsMenuSettings* settings, const char* ap
     apps_menu_settings_save(settings);
 }
 
-bool apps_menu_start_application(const char* app_id, bool is_skip_menu) {
+bool apps_menu_start_application(const char* app_id, AppsMenuMode mode) {
+    furi_assert(mode < AppsMenuModeMax);
+
     bool success = false;
 
-    const char* id;
-    const char* args;
-
     if(apps_list_contains(app_id)) {
-        id = app_id;
-        args = is_skip_menu ? APPS_MENU_ARG_SKIP_MENU : NULL;
+        static const char* const args_table[AppsMenuModeMax] = {
+            [AppsMenuModeShowMenu] = NULL,
+            [AppsMenuModeResume] = APPS_MENU_ARG_SKIP_MENU,
+        };
+
+        Desktop* desktop = furi_record_open(RECORD_DESKTOP);
+        success = desktop_replace_current_app(desktop, app_id, args_table[mode]);
+        furi_record_close(RECORD_DESKTOP);
 
     } else if(apps_menu_is_js_apps_enabled()) {
-        id = JS_APP_LAUNCHER_APP_ID;
-        args = app_id;
+        static const JsAppLauncherStartMode mode_table[AppsMenuModeMax] = {
+            [AppsMenuModeShowMenu] = JsAppLauncherStartModeShowMenu,
+            [AppsMenuModeResume] = JsAppLauncherStartModeResume,
+        };
 
-    } else {
-        id = NULL;
-        args = NULL;
-    }
-
-    if(id != NULL) {
-        Desktop* desktop = furi_record_open(RECORD_DESKTOP);
-
-        if(desktop_replace_current_app(desktop, id, args)) {
-            success = true;
-        }
-
-        furi_record_close(RECORD_DESKTOP);
+        success = js_app_launcher_start(app_id, mode_table[mode]);
     }
 
     return success;
@@ -267,29 +276,16 @@ bool apps_menu_is_js_apps_enabled(void) {
     return is_enabled;
 }
 
-bool apps_menu_start(AppsMenuMode mode) {
-    bool success;
-    const char* args;
-
-    if(mode == AppsMenuModeResume) {
-        args = NULL;
-    } else if(mode == AppsMenuModeShowMenu) {
-        args = APPS_MENU_ARG_RESET;
-    } else {
-        furi_crash("Invalid AppsMenuMode value");
-    }
-
-    Desktop* desktop = furi_record_open(RECORD_DESKTOP);
-    success = desktop_replace_current_app(desktop, APPS_MENU_APP_ID, args);
-    furi_record_close(RECORD_DESKTOP);
-
-    return success;
+void apps_menu_forget_current_app(void) {
+    AppsMenuControl* control = furi_record_open(RECORD_APPS_MENU_CONTROL);
+    furi_event_flag_set(control->flags, AppsMenuControlFlagResetCurrentApp);
+    furi_record_close(RECORD_APPS_MENU_CONTROL);
 }
 
 int32_t apps_menu_app(void* arg) {
     UNUSED(arg);
 
-    AppsMenu* instance = apps_menu_alloc(arg);
+    AppsMenu* instance = apps_menu_alloc();
 
     if(instance) {
         furi_event_loop_run(instance->event_loop);
@@ -297,4 +293,8 @@ int32_t apps_menu_app(void* arg) {
     }
 
     return 0;
+}
+
+void apps_menu_on_system_start(void) {
+    furi_record_create(RECORD_APPS_MENU_CONTROL, apps_menu_control_alloc());
 }

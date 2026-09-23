@@ -73,7 +73,7 @@ JsApp* js_app_registry_get_app(const char* app_id) {
 }
 
 FuriString* js_app_registry_get_app_path(const char* app_id) {
-    if(!js_app_registry_is_valid_app_id(app_id)) {
+    if(!js_app_is_valid_id(app_id)) {
         return NULL;
     }
     FuriString* app_path = furi_string_alloc();

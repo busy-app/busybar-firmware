@@ -74,6 +74,66 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /api/apps/launch:
+    post:
+      tags:
+        - Apps
+      summary: Launch an installed JavaScript application
+      description: Launches an installed JavaScript application by its id
+      x-local-only: true
+      operationId: launchApp
+      parameters:
+        - name: app_id
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/AppId"
+      responses:
+        "200":
+          description: Done successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "404":
+          description: App with given ID was not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "400":
+          description: Missing or invalid application id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Failed to launch the application
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /api/apps/quit:
+    post:
+      tags:
+        - Apps
+      summary: Quit from a running JavaScript application
+      description: Quits from a running JavaScript application, if there is one
+      x-local-only: true
+      operationId: quitApp
+      responses:
+        "200":
+          description: Done successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "500":
+          description: Failed to quit from the application
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /api/apps:
     delete:
       tags:

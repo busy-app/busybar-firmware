@@ -4,27 +4,17 @@
  */
 #pragma once
 
-#include <stdbool.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * @brief Enumeration of AppsMenu operation modes.
- */
-typedef enum {
-    AppsMenuModeResume, /**< Resume the currently active app (if present) */
-    AppsMenuModeShowMenu, /**< Show the applications list and reset the active app */
-} AppsMenuMode;
-
-/**
- * @brief Replace the currently running application with AppsMenu.
+ * @brief Request AppsMenu to forget the most recent application.
  *
- * @param[in] mode value from @ref AppsMenuMode to select the operation model
- * @returns @c true if AppsMenu could be started, @c false otherwise
+ * Next time the AppsMenu is run, it will show the applications menu
+ * instead of going directly into the most recent application.
  */
-bool apps_menu_start(AppsMenuMode mode);
+void apps_menu_forget_current_app(void);
 
 #ifdef __cplusplus
 }

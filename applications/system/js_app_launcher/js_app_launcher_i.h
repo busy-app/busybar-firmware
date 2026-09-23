@@ -1,5 +1,7 @@
 #pragma once
 
+#include "js_app_launcher.h"
+
 #include <furi.h>
 
 #include <gui/gui.h>
@@ -13,6 +15,17 @@
 #include <js_app/js_app_settings_storage.h>
 
 #define TAG "JsAppLauncher"
+
+#define JS_APP_LAUNCHER_APP_ID "js_app_launcher"
+#define RECORD_JS_APP_LAUNCHER JS_APP_LAUNCHER_APP_ID
+
+/*
+ * Special suffix to be added to the JS application ID
+ * to force JsAppLauncher to resume it (i.e. to skip the menu).
+ *
+ * Example: "app.busy.js_example" -> "app.busy.js_example+".
+ */
+#define JS_APP_LAUNCHER_ARG_RESUME "+"
 
 typedef enum {
     JsAppLauncherErrorNone,
@@ -36,10 +49,28 @@ typedef struct {
     } auxiliary;
 } JsAppLauncherErrorDesc;
 
+typedef enum {
+    JsAppLauncherApiMessageTypeInvalid,
+    JsAppLauncherApiMessageTypeStop,
+    JsAppLauncherApiMessageTypeMax,
+} JsAppLauncherApiMessageType;
+
+typedef struct {
+    JsAppLauncherStopMode mode;
+} JsAppLauncherApiMessageStop;
+
+typedef struct {
+    JsAppLauncherApiMessageType type;
+    union {
+        JsAppLauncherApiMessageStop stop;
+    };
+} JsAppLauncherApiMessage;
+
 typedef struct {
     FuriEventLoop* event_loop;
     FuriMessageQueue* input_queue;
     FuriMessageQueue* event_queue;
+    FuriMessageQueue* api_queue;
     SceneManager* scene_manager;
     Gui* gui;
 
@@ -51,6 +82,7 @@ typedef struct {
     JsApp* js_app;
     JsAppSettingsStorage* settings_storage;
     JsAppLauncherError error;
+    JsAppLauncherStartMode start_mode;
 } JsAppLauncher;
 
 typedef enum {
