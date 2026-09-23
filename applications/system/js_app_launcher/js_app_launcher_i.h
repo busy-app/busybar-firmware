@@ -17,10 +17,15 @@
 #define TAG "JsAppLauncher"
 
 #define JS_APP_LAUNCHER_APP_ID "js_app_launcher"
-
-#define JS_APP_LAUNCHER_ARG_RESUME "+"
-
 #define RECORD_JS_APP_LAUNCHER JS_APP_LAUNCHER_APP_ID
+
+/*
+ * Special suffix to be added to the JS application ID
+ * to force JsAppLauncher to resume it (i.e. to skip the menu).
+ *
+ * Example: "app.busy.js_example" -> "app.busy.js_example+".
+ */
+#define JS_APP_LAUNCHER_ARG_RESUME "+"
 
 typedef enum {
     JsAppLauncherErrorNone,

@@ -5,7 +5,6 @@
 
 #include <storage/storage.h>
 #include <gui/modules/submenu.h>
-
 #include <js_app_launcher/js_app_launcher.h>
 
 #define TAG "AppsMenu"

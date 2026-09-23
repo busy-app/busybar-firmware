@@ -50,8 +50,8 @@ static void clock_input_queue_callback(FuriEventLoopObject* object, void* contex
     while(furi_message_queue_get(instance->input_queue, &event, 0) == FuriStatusOk) {
         if(event.type == InputTypeShort && event.key == InputKeyBack) {
             if(!scene_manager_handle_back_event(instance->scene_manager)) {
-                furi_event_loop_stop(instance->event_loop);
                 apps_menu_forget_current_app();
+                furi_event_loop_stop(instance->event_loop);
             }
         }
     }

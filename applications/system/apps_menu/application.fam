@@ -3,7 +3,10 @@ App(
     name="AppsMenu",
     apptype=FlipperAppType.SYSTEM,
     entry_point="apps_menu_app",
-    requires=["gui", "apps_menu_on_start"],
+    requires=[
+        "apps_menu_on_start",
+        "gui",
+    ],
     stack_size=2 * 1024,
     targets=["f20", "f21", "f22"],
 )
