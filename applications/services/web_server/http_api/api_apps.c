@@ -410,7 +410,7 @@ static bool api_apps_quit_request_callback(
     if(js_app_launcher_stop(JsAppLauncherStopModeForget)) {
         MG_REPLY_OK(conn);
     } else {
-        MG_REPLY_ERROR(conn, 500, "failed quit from application");
+        MG_REPLY_ERROR(conn, 500, "failed to quit from application");
     }
 
     return true;
