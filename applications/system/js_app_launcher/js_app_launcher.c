@@ -15,6 +15,24 @@
 
 #define NAV_BAR_HEIGHT (14)
 
+static bool js_app_launcher_signal_callback(uint32_t signal, void* arg, void* context) {
+    furi_assert(context);
+    JsAppLauncher* instance = context;
+
+    bool is_handled = false;
+
+    if(signal == FuriSignalExit) {
+        if((arg != NULL) && (strcmp(JS_APP_LAUNCHER_ARG_FORGET, arg) == 0)) {
+            apps_menu_forget_current_app();
+        }
+
+        furi_event_loop_stop(instance->event_loop);
+        is_handled = true;
+    }
+
+    return is_handled;
+}
+
 static bool js_app_launcher_gui_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
@@ -66,16 +84,16 @@ static void js_app_launcher_init_current_app(JsAppLauncher* instance, const char
     do {
         const size_t app_id_len = strlen(app_id);
         if((app_id_len == 0) ||
-           (app_id_len > (JS_APP_ID_LEN_MAX + strlen(JS_APP_LAUNCHER_FLAG_SKIP_MENU)))) {
+           (app_id_len > (JS_APP_ID_LEN_MAX + strlen(JS_APP_LAUNCHER_ARG_SKIP_MENU)))) {
             break;
         }
 
         char app_id_tmp[app_id_len + 1];
         strcpy(app_id_tmp, app_id);
 
-        const size_t flag_idx = app_id_len - strlen(JS_APP_LAUNCHER_FLAG_SKIP_MENU);
+        const size_t flag_idx = app_id_len - strlen(JS_APP_LAUNCHER_ARG_SKIP_MENU);
 
-        if(strcmp(&app_id_tmp[flag_idx], JS_APP_LAUNCHER_FLAG_SKIP_MENU) == 0) {
+        if(strcmp(&app_id_tmp[flag_idx], JS_APP_LAUNCHER_ARG_SKIP_MENU) == 0) {
             app_id_tmp[flag_idx] = '\0';
             mode = JsAppLauncherModeSkipMenu;
         }
@@ -200,6 +218,9 @@ static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
         scene_manager_alloc(js_app_launcher_scenes, JsAppLauncherSceneIdMax, instance);
     instance->gui = furi_record_open(RECORD_GUI);
 
+    furi_thread_set_signal_callback(
+        furi_thread_get_current(), js_app_launcher_signal_callback, instance);
+
     js_app_launcher_init_current_app(instance, app_id);
     js_app_launcher_init_settings_storage(instance);
     js_app_launcher_init_gui(instance);
@@ -224,6 +245,7 @@ static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
 }
 
 static void js_app_launcher_free(JsAppLauncher* instance) {
+    furi_thread_set_signal_callback(furi_thread_get_current(), NULL, NULL);
     // TODO [FW-602]: this call MUST be first to avoid use-after-free.
     scene_manager_free(instance->scene_manager);
 
@@ -257,7 +279,7 @@ static void js_app_launcher_free(JsAppLauncher* instance) {
 }
 
 int32_t js_app_launcher_app(void* arg) {
-    UNUSED(arg);
+    furi_assert(arg);
 
     JsAppLauncher* instance = js_app_launcher_alloc(arg);
     furi_event_loop_run(instance->event_loop);

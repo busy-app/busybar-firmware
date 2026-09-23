@@ -16,7 +16,8 @@
 
 #define TAG "JsAppLauncher"
 
-#define JS_APP_LAUNCHER_FLAG_SKIP_MENU "+"
+#define JS_APP_LAUNCHER_ARG_SKIP_MENU "+"
+#define JS_APP_LAUNCHER_ARG_FORGET    "forget"
 
 typedef enum {
     JsAppLauncherErrorNone,

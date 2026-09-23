@@ -7,17 +7,17 @@
 
 #define JS_APP_LAUNCHER_APP_ID "js_app_launcher"
 
-#define APPS_MENU_JS_APP_ID_LEN_EXTRA (sizeof(JS_APP_LAUNCHER_FLAG_SKIP_MENU))
+#define APPS_MENU_JS_APP_ID_LEN_EXTRA (sizeof(JS_APP_LAUNCHER_ARG_SKIP_MENU))
 
 bool js_app_launcher_start(const char* app_id, JsAppLauncherMode mode) {
     furi_check(app_id);
     furi_check(mode < JsAppLauncherModeMax);
 
     char args[JS_APP_ID_LEN_MAX + APPS_MENU_JS_APP_ID_LEN_EXTRA];
-    strlcpy(args, app_id, sizeof(args) - strlen(JS_APP_LAUNCHER_FLAG_SKIP_MENU));
+    strlcpy(args, app_id, sizeof(args) - strlen(JS_APP_LAUNCHER_ARG_SKIP_MENU));
 
     if(mode == JsAppLauncherModeSkipMenu) {
-        strlcat(args, JS_APP_LAUNCHER_FLAG_SKIP_MENU, sizeof(args));
+        strlcat(args, JS_APP_LAUNCHER_ARG_SKIP_MENU, sizeof(args));
     }
 
     Desktop* desktop = furi_record_open(RECORD_DESKTOP);
@@ -42,7 +42,7 @@ bool js_app_launcher_stop(void) {
             break;
         }
 
-        if(!loader_send_signal(loader, FuriSignalExit, NULL)) {
+        if(!loader_send_signal(loader, FuriSignalExit, JS_APP_LAUNCHER_ARG_FORGET)) {
             break;
         }
 
