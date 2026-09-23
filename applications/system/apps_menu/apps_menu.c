@@ -10,8 +10,6 @@
 
 #define TAG "AppsMenu"
 
-#define APPS_MENU_APP_ID          "apps_menu"
-#define APPS_MENU_ARG_RESET       "reset"
 #define APPS_MENU_ARG_SKIP_MENU   "-s"
 #define APPS_MENU_ACTIVE_APP_NONE ""
 
@@ -123,7 +121,7 @@ static AppsMenu* apps_menu_alloc(void) {
         apps_menu_set_active_application(&settings, APPS_MENU_ACTIVE_APP_NONE);
 
     } else if(apps_menu_has_active_application(&settings)) {
-        if(apps_menu_start_application(settings.active_application, true)) {
+        if(apps_menu_start_application(settings.active_application, AppsMenuModeResume)) {
             return NULL;
         }
     }
@@ -235,20 +233,28 @@ void apps_menu_set_active_application(AppsMenuSettings* settings, const char* ap
     apps_menu_settings_save(settings);
 }
 
-bool apps_menu_start_application(const char* app_id, bool is_skip_menu) {
+bool apps_menu_start_application(const char* app_id, AppsMenuMode mode) {
+    furi_assert(mode < AppsMenuModeMax);
+
     bool success = false;
 
     if(apps_list_contains(app_id)) {
-        const char* args = is_skip_menu ? APPS_MENU_ARG_SKIP_MENU : NULL;
+        static const char* const args_table[AppsMenuModeMax] = {
+            [AppsMenuModeShowMenu] = NULL,
+            [AppsMenuModeResume] = APPS_MENU_ARG_SKIP_MENU,
+        };
 
         Desktop* desktop = furi_record_open(RECORD_DESKTOP);
-        success = desktop_replace_current_app(desktop, app_id, args);
+        success = desktop_replace_current_app(desktop, app_id, args_table[mode]);
         furi_record_close(RECORD_DESKTOP);
 
     } else if(apps_menu_is_js_apps_enabled()) {
-        const JsAppLauncherStartMode mode = is_skip_menu ? JsAppLauncherStartModeResume :
-                                                           JsAppLauncherStartModeShowMenu;
-        success = js_app_launcher_start(app_id, mode);
+        static const JsAppLauncherStartMode mode_table[AppsMenuModeMax] = {
+            [AppsMenuModeShowMenu] = JsAppLauncherStartModeShowMenu,
+            [AppsMenuModeResume] = JsAppLauncherStartModeResume,
+        };
+
+        success = js_app_launcher_start(app_id, mode_table[mode]);
     }
 
     return success;

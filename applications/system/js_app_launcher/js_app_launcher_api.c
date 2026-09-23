@@ -25,14 +25,14 @@ static bool js_app_launcher_send_api_message(
     return success;
 }
 
-bool js_app_launcher_start(const char* app_id, JsAppLauncherStartMode mode) {
+bool js_app_launcher_start(const char* app_id, JsAppLauncherStartMode start_mode) {
     furi_check(app_id);
-    furi_check(mode < JsAppLauncherStartModeMax);
+    furi_check(start_mode < JsAppLauncherStartModeMax);
 
     char args[JS_APP_ID_LEN_MAX + sizeof(JS_APP_LAUNCHER_ARG_RESUME)];
     strlcpy(args, app_id, sizeof(args) - strlen(JS_APP_LAUNCHER_ARG_RESUME));
 
-    if(mode == JsAppLauncherStartModeResume) {
+    if(start_mode == JsAppLauncherStartModeResume) {
         strlcat(args, JS_APP_LAUNCHER_ARG_RESUME, sizeof(args));
     }
 
@@ -43,8 +43,8 @@ bool js_app_launcher_start(const char* app_id, JsAppLauncherStartMode mode) {
     return success;
 }
 
-bool js_app_launcher_stop(JsAppLauncherStopMode mode) {
-    furi_check(mode < JsAppLauncherStopModeMax);
+bool js_app_launcher_stop(JsAppLauncherStopMode stop_mode) {
+    furi_check(stop_mode < JsAppLauncherStopModeMax);
 
     JsAppLauncher* instance = furi_record_open_ex(RECORD_JS_APP_LAUNCHER, RECORD_TIMEOUT_TICKS);
     if(instance == NULL) {
@@ -53,7 +53,7 @@ bool js_app_launcher_stop(JsAppLauncherStopMode mode) {
 
     const JsAppLauncherApiMessage message = {
         .type = JsAppLauncherApiMessageTypeStop,
-        .stop = {.mode = mode},
+        .stop = {.mode = stop_mode},
     };
 
     const bool success = js_app_launcher_send_api_message(instance, &message);

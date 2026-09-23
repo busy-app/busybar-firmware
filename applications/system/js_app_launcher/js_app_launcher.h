@@ -32,20 +32,20 @@ typedef enum {
  * @brief Start a JS application by its application ID.
  *
  * @param[in] app_id zero-terminated string containing the ID of the app to be started
- * @param[in] mode mode to be used to start the JS application
+ * @param[in] start_mode mode to be used to start the JS application
  * @returns @c true if the app could be started, @c false otherwise
  */
-bool js_app_launcher_start(const char* app_id, JsAppLauncherStartMode mode);
+bool js_app_launcher_start(const char* app_id, JsAppLauncherStartMode start_mode);
 
 /**
  * @brief Stop the currently running JS application, if applicable.
  *
  * The start menu will not be shown (unlike pressing the `Back` button).
  *
- * @param[in] mode mode to be used to exit from the JS application
+ * @param[in] stop_mode mode to be used to exit from the JS application
  * @returns @c true if a JS app was running and could be stopped, @c false otherwise
  */
-bool js_app_launcher_stop(JsAppLauncherStopMode mode);
+bool js_app_launcher_stop(JsAppLauncherStopMode stop_mode);
 
 #ifdef __cplusplus
 }

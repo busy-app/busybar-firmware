@@ -87,7 +87,7 @@ static void js_app_launcher_api_queue_callback(FuriEventLoopObject* object, void
 }
 
 static void js_app_launcher_init_current_app(JsAppLauncher* instance, const char* app_id) {
-    JsAppLauncherStartMode mode = JsAppLauncherStartModeShowMenu;
+    JsAppLauncherStartMode start_mode = JsAppLauncherStartModeShowMenu;
 
     const size_t app_id_len = strlen(app_id);
     if((app_id_len == 0) ||
@@ -103,12 +103,12 @@ static void js_app_launcher_init_current_app(JsAppLauncher* instance, const char
         char* flag_p = &app_id_tmp[app_id_len - resume_flag_len];
         if(strcmp(flag_p, JS_APP_LAUNCHER_ARG_RESUME) == 0) {
             strcpy(flag_p, "");
-            mode = JsAppLauncherStartModeResume;
+            start_mode = JsAppLauncherStartModeResume;
         }
     }
 
     instance->js_app = js_app_registry_get_app(app_id_tmp);
-    instance->mode = mode;
+    instance->start_mode = start_mode;
 }
 
 static JsAppLauncherError
@@ -201,7 +201,7 @@ static void js_app_launcher_go_to_next_scene(const JsAppLauncher* instance) {
         scene_ids[0] = JsAppLauncherSceneIdStart;
         scene_ids_count = 1;
 
-        if(instance->mode == JsAppLauncherStartModeResume) {
+        if(instance->start_mode == JsAppLauncherStartModeResume) {
             scene_ids[1] = JsAppLauncherSceneIdRun;
             scene_ids_count = 2;
         }

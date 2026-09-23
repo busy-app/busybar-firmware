@@ -57,7 +57,7 @@ typedef struct {
 
 void apps_menu_send_custom_event(AppsMenu* app, AppsMenuCustomEvent event);
 
-bool apps_menu_start_application(const char* app_id, bool is_skip_menu);
+bool apps_menu_start_application(const char* app_id, AppsMenuMode mode);
 
 void apps_menu_set_active_application(AppsMenuSettings* settings, const char* app_id);
 

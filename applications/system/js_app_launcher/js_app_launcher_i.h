@@ -77,7 +77,7 @@ typedef struct {
     JsApp* js_app;
     JsAppSettingsStorage* settings_storage;
     JsAppLauncherError error;
-    JsAppLauncherStartMode mode;
+    JsAppLauncherStartMode start_mode;
 } JsAppLauncher;
 
 typedef enum {
