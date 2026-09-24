@@ -8,9 +8,9 @@ static bool audio_enable_amplifier(Audio* instance) {
     const bool was_amplifier_enabled = instance->is_amplifier_enabled;
 
     if(instance->is_amplifier_enabled) {
-        if(furi_event_loop_timer_is_running(instance->shutdown_timer)) {
+        if(furi_event_loop_timer_is_running(instance->cooldown_timer)) {
             AUDIO_TRACE("Amplifier disable aborted");
-            furi_event_loop_timer_stop(instance->shutdown_timer);
+            furi_event_loop_timer_stop(instance->cooldown_timer);
         }
 
     } else {
@@ -24,10 +24,10 @@ static bool audio_enable_amplifier(Audio* instance) {
 
 static void audio_disable_amplifier(Audio* instance) {
     if(instance->is_amplifier_enabled) {
-        if(!furi_event_loop_timer_is_running(instance->shutdown_timer)) {
+        if(!furi_event_loop_timer_is_running(instance->cooldown_timer)) {
             AUDIO_TRACE("Amplifier disable scheduled");
             furi_event_loop_timer_start(
-                instance->shutdown_timer, furi_ms_to_ticks(AUDIO_SHUTDOWN_TIMEOUT_MS));
+                instance->cooldown_timer, furi_ms_to_ticks(AUDIO_AMPLIFIER_COOLDOWN_MS));
         }
     }
 }
@@ -149,20 +149,20 @@ static bool audio_load_file_data(Audio* instance, AudioBufferIndex fill_type) {
 }
 
 static bool audio_do_load_queued_file(Audio* instance) {
+    furi_check(!instance->is_sai_running);
+
     bool success = false;
 
     do {
-        audio_sai_stop(instance);
-
-        instance->fade_counter = 0;
-        instance->fade_direction = AudioFadeDirectionIn;
-
         if(furi_string_empty(instance->queued_file_path)) {
-            AUDIO_TRACE("No file to play");
+            AUDIO_TRACE("No queued file to play");
             break;
         }
 
         AUDIO_TRACE("Loading queued file");
+
+        instance->fade_counter = 0;
+        instance->fade_direction = AudioFadeDirectionIn;
 
         const char* path = furi_string_get_cstr(instance->queued_file_path);
 
@@ -188,15 +188,15 @@ static bool audio_do_load_queued_file(Audio* instance) {
     return success;
 }
 
-static void audio_holdoff_timer_callback(void* context) {
+static void audio_warmup_timer_callback(void* context) {
     furi_assert(context);
     Audio* instance = context;
 
-    AUDIO_TRACE("Holdoff fired");
+    AUDIO_TRACE("Amplifier warmup done");
     audio_do_load_queued_file(instance);
 }
 
-static void audio_shutdown_timer_callback(void* context) {
+static void audio_cooldown_timer_callback(void* context) {
     furi_assert(context);
 
     Audio* instance = context;
@@ -212,17 +212,25 @@ static bool audio_play_file_api_message_handler(Audio* instance, AudioMessage* a
 
     furi_string_set_str(instance->queued_file_path, api_message->file_name);
 
-    const bool was_amplifier_enabled = audio_enable_amplifier(instance);
-
     if(instance->is_sai_running) {
         // next file will be played after current one fades out
         instance->fade_direction = AudioFadeDirectionOut;
-    } else if(!was_amplifier_enabled) {
-        // file will be played after holdoff fires
-        furi_event_loop_timer_start(
-            instance->holdoff_timer, furi_ms_to_ticks(AUDIO_PLAY_HOLDOFF_MS));
+
     } else {
-        success = audio_do_load_queued_file(instance);
+        const bool was_amplifier_enabled = audio_enable_amplifier(instance);
+
+        if(was_amplifier_enabled) {
+            if(furi_event_loop_timer_is_running(instance->warmup_timer)) {
+                // warmup already in progress, start playing after it completes
+            } else {
+                // amplifier is warmed up, start playing immediately
+                success = audio_do_load_queued_file(instance);
+            }
+        } else {
+            // amplifier disabled, begin warmup and start playing after it
+            furi_event_loop_timer_start(
+                instance->warmup_timer, furi_ms_to_ticks(AUDIO_AMPLIFIER_WARMUP_MS));
+        }
     }
 
     return success;
@@ -237,9 +245,9 @@ static bool audio_stop_api_message_handler(Audio* instance, AudioMessage* api_me
         instance->fade_direction = AudioFadeDirectionOut;
         success = true;
 
-    } else if(furi_event_loop_timer_is_running(instance->holdoff_timer)) {
-        // SAI never started; cancel the holdoff and signal play end immediately
-        furi_event_loop_timer_stop(instance->holdoff_timer);
+    } else if(furi_event_loop_timer_is_running(instance->warmup_timer)) {
+        // SAI never started; cancel the warmup and signal play end immediately
+        furi_event_loop_timer_stop(instance->warmup_timer);
         audio_disable_amplifier(instance);
 
         AudioEvent pub_event = {.type = AudioEventPlayEnd};
@@ -351,10 +359,10 @@ static Audio* audio_alloc(void) {
     instance->storage = furi_record_open(RECORD_STORAGE);
     instance->file = storage_file_alloc(instance->storage);
     instance->queued_file_path = furi_string_alloc();
-    instance->holdoff_timer = furi_event_loop_timer_alloc(
-        instance->event_loop, audio_holdoff_timer_callback, FuriEventLoopTimerTypeOnce, instance);
-    instance->shutdown_timer = furi_event_loop_timer_alloc(
-        instance->event_loop, audio_shutdown_timer_callback, FuriEventLoopTimerTypeOnce, instance);
+    instance->warmup_timer = furi_event_loop_timer_alloc(
+        instance->event_loop, audio_warmup_timer_callback, FuriEventLoopTimerTypeOnce, instance);
+    instance->cooldown_timer = furi_event_loop_timer_alloc(
+        instance->event_loop, audio_cooldown_timer_callback, FuriEventLoopTimerTypeOnce, instance);
 
     audio_load_settings(instance);
     audio_sai_init(instance);

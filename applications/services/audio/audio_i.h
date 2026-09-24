@@ -46,8 +46,8 @@
 #define AUDIO_FADE_IN_RATE  (100)
 #define AUDIO_FADE_OUT_RATE (10)
 
-#define AUDIO_PLAY_HOLDOFF_MS     (100)
-#define AUDIO_SHUTDOWN_TIMEOUT_MS (3000)
+#define AUDIO_AMPLIFIER_WARMUP_MS   (100)
+#define AUDIO_AMPLIFIER_COOLDOWN_MS (3000)
 
 #define AUDIO_CONFIG_FILE APP_DATA_PATH("audio.json")
 
@@ -92,8 +92,8 @@ struct Audio {
     File* file;
     FuriString* queued_file_path;
 
-    FuriEventLoopTimer* holdoff_timer;
-    FuriEventLoopTimer* shutdown_timer;
+    FuriEventLoopTimer* warmup_timer;
+    FuriEventLoopTimer* cooldown_timer;
 
     float volume;
     int32_t fade_counter;
