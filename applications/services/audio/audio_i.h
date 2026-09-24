@@ -42,7 +42,7 @@
  *     |                                               |
  *     | <-- start of playback     end of playback --> |
  */
-#define AUDIO_FADE_SAMPLES  (AUDIO_SAMPLE_RATE * 100 / 1000)
+#define AUDIO_FADE_SAMPLES  (AUDIO_SAMPLE_RATE / 10)
 #define AUDIO_FADE_IN_RATE  (100)
 #define AUDIO_FADE_OUT_RATE (10)
 
