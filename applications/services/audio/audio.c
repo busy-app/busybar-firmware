@@ -2,6 +2,8 @@
 
 #include <json_helper.h>
 
+typedef bool (*AudioApiMessageHandler)(Audio* instance, AudioMessage* api_message);
+
 static void audio_sai_start(Audio* instance) {
     furi_assert(instance);
 
@@ -167,67 +169,95 @@ static void audio_holdoff_timer_callback(void* context) {
     audio_do_load_queued_file(instance);
 }
 
+static bool audio_play_file_api_message_handler(Audio* instance, AudioMessage* api_message) {
+    bool success;
+
+    furi_string_set_str(instance->queued_file, api_message->file_name);
+
+    if(instance->sai_running) {
+        instance->fade_direction = AudioFadeDirectionOut;
+        // next file will be played after current one fades out
+        success = true;
+
+    } else if(furi_event_loop_timer_is_running(instance->holdoff_timer)) {
+        // file will be played after holdoff fires
+        success = true;
+
+    } else {
+        success = audio_do_load_queued_file(instance);
+    }
+
+    return success;
+}
+
+static bool audio_stop_api_message_handler(Audio* instance, AudioMessage* api_message) {
+    UNUSED(api_message);
+
+    bool success = false;
+
+    if(instance->sai_running) {
+        instance->fade_direction = AudioFadeDirectionOut;
+        success = true;
+
+    } else if(furi_event_loop_timer_is_running(instance->holdoff_timer)) {
+        // SAI never started; cancel the holdoff and signal play end immediately
+        furi_event_loop_timer_stop(instance->holdoff_timer);
+        furi_hal_sai_disable_amplifier();
+
+        AudioEvent pub_event = {.type = AudioEventPlayEnd};
+        furi_pubsub_publish(instance->event_pubsub, &pub_event);
+        success = true;
+    }
+
+    furi_string_reset(instance->queued_file);
+    return success;
+}
+
+static bool audio_set_volume_api_message_handler(Audio* instance, AudioMessage* api_message) {
+    instance->volume = api_message->set_volume;
+    json_config_write_single_number(AUDIO_CONFIG_FILE, "volume", instance->volume);
+
+    AudioEvent pub_event = {.type = AudioEventVolumeUpdate};
+    furi_pubsub_publish(instance->event_pubsub, &pub_event);
+
+    return true;
+}
+
+static bool audio_get_volume_api_message_handler(Audio* instance, AudioMessage* api_message) {
+    furi_assert(api_message->get_volume);
+    *api_message->get_volume = instance->volume;
+
+    return true;
+}
+
+static const AudioApiMessageHandler audio_api_message_handlers[] = {
+    [AudioMessageTypePlayFile] = audio_play_file_api_message_handler,
+    [AudioMessageTypeStop] = audio_stop_api_message_handler,
+    [AudioMessageTypeSetVolume] = audio_set_volume_api_message_handler,
+    [AudioMessageTypeGetVolume] = audio_get_volume_api_message_handler,
+};
+
+static_assert(COUNT_OF(audio_api_message_handlers) == AudioMessageTypeMax);
+
 static void audio_message_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
     Audio* instance = context;
     furi_assert(object == instance->message_queue);
 
-    AudioMessage msg;
-    furi_check(furi_message_queue_get(instance->message_queue, &msg, 0) == FuriStatusOk);
+    AudioMessage api_message;
+    while(furi_message_queue_get(instance->message_queue, &api_message, 0) == FuriStatusOk) {
+        const AudioMessageType type = api_message.type;
+        furi_check(type < AudioMessageTypeMax);
 
-    bool result = false;
+        const bool result = audio_api_message_handlers[type](instance, &api_message);
 
-    if(msg.type == AudioMessageTypePlayFile) {
-        furi_string_set_str(instance->queued_file, msg.file_name);
-
-        if(instance->sai_running) {
-            instance->fade_direction = AudioFadeDirectionOut;
-            // next file will be played after current one fades out
-            result = true;
-        } else if(furi_event_loop_timer_is_running(instance->holdoff_timer)) {
-            // file will be played after holdoff fires
-            result = true;
-        } else {
-            result = audio_do_load_queued_file(instance);
+        if(api_message.result != NULL) {
+            *api_message.result = result;
         }
 
-    } else if(msg.type == AudioMessageTypeStop) {
-        if(instance->sai_running) {
-            instance->fade_direction = AudioFadeDirectionOut;
-            result = true;
-        } else if(furi_event_loop_timer_is_running(instance->holdoff_timer)) {
-            // SAI never started; cancel the holdoff and signal play end immediately
-            furi_event_loop_timer_stop(instance->holdoff_timer);
-            furi_hal_sai_disable_amplifier();
-            AudioEvent pub_event = {.type = AudioEventPlayEnd};
-            furi_pubsub_publish(instance->event_pubsub, &pub_event);
-            result = true;
+        if(api_message.lock != NULL) {
+            api_lock_unlock(api_message.lock);
         }
-        furi_string_reset(instance->queued_file);
-
-    } else if(msg.type == AudioMessageTypeSetVolume) {
-        instance->volume = msg.set_volume;
-
-        json_config_write_single_number(AUDIO_CONFIG_FILE, "volume", instance->volume);
-
-        AudioEvent pub_event = {.type = AudioEventVolumeUpdate};
-        furi_pubsub_publish(instance->event_pubsub, &pub_event);
-        result = true;
-
-    } else if(msg.type == AudioMessageTypeGetVolume) {
-        furi_assert(msg.get_volume);
-        memcpy(msg.get_volume, &(instance->volume), sizeof(instance->volume));
-        result = true;
-
-    } else {
-        furi_crash("Invalid message type");
-    }
-
-    if(msg.result) {
-        *msg.result = result;
-    }
-    if(msg.lock) {
-        api_lock_unlock(msg.lock);
     }
 }
 

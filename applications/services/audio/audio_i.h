@@ -68,6 +68,7 @@ typedef enum {
     AudioMessageTypeStop,
     AudioMessageTypeSetVolume,
     AudioMessageTypeGetVolume,
+    AudioMessageTypeMax,
 } AudioMessageType;
 
 typedef struct {
