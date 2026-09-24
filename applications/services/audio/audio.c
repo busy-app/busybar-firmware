@@ -327,7 +327,6 @@ static void audio_custom_event_callback(uint32_t events, void* context) {
 
     if(should_stop) {
         audio_sai_stop(instance);
-        audio_disable_amplifier(instance);
         storage_file_close(instance->file);
 
         AudioEvent pub_event = {.type = AudioEventPlayEnd};
