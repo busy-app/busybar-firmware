@@ -46,7 +46,8 @@
 #define AUDIO_FADE_IN_RATE  (100)
 #define AUDIO_FADE_OUT_RATE (10)
 
-#define AUDIO_PLAY_HOLDOFF furi_ms_to_ticks(100)
+#define AUDIO_PLAY_HOLDOFF_MS     (100)
+#define AUDIO_SHUTDOWN_TIMEOUT_MS (3000)
 
 #define AUDIO_CONFIG_FILE APP_DATA_PATH("audio.json")
 
@@ -85,16 +86,20 @@ typedef struct {
 struct Audio {
     FuriEventLoop* event_loop;
     FuriMessageQueue* message_queue;
+    FuriPubSub* event_pubsub;
+
     Storage* storage;
     File* file;
-    FuriPubSub* event_pubsub;
-    int16_t buffer[AUDIO_BUFFER_DEPTH];
-    float volume;
-
-    bool sai_running;
-    int32_t fade_timer;
-    AudioFadeDirection fade_direction;
-    FuriString* queued_file;
+    FuriString* queued_file_path;
 
     FuriEventLoopTimer* holdoff_timer;
+    FuriEventLoopTimer* shutdown_timer;
+
+    float volume;
+    int32_t fade_counter;
+    int16_t buffer[AUDIO_BUFFER_DEPTH];
+
+    AudioFadeDirection fade_direction;
+    bool is_amplifier_enabled;
+    bool is_sai_running;
 };
