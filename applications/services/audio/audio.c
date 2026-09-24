@@ -93,7 +93,7 @@ static void audio_adjust_volume(Audio* instance, void* data_ptr, size_t data_siz
             sample_vol *= instance->volume;
         }
 
-        sample_vol *= (float)instance->fade_counter / (float)AUDIO_FADE_SAMPLES;
+        sample_vol *= (float)instance->fade_counter / (float)AUDIO_FADE_SAMPLES; // NOLINT
 
         buffer[i] = roundf(buffer[i] * sample_vol);
 
