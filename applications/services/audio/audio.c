@@ -1,110 +1,27 @@
-#include "audio.h"
+#include "audio_i.h"
 
-#include <furi_hal_sai.h>
-
-#include <furi.h>
-#include <api_lock.h>
-
-#include <storage/storage.h>
 #include <json_helper.h>
-
-#define TAG "Audio"
-
-#define AUDIO_MAX_MESSAGES (8)
-#define AUDIO_BUFFER_DEPTH (0x1000)
-
-#define AUDIO_VOLUME_MIN     (0.0F)
-#define AUDIO_VOLUME_MAX     (1.0F)
-#define AUDIO_VOLUME_DEFAULT (AUDIO_VOLUME_MAX)
-
-#define AUDIO_SAMPLE_RATE (44100)
-
-/**
- * Fade envelope:
- *
- * amplitude
- *     ^
- *     |     _____________________________________
- *     |    /                                     \
- *     |   /                                       \
- *     |  /                                         \
- *     | /                                           \
- *     |/                                             \
- * ----+--------------------------------------------------------------> time
- *     | in |            full volume             | out |
- *     |                                               |
- *     | <-- start of playback     end of playback --> |
- */
-#define AUDIO_FADE_SAMPLES  (AUDIO_SAMPLE_RATE * 100 / 1000)
-#define AUDIO_FADE_IN_RATE  (100)
-#define AUDIO_FADE_OUT_RATE (10)
-
-#define AUDIO_PLAY_HOLDOFF furi_ms_to_ticks(100)
-
-#define AUDIO_CONFIG_FILE APP_DATA_PATH("audio.json")
-
-typedef enum {
-    AudioBufferIndexNone = 0,
-    AudioBufferIndexPing = (1UL << FuriHalSaiEventHalfTransfer),
-    AudioBufferIndexPong = (1UL << FuriHalSaiEventTransferComplete),
-    AudioBufferIndexBoth = (AudioBufferIndexPing | AudioBufferIndexPong),
-} AudioBufferIndex;
-
-typedef enum {
-    AudioFadeDirectionIn, //<! Raise volume
-    AudioFadeDirectionOut, //<! Lower volume
-    AudioFadeDirectionMAX,
-} AudioFadeDirection;
-
-typedef enum {
-    AudioMessageTypePlayFile,
-    AudioMessageTypeStop,
-    AudioMessageTypeSetVolume,
-    AudioMessageTypeGetVolume,
-} AudioMessageType;
-
-typedef struct {
-    AudioMessageType type;
-    FuriApiLock lock;
-    bool* result;
-    union {
-        float* get_volume;
-        const char* file_name;
-        float set_volume;
-    };
-} AudioMessage;
-
-struct Audio {
-    FuriEventLoop* event_loop;
-    FuriMessageQueue* message_queue;
-    Storage* storage;
-    File* file;
-    FuriPubSub* event_pubsub;
-    int16_t buffer[AUDIO_BUFFER_DEPTH];
-    float volume;
-
-    bool sai_running;
-    int32_t fade_timer;
-    AudioFadeDirection fade_direction;
-    FuriString* queued_file;
-
-    FuriEventLoopTimer* holdoff_timer;
-};
 
 static void audio_sai_start(Audio* instance) {
     furi_assert(instance);
-    if(instance->sai_running) return;
-    FURI_LOG_T(TAG, "sai start");
-    furi_hal_sai_start();
-    instance->sai_running = true;
+
+    if(!instance->sai_running) {
+        AUDIO_TRACE("SAI start");
+
+        furi_hal_sai_start();
+        instance->sai_running = true;
+    }
 }
 
 static void audio_sai_stop(Audio* instance) {
     furi_assert(instance);
-    if(!instance->sai_running) return;
-    FURI_LOG_T(TAG, "sai stop");
-    furi_hal_sai_stop();
-    instance->sai_running = false;
+
+    if(instance->sai_running) {
+        AUDIO_TRACE("SAI stop");
+
+        furi_hal_sai_stop();
+        instance->sai_running = false;
+    }
 }
 
 static void audio_sai_callback(FuriHalSaiEvent event, void* context) {
@@ -155,8 +72,11 @@ static void audio_adjust_volume(Audio* instance, void* data_ptr, size_t data_siz
             instance->fade_timer -= AUDIO_FADE_OUT_RATE;
         }
 
-        if(instance->fade_timer >= AUDIO_FADE_SAMPLES) instance->fade_timer = AUDIO_FADE_SAMPLES;
-        if(instance->fade_timer < 0) instance->fade_timer = 0;
+        if(instance->fade_timer >= AUDIO_FADE_SAMPLES) {
+            instance->fade_timer = AUDIO_FADE_SAMPLES;
+        } else if(instance->fade_timer < 0) {
+            instance->fade_timer = 0;
+        }
     }
 }
 
@@ -198,7 +118,8 @@ static bool audio_load_file_data(Audio* instance, AudioBufferIndex fill_type) {
 }
 
 static bool audio_do_load_queued_file(Audio* instance) {
-    FURI_LOG_D(TAG, "loading queued file");
+    AUDIO_TRACE("Loading queued file");
+
     bool success = false;
 
     do {
@@ -210,8 +131,11 @@ static bool audio_do_load_queued_file(Audio* instance) {
         instance->fade_timer = 0;
         instance->fade_direction = AudioFadeDirectionIn;
 
+        if(furi_string_empty(instance->queued_file)) {
+            break;
+        }
+
         const char* path = furi_string_get_cstr(instance->queued_file);
-        if(!strlen(path)) break;
 
         if(!audio_open_file(instance, path)) {
             FURI_LOG_E(TAG, "Failed to open file: %s", path);
@@ -239,7 +163,7 @@ static void audio_holdoff_timer_callback(void* context) {
     furi_assert(context);
     Audio* instance = context;
 
-    FURI_LOG_T(TAG, "holdoff fired");
+    AUDIO_TRACE("Holdoff fired");
     audio_do_load_queued_file(instance);
 }
 
@@ -313,16 +237,20 @@ static void audio_custom_event_callback(uint32_t events, void* context) {
     AudioBufferIndex buffer_index = events;
 
     /* event loop may re-arm its notify flag after event bits were already drained */
-    if(buffer_index == AudioBufferIndexNone) return;
+    if(buffer_index == AudioBufferIndexNone) {
+        return;
+    }
 
     bool should_stop = false;
 
     if(instance->fade_direction == AudioFadeDirectionOut && instance->fade_timer == 0) {
-        FURI_LOG_D(TAG, "fade out finished");
+        AUDIO_TRACE("Fade out finished");
         should_stop = true;
 
     } else {
-        if(buffer_index >= AudioBufferIndexBoth) FURI_LOG_W(TAG, "Possible SAI underrun");
+        if(buffer_index >= AudioBufferIndexBoth) {
+            FURI_LOG_W(TAG, "Possible SAI underrun");
+        }
 
         if(!audio_load_file_data(instance, buffer_index)) {
             should_stop = true;
