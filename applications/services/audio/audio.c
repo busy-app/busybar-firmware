@@ -82,32 +82,30 @@ static bool audio_open_file(Audio* instance, const char* file_name) {
     return success;
 }
 
+static FURI_ALWAYS_INLINE float audio_get_fade_coeff(const Audio* instance) {
+    return (float)instance->fade_counter / AUDIO_FADE_SAMPLES; // NOLINT
+}
+
+static FURI_ALWAYS_INLINE void audio_update_fade_coeff(Audio* instance) {
+    if(instance->fade_direction == AudioFadeDirectionIn) {
+        instance->fade_counter += AUDIO_FADE_IN_RATE;
+    } else if(instance->fade_direction == AudioFadeDirectionOut) {
+        instance->fade_counter -= AUDIO_FADE_OUT_RATE;
+    } else {
+        furi_crash("Invalid AudioFadeDirection value");
+    }
+
+    instance->fade_counter = CLAMP(instance->fade_counter, AUDIO_FADE_SAMPLES, 0);
+}
+
 static void audio_adjust_volume(Audio* instance, void* data_ptr, size_t data_size) {
     int16_t* buffer = data_ptr;
     const size_t count = data_size / sizeof(int16_t);
 
     for(size_t i = 0; i < count; i++) {
-        float sample_vol = 1.0f;
-
-        if(instance->volume < AUDIO_VOLUME_MAX) {
-            sample_vol *= instance->volume;
-        }
-
-        sample_vol *= (float)instance->fade_counter / (float)AUDIO_FADE_SAMPLES; // NOLINT
-
+        const float sample_vol = instance->volume * audio_get_fade_coeff(instance);
         buffer[i] = roundf(buffer[i] * sample_vol);
-
-        if(instance->fade_direction == AudioFadeDirectionIn) {
-            instance->fade_counter += AUDIO_FADE_IN_RATE;
-        } else if(instance->fade_direction == AudioFadeDirectionOut) {
-            instance->fade_counter -= AUDIO_FADE_OUT_RATE;
-        }
-
-        if(instance->fade_counter >= AUDIO_FADE_SAMPLES) {
-            instance->fade_counter = AUDIO_FADE_SAMPLES;
-        } else if(instance->fade_counter < 0) {
-            instance->fade_counter = 0;
-        }
+        audio_update_fade_coeff(instance);
     }
 }
 
