@@ -82,8 +82,8 @@ static bool audio_open_file(Audio* instance, const char* file_name) {
     return success;
 }
 
-static FURI_ALWAYS_INLINE float audio_get_fade_coeff(const Audio* instance) {
-    return (float)instance->fade_counter / AUDIO_FADE_SAMPLES; // NOLINT
+static FURI_ALWAYS_INLINE float audio_get_effective_volume(const Audio* instance) {
+    return instance->volume * ((float)instance->fade_counter / AUDIO_FADE_SAMPLES); // NOLINT
 }
 
 static FURI_ALWAYS_INLINE void audio_update_fade_counter(Audio* instance) {
@@ -103,8 +103,7 @@ static void audio_adjust_volume(Audio* instance, void* data_ptr, size_t data_siz
     const size_t count = data_size / sizeof(int16_t);
 
     for(size_t i = 0; i < count; i++) {
-        const float sample_vol = instance->volume * audio_get_fade_coeff(instance);
-        buffer[i] = roundf(buffer[i] * sample_vol);
+        buffer[i] = roundf(buffer[i] * audio_get_effective_volume(instance));
         audio_update_fade_counter(instance);
     }
 }
