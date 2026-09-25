@@ -86,7 +86,7 @@ static FURI_ALWAYS_INLINE float audio_get_fade_coeff(const Audio* instance) {
     return (float)instance->fade_counter / AUDIO_FADE_SAMPLES; // NOLINT
 }
 
-static FURI_ALWAYS_INLINE void audio_update_fade_coeff(Audio* instance) {
+static FURI_ALWAYS_INLINE void audio_update_fade_counter(Audio* instance) {
     if(instance->fade_direction == AudioFadeDirectionIn) {
         instance->fade_counter += AUDIO_FADE_IN_RATE;
     } else if(instance->fade_direction == AudioFadeDirectionOut) {
@@ -105,7 +105,7 @@ static void audio_adjust_volume(Audio* instance, void* data_ptr, size_t data_siz
     for(size_t i = 0; i < count; i++) {
         const float sample_vol = instance->volume * audio_get_fade_coeff(instance);
         buffer[i] = roundf(buffer[i] * sample_vol);
-        audio_update_fade_coeff(instance);
+        audio_update_fade_counter(instance);
     }
 }
 
