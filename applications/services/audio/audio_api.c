@@ -72,7 +72,7 @@ float audio_get_volume(Audio* instance) {
     return volume;
 }
 
-FuriPubSub* audio_get_pubsub(Audio* audio) {
-    furi_check(audio);
-    return audio->event_pubsub;
+FuriPubSub* audio_get_pubsub(Audio* instance) {
+    furi_check(instance);
+    return instance->event_pubsub;
 }
