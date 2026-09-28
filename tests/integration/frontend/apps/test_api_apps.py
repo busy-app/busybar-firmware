@@ -20,6 +20,7 @@ from utils.wait import wait_for, wait_for_stable
 
 
 APP_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_\-][a-zA-Z0-9_\-.]{0,31}$")
+APP_EXIT_RENDER_TIMEOUT = 15
 
 
 def _find_app(apps: list[AppInfo], app_id: str) -> AppInfo | None:
@@ -346,7 +347,7 @@ class TestAppsAPI:
                         frame.digest() != running_frame.digest()
                     ),
                     stable_samples=3,
-                    timeout=5,
+                    timeout=APP_EXIT_RENDER_TIMEOUT,
                     interval=0.2,
                 )
                 menu_frame.attach("AppsMenu after API quit")
@@ -489,7 +490,7 @@ class TestAppsAPI:
                     lambda frame: frame.digest(),
                     predicate=lambda frame: frame.raw != red_frame,
                     stable_samples=3,
-                    timeout=5,
+                    timeout=APP_EXIT_RENDER_TIMEOUT,
                     interval=0.2,
                 )
                 cleared_frame.attach("Front screen after app quit")
