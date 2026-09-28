@@ -87,14 +87,14 @@ static AppsMenuMode apps_menu_get_mode(void) {
     AppsMenuControl* control = furi_record_open(RECORD_APPS_MENU_CONTROL);
 
     const uint32_t flags = furi_event_flag_wait(
-        control->flags, AppsMenuControlFlagResetCurrentApp, FuriFlagWaitAny, 10);
+        control->flags, AppsMenuControlFlagResetCurrentApp, FuriFlagWaitAny, 0);
 
     furi_record_close(RECORD_APPS_MENU_CONTROL);
 
     AppsMenuMode mode = AppsMenuModeResume;
 
     if(flags & FuriFlagError) {
-        furi_check(flags == FuriFlagErrorTimeout);
+        furi_check(flags == FuriFlagErrorResource);
         // mode is kept at default value
     } else if(flags & AppsMenuControlFlagResetCurrentApp) {
         mode = AppsMenuModeShowMenu;
