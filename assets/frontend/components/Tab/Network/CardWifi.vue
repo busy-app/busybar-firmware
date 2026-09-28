@@ -365,7 +365,7 @@
                   v-model="connectModel.ip_config.address"
                   v-maska="ipMaskOptions"
                   name="ip-address"
-                  placeholder="192.168.1.100"
+                  placeholder="___.___.___.___"
                   size="xl"
                   variant="soft"
                   :ui="{ base: 'ring-1 ring-glass bg-accented/50' }"
@@ -377,7 +377,7 @@
                   v-model="connectModel.ip_config.mask"
                   v-maska="ipMaskOptions"
                   name="subnet-mask"
-                  placeholder="255.255.255.0"
+                  placeholder="___.___.___.___"
                   size="xl"
                   variant="soft"
                   :ui="{ base: 'ring-1 ring-glass bg-accented/50' }"
@@ -389,7 +389,7 @@
                   v-model="connectModel.ip_config.gateway"
                   v-maska="ipMaskOptions"
                   name="gateway"
-                  placeholder="192.168.1.1"
+                  placeholder="___.___.___.___"
                   size="xl"
                   variant="soft"
                   :ui="{ base: 'ring-1 ring-glass bg-accented/50' }"
@@ -509,18 +509,6 @@ const ipMaskOptions = {
   mask: '#00.#00.#00.#00',
   tokens: { 0: { pattern: /[0-9]/, optional: true } }
 };
-
-function isValidIpv4 (value?: string) {
-  const octets = value?.split('.') ?? [];
-
-  return octets.length === 4 && octets.every(octet => {
-    if (!/^\d{1,3}$/.test(octet)) {
-      return false;
-    }
-
-    return Number(octet) <= 255;
-  });
-}
 
 const isConnectInvalid = computed(() => {
   const { ssid, security, password, ip_config: ipConfig } = connectModel.value;

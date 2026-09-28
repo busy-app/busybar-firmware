@@ -6,7 +6,11 @@ import {
   StreamLifecycle,
   ConnectionStatus
 } from '@busy-app/busy-lib';
-import type { ProcessedState, ProcessedUpdate, StreamStatus, SmartHomePairingInfo,
+import type {
+  ProcessedState,
+  ProcessedUpdate,
+  StreamStatus,
+  SmartHomePairingInfo,
   BSB_State
 } from '@busy-app/busy-lib';
 import { normalizeBatteryStatus } from '@/util/battery';
