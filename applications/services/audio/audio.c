@@ -109,7 +109,9 @@ static void audio_adjust_volume(Audio* instance, void* data_ptr, size_t data_siz
 }
 
 static bool audio_load_file_data(Audio* instance, AudioBufferIndex fill_type) {
-    bool success = false;
+    if(instance->is_sai_running && instance->is_stopping) {
+        return false;
+    }
 
     void* data_ptr;
     size_t data_size;
@@ -138,16 +140,11 @@ static bool audio_load_file_data(Audio* instance, AudioBufferIndex fill_type) {
 
     if(read_data_size > 0) {
         audio_adjust_volume(instance, data_ptr, read_data_size);
-        success = true;
-
-    } else if(instance->is_sai_running) {
-        if(!instance->is_stopping) {
-            instance->is_stopping = true;
-            success = true;
-        }
+    } else {
+        instance->is_stopping = true;
     }
 
-    return success;
+    return true;
 }
 
 static bool audio_do_load_queued_file(Audio* instance) {
