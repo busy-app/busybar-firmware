@@ -132,14 +132,19 @@ static bool audio_load_file_data(Audio* instance, AudioBufferIndex fill_type) {
 
     const size_t read_data_size = storage_file_read(instance->file, data_ptr, data_size);
 
+    if(read_data_size < data_size) {
+        memset(data_ptr + read_data_size, 0, data_size - read_data_size);
+    }
+
     if(read_data_size > 0) {
         audio_adjust_volume(instance, data_ptr, read_data_size);
-
-        if(read_data_size < data_size) {
-            memset(data_ptr + read_data_size, 0, data_size - read_data_size);
-        }
-
         success = true;
+
+    } else if(instance->is_sai_running) {
+        if(!instance->is_stopping) {
+            instance->is_stopping = true;
+            success = true;
+        }
     }
 
     return success;
@@ -160,6 +165,7 @@ static bool audio_do_load_queued_file(Audio* instance) {
 
         instance->fade_counter = 0;
         instance->fade_direction = AudioFadeDirectionIn;
+        instance->is_stopping = false;
 
         const char* path = furi_string_get_cstr(instance->queued_file_path);
 

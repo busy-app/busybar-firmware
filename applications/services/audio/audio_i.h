@@ -102,4 +102,5 @@ struct Audio {
     AudioFadeDirection fade_direction;
     bool is_amplifier_enabled;
     bool is_sai_running;
+    bool is_stopping;
 };
