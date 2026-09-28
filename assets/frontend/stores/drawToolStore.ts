@@ -1,16 +1,35 @@
-import type { StorageListElement, DisplayDrawParams } from '@busy-app/busy-lib';
+import type { AnimationElement, DisplayElement, ImageElement, StorageListElement } from '@busy-app/busy-lib';
 import { defineStore } from 'pinia';
-import { DRAW_TOOL_DISPLAY_APPLICATION_NAME, DRAW_TOOL_DISPLAY_PRIORITY, DRAW_TOOL_SAVE_DIR, DRAW_TOOL_TEMP_FILE_NAME } from '@/util/drawTool';
+import {
+  DRAW_TOOL_DISPLAY_APPLICATION_NAME,
+  DRAW_TOOL_DISPLAY_PRIORITY,
+  DRAW_TOOL_SAVE_DIR,
+  DRAW_TOOL_TEMP_ANIMATION_FILE_NAME,
+  DRAW_TOOL_TEMP_FILE_NAME,
+  getStatusFileKind
+} from '@/util/drawTool';
+import type { DrawToolStatusKind } from '@/util/drawTool';
+import { decodeAnimation } from '@/util/anim2seq';
+import type { DecodedAnimation } from '@/util/anim2seq';
+import { decodeAnimationFrames } from '@/util/frameSources/decoderClient';
+import { encodeAnimationToGif } from '@/util/anim2gif';
 
 type DrawToolStatusDirectoryFile = {
   name: string;
   size: number;
 };
 
-type DrawToolStatusGalleryFile = DrawToolStatusDirectoryFile & {
-  path: string;
-  previewUrl: string;
+type DrawToolStatusPreview = {
+  kind: DrawToolStatusKind;
+  previewUrl: string | null;
+  animation: DecodedAnimation | null;
 };
+
+type DrawToolStatusGalleryFile = DrawToolStatusDirectoryFile & DrawToolStatusPreview & {
+  path: string;
+};
+
+const TEMP_FILE_NAMES = new Set([DRAW_TOOL_TEMP_FILE_NAME, DRAW_TOOL_TEMP_ANIMATION_FILE_NAME]);
 
 function getStatusFileSize (file: StorageListElement): number {
   if ('size' in file && typeof file.size === 'number') {
@@ -24,6 +43,39 @@ function createStatusFilePath (fileName: string) {
   return `${DRAW_TOOL_SAVE_DIR}/${fileName}`;
 }
 
+function hasLoadedPreview (file: DrawToolStatusPreview) {
+  return !!file.previewUrl || !!file.animation;
+}
+
+function createDisplayElement (fileName: string): ImageElement | AnimationElement {
+  const base: Omit<DisplayElement, 'type'> = {
+    id: '0',
+    timeout: 0,
+    align: 'top_left',
+    display: 'front',
+    x: 0,
+    y: 0
+  };
+
+  if (getStatusFileKind(fileName) === 'animation') {
+    return {
+      ...base,
+      type: 'animation',
+      path: fileName,
+      loop: true,
+      await_previous_end: false,
+      opacity: 100
+    };
+  }
+
+  return {
+    ...base,
+    type: 'image',
+    path: fileName,
+    opacity: 100
+  };
+}
+
 export const useDrawToolStore = defineStore('drawTool', () => {
   const statusDirectoryFiles = ref<DrawToolStatusDirectoryFile[]>([]);
   const statusGalleryFiles = ref<DrawToolStatusGalleryFile[]>([]);
@@ -32,7 +84,7 @@ export const useDrawToolStore = defineStore('drawTool', () => {
   function normalizeDirectoryFiles (files: StorageListElement[]) {
     return files
       .filter((file): file is StorageListElement & { type: 'file' } => file.type === 'file')
-      .filter(file => file.name !== DRAW_TOOL_TEMP_FILE_NAME)
+      .filter(file => !TEMP_FILE_NAMES.has(file.name))
       .map(file => ({
         name: file.name,
         size: getStatusFileSize(file)
@@ -40,21 +92,60 @@ export const useDrawToolStore = defineStore('drawTool', () => {
       .sort((left, right) => right.name.localeCompare(left.name));
   }
 
-  async function downloadStatusPreview (path: string) {
-    const blob = await readStatusFile(path);
-
-    return URL.createObjectURL(blob);
-  }
-
   async function readStatusFile (path: string) {
     const deviceStore = useDeviceStore();
     const file = await deviceStore.busyBar.StorageRead({ path }, { timeout: 0 });
+    const mimeType = getStatusFileKind(path) === 'animation' ? 'application/octet-stream' : 'image/png';
 
-    return file instanceof Blob ? file : new Blob([file], { type: 'image/png' });
+    return file instanceof Blob ? file : new Blob([file], { type: mimeType });
   }
 
-  function revokeStatusPreviewUrl (previewUrl: string) {
-    URL.revokeObjectURL(previewUrl);
+  async function loadStatusPreview (file: DrawToolStatusDirectoryFile): Promise<DrawToolStatusPreview> {
+    const kind = getStatusFileKind(file.name);
+
+    try {
+      const blob = await readStatusFile(createStatusFilePath(file.name));
+
+      if (kind === 'animation') {
+        const decoded = await decodeAnimationFrames(await blob.arrayBuffer());
+        const fps = decoded.fps ?? 1;
+        const frameMs = 1000 / fps;
+
+        return {
+          kind,
+          previewUrl: null,
+          animation: {
+            width: decoded.width,
+            height: decoded.height,
+            fps,
+            frames: decoded.frames.map(frame => ({
+              imageData: frame.imageData,
+              holdFrames: Math.max(1, Math.round(frame.durationMs / frameMs))
+            }))
+          }
+        };
+      }
+
+      return {
+        kind,
+        previewUrl: URL.createObjectURL(blob),
+        animation: null
+      };
+    } catch (error) {
+      console.warn(`Couldn't load preview for ${file.name}`, error);
+
+      return {
+        kind,
+        previewUrl: null,
+        animation: null
+      };
+    }
+  }
+
+  function revokeStatusPreview (file: Pick<DrawToolStatusGalleryFile, 'previewUrl'>) {
+    if (file.previewUrl) {
+      URL.revokeObjectURL(file.previewUrl);
+    }
   }
 
   async function syncStatusDirectory (files: StorageListElement[]) {
@@ -65,27 +156,27 @@ export const useDrawToolStore = defineStore('drawTool', () => {
     const nextGalleryFiles = await Promise.all(nextDirectoryFiles.map(async file => {
       const existingFile = currentGalleryFilesByName.get(file.name);
 
-      if (existingFile && file.size >= 0 && existingFile.size === file.size) {
+      if (existingFile && file.size >= 0 && existingFile.size === file.size && hasLoadedPreview(existingFile)) {
         return existingFile;
       }
 
-      const previewUrl = await downloadStatusPreview(createStatusFilePath(file.name));
+      const preview = await loadStatusPreview(file);
 
       if (existingFile) {
-        revokeStatusPreviewUrl(existingFile.previewUrl);
+        revokeStatusPreview(existingFile);
       }
 
       return {
         ...file,
         path: createStatusFilePath(file.name),
-        previewUrl
+        ...preview
       };
     }));
 
     statusDirectoryFiles.value = nextDirectoryFiles;
     statusGalleryFiles.value
       .filter(file => !nextFileNames.has(file.name))
-      .forEach(file => revokeStatusPreviewUrl(file.previewUrl));
+      .forEach(revokeStatusPreview);
     statusGalleryFiles.value = nextGalleryFiles;
   }
 
@@ -138,40 +229,81 @@ export const useDrawToolStore = defineStore('drawTool', () => {
     }
   }
 
-  async function clearStatusDisplay () {
+  async function writeStatusFile (fileName: string, file: File) {
     const deviceStore = useDeviceStore();
+    const path = createStatusFilePath(fileName);
 
     try {
-      await deviceStore.busyBar.DisplayClear({
-        application_name: DRAW_TOOL_DISPLAY_APPLICATION_NAME
-      });
+      await deviceStore.busyBar.StorageWrite({ path, file }, { timeout: 0 });
+    } catch (error) {
+      try {
+        await listStatusDirectory();
+      } catch {
+        await ensureStatusDirectoryExists();
+        await deviceStore.busyBar.StorageWrite({ path, file }, { timeout: 0 });
+        return path;
+      }
+
+      throw error;
+    }
+
+    return path;
+  }
+
+  async function saveStatusFile (fileName: string, file: File) {
+    try {
+      const path = await writeStatusFile(fileName, file);
+
+      await refreshStatusDirectory({ silent: true });
+
+      return path;
+    } catch (error) {
+      await handleHTTPError(error, `Couldn't save ${fileName}`, false, 10000);
+      throw error;
+    }
+  }
+
+  async function requestClearStatusDisplay () {
+    const deviceStore = useDeviceStore();
+
+    return deviceStore.busyBar.DisplayClear({
+      application_name: DRAW_TOOL_DISPLAY_APPLICATION_NAME
+    });
+  }
+
+  async function clearStatusDisplay () {
+    try {
+      await requestClearStatusDisplay();
     } catch (error) {
       await handleHTTPError(error, 'Couldn\'t clear existing status display', true);
       throw error;
     }
   }
 
-  async function showSavedStatusOnBusyBar (fileName: string) {
-    const deviceStore = useDeviceStore();
+  async function tryClearStatusDisplay () {
+    try {
+      await requestClearStatusDisplay();
 
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async function showSavedStatusOnBusyBar (fileName: string) {
     await clearStatusDisplay();
+
+    return drawStatusOnBusyBar(fileName);
+  }
+
+  async function drawStatusOnBusyBar (fileName: string) {
+    const deviceStore = useDeviceStore();
 
     return deviceStore.busyBar.DisplayDraw({
       application_name: DRAW_TOOL_DISPLAY_APPLICATION_NAME,
-      elements: [
-        {
-          id: '0',
-          timeout: 0,
-          align: 'top_left',
-          display: 'front',
-          x: 0,
-          y: 0,
-          type: 'image',
-          path: fileName
-        }
-      ],
+      elements: [createDisplayElement(fileName)],
       priority: DRAW_TOOL_DISPLAY_PRIORITY
-    } as DisplayDrawParams)
+    })
       .catch(async error => {
         if (isDisplayPriorityConflict(error)) {
           notifyDisplayPriorityConflict();
@@ -183,30 +315,73 @@ export const useDrawToolStore = defineStore('drawTool', () => {
       });
   }
 
-  async function downloadStatusFile (fileName: string) {
-    const blob = await readStatusFile(createStatusFilePath(fileName));
-    const objectUrl = URL.createObjectURL(blob);
+  async function showTempAnimationOnBusyBar (animation: Blob) {
+    const deviceStore = useDeviceStore();
+
+    await clearStatusDisplay();
 
     try {
-      const link = document.createElement('a');
-      link.href = objectUrl;
-      link.download = fileName;
-      link.click();
-    } finally {
-      URL.revokeObjectURL(objectUrl);
+      await deviceStore.busyBar.AssetsUpload({
+        application_name: DRAW_TOOL_DISPLAY_APPLICATION_NAME,
+        data: animation,
+        file: DRAW_TOOL_TEMP_ANIMATION_FILE_NAME
+      }, { timeout: 0 });
+    } catch (error) {
+      await handleHTTPError(error, 'Couldn\'t upload animation', true);
+      throw error;
+    }
+
+    await drawStatusOnBusyBar(DRAW_TOOL_TEMP_ANIMATION_FILE_NAME);
+  }
+
+  async function downloadStatusFile (fileName: string) {
+    const blob = await readStatusFile(createStatusFilePath(fileName));
+
+    downloadFile(blob, fileName);
+  }
+
+  async function downloadStatusAsGif (fileName: string) {
+    try {
+      const blob = await readStatusFile(createStatusFilePath(fileName));
+      const animation = decodeAnimation(await blob.arrayBuffer());
+      const gif = encodeAnimationToGif(animation);
+
+      downloadFile(gif, fileName.replace(/\.anim$/i, '') + '.gif');
+    } catch (error) {
+      await handleHTTPError(error, `Couldn't convert ${fileName} to GIF`, false, 10000);
+    }
+  }
+
+  async function tryRemoveStatusFile (path: string): Promise<unknown> {
+    const deviceStore = useDeviceStore();
+
+    try {
+      await deviceStore.busyBar.StorageRemove({ path }, { timeout: 0 });
+
+      return null;
+    } catch (error) {
+      return error;
     }
   }
 
   async function deleteStatusFiles (fileNames: string[]) {
-    const deviceStore = useDeviceStore();
+    let hasClearedStatusDisplay = false;
 
     for (const fileName of [...new Set(fileNames)]) {
       const fullPath = createStatusFilePath(fileName);
+      let error = await tryRemoveStatusFile(fullPath);
 
-      await deviceStore.busyBar.StorageRemove({ path: fullPath }, { timeout: 0 })
-        .catch(async error => {
-          await handleHTTPError(error, `Couldn't delete ${fullPath}`, false, 0);
-        });
+      if (error && getStatusFileKind(fileName) === 'animation' && !hasClearedStatusDisplay) {
+        hasClearedStatusDisplay = true;
+
+        if (await tryClearStatusDisplay()) {
+          error = await tryRemoveStatusFile(fullPath);
+        }
+      }
+
+      if (error) {
+        await handleHTTPError(error, `Couldn't delete ${fullPath}`, false, 0);
+      }
     }
 
     await refreshStatusDirectory({ silent: true });
@@ -218,9 +393,12 @@ export const useDrawToolStore = defineStore('drawTool', () => {
     statusGalleryFiles,
     syncStatusDirectory,
     refreshStatusDirectory,
+    saveStatusFile,
     clearStatusDisplay,
     showSavedStatusOnBusyBar,
+    showTempAnimationOnBusyBar,
     downloadStatusFile,
+    downloadStatusAsGif,
     deleteStatusFiles
   };
 });
