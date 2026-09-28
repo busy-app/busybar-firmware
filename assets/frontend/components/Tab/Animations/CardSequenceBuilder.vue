@@ -62,6 +62,10 @@
             <USelect
               v-model="colorModeModel"
               :items="colorModeOptions"
+              class="w-38"
+              :ui="{
+                content: 'min-w-max'
+              }"
               @update:model-value="saveColorMode"
             />
           </UFormField>
@@ -105,6 +109,7 @@ const colorModeModel = ref<ColorMode>('rgb888');
 
 const colorModeOptions = [
   { label: 'RGB888 (Front)', value: 'rgb888' },
+  { label: 'BGRA8888 (Front, alpha)', value: 'argb8888' },
   { label: 'Gray4 (Back)', value: 'gray4' }
 ];
 

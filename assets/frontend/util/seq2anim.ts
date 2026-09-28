@@ -1,5 +1,17 @@
 
-export type ColorMode = 'rgb888' | 'gray4';
+export type ColorMode = 'rgb888' | 'gray4' | 'argb8888';
+
+const COLOR_MODE_CODE: Record<ColorMode, number> = {
+  rgb888: 0,
+  gray4: 1,
+  argb8888: 2
+};
+
+const COLOR_MODE_BLOCK_SIZE: Record<ColorMode, number> = {
+  rgb888: 3,
+  gray4: 1,
+  argb8888: 4
+};
 
 export interface AnimationMeta {
   fps: number;
@@ -71,7 +83,7 @@ export async function composeAnimation (
   let maxEncodedLen = 0;
   let lastFrame: Uint8Array | null = null;
 
-  const blockSize = meta.colorMode === 'rgb888' ? 3 : 1;
+  const blockSize = COLOR_MODE_BLOCK_SIZE[meta.colorMode];
 
   for (let i = 0; i < framesData.length; i++) {
     const frame = framesData[i];
@@ -163,7 +175,7 @@ export async function composeAnimation (
   view.setUint8(ptr++, 0); // flags
   view.setUint8(ptr++, width);
   view.setUint8(ptr++, height);
-  view.setUint8(ptr++, meta.colorMode === 'rgb888' ? 0 : 1);
+  view.setUint8(ptr++, COLOR_MODE_CODE[meta.colorMode]);
 
   view.setUint8(ptr++, meta.fps);
   view.setUint16(ptr, maxEncodedLen, true);
@@ -259,6 +271,17 @@ function packFrame (rgba: Uint8ClampedArray, width: number, height: number, mode
       out[ptr++] = rgba[i + 2]; // B
       out[ptr++] = rgba[i + 1]; // G
       out[ptr++] = rgba[i]; // R
+    }
+    return out;
+  } else if (mode === 'argb8888') {
+    const out = new Uint8Array(width * height * 4);
+    let ptr = 0;
+    for (let i = 0; i < rgba.length; i += 4) {
+      // RGBA -> BGRA
+      out[ptr++] = rgba[i + 2]; // B
+      out[ptr++] = rgba[i + 1]; // G
+      out[ptr++] = rgba[i]; // R
+      out[ptr++] = rgba[i + 3]; // A
     }
     return out;
   } else {
