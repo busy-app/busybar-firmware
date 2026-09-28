@@ -6,11 +6,11 @@
     title="Change password"
     description="Enter current and new passwords. Remember your password, as a forgotten one cannot be recovered, but only reset via a wired connection."
     wide
+    form="update-password-form"
     :primary-action-props="{
       label: 'Update password',
       loading: pms.loading,
-      disabled: isInvalid,
-      onClick: pms.setPassword
+      disabled: isInvalid
     }"
     :secondary-action-props="{
       label: 'Cancel',
@@ -21,18 +21,15 @@
   >
     <template #body>
       <form
+        id="update-password-form"
         class="flex flex-col gap-6"
         @submit.prevent="isInvalid || pms.loading ? null : pms.setPassword()"
       >
         <input
-          value="BUSY Bar"
-          type="text"
           name="username"
           autocomplete="username"
-          class="sr-only"
-          tabindex="-1"
-          aria-hidden="true"
-          readonly
+          value="BUSY Bar"
+          hidden
         >
 
         <UFormField
@@ -79,7 +76,7 @@
             v-maska="'##########'"
             name="new-password"
             autocomplete="new-password"
-            passwordrules="required: digit; allowed: digit; minlength: 4; maxlength: 10;"
+            :passwordrules="PASSWORD_RULES_ATTR"
             inputmode="numeric"
             size="xl"
             variant="soft"
@@ -103,13 +100,6 @@
             </template>
           </UInput>
         </UFormField>
-
-        <button
-          type="submit"
-          class="hidden"
-          tabindex="-1"
-          aria-hidden="true"
-        />
       </form>
     </template>
   </ModalGeneric>

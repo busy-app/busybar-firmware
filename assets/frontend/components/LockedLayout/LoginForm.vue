@@ -12,14 +12,10 @@
     @submit.prevent="attemptUnlock()"
   >
     <input
-      value="BUSY Bar"
-      type="text"
       name="username"
       autocomplete="username"
-      class="sr-only"
-      tabindex="-1"
-      aria-hidden="true"
-      readonly
+      value="BUSY Bar"
+      hidden
     >
 
     <UFormField

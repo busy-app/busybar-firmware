@@ -24,17 +24,6 @@
         v-if="apiStore.apiKey"
         @submit.prevent="isInvalid || pms.loading ? null : pms.removePassword()"
       >
-        <input
-          value="BUSY Bar"
-          type="text"
-          name="username"
-          autocomplete="username"
-          class="sr-only"
-          tabindex="-1"
-          aria-hidden="true"
-          readonly
-        >
-
         <UFormField
           label="Current password"
           :error="pms.currentPasswordValidation"
@@ -68,13 +57,6 @@
             </template>
           </UInput>
         </UFormField>
-
-        <button
-          type="submit"
-          class="hidden"
-          tabindex="-1"
-          aria-hidden="true"
-        />
       </form>
     </template>
   </ModalGeneric>

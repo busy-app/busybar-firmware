@@ -5,11 +5,11 @@
     :dismissible="false"
     title="Set password"
     description="This password will be asked each time you open this page with a BUSY Bar connected via Wi-Fi. Remember your password, as a forgotten one cannot be recovered, but only reset via a wired connection."
+    form="set-password-form"
     :primary-action-props="{
       label: 'Set password',
       loading: pms.loading,
-      disabled: isInvalid,
-      onClick: pms.setPassword
+      disabled: isInvalid
     }"
     :secondary-action-props="{
       label: 'Cancel',
@@ -25,16 +25,15 @@
       />
     </template>
     <template #body>
-      <form @submit.prevent="isInvalid || pms.loading ? null : pms.setPassword()">
+      <form
+        id="set-password-form"
+        @submit.prevent="isInvalid || pms.loading ? null : pms.setPassword()"
+      >
         <input
-          value="BUSY Bar"
-          type="text"
           name="username"
           autocomplete="username"
-          class="sr-only"
-          tabindex="-1"
-          aria-hidden="true"
-          readonly
+          value="BUSY Bar"
+          hidden
         >
 
         <UFormField
@@ -46,7 +45,7 @@
             v-maska="'##########'"
             name="new-password"
             autocomplete="new-password"
-            passwordrules="required: digit; allowed: digit; minlength: 4; maxlength: 10;"
+            :passwordrules="PASSWORD_RULES_ATTR"
             inputmode="numeric"
             size="xl"
             variant="soft"
@@ -70,13 +69,6 @@
             </template>
           </UInput>
         </UFormField>
-
-        <button
-          type="submit"
-          class="hidden"
-          tabindex="-1"
-          aria-hidden="true"
-        />
       </form>
     </template>
   </ModalGeneric>
