@@ -251,7 +251,9 @@ bool apps_menu_start_application(const char* app_id, AppsMenuMode mode) {
             [AppsMenuModeResume] = JsAppLauncherStartModeResume,
         };
 
-        success = js_app_launcher_start(app_id, mode_table[mode]);
+        if(js_app_launcher_start(app_id, mode_table[mode]) == JsAppLauncherStatusOk) {
+            success = true;
+        }
     }
 
     return success;

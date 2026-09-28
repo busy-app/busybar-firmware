@@ -387,10 +387,12 @@ static bool api_apps_launch_request_callback(
     }
     js_app_free(app);
 
-    if(js_app_launcher_start(app_id, JsAppLauncherStartModeResume)) {
+    const JsAppLauncherStatus status = js_app_launcher_start(app_id, JsAppLauncherStartModeResume);
+
+    if(status == JsAppLauncherStatusOk) {
         MG_REPLY_OK(conn);
     } else {
-        MG_REPLY_ERROR(conn, 500, "failed to launch application");
+        MG_REPLY_ERROR(conn, 503, "failed to launch application");
     }
 
     return true;
@@ -410,10 +412,14 @@ static bool api_apps_quit_request_callback(
         return false;
     }
 
-    if(js_app_launcher_stop(JsAppLauncherStopModeForget)) {
+    const JsAppLauncherStatus status = js_app_launcher_stop(JsAppLauncherStopModeForget);
+
+    if(status == JsAppLauncherStatusOk) {
         MG_REPLY_OK(conn);
+    } else if(status == JsAppLauncherStatusNotRunning) {
+        MG_REPLY_ERROR(conn, 409, "application is not running");
     } else {
-        MG_REPLY_ERROR(conn, 500, "failed to quit from application");
+        MG_REPLY_ERROR(conn, 503, "failed to quit from application");
     }
 
     return true;

@@ -11,6 +11,16 @@ extern "C" {
 #endif
 
 /**
+ * @brief Status codes returned by the JsApplication APIs.
+ */
+typedef enum {
+    JsAppLauncherStatusOk, /**< Operation successful, no error reported */
+    JsAppLauncherStatusTimeout, /**< Operation timed out */
+    JsAppLauncherStatusNotRunning, /**< Js application is not running */
+    JsAppLauncherStatusInvalidAppId, /**< Application ID is invalid */
+} JsAppLauncherStatus;
+
+/**
  * @brief Modes for starting JS applications.
  */
 typedef enum {
@@ -33,9 +43,10 @@ typedef enum {
  *
  * @param[in] app_id zero-terminated string containing the ID of the app to be started
  * @param[in] start_mode mode to be used to start the JS application
- * @returns @c true if the app could be started, @c false otherwise
+ * @returns @c JsAppLauncherStatusOk the application was successfully launched
+ * @returns @c JsAppLauncherStatusError failed to launch the application
  */
-bool js_app_launcher_start(const char* app_id, JsAppLauncherStartMode start_mode);
+JsAppLauncherStatus js_app_launcher_start(const char* app_id, JsAppLauncherStartMode start_mode);
 
 /**
  * @brief Stop the currently running JS application, if applicable.
@@ -45,7 +56,7 @@ bool js_app_launcher_start(const char* app_id, JsAppLauncherStartMode start_mode
  * @param[in] stop_mode mode to be used to exit from the JS application
  * @returns @c true if a JS app was running and could be stopped, @c false otherwise
  */
-bool js_app_launcher_stop(JsAppLauncherStopMode stop_mode);
+JsAppLauncherStatus js_app_launcher_stop(JsAppLauncherStopMode stop_mode);
 
 #ifdef __cplusplus
 }
