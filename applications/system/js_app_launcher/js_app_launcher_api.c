@@ -31,7 +31,7 @@ bool js_app_launcher_start(const char* app_id, JsAppLauncherStartMode start_mode
 
     char args[JS_APP_ID_LEN_MAX + sizeof(JS_APP_LAUNCHER_ARG_RESUME)];
 
-    if(strlcpy(args, app_id, JS_APP_ID_LEN_MAX) > JS_APP_ID_LEN_MAX) {
+    if(strlcpy(args, app_id, JS_APP_ID_LEN_MAX + 1) > JS_APP_ID_LEN_MAX) {
         return false;
     }
 
