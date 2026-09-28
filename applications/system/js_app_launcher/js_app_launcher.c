@@ -87,27 +87,33 @@ static void js_app_launcher_api_queue_callback(FuriEventLoopObject* object, void
 }
 
 static void js_app_launcher_init_current_app(JsAppLauncher* instance, const char* app_id) {
+    JsApp* js_app = NULL;
     JsAppLauncherStartMode start_mode = JsAppLauncherStartModeShowMenu;
 
-    const size_t app_id_len = strlen(app_id);
-    if((app_id_len == 0) ||
-       (app_id_len > (JS_APP_ID_LEN_MAX + strlen(JS_APP_LAUNCHER_ARG_RESUME)))) {
-        return;
-    }
-
-    char app_id_tmp[app_id_len + 1];
-    strcpy(app_id_tmp, app_id);
-
-    const size_t resume_flag_len = strlen(JS_APP_LAUNCHER_ARG_RESUME);
-    if(app_id_len > resume_flag_len) {
-        char* flag_p = &app_id_tmp[app_id_len - resume_flag_len];
-        if(strcmp(flag_p, JS_APP_LAUNCHER_ARG_RESUME) == 0) {
-            strcpy(flag_p, "");
-            start_mode = JsAppLauncherStartModeResume;
+    do {
+        const size_t app_id_len = strlen(app_id);
+        if((app_id_len == 0) ||
+           (app_id_len > (JS_APP_ID_LEN_MAX + strlen(JS_APP_LAUNCHER_ARG_RESUME)))) {
+            break;
         }
-    }
 
-    instance->js_app = js_app_registry_get_app(app_id_tmp);
+        char app_id_tmp[app_id_len + 1];
+        strcpy(app_id_tmp, app_id);
+
+        const size_t resume_flag_len = strlen(JS_APP_LAUNCHER_ARG_RESUME);
+        if(app_id_len > resume_flag_len) {
+            char* flag_p = &app_id_tmp[app_id_len - resume_flag_len];
+            if(strcmp(flag_p, JS_APP_LAUNCHER_ARG_RESUME) == 0) {
+                strcpy(flag_p, "");
+                start_mode = JsAppLauncherStartModeResume;
+            }
+        }
+
+        js_app = js_app_registry_get_app(app_id_tmp);
+
+    } while(false);
+
+    instance->js_app = js_app;
     instance->start_mode = start_mode;
 }
 
