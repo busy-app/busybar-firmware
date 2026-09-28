@@ -788,17 +788,19 @@
             side: 'top',
             sideOffset: 16
           }"
-          :text="showGrid ? 'Hide grid' : 'Show grid'"
+          data-draw-tool-preserve-selection
+          text="Bring forward"
         >
           <UButton
             color="neutral"
             variant="ghost"
             square
             :class="toolbarIconButtonClass"
-            @click="() => { showGrid = !showGrid; }"
+            :disabled="!canMoveSelectedLayerUp"
+            @click="handleMoveLayerClick('up', $event)"
           >
             <UIcon
-              :name="showGrid ? 'i-bi-grid' : 'i-bi-grid-off'"
+              name="i-bi-layer-up"
               class="size-6"
             />
           </UButton>
@@ -811,7 +813,7 @@
             sideOffset: 16
           }"
           data-draw-tool-preserve-selection
-          text="Move down"
+          text="Send backward"
         >
           <UButton
             color="neutral"
@@ -828,25 +830,25 @@
           </UButton>
         </UTooltip>
 
+        <div class="h-[calc(100%_-_1em)] w-0.5 shrink-0 bg-accented" />
+
         <UTooltip
           :delay-duration="80"
           :content="{
             side: 'top',
             sideOffset: 16
           }"
-          data-draw-tool-preserve-selection
-          text="Move up"
+          :text="showGrid ? 'Hide grid' : 'Show grid'"
         >
           <UButton
             color="neutral"
             variant="ghost"
             square
             :class="toolbarIconButtonClass"
-            :disabled="!canMoveSelectedLayerUp"
-            @click="handleMoveLayerClick('up', $event)"
+            @click="() => { showGrid = !showGrid; }"
           >
             <UIcon
-              name="i-bi-layer-up"
+              :name="showGrid ? 'i-bi-grid' : 'i-bi-grid-off'"
               class="size-6"
             />
           </UButton>
