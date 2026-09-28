@@ -35,6 +35,26 @@ function upscaleIndices (indexed: Uint8Array, width: number, height: number, sca
   return output;
 }
 
+function flattenOnBlack (data: Uint8ClampedArray): Uint8ClampedArray {
+  let flattened: Uint8ClampedArray | null = null;
+
+  for (let offset = 0; offset < data.length; offset += 4) {
+    const alpha = data[offset + 3];
+
+    if (alpha === 255) {
+      continue;
+    }
+
+    flattened ??= data.slice();
+    flattened[offset] = (data[offset] * alpha) / 255;
+    flattened[offset + 1] = (data[offset + 1] * alpha) / 255;
+    flattened[offset + 2] = (data[offset + 2] * alpha) / 255;
+    flattened[offset + 3] = 255;
+  }
+
+  return flattened ?? data;
+}
+
 export function encodeAnimationToGif (animation: DecodedAnimation, scale = GIF_PIXEL_SIZE): Blob {
   if (!animation.frames.length) {
     throw new Error('Animation has no frames');
@@ -44,7 +64,8 @@ export function encodeAnimationToGif (animation: DecodedAnimation, scale = GIF_P
   const frameMs = 1000 / Math.max(1, animation.fps);
 
   animation.frames.forEach((frame, index) => {
-    const { width, height, data } = frame.imageData;
+    const { width, height } = frame.imageData;
+    const data = flattenOnBlack(frame.imageData.data);
     // Quantize at source size, then upscale indices: nearest neighbour adds no colours, and it's 64x cheaper.
     const palette = quantize(data, GIF_MAX_COLORS);
     const indexed = applyPalette(data, palette);
