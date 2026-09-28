@@ -44,7 +44,6 @@
             <template #trailing>
               <UButton
                 :icon="pms.passwordModel.showCurrent ? 'i-bi-eye' : 'i-bi-eye-shut'"
-                type="button"
                 variant="ghost"
                 color="neutral"
                 square

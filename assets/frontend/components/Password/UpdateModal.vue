@@ -25,13 +25,6 @@
         class="flex flex-col gap-6"
         @submit.prevent="isInvalid || pms.loading ? null : pms.setPassword()"
       >
-        <input
-          name="username"
-          autocomplete="username"
-          value="BUSY Bar"
-          hidden
-        >
-
         <UFormField
           v-if="apiStore.apiKey"
           label="Current password"
@@ -53,7 +46,6 @@
             <template #trailing>
               <UButton
                 :icon="pms.passwordModel.showCurrent ? 'i-bi-eye' : 'i-bi-eye-shut'"
-                type="button"
                 variant="ghost"
                 color="neutral"
                 square
@@ -87,7 +79,6 @@
             <template #trailing>
               <UButton
                 :icon="pms.passwordModel.showNew ? 'i-bi-eye' : 'i-bi-eye-shut'"
-                type="button"
                 variant="ghost"
                 color="neutral"
                 square

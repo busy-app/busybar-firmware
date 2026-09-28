@@ -5,11 +5,11 @@
     :dismissible="false"
     title="Set password"
     description="This password will be asked each time you open this page with a BUSY Bar connected via Wi-Fi. Remember your password, as a forgotten one cannot be recovered, but only reset via a wired connection."
-    form="set-password-form"
     :primary-action-props="{
       label: 'Set password',
       loading: pms.loading,
-      disabled: isInvalid
+      disabled: isInvalid,
+      onClick: pms.setPassword
     }"
     :secondary-action-props="{
       label: 'Cancel',
@@ -25,17 +25,7 @@
       />
     </template>
     <template #body>
-      <form
-        id="set-password-form"
-        @submit.prevent="isInvalid || pms.loading ? null : pms.setPassword()"
-      >
-        <input
-          name="username"
-          autocomplete="username"
-          value="BUSY Bar"
-          hidden
-        >
-
+      <form @submit.prevent="isInvalid || pms.loading ? null : pms.setPassword()">
         <UFormField
           label="Password"
           :error="pms.newPasswordValidation"
@@ -56,7 +46,6 @@
             <template #trailing>
               <UButton
                 :icon="pms.passwordModel.showNew ? 'i-bi-eye' : 'i-bi-eye-shut'"
-                type="button"
                 variant="ghost"
                 color="neutral"
                 square

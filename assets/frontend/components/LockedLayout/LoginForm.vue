@@ -11,13 +11,6 @@
     class="w-full"
     @submit.prevent="attemptUnlock()"
   >
-    <input
-      name="username"
-      autocomplete="username"
-      value="BUSY Bar"
-      hidden
-    >
-
     <UFormField
       class="w-full"
       :error="pms.currentPasswordValidation"
@@ -37,7 +30,6 @@
         <template #trailing>
           <UButton
             :icon="pms.passwordModel.showCurrent ? 'i-bi-eye' : 'i-bi-eye-shut'"
-            type="button"
             variant="ghost"
             color="neutral"
             square
@@ -64,7 +56,6 @@
 
       <UButton
         data-id="page-login-forgot-password-button"
-        type="button"
         label="Forgot password?"
         color="neutral"
         variant="ghost"
