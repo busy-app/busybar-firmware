@@ -1,18 +1,6 @@
 
 export type ColorMode = 'rgb888' | 'gray4' | 'argb8888';
 
-const COLOR_MODE_CODE: Record<ColorMode, number> = {
-  rgb888: 0,
-  gray4: 1,
-  argb8888: 2
-};
-
-const COLOR_MODE_BLOCK_SIZE: Record<ColorMode, number> = {
-  rgb888: 3,
-  gray4: 1,
-  argb8888: 4
-};
-
 export interface AnimationMeta {
   fps: number;
   colorMode: ColorMode;
