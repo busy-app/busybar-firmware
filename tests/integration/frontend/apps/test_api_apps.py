@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+import json
 import re
 import uuid
 
 import allure
 import pytest
 
-from clients.api import AppInfo, AppsAPI, StorageAPI
+from clients.api import AppInfo, AppsAPI, AssetsAPI, StorageAPI, StreamingAPI
+from clients.api.streaming import FRONT_DISPLAY_HEIGHT, FRONT_DISPLAY_WIDTH
 from utils.js_app_package import (
     APP_AUTHOR,
     APP_DESCRIPTION,
@@ -46,6 +48,121 @@ def _assert_app_metadata(
     assert app.icon_path.startswith("/ext/"), (
         f"Unexpected icon path: {app.icon_path!r}"
     )
+
+
+def _local_storage_path(app_id: str) -> str:
+    return f"/ext/apps_data/jsrunner/{app_id}.localstorage.json"
+
+
+def _observable_app_script(launch_token: str) -> bytes:
+    token_literal = json.dumps(launch_token)
+    return (
+        "const launchCount = Number("
+        "localStorage.getItem('integration_launch_count') || '0'"
+        ") + 1;\n"
+        "localStorage.setItem("
+        "'integration_launch_count', String(launchCount)"
+        ");\n"
+        "localStorage.setItem("
+        f"'integration_launch', {token_literal}"
+        ");\n"
+        "globalThis.integrationTestUnbind = "
+        "listen('input', function() {});\n"
+    ).encode("utf-8")
+
+
+def _idle_app_script() -> bytes:
+    return (
+        "globalThis.integrationTestUnbind = "
+        "listen('input', function() {});\n"
+    ).encode("utf-8")
+
+
+def _install_app(
+    apps_api: AppsAPI,
+    app_id: str,
+    main_script: bytes,
+) -> None:
+    package, _ = _build_app_package(app_id, main_script=main_script)
+    staged = apps_api.stage(package)
+    assert staged.staged.id == app_id, (
+        f"Unexpected staged app id: {staged.staged.id!r}"
+    )
+    installed = apps_api.install(staged.install_key)
+    assert installed.result == "OK", (
+        f"Unexpected install result: {installed.result!r}"
+    )
+
+
+def _install_observable_app(
+    apps_api: AppsAPI,
+    storage_api: StorageAPI,
+    app_id: str,
+    launch_token: str,
+) -> str:
+    storage_path = _local_storage_path(app_id)
+    storage_api.remove_raw(storage_path)
+    _install_app(
+        apps_api,
+        app_id,
+        _observable_app_script(launch_token),
+    )
+    return storage_path
+
+
+def _read_local_storage(
+    storage_api: StorageAPI,
+    storage_path: str,
+) -> dict[str, object] | None:
+    response = storage_api.read(storage_path)
+    if response.status_code == 404:
+        return None
+    assert response.status_code == 200, (
+        f"Local storage returned HTTP {response.status_code}: "
+        f"{response.text[:200]!r}"
+    )
+    return response.json()
+
+
+def _wait_for_launch_marker(
+    storage_api: StorageAPI,
+    storage_path: str,
+    launch_token: str,
+) -> dict[str, object]:
+    payload = wait_for(
+        f"launch marker {launch_token!r}",
+        lambda: _read_local_storage(storage_api, storage_path),
+        lambda value: (
+            isinstance(value, dict)
+            and isinstance(value.get("data"), dict)
+            and value["data"].get("integration_launch") == launch_token
+        ),
+        timeout=10,
+        interval=0.2,
+    )
+    assert isinstance(payload, dict)
+    return payload
+
+
+def _wait_for_launcher_exit(apps_api: AppsAPI):
+    return wait_for(
+        "JavaScript launcher to stop",
+        apps_api.quit_raw,
+        lambda response: response.status_code == 500,
+        timeout=5,
+        interval=0.2,
+    )
+
+
+def _cleanup_observable_app(
+    apps_api: AppsAPI,
+    storage_api: StorageAPI,
+    app_id: str,
+    storage_path: str,
+) -> None:
+    apps_api.quit_raw()
+    apps_api.delete_app_raw(app_id)
+    storage_api.remove_raw(storage_path)
 
 
 @pytest.fixture
@@ -161,6 +278,434 @@ class TestAppsAPI:
                 f"Repeated delete returned HTTP "
                 f"{repeated_delete.status_code}: "
                 f"{repeated_delete.text[:200]!r}"
+            )
+
+    @allure.title("POST /api/apps/launch starts and quit stops a JS app")
+    def test_launch_and_quit_app(
+        self,
+        apps_api: AppsAPI,
+        storage_api: StorageAPI,
+        streaming_api,
+        test_app_id: str,
+    ):
+        launch_token = uuid.uuid4().hex
+        storage_path = _local_storage_path(test_app_id)
+
+        try:
+            with allure.step("Install an observable JavaScript app"):
+                storage_path = _install_observable_app(
+                    apps_api,
+                    storage_api,
+                    test_app_id,
+                    launch_token,
+                )
+
+            with allure.step("Launch the app without opening its start menu"):
+                launched = apps_api.launch(test_app_id)
+                assert launched.result == "OK", (
+                    f"Unexpected launch result: {launched.result!r}"
+                )
+                payload = _wait_for_launch_marker(
+                    storage_api,
+                    storage_path,
+                    launch_token,
+                )
+                assert payload["data"]["integration_launch_count"] == "1", (
+                    f"Unexpected launch count: {payload!r}"
+                )
+
+                running_frame = wait_for_stable(
+                    "stable running-app screen",
+                    streaming_api.front_frame,
+                    lambda frame: frame.digest(),
+                    stable_samples=3,
+                    timeout=5,
+                    interval=0.2,
+                )
+                running_frame.attach("Running JavaScript app")
+
+            with allure.step("Quit the running app"):
+                stopped = apps_api.quit()
+                assert stopped.result == "OK", (
+                    f"Unexpected quit result: {stopped.result!r}"
+                )
+
+                no_launcher = _wait_for_launcher_exit(apps_api)
+                assert no_launcher.status_code == 500, (
+                    f"Expected quit without a running app to return 500, "
+                    f"got {no_launcher.status_code}: "
+                    f"{no_launcher.text[:200]!r}"
+                )
+
+            with allure.step("Verify AppsMenu forgot the stopped app"):
+                menu_frame = wait_for_stable(
+                    "stable AppsMenu screen after quit",
+                    streaming_api.front_frame,
+                    lambda frame: frame.digest(),
+                    predicate=lambda frame: (
+                        frame.digest() != running_frame.digest()
+                    ),
+                    stable_samples=3,
+                    timeout=5,
+                    interval=0.2,
+                )
+                menu_frame.attach("AppsMenu after API quit")
+
+                payload = _read_local_storage(storage_api, storage_path)
+                assert payload is not None, (
+                    f"Launch marker disappeared from {storage_path!r}"
+                )
+                assert payload["data"]["integration_launch_count"] == "1", (
+                    "The stopped app was unexpectedly resumed by AppsMenu: "
+                    f"{payload!r}"
+                )
+        finally:
+            _cleanup_observable_app(
+                apps_api,
+                storage_api,
+                test_app_id,
+                storage_path,
+            )
+
+    @allure.title("Quit reports a conflict while a JS app is starting")
+    def test_quit_while_app_is_starting(
+        self,
+        apps_api: AppsAPI,
+        test_app_id: str,
+    ):
+        quit_response = None
+        launch_accepted = False
+
+        try:
+            with allure.step("Install an idle JavaScript app"):
+                _install_app(
+                    apps_api,
+                    test_app_id,
+                    _idle_app_script(),
+                )
+
+            with allure.step("Request launch and immediately request quit"):
+                launched = apps_api.launch(test_app_id)
+                assert launched.result == "OK", (
+                    f"Unexpected launch result: {launched.result!r}"
+                )
+                launch_accepted = True
+                quit_response = apps_api.quit_raw()
+
+            with allure.step("Verify the starting-state conflict contract"):
+                # TODO: Align the accepted status and response body with the
+                # firmware contract once the FW developer finalizes it.
+                assert quit_response.status_code == 409, (
+                    "Quit while the application is starting returned HTTP "
+                    f"{quit_response.status_code}: "
+                    f"{quit_response.text[:200]!r}"
+                )
+                assert quit_response.json() == {
+                    "error": "application is starting",
+                    "state": "starting",
+                }, f"Unexpected conflict response: {quit_response.text!r}"
+        finally:
+            if launch_accepted:
+                if quit_response is None or quit_response.status_code != 200:
+                    wait_for(
+                        "the launcher to accept cleanup quit",
+                        apps_api.quit_raw,
+                        lambda response: response.status_code == 200,
+                        timeout=5,
+                        interval=0.2,
+                    )
+                _wait_for_launcher_exit(apps_api)
+
+    @allure.title("Quitting a JS app removes its owned canvas elements")
+    def test_quit_clears_app_canvas(
+        self,
+        apps_api: AppsAPI,
+        assets_api: AssetsAPI,
+        storage_api: StorageAPI,
+        streaming_api: StreamingAPI,
+        test_app_id: str,
+    ):
+        launch_token = uuid.uuid4().hex
+        storage_path = _local_storage_path(test_app_id)
+        red_frame = (
+            b"\x00\x00\xff"
+            * FRONT_DISPLAY_WIDTH
+            * FRONT_DISPLAY_HEIGHT
+        )
+        element = {
+            "id": "launch_cleanup_probe",
+            "type": "rectangle",
+            "x": 0,
+            "y": 0,
+            "width": FRONT_DISPLAY_WIDTH,
+            "height": FRONT_DISPLAY_HEIGHT,
+            "fill": "solid",
+            "fill_colors": ["#FF0000FF"],
+            "border_width": 0,
+            "timeout": 0,
+        }
+
+        try:
+            with allure.step("Install and launch an observable JavaScript app"):
+                storage_path = _install_observable_app(
+                    apps_api,
+                    storage_api,
+                    test_app_id,
+                    launch_token,
+                )
+                launched = apps_api.launch(test_app_id)
+                assert launched.result == "OK", (
+                    f"Unexpected launch result: {launched.result!r}"
+                )
+                _wait_for_launch_marker(
+                    storage_api,
+                    storage_path,
+                    launch_token,
+                )
+
+            with allure.step("Draw a persistent canvas owned by the app"):
+                drawn = assets_api.draw(test_app_id, [element])
+                assert drawn.result == "OK", (
+                    f"Unexpected draw result: {drawn.result!r}"
+                )
+                canvas_frame = wait_for(
+                    "the app-owned red canvas",
+                    streaming_api.front_frame,
+                    lambda frame: frame.raw == red_frame,
+                    timeout=5,
+                    interval=0.2,
+                )
+                canvas_frame.attach("App-owned canvas before quit")
+
+            with allure.step("Quit the app and verify its canvas is removed"):
+                stopped = apps_api.quit()
+                assert stopped.result == "OK", (
+                    f"Unexpected quit result: {stopped.result!r}"
+                )
+                _wait_for_launcher_exit(apps_api)
+                cleared_frame = wait_for_stable(
+                    "stable front screen without the app-owned canvas",
+                    streaming_api.front_frame,
+                    lambda frame: frame.digest(),
+                    predicate=lambda frame: frame.raw != red_frame,
+                    stable_samples=3,
+                    timeout=5,
+                    interval=0.2,
+                )
+                cleared_frame.attach("Front screen after app quit")
+        finally:
+            apps_api.quit_raw()
+            assets_api.clear_display_by_app(test_app_id)
+            apps_api.delete_app_raw(test_app_id)
+            storage_api.remove_raw(storage_path)
+
+    @allure.title("POST /api/apps/launch validates application IDs")
+    @pytest.mark.parametrize(
+        "app_id",
+        [None, "", ".invalid", "invalid/id", "a" * 33],
+        ids=["missing", "empty", "leading-dot", "slash", "too-long"],
+    )
+    def test_launch_validation(
+        self,
+        apps_api: AppsAPI,
+        app_id: str | None,
+    ):
+        response = apps_api.launch_raw(app_id)
+
+        with allure.step("Verify the invalid app id is rejected"):
+            assert response.status_code == 400, (
+                f"Launch with app_id={app_id!r} returned HTTP "
+                f"{response.status_code}: {response.text[:200]!r}"
+            )
+
+    @allure.title("POST /api/apps/launch rejects an unknown application")
+    def test_launch_unknown_app(
+        self,
+        apps_api: AppsAPI,
+        test_app_id: str,
+    ):
+        response = apps_api.launch_raw(test_app_id)
+
+        with allure.step("Verify the missing app returns HTTP 404"):
+            assert response.status_code == 404, (
+                f"Unknown app launch returned HTTP {response.status_code}: "
+                f"{response.text[:200]!r}"
+            )
+
+    @allure.title("POST /api/apps/launch accepts a 32-character app id")
+    def test_launch_max_length_app_id(
+        self,
+        apps_api: AppsAPI,
+        streaming_api,
+    ):
+        control_app_id = f"t{uuid.uuid4().hex[:30]}"
+        max_length_app_id = f"t{uuid.uuid4().hex[:31]}"
+        assert len(control_app_id) == 31, (
+            f"Unexpected control id: {control_app_id!r}"
+        )
+        assert len(max_length_app_id) == 32, (
+            f"Unexpected boundary id: {max_length_app_id!r}"
+        )
+
+        try:
+            with allure.step("Install equivalent 31- and 32-character apps"):
+                _install_app(
+                    apps_api,
+                    control_app_id,
+                    _idle_app_script(),
+                )
+                _install_app(
+                    apps_api,
+                    max_length_app_id,
+                    _idle_app_script(),
+                )
+
+            with allure.step("Capture the running screen for the control app"):
+                initial_frame = streaming_api.front_frame()
+                control_launch = apps_api.launch(control_app_id)
+                assert control_launch.result == "OK", (
+                    f"Unexpected control launch: {control_launch.result!r}"
+                )
+                control_frame = wait_for_stable(
+                    "stable running screen for the 31-character app",
+                    streaming_api.front_frame,
+                    lambda frame: frame.digest(),
+                    predicate=lambda frame: (
+                        frame.digest() != initial_frame.digest()
+                    ),
+                    stable_samples=4,
+                    timeout=5,
+                    interval=0.2,
+                )
+                control_frame.attach("31-character app running")
+                control_stop = apps_api.quit()
+                assert control_stop.result == "OK", (
+                    f"Unexpected control quit: {control_stop.result!r}"
+                )
+                _wait_for_launcher_exit(apps_api)
+
+            with allure.step("Launch the boundary-length application"):
+                initial_frame = streaming_api.front_frame()
+                launched = apps_api.launch(max_length_app_id)
+                assert launched.result == "OK", (
+                    f"Unexpected launch result: {launched.result!r}"
+                )
+                boundary_frame = wait_for_stable(
+                    "stable running screen for the 32-character app",
+                    streaming_api.front_frame,
+                    lambda frame: frame.digest(),
+                    predicate=lambda frame: (
+                        frame.digest() != initial_frame.digest()
+                    ),
+                    stable_samples=4,
+                    timeout=5,
+                    interval=0.2,
+                )
+                boundary_frame.attach("32-character app launch result")
+                assert boundary_frame.digest() == control_frame.digest(), (
+                    "The maximum-length app did not reach the running screen: "
+                    f"control={control_frame.digest()}, "
+                    f"boundary={boundary_frame.digest()}"
+                )
+
+            with allure.step("Stop the boundary-length application"):
+                stopped = apps_api.quit()
+                assert stopped.result == "OK", (
+                    f"Unexpected quit result: {stopped.result!r}"
+                )
+                _wait_for_launcher_exit(apps_api)
+        finally:
+            apps_api.quit_raw()
+            apps_api.delete_app_raw(control_app_id)
+            apps_api.delete_app_raw(max_length_app_id)
+
+    @allure.title("POST /api/apps/launch replaces a running JS app")
+    def test_launch_replaces_running_app(
+        self,
+        apps_api: AppsAPI,
+        storage_api: StorageAPI,
+    ):
+        first_app_id = f"test.{uuid.uuid4().hex[:12]}"
+        second_app_id = f"test.{uuid.uuid4().hex[:12]}"
+        first_token = uuid.uuid4().hex
+        second_token = uuid.uuid4().hex
+        first_storage_path = _local_storage_path(first_app_id)
+        second_storage_path = _local_storage_path(second_app_id)
+
+        try:
+            with allure.step("Install two observable JavaScript apps"):
+                first_storage_path = _install_observable_app(
+                    apps_api,
+                    storage_api,
+                    first_app_id,
+                    first_token,
+                )
+                second_storage_path = _install_observable_app(
+                    apps_api,
+                    storage_api,
+                    second_app_id,
+                    second_token,
+                )
+
+            with allure.step("Launch the first application"):
+                first_launch = apps_api.launch(first_app_id)
+                assert first_launch.result == "OK", (
+                    f"Unexpected first launch result: {first_launch.result!r}"
+                )
+                first_payload = _wait_for_launch_marker(
+                    storage_api,
+                    first_storage_path,
+                    first_token,
+                )
+                assert first_payload["data"][
+                    "integration_launch_count"
+                ] == "1", f"Unexpected first launch: {first_payload!r}"
+
+            with allure.step("Replace it with the second application"):
+                second_launch = apps_api.launch(second_app_id)
+                assert second_launch.result == "OK", (
+                    "Unexpected replacement launch result: "
+                    f"{second_launch.result!r}"
+                )
+                second_payload = _wait_for_launch_marker(
+                    storage_api,
+                    second_storage_path,
+                    second_token,
+                )
+                assert second_payload["data"][
+                    "integration_launch_count"
+                ] == "1", f"Unexpected replacement launch: {second_payload!r}"
+
+                first_payload = _read_local_storage(
+                    storage_api,
+                    first_storage_path,
+                )
+                assert first_payload is not None
+                assert first_payload["data"][
+                    "integration_launch_count"
+                ] == "1", (
+                    "The first application was unexpectedly relaunched: "
+                    f"{first_payload!r}"
+                )
+
+            with allure.step("Quit the replacement application"):
+                stopped = apps_api.quit()
+                assert stopped.result == "OK", (
+                    f"Unexpected quit result: {stopped.result!r}"
+                )
+                _wait_for_launcher_exit(apps_api)
+        finally:
+            _cleanup_observable_app(
+                apps_api,
+                storage_api,
+                first_app_id,
+                first_storage_path,
+            )
+            _cleanup_observable_app(
+                apps_api,
+                storage_api,
+                second_app_id,
+                second_storage_path,
             )
 
     @allure.title("An installed application is available to launch")
