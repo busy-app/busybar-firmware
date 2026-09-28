@@ -10,7 +10,6 @@
 
 #define TAG "Audio"
 
-#define AUDIO_DEBUG
 #ifdef AUDIO_DEBUG
 #define AUDIO_TRACE(...) FURI_LOG_D(TAG, __VA_ARGS__)
 #else
