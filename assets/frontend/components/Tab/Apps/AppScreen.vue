@@ -13,7 +13,6 @@
 
     <template #actions>
       <UButton
-        v-if="updatable"
         :data-id="`apps-section-${appId}-update-button`"
         label="Update app"
         icon="i-bi-upload"
@@ -50,7 +49,6 @@
 defineProps<{
   appId: string;
   title: string;
-  updatable?: boolean;
 }>();
 
 const emit = defineEmits<{

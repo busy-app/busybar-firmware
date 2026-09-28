@@ -24,11 +24,19 @@
       />
     </div>
 
+    <TabAppsSettingsGeolocation
+      v-else-if="field.type === 'geolocation'"
+      :model-value="values[key] as AppSettingsGeolocationValue"
+      :data-id="`app-settings-field-${key}`"
+      :label="field.label"
+      :default-value="field.default"
+      @update:model-value="values[key] = $event"
+    />
+
     <div
       v-else
       :data-id="`app-settings-field-${key}`"
-      class="flex gap-4 rounded-xl bg-accented/25 p-4 dark:bg-elevated/75"
-      :class="field.type === 'geolocation' ? 'flex-col' : 'items-center'"
+      class="flex items-center gap-4 rounded-xl bg-accented/25 p-4 dark:bg-elevated/75"
     >
       <div class="min-w-0 flex-1">
         <div class="truncate">{{ field.label }}</div>
@@ -107,13 +115,6 @@
         type="time"
         :step="(values[key] as string).length > 5 ? 1 : 60"
         class="w-36 shrink-0"
-        @update:model-value="values[key] = $event"
-      />
-
-      <TabAppsSettingsGeolocation
-        v-else-if="field.type === 'geolocation'"
-        :model-value="values[key] as AppSettingsGeolocationValue"
-        :default-value="field.default"
         @update:model-value="values[key] = $event"
       />
     </div>

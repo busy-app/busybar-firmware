@@ -2,7 +2,6 @@
   <TabAppsAppScreen
     :app-id="app.id"
     :title="app.name"
-    updatable
     @back="emit('back')"
     @update="emit('update')"
   >
