@@ -4,7 +4,7 @@
 
 #include <js_app/js_app_common.h>
 
-#define API_QUEUE_TIMEOUT_TICKS (1000)
+#define API_QUEUE_TIMEOUT_TICKS (50)
 #define RECORD_TIMEOUT_TICKS    (50)
 
 static bool js_app_launcher_send_api_message(
