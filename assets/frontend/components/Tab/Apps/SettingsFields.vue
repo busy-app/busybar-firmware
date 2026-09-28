@@ -46,6 +46,13 @@
         >
           {{ field.description }}
         </div>
+        <div
+          v-if="errors[key]"
+          :data-id="`app-settings-field-${key}-error`"
+          class="text-sm text-error"
+        >
+          {{ errors[key] }}
+        </div>
       </div>
 
       <USwitch
@@ -68,7 +75,8 @@
         v-else-if="field.type === 'string'"
         :model-value="values[key] as string"
         :type="field.sensitive ? 'password' : 'text'"
-        :maxlength="field.max_length"
+        :color="errors[key] ? 'error' : undefined"
+        :highlight="!!errors[key]"
         class="w-56 shrink-0"
         @update:model-value="values[key] = $event"
       />
@@ -124,9 +132,21 @@
 <script setup lang="ts">
 import type { AppSettingsGeolocationValue, AppSettingsNode } from '@/stores/appsStore';
 
-defineProps<{
+const props = defineProps<{
   fields: Record<string, AppSettingsNode>;
 }>();
 
 const values = defineModel<Record<string, unknown>>('values', { required: true });
+
+const errors = computed(() => {
+  const result: Record<string, string | undefined> = {};
+
+  for (const [key, field] of Object.entries(props.fields)) {
+    if (field.type === 'string') {
+      result[key] = getStringSettingError(field, values.value[key]);
+    }
+  }
+
+  return result;
+});
 </script>

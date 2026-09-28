@@ -103,6 +103,8 @@ const schema = ref<AppSettingsSchema>();
 const settings = ref<AppSettingsDocument>();
 
 let savedSettings = '';
+let isSaving = false;
+let isSaveQueued = false;
 let saveTimeout: ReturnType<typeof setTimeout> | undefined;
 let savedTimeout: ReturnType<typeof setTimeout> | undefined;
 
@@ -123,10 +125,16 @@ async function loadSettings () {
   }
 }
 
+// Each request replaces the whole document, so overlapping saves could land out of order.
 async function saveSettings () {
   saveTimeout = undefined;
 
-  if (!settings.value) {
+  if (isSaving) {
+    isSaveQueued = true;
+    return;
+  }
+
+  if (!settings.value || (schema.value && hasInvalidAppSettings(schema.value.fields, settings.value.values))) {
     return;
   }
 
@@ -135,8 +143,10 @@ async function saveSettings () {
     return;
   }
 
+  isSaving = true;
+
   try {
-    await appsStore.setSettings(props.app.id, settings.value);
+    await appsStore.setSettings(props.app.id, JSON.parse(serialized));
     savedSettings = serialized;
     saved.value = JSON.stringify(settings.value) === serialized;
 
@@ -146,6 +156,13 @@ async function saveSettings () {
     }, SAVED_INDICATOR_DURATION);
   } catch (error) {
     await handleHTTPError(error, 'Couldn\'t save app settings');
+  } finally {
+    isSaving = false;
+
+    if (isSaveQueued) {
+      isSaveQueued = false;
+      saveSettings();
+    }
   }
 }
 
@@ -153,6 +170,7 @@ async function deleteApp () {
   deleting.value = true;
   clearTimeout(saveTimeout);
   saveTimeout = undefined;
+  isSaveQueued = false;
 
   try {
     await appsStore.removeApp(props.app.id);

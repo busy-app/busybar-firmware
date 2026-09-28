@@ -125,10 +125,43 @@ const sending = ref({
   brightness: false
 });
 
-const pending = ref({
-  audio: false,
-  brightness: false
-});
+// One request in flight per control; only the latest requested value is sent next.
+function createSerialSender<T> (key: keyof typeof sending.value, send: (value: T) => Promise<unknown>) {
+  let queued: { value: T } | null = null;
+
+  async function drain () {
+    sending.value[key] = true;
+    let lastSent: { value: T } | null = null;
+
+    try {
+      while (queued) {
+        const { value } = queued;
+        queued = null;
+
+        if (lastSent && lastSent.value === value) {
+          continue;
+        }
+
+        lastSent = { value };
+        await send(value);
+        await new Promise(resolve => setTimeout(resolve, Number(configStore.get('sliderDebounceDelay'))));
+      }
+    } finally {
+      sending.value[key] = false;
+    }
+  }
+
+  return (value: T) => {
+    queued = { value };
+
+    if (!sending.value[key]) {
+      drain();
+    }
+  };
+}
+
+const sendAudioVolume = createSerialSender<number>('audio', volume => audioStore.setAudioVolume(volume));
+const sendDisplayBrightness = createSerialSender<number | 'auto'>('brightness', value => brightnessStore.setDisplayBrightness({ value }));
 
 async function refreshAudioVolume () {
   if (sending.value.audio) {
@@ -153,7 +186,12 @@ const displayedVolumeNumber = computed(() => {
   return nextVolumeNumber.value ?? volumeNumber.value;
 });
 
+// Only external changes matter here; our own in-flight writes must not override local mute state.
 watch(volumeNumber, (newValue, oldValue) => {
+  if (sending.value.audio) {
+    return;
+  }
+
   if (mute.value.isMuted) {
     if (newValue === 0) {
       return;
@@ -164,10 +202,6 @@ watch(volumeNumber, (newValue, oldValue) => {
 
   if (newValue > 0) {
     mute.value.volumeBeforeMute = newValue;
-  }
-
-  if (sending.value.audio) {
-    return;
   }
 
   if (newValue !== oldValue || nextVolumeNumber.value === undefined) {
@@ -196,46 +230,20 @@ async function onChangeAudioSlider () {
   setAudioVolume();
 }
 
-async function setAudioVolume () {
+function setAudioVolume () {
   if (nextVolumeNumber.value === undefined) {
     return;
   }
 
-  if (sending.value.audio) {
-    pending.value.audio = true;
-    return;
-  }
-
   mute.value.isMuted = false;
-
-  sending.value.audio = true;
-  const v = nextVolumeNumber.value;
-
-  await audioStore.setAudioVolume(v);
-  audioStore.audio = { volume: v };
-
-  setTimeout(() => {
-    sending.value.audio = false;
-
-    if (!pending.value.audio) {
-      return;
-    }
-    pending.value.audio = false;
-
-    if (nextVolumeNumber.value !== v) {
-      setAudioVolume();
-    }
-  }, Number(configStore.get('sliderDebounceDelay')));
+  sendAudioVolume(nextVolumeNumber.value);
 }
 
-async function setVolumeToMute () {
-  sending.value.audio = true;
-  pending.value.audio = false;
-  mute.value.volumeBeforeMute = volumeNumber.value;
+function setVolumeToMute () {
+  mute.value.volumeBeforeMute = nextVolumeNumber.value ?? volumeNumber.value;
   nextVolumeNumber.value = mute.value.volumeBeforeMute;
   mute.value.isMuted = true;
-  await audioStore.setAudioVolume(0);
-  sending.value.audio = false;
+  sendAudioVolume(0);
 }
 
 async function refreshDisplayBrightness () {
@@ -270,51 +278,17 @@ async function onChangeBrightnessSlider () {
   setDisplayBrightness();
 }
 
-async function setDisplayBrightness () {
+function setDisplayBrightness () {
   if (nextBrightnessNumber.value === undefined) {
     return;
   }
 
-  if (sending.value.brightness) {
-    pending.value.brightness = true;
-    return;
-  }
-
-  sending.value.brightness = true;
-  const b = nextBrightnessNumber.value;
-
-  await brightnessStore.setDisplayBrightness({
-    value: b
-  });
-  brightnessStore.displayBrightness = {
-    value: b
-  };
-
-  setTimeout(() => {
-    sending.value.brightness = false;
-
-    if (!pending.value.brightness) {
-      return;
-    }
-    pending.value.brightness = false;
-
-    if (nextBrightnessNumber.value !== b) {
-      setDisplayBrightness();
-    }
-  }, Number(configStore.get('sliderDebounceDelay')));
+  sendDisplayBrightness(nextBrightnessNumber.value);
 }
 
-async function setBrightnessToAuto () {
-  sending.value.brightness = true;
-  pending.value.brightness = false;
-  await brightnessStore.setDisplayBrightness({
-    value: 'auto'
-  });
-  brightnessStore.displayBrightness = {
-    value: 'auto'
-  };
+function setBrightnessToAuto () {
   nextBrightnessNumber.value = 50;
-  sending.value.brightness = false;
+  sendDisplayBrightness('auto');
 }
 
 const refreshInterval = ref<NodeJS.Timeout | null>(null);

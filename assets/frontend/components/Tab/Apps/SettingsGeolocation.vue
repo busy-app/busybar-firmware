@@ -115,7 +115,7 @@ function setAutoDetect (enabled: boolean) {
 function setFixedLocation (name: string, lat: number, lon: number) {
   value.value = {
     mode: 'fixed',
-    name: name.slice(0, NAME_MAX_LENGTH),
+    name: truncateUtf8(name, NAME_MAX_LENGTH),
     lat,
     lon
   };

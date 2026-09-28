@@ -4,7 +4,7 @@ import {
   getVideoFrameCacheSize,
   seekVideo
 } from '@/util/videoFrames';
-import { VIDEO_METADATA_TIMEOUT_MS, VIDEO_SEEK_TIMEOUT_MS } from '@/util/videoLimits';
+import { VIDEO_MAX_FILE_BYTES, VIDEO_METADATA_TIMEOUT_MS, VIDEO_SEEK_TIMEOUT_MS } from '@/util/videoLimits';
 import type { FrameCache } from '@/util/videoFrames';
 import { getFileExtension } from './types';
 import type { DecodeFramesOptions, FrameSourceAdapter, FrameSourceHandle } from './types';
@@ -195,6 +195,7 @@ async function decodeVideo (handle: FrameSourceHandle, options: DecodeFramesOpti
 export const videoAdapter: FrameSourceAdapter = {
   id: 'video',
   label: 'Video',
+  maxFileBytes: VIDEO_MAX_FILE_BYTES,
   accepts: file => file.type.startsWith('video/') || VIDEO_EXTENSIONS.has(getFileExtension(file)),
   open: openVideo,
   decode: decodeVideo

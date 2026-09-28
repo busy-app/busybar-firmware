@@ -9,7 +9,7 @@ export interface DecodedFrameSet {
 }
 
 type DecodeRequest
-  = | { type: 'anim'; buffer: ArrayBuffer }
+  = | { type: 'anim'; buffer: ArrayBuffer; maxFrames?: number }
     | { type: 'image'; buffer: ArrayBuffer; mime: string };
 
 type WorkerFrame = { width: number; height: number; durationMs: number; buffer: ArrayBuffer };
@@ -73,8 +73,8 @@ function getWorker (): Worker | null {
   return worker;
 }
 
-function decodeAnimOnMainThread (buffer: ArrayBuffer): DecodedFrameSet {
-  const animation = decodeAnimation(buffer);
+function decodeAnimOnMainThread (buffer: ArrayBuffer, maxFrames?: number): DecodedFrameSet {
+  const animation = decodeAnimation(buffer, maxFrames);
   const frameMs = 1000 / Math.max(1, animation.fps);
 
   return {
@@ -90,7 +90,7 @@ export function decodeFramesInWorker (request: DecodeRequest): Promise<DecodedFr
 
   if (!activeWorker) {
     if (request.type === 'anim') {
-      return Promise.resolve(decodeAnimOnMainThread(request.buffer));
+      return Promise.resolve(decodeAnimOnMainThread(request.buffer, request.maxFrames));
     }
 
     return Promise.reject(new Error('Image decoding requires a worker in this browser'));
@@ -104,8 +104,8 @@ export function decodeFramesInWorker (request: DecodeRequest): Promise<DecodedFr
   });
 }
 
-export function decodeAnimationFrames (buffer: ArrayBuffer) {
-  return decodeFramesInWorker({ type: 'anim', buffer });
+export function decodeAnimationFrames (buffer: ArrayBuffer, maxFrames?: number) {
+  return decodeFramesInWorker({ type: 'anim', buffer, maxFrames });
 }
 
 export function decodeImageFrames (buffer: ArrayBuffer, mime: string) {

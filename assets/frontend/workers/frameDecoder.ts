@@ -1,10 +1,12 @@
-import { decompressFrames, parseGIF } from 'gifuct-js';
+import { decompressFrame, parseGIF } from 'gifuct-js';
 import { decodeAnimation } from '../util/anim2seq';
 import { getVideoFrameCacheSize } from '../util/videoFrames';
-import { VIDEO_SOURCE_MAX_FRAMES } from '../util/videoLimits';
+import { VIDEO_SOURCE_MAX_FRAME_PIXELS, VIDEO_SOURCE_MAX_FRAMES } from '../util/videoLimits';
+
+type GifImageFrame = Parameters<typeof decompressFrame>[0];
 
 type DecodeRequest
-  = | { id: number; type: 'anim'; buffer: ArrayBuffer }
+  = | { id: number; type: 'anim'; buffer: ArrayBuffer; maxFrames?: number }
     | { id: number; type: 'image'; buffer: ArrayBuffer; mime: string };
 
 type DecodedFrameMessage = {
@@ -31,8 +33,8 @@ function toMessageFrame (imageData: ImageData, durationMs: number): DecodedFrame
   };
 }
 
-async function decodeAnim (buffer: ArrayBuffer) {
-  const animation = decodeAnimation(buffer);
+async function decodeAnim (buffer: ArrayBuffer, maxFrames?: number) {
+  const animation = decodeAnimation(buffer, maxFrames);
   const frameMs = 1000 / Math.max(1, animation.fps);
 
   return {
@@ -89,17 +91,24 @@ function decodeGif (buffer: ArrayBuffer) {
   const gif = parseGIF(buffer);
   const width = gif.lsd.width;
   const height = gif.lsd.height;
-  const parsedFrames = decompressFrames(gif, true);
+  const imageFrames = gif.frames.filter((frame): frame is GifImageFrame => 'image' in frame && !!frame.image);
 
-  if (!width || !height || !parsedFrames.length) {
+  if (!width || !height || !imageFrames.length) {
     throw new Error('GIF has no decodable frames');
   }
 
-  if (parsedFrames.length > VIDEO_SOURCE_MAX_FRAMES) {
-    throw new Error(`This GIF has ${parsedFrames.length} frames. The limit is ${VIDEO_SOURCE_MAX_FRAMES}.`);
+  if (imageFrames.length > VIDEO_SOURCE_MAX_FRAMES) {
+    throw new Error(`This GIF has ${imageFrames.length} frames. The limit is ${VIDEO_SOURCE_MAX_FRAMES}.`);
   }
 
-  const size = getVideoFrameCacheSize(width, height, parsedFrames.length);
+  const isOversized = width * height > VIDEO_SOURCE_MAX_FRAME_PIXELS
+    || imageFrames.some(({ image: { descriptor } }) => descriptor.width * descriptor.height > VIDEO_SOURCE_MAX_FRAME_PIXELS);
+
+  if (isOversized) {
+    throw new Error('This GIF is too large to decode. Scale it down and try again.');
+  }
+
+  const size = getVideoFrameCacheSize(width, height, imageFrames.length);
   const scale = size.width === width && size.height === height
     ? null
     : createGifScaler(width, height, size.width, size.height);
@@ -109,7 +118,9 @@ function decodeGif (buffer: ArrayBuffer) {
   const frames: DecodedFrameMessage[] = [];
 
   // gifuct yields per-frame patches; compositing them and applying disposal is up to us.
-  parsedFrames.forEach(frame => {
+  // Decompress one frame at a time so only a single patch is alive.
+  imageFrames.forEach(imageFrame => {
+    const frame = decompressFrame(imageFrame, gif.gct, true);
     const { left, top, width: patchWidth, height: patchHeight } = frame.dims;
     const previous = frame.disposalType === GIF_DISPOSAL_RESTORE_PREVIOUS ? canvas.slice() : null;
 
@@ -162,7 +173,7 @@ self.onmessage = async (event: MessageEvent<DecodeRequest>) => {
 
   try {
     const result = request.type === 'anim'
-      ? await decodeAnim(request.buffer)
+      ? await decodeAnim(request.buffer, request.maxFrames)
       : await decodeImage(request.buffer, request.mime);
 
     const response: DecodeResponse = { id: request.id, ok: true, ...result };

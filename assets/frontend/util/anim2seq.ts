@@ -51,7 +51,7 @@ export function getAnimationDisplayFrameCount (animation: DecodedAnimation): num
   return animation.frames.reduce((total, frame) => total + frame.holdFrames, 0);
 }
 
-export function decodeAnimation (buffer: ArrayBuffer): DecodedAnimation {
+export function decodeAnimation (buffer: ArrayBuffer, maxFrames = Infinity): DecodedAnimation {
   const bytes = new Uint8Array(buffer);
 
   if (bytes.length < 8) {
@@ -61,14 +61,20 @@ export function decodeAnimation (buffer: ArrayBuffer): DecodedAnimation {
   const signature = new TextDecoder().decode(bytes.subarray(0, 8));
 
   if (signature === ANIM_FILE_SIGNATURE) {
-    return decodeInterframeAnimation(bytes);
+    return decodeInterframeAnimation(bytes, maxFrames);
   }
 
   if (signature === LEGACY_SIGNATURE) {
-    return decodeLegacyAnimation(bytes);
+    return decodeLegacyAnimation(bytes, maxFrames);
   }
 
   throw new Error('Not an animation file');
+}
+
+function assertFrameCount (frameCount: number, maxFrames: number) {
+  if (frameCount > maxFrames) {
+    throw new Error(`This animation has ${frameCount} frames. The limit is ${maxFrames}.`);
+  }
 }
 
 function readColorFormat (value: number): ColorFormat {
@@ -87,7 +93,7 @@ function getPackedLength (colorFormat: ColorFormat, pixelCount: number) {
   return colorFormat === ColorFormat.Gray4 ? Math.ceil(pixelCount / 2) : pixelCount * getBlockSize(colorFormat);
 }
 
-function decodeInterframeAnimation (bytes: Uint8Array): DecodedAnimation {
+function decodeInterframeAnimation (bytes: Uint8Array, maxFrames: number): DecodedAnimation {
   if (bytes.length < ANIM_FILE_HEADER_LENGTH) {
     throw new Error('File is too short to be an animation');
   }
@@ -106,6 +112,8 @@ function decodeInterframeAnimation (bytes: Uint8Array): DecodedAnimation {
   if (framesEnd > bytes.length) {
     throw new Error('Animation file is truncated');
   }
+
+  assertFrameCount(frameCount, maxFrames);
 
   const pixelCount = width * height;
   // Frames carry only changed pixels, applied onto a canvas that persists between frames.
@@ -398,7 +406,7 @@ function unpackPixels (packed: Uint8Array, colorFormat: ColorFormat): Uint8Array
   return output;
 }
 
-function decodeLegacyAnimation (bytes: Uint8Array): DecodedAnimation {
+function decodeLegacyAnimation (bytes: Uint8Array, maxFrames: number): DecodedAnimation {
   if (bytes.length < LEGACY_HEADER_LENGTH) {
     throw new Error('File is too short to be an animation');
   }
@@ -417,6 +425,8 @@ function decodeLegacyAnimation (bytes: Uint8Array): DecodedAnimation {
   if (framesEnd > bytes.length) {
     throw new Error('Animation file is truncated');
   }
+
+  assertFrameCount(fileFrameCount, maxFrames);
 
   const pixelCount = width * height;
   const frames: AnimationFrame[] = [];

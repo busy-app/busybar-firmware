@@ -1,5 +1,6 @@
 import { createFrameScaler, getVideoFrameCacheSize, imageDataToCanvas, resampleTimedFrames } from '@/util/videoFrames';
 import type { FrameCache } from '@/util/videoFrames';
+import { FRAME_SOURCE_MAX_FILE_BYTES, VIDEO_SOURCE_MAX_FRAMES } from '@/util/videoLimits';
 import { decodeAnimationFrames, decodeImageFrames } from './decoderClient';
 import type { DecodedFrameSet } from './decoderClient';
 import { getFileExtension } from './types';
@@ -86,14 +87,16 @@ async function decodeFrames (handle: FrameSourceHandle, options: DecodeFramesOpt
 export const animAdapter: FrameSourceAdapter = {
   id: 'anim',
   label: 'BUSY animation',
+  maxFileBytes: FRAME_SOURCE_MAX_FILE_BYTES,
   accepts: file => getFileExtension(file) === 'anim',
-  open: async file => toHandle('anim', await decodeAnimationFrames(await file.arrayBuffer())),
+  open: async file => toHandle('anim', await decodeAnimationFrames(await file.arrayBuffer(), VIDEO_SOURCE_MAX_FRAMES)),
   decode: decodeFrames
 };
 
 export const imageAdapter: FrameSourceAdapter = {
   id: 'image',
   label: 'Animated image',
+  maxFileBytes: FRAME_SOURCE_MAX_FILE_BYTES,
   accepts: file => {
     const mime = file.type || IMAGE_MIME_BY_EXTENSION[getFileExtension(file)];
 

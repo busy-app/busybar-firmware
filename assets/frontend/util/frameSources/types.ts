@@ -27,6 +27,7 @@ export interface DecodeFramesOptions {
 export interface FrameSourceAdapter {
   id: string;
   label: string;
+  maxFileBytes: number;
   accepts: (file: File) => boolean;
   open: (file: File) => Promise<FrameSourceHandle>;
   decode: (handle: FrameSourceHandle, options: DecodeFramesOptions) => Promise<FrameCache>;

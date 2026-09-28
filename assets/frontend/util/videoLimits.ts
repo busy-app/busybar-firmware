@@ -9,8 +9,12 @@ export const VIDEO_MAX_DURATION_SECONDS = 15;
 
 export const VIDEO_MAX_FILE_BYTES = 4 * 1024 * 1024 * 1024;
 
+// GIF and .anim are read into memory whole, unlike streamed video.
+export const FRAME_SOURCE_MAX_FILE_BYTES = 100 * 1024 * 1024;
+
 // Decoding materializes every source frame before resampling, so cap it up front.
 export const VIDEO_SOURCE_MAX_FRAMES = 2000;
+export const VIDEO_SOURCE_MAX_FRAME_PIXELS = 4096 * 4096;
 
 export const VIDEO_FRAME_CACHE_MEMORY_BUDGET = 64 * 1024 * 1024;
 export const VIDEO_FRAME_CACHE_MAX_WIDTH = 720;

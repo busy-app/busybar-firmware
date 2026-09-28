@@ -24,7 +24,7 @@
         :accept="FRAME_SOURCE_ACCEPT"
         class="w-full rounded-xl"
         label="Upload video, GIF or .anim"
-        :description="`Drag and drop to upload. Files up to ${bytesToSize(VIDEO_MAX_FILE_BYTES)}.`"
+        :description="`Drag and drop to upload. Videos up to ${bytesToSize(VIDEO_MAX_FILE_BYTES)}, GIF and .anim up to ${bytesToSize(FRAME_SOURCE_MAX_FILE_BYTES)}.`"
         :ui="{
           base: 'cursor-pointer',
           icon: 'size-6',
@@ -269,6 +269,7 @@
 <script setup lang="ts">
 import { getCoverCropRect, sliceFrameCache } from '@/util/videoFrames';
 import {
+  FRAME_SOURCE_MAX_FILE_BYTES,
   getVideoMaxDurationSeconds,
   VIDEO_CROP_MIN_SCALE,
   VIDEO_DEFAULT_FPS,
@@ -579,15 +580,15 @@ async function openFile (file: File, restoreFrom?: VideoShapeSource) {
   resetPreview();
   fileError.value = null;
 
-  if (file.size > VIDEO_MAX_FILE_BYTES) {
-    fileError.value = `This file is ${bytesToSize(file.size)}. The limit is ${bytesToSize(VIDEO_MAX_FILE_BYTES)}.`;
-    return;
-  }
-
   const resolvedAdapter = resolveFrameSourceAdapter(file);
 
   if (!resolvedAdapter) {
     fileError.value = 'Unsupported file. Use a video, a GIF or a .anim file.';
+    return;
+  }
+
+  if (file.size > resolvedAdapter.maxFileBytes) {
+    fileError.value = `This file is ${bytesToSize(file.size)}. The limit for this file type is ${bytesToSize(resolvedAdapter.maxFileBytes)}.`;
     return;
   }
 

@@ -66,7 +66,7 @@ function setup () {
   }
 }
 
-watch(() => props.animation, setup);
+watch(() => props.animation, setup, { flush: 'post' });
 
 watch(() => props.frame === null, setup);
 
