@@ -44,7 +44,8 @@ typedef enum {
  * @param[in] app_id zero-terminated string containing the ID of the app to be started
  * @param[in] start_mode mode to be used to start the JS application
  * @returns @c JsAppLauncherStatusOk the application was successfully launched
- * @returns @c JsAppLauncherStatusError failed to launch the application
+ * @returns @c JsAppLauncherStatusInvalidAppId invalid application ID
+ * @returns @c JsAppLauncherStatusTimeout operation timed out
  */
 JsAppLauncherStatus js_app_launcher_start(const char* app_id, JsAppLauncherStartMode start_mode);
 
@@ -54,7 +55,9 @@ JsAppLauncherStatus js_app_launcher_start(const char* app_id, JsAppLauncherStart
  * The start menu will not be shown upon exit.
  *
  * @param[in] stop_mode mode to be used to exit from the JS application
- * @returns @c true if a JS app was running and could be stopped, @c false otherwise
+ * @returns @c JsAppLauncherStatusOk the application was successfully stopped
+ * @returns @c JsAppLauncherStatusNotRunning no application is running
+ * @returns @c JsAppLauncherStatusTimeout operation timed out
  */
 JsAppLauncherStatus js_app_launcher_stop(JsAppLauncherStopMode stop_mode);
 
