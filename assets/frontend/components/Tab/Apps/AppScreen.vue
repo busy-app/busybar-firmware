@@ -38,7 +38,7 @@
 
       <UButton
         :data-id="`apps-section-${appId}-${running ? 'stop' : 'start'}-button`"
-        :label="running ? 'Stop' : 'Start on BUSY Bar'"
+        :label="running ? 'Stop' : 'Start'"
         :icon="running ? 'i-bi-control-stop' : 'i-bi-control-play'"
         color="neutral"
         variant="solid"
