@@ -215,13 +215,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/AppSettingsDocument"
         "400":
-          description: Invalid application identifier
+          description: Invalid app_id parameter value
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
         "404":
-          description: Unknown application or no settings
+          description: Unknown or invalid application, or no settings
           content:
             application/json:
               schema:
@@ -269,13 +269,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
         "400":
-          description: Invalid application identifier or document
+          description: Invalid app_id parameter value or invalid document
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
         "404":
-          description: Unknown application or no settings
+          description: Unknown or invalid application, or no settings
           content:
             application/json:
               schema:
@@ -314,13 +314,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
         "400":
-          description: Invalid application identifier
+          description: Invalid app_id parameter value
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
         "404":
-          description: Unknown application or no settings
+          description: Unknown or invalid application, or no settings
           content:
             application/json:
               schema:
