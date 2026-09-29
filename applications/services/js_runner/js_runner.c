@@ -446,7 +446,7 @@ JsRunnerContextInitResult js_runner_context_alloc(
     size_t heap_size,
     JsRunnerConsoleOutCallback console_write_cb,
     void* console_write_context) {
-    if(!js_app_registry_is_valid_app_id(app_id)) {
+    if(!js_app_is_valid_id(app_id)) {
         return (JsRunnerContextInitResult){
             .error = JsRunnerErrorInvalidAppId,
             .handle = NULL,

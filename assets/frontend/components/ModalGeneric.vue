@@ -65,6 +65,8 @@
             v-if="props.primaryActionProps"
             v-bind="props.primaryActionProps"
             :data-id="`${props.dataId}-primary-action`"
+            :type="props.form ? 'submit' : props.primaryActionProps.type"
+            :form="props.form"
             :color="props.primaryActionProps.color || 'neutral'"
             size="lg"
             class="min-w-20 justify-center"
@@ -104,6 +106,8 @@
             v-if="props.primaryActionProps"
             v-bind="props.primaryActionProps"
             :data-id="`${props.dataId}-primary-action`"
+            :type="props.form ? 'submit' : props.primaryActionProps.type"
+            :form="props.form"
             :color="props.primaryActionProps.color || 'neutral'"
             size="lg"
             class="min-w-20 justify-center"
@@ -127,5 +131,6 @@ const props = defineProps<{
   wide?: boolean;
   stickyActions?: boolean;
   noActions?: boolean;
+  form?: string;
 }>();
 </script>

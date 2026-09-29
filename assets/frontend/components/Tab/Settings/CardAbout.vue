@@ -23,7 +23,7 @@
         />
         <div class="font-medium">Firmware</div>
       </div>
-      <ContentList :items="firmwareContent" />
+      <FirmwareInfoList />
     </div>
 
     <div class="flex flex-col gap-4">
@@ -43,8 +43,6 @@
 const deviceStore = useDeviceStore();
 const wifiStore = useWifiStore();
 
-const firmware = computed(() => deviceStore.deviceStatus?.firmware);
-const system = computed(() => deviceStore.deviceStatus?.system);
 const device = computed(() => deviceStore.deviceStatus?.device);
 
 const productionDate = computed(() => {
@@ -114,43 +112,6 @@ const generalContent = computed(() => [
     {
       title: 'RAM size',
       value: '2.5 MB'
-    }
-  ]
-]);
-
-const firmwareContent = computed(() => [
-  [
-    {
-      title: 'Version',
-      value: firmware.value?.version,
-      loading: !firmware.value
-    },
-    {
-      title: 'Branch',
-      value: firmware.value?.branch,
-      loading: !firmware.value
-    },
-    {
-      title: 'Commit hash',
-      value: firmware.value?.commit_hash,
-      loading: !firmware.value
-    }
-  ],
-  [
-    {
-      title: 'Build date',
-      value: firmware.value?.build_date,
-      loading: !firmware.value
-    },
-    {
-      title: 'API version',
-      value: deviceStore.apiVersion?.api_semver,
-      loading: !deviceStore.apiVersion
-    },
-    {
-      title: 'Uptime',
-      value: system.value?.uptime ? system.value.uptime.slice(0, system.value.uptime.lastIndexOf(' ')) : undefined,
-      loading: !system.value
     }
   ]
 ]);

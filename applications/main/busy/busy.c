@@ -186,8 +186,6 @@ static BusyApp* busy_alloc(const char* arg) {
         busy_api_queue_callback,
         instance);
 
-    audio_enable(instance->audio);
-
     furi_record_create(RECORD_BUSY_APP, instance);
 
     if(instance->run_mode == BusyAppRunModeNormal) {
@@ -201,8 +199,6 @@ static void busy_free(BusyApp* instance) {
     busy_api_abort_pending_messages(instance);
 
     furi_record_destroy(RECORD_BUSY_APP);
-
-    audio_disable(instance->audio);
 
     busy_timer_stop(instance->busy_timer);
 

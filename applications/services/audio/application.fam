@@ -7,7 +7,10 @@ App(
     stack_size=2 * 1024,
     order=100,
     provides=["cli_audio"],
-    sources=["audio.c"],
+    sources=[
+        "audio.c",
+        "audio_api.c",
+    ],
 )
 
 App(
