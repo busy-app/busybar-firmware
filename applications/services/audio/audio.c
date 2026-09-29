@@ -251,8 +251,7 @@ static bool audio_stop_api_message_handler(Audio* instance, AudioMessage* api_me
         success = true;
 
     } else if(furi_event_loop_timer_is_running(instance->warmup_timer)) {
-        // SAI never started; cancel the warmup and signal play end immediately
-        furi_event_loop_timer_stop(instance->warmup_timer);
+        // SAI never started; signal play end immediately but continue with warmup
         audio_disable_amplifier(instance);
 
         AudioEvent pub_event = {.type = AudioEventPlayEnd};
