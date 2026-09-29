@@ -151,7 +151,9 @@ Sound files are headerless raw PCM, mono, 44100 Hz, signed 16 bit little endian 
 
 The `audio` service (record `audio`) plays one file at a time through SAI1 with an 8192 sample ping-pong DMA buffer. A 100 ms fade-in applies at start and a 100 ms fade-out at stop. Playing a file while another plays fades the current one out first. There is no mixing.
 
-API: `audio_enable()` and `audio_disable()` are reference counted and control the amplifier with a 100 ms settle time. `audio_play_file(path)` requires at least one enable holder. `audio_stop()` stops playback. `audio_set_volume(0.0..1.0)` persists to `/ext/apps_data/audio/audio.json`. Events: `AudioEventVolumeUpdate`, `AudioEventPlayEnd`. CLI: `audio start <path>`, `audio stop`.
+The service switches the amplifier on by itself. The first play request after a quiet period waits 100 ms for the amplifier to warm up. The amplifier switches off 3 s after playback ends. The end of each file is padded with silence.
+
+API: `audio_play_file(path)`, `audio_stop()`, `audio_set_volume(0.0..1.0)` (persists to `/ext/apps_data/audio/audio.json`), `audio_get_volume()` and `audio_get_pubsub()`. Events: `AudioEventVolumeUpdate`, `AudioEventPlayEnd`. CLI: `audio start <path>`, `audio stop`.
 
 # Canvas (remote drawing)
 

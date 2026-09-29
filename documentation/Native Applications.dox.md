@@ -83,7 +83,7 @@ Each settings application, when called with a descriptor argument, fills a `Sett
 | Application | Type | Description |
 | --- | --- | --- |
 | `apps_menu` | `SYSTEM` | The APPS menu. Lists `clock` and, when the flag file `/ext/apps_data/apps_menu/js_apps_enabled` exists, every installed JavaScript application. Remembers `active_application` and relaunches it when the switch returns to APPS. |
-| `js_app_launcher` | `SYSTEM` | Start, Setup and Run screens for a JavaScript application. See @ref javascript-applications. |
+| `js_app_launcher` | `SYSTEM` | Start, Setup and Run screens for a JavaScript application. `POST /api/apps/launch` also starts it and skips the Start screen. See @ref javascript-applications. |
 | `message` | `SYSTEM` | Shows its argument as a status message. Used by the desktop to display application start errors. |
 | `updater` family | `SERVICE`, `STARTUP`, `CLICMD` | The updater service, the update UI hook, the update executor (recovery side), the `update` and `factory_reset` commands. See @ref updater. |
 | `tar_cli` | `CLICMD` | `tar` command |

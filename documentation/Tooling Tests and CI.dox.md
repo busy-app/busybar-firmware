@@ -80,7 +80,7 @@ An autouse health monitor probes `GET /api/version` before and after every test.
 | Directory | Coverage |
 | --- | --- |
 | `integration/cli/` | Configuration, diagnostics, `fetch` (including mutual TLS against a local server), JavaScript `fetch`, `localStorage` and input events, peripherals, power, shell, storage, submenus, system |
-| `integration/frontend/` | Every HTTP API area: account, JavaScript application install, list, delete and settings, assets and display screenshots against reference frames, BLE, busy timer, token authentication over USB and Wi-Fi, CORS for every documented method, display drawing and priorities, input, Matter, schema conformance with schemathesis against the served OpenAPI document, settings and tokens, state publisher, storage, streaming, system, update, web UI, Wi-Fi |
+| `integration/frontend/` | Every HTTP API area: account, JavaScript application install, list, delete, settings, launch and quit, assets and display screenshots against reference frames, BLE, busy timer, token authentication over USB and Wi-Fi, CORS for every documented method, display drawing and priorities, input, Matter, schema conformance with schemathesis against the served OpenAPI document, settings and tokens, state publisher, storage, streaming, system, update, web UI, Wi-Fi |
 | `integration/discovery/` | mDNS name, port, TXT records, re-announce on rename |
 | `integration/matter/` | Commissioning into a real Home Assistant (skipped without `HA_URL`) |
 | `integration/mqtt/` | Broker connectivity, cloud initiated unlink |

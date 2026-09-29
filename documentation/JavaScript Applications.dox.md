@@ -72,7 +72,7 @@ Parser: `lib/js_app/js_app_manifest.c`. The file must be 1 to 512 bytes.
 | Key | Type | Required | Rules | Default |
 | --- | --- | --- | --- | --- |
 | `format_version` | number | Yes | Must be 1. Other values log a warning. | |
-| `id` | string | Yes | Must equal the directory name. Pattern `^[a-zA-Z0-9_-][a-zA-Z0-9_.-]{0,31}$`. The manifest parser and the runtime both check it with `js_app_registry_is_valid_app_id()`. | |
+| `id` | string | Yes | Must equal the directory name. Pattern `^[a-zA-Z0-9_-][a-zA-Z0-9_.-]{0,31}$`. The manifest parser, the registry, the runtime and the apps API all check it with `js_app_is_valid_id()`. | |
 | `name` | string | Yes | Shown in the APPS menu and the navigation bar | |
 | `version` | string | Yes | `major.minor.patch` | |
 | `description` | string | No | | `""` |
@@ -142,6 +142,12 @@ Management endpoints:
 | `GET /api/apps/settings?app_id=<id>` | The settings document `{"version": N, "values": {...}}`. The first request writes the defaults. |
 | `PUT /api/apps/settings?app_id=<id>` | Replaces the document. Every field must be present and valid, and the version must match. The server drops unknown keys. |
 | `DELETE /api/apps/settings?app_id=<id>` | Resets every field to its default. |
+| `POST /api/apps/launch?app_id=<id>` | Starts the application at once and skips the Start screen (API 27.10.0). |
+| `POST /api/apps/quit` | Stops the running application. Returns 409 if none runs (API 27.10.0). |
+
+The settings endpoints answer 404 for an application that is not installed.
+
+`POST /api/apps/launch` replaces whatever application runs, whatever the mode switch position, and it does not check the APPS menu flag below. A short Back press from the running script returns to the Start screen. `POST /api/apps/quit` stops the launcher without the Start screen and makes the APPS menu forget the application as the most recent one.
 
 The build bundles applications placed in `applications_js/` in the source tree into the resources.
 
@@ -149,11 +155,12 @@ JavaScript applications appear in the APPS menu only when the flag file `/ext/ap
 
 # Life cycle
 
-1. The APPS menu launches `js_app_launcher` with the application id.
+1. The APPS menu, or `POST /api/apps/launch`, starts `js_app_launcher` with the application id. A launch over HTTP skips step 2 and starts the script at once.
 2. The launcher shows the Start screen (icon, name, Start and Setup). Setup edits the settings.
 3. Start shows "Loading..." with a spinner. The launcher allocates a runtime context with the manifest heap size, parses `main.js` as a module, links imports and evaluates it. When the runtime reports that the script started, the screen changes to "Running...". Console output goes to the device log (`console.log` at debug level, `info` at info, `error` at error, tag `JsAppLauncher`).
 4. The application stays alive while it has pending timers, pending fetches or an input listener. When none remain, the runtime reports that the script finished and the launcher returns to the Start screen.
-5. A short Back press aborts the script and returns to Start. The VM throws `aborted` inside busy loops, and the runtime stops fetches, frees timers and removes the input listener. An input listener receives the Back press and release first. From Start, Back returns to the APPS menu.
+5. A short Back press aborts the script and returns to Start. The VM throws `aborted` inside busy loops, and the runtime stops fetches, frees timers and removes the input listener. An input listener receives the Back press and release first. From Start, Back closes the launcher. The next time the APPS menu opens, it shows its list instead of relaunching the application.
+6. When the launcher closes, it deletes every canvas element drawn under the application id.
 
 Errors:
 
@@ -284,7 +291,7 @@ export async function draw(app, text) {
 }
 ```
 
-The draw request's `application_name` is not bound to the JavaScript application id. Use your own id so that clearing elements does not affect other clients.
+The draw request's `application_name` is not bound to the JavaScript application id. Use the application id: the launcher deletes the elements drawn under that name when the application closes, and other clients keep theirs.
 
 # CLI
 

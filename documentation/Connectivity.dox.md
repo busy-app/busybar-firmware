@@ -103,7 +103,7 @@ Layout: `<root>/<id>/<dir>/v1/<topic>`, where root and id are `devices/<serial>`
 
 ## Modules
 
-- **HTTP proxy** (`modules/mqtt_http_proxy.c`): the module parses each `http-request` message, replays it to `http://127.0.0.1` with a 5 s timeout, and publishes the full response to the response topic. Requests must target `/api/`, must not be WebSocket upgrades, and a block list refuses `POST update`, `DELETE account`, `POST account/link`, `PUT account/backend`, `POST wifi/connect`, `POST wifi/disconnect`, `GET wifi/networks`, and every JavaScript application route: `GET apps/list`, `DELETE apps`, `POST apps/stage`, `POST apps/install`, and `GET`, `PUT` and `DELETE apps/settings`.
+- **HTTP proxy** (`modules/mqtt_http_proxy.c`): the module parses each `http-request` message, replays it to `http://127.0.0.1` with a 5 s timeout, and publishes the full response to the response topic. Requests must target `/api/`, must not be WebSocket upgrades, and a block list refuses `POST update`, `DELETE account`, `POST account/link`, `PUT account/backend`, `POST wifi/connect`, `POST wifi/disconnect`, `GET wifi/networks`, and every JavaScript application route: `GET apps/list`, `DELETE apps`, `POST apps/stage`, `POST apps/install`, `POST apps/launch`, `POST apps/quit`, and `GET`, `PUT` and `DELETE apps/settings`.
 - **State streaming** (`modules/mqtt_streaming.c`): a `stream-request` starts or reconfigures a `state_publisher` transport with the given rate limit and a 60 s default expiry. The module publishes frames at QoS 0 to the response topic.
 
 ## Account linking

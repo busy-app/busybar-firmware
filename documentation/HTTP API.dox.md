@@ -11,7 +11,7 @@ The public, user-facing version of this reference lives at [docs.busy.app](https
 | Implementation | Mongoose HTTP server on lwIP sockets, one poll thread (`web_server.c`) |
 | Listener | `http://0.0.0.0`, port 80, all interfaces (USB network and Wi-Fi) |
 | TLS | None. Mbed TLS is linked only for outbound client connections. |
-| API version | `27.9.0` (`http_api/http_api.h`, mirrored in `openapi/openapi.yaml`) |
+| API version | `27.10.0` (`http_api/http_api.h`, mirrored in `openapi/openapi.yaml`) |
 | USB address | `10.0.4.20` by default (see @ref connectivity) |
 | mDNS | `_http._tcp` on port 80, instance `busybar-<usb mac>`, TXT `path=/`, `name=<device name>` |
 | Static root | `/ext/apps_assets/web_server/www` (the built web UI, gzip-only assets) |
@@ -93,7 +93,7 @@ The `Auth` column uses these values: `open` for the whitelisted endpoints, `std`
 
 | Method | Path | Auth | Request | Response |
 | --- | --- | --- | --- | --- |
-| GET | `/api/version` | open | | `{"api_semver":"27.9.0"}` |
+| GET | `/api/version` | open | | `{"api_semver":"27.10.0"}` |
 | GET | `/api/transport` | open | | `{"type":"usb"}` or `{"type":"wifi"}` |
 | GET | `/api/status` | std | | `{device, firmware, system, power}` |
 | GET | `/api/status/device` | std | | `serial_number`, `usb_mac`, `wifi_mac`, `ble_mac`, `otp_valid`, `otp_model`, `otp_timestamp`, `firmware_security` (`secure`, `insecure`, `other`, `unknown`) |
@@ -208,6 +208,10 @@ Implemented in `http_api/api_apps.c` and the `js_app_installer` service. `app_id
 | GET | `/api/apps/settings` | std | query `app_id` | `{"version":N,"values":{...}}`. 404 if unknown or without settings, 503 for an invalid schema, 508 for a storage error. |
 | PUT | `/api/apps/settings` | std | query `app_id`, full settings document | Every field must be present and valid, the version must match, unknown keys are dropped. 400 for an invalid document. |
 | DELETE | `/api/apps/settings` | std | query `app_id` | Resets every field to its default |
+| POST | `/api/apps/launch` | std | query `app_id` | Starts the installed application and skips its Start screen. 400 for an invalid id, 404 if not installed, 503 if the launch fails. |
+| POST | `/api/apps/quit` | std | | Stops the running JavaScript application. 409 if none runs, 503 if the stop fails. |
+
+The settings endpoints answer 404 for an application that is not installed.
 
 `AppInfo`: `id`, `name`, `version`, `author`, `description`, `icon_path`, `is_debug`.
 
