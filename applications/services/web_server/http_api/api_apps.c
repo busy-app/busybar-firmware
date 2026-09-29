@@ -502,8 +502,8 @@ static bool api_apps_settings_callback(
         return false;
     }
 
-    char app_id[APP_ID_LEN_MAX];
-    if(mg_http_get_var(&msg->query, "app_id", app_id, APP_ID_LEN_MAX) <= 0) {
+    char app_id[JS_APP_ID_LEN_MAX + 1];
+    if(mg_http_get_var(&msg->query, "app_id", app_id, COUNT_OF(app_id)) <= 0) {
         MG_REPLY_BAD_REQUEST(conn);
         return true;
     }
@@ -512,6 +512,13 @@ static bool api_apps_settings_callback(
         MG_REPLY_BAD_REQUEST(conn);
         return true;
     }
+
+    JsApp* app = js_app_registry_get_app(app_id);
+    if(!app) {
+        MG_REPLY_NOT_FOUND(conn);
+        return true;
+    }
+    js_app_free(app);
 
     JsAppSettingsStorageStatus status;
     JsAppSettingsStorage* storage = js_app_settings_storage_alloc(app_id, &status);
