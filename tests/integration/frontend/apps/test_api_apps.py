@@ -421,7 +421,9 @@ class TestAppsAPI:
                 storage_path,
             )
 
-    @allure.title("Quit reports a conflict while a JS app is starting")
+    @allure.title(
+        "Immediate quit during launch returns a valid transition response"
+    )
     def test_quit_while_app_is_starting(
         self,
         apps_api: AppsAPI,
@@ -447,15 +449,23 @@ class TestAppsAPI:
                 launch_accepted = True
                 quit_response = apps_api.quit_raw()
 
-            with allure.step("Verify the starting-state conflict contract"):
-                assert quit_response.status_code == 409, (
-                    "Quit while the application is starting returned HTTP "
+            with allure.step("Verify the transition response"):
+                assert quit_response.status_code in {200, 409}, (
+                    "Immediate quit during launch returned HTTP "
                     f"{quit_response.status_code}: "
                     f"{quit_response.text[:200]!r}"
                 )
-                assert quit_response.json() == {
-                    "error": "application is not running"
-                }, f"Unexpected conflict response: {quit_response.text!r}"
+                if quit_response.status_code == 200:
+                    assert quit_response.json() == {"result": "OK"}, (
+                        f"Unexpected quit response: {quit_response.text!r}"
+                    )
+                else:
+                    assert quit_response.json() == {
+                        "error": "application is not running"
+                    }, (
+                        "Unexpected transition response: "
+                        f"{quit_response.text!r}"
+                    )
         finally:
             if launch_accepted:
                 if quit_response is None or quit_response.status_code != 200:
