@@ -37,7 +37,7 @@ class AppListResponse(BaseModel):
 
 
 class AppsResultResponse(BaseModel):
-    """Successful install or delete response."""
+    """Successful JavaScript application management response."""
 
     result: str
 
@@ -96,6 +96,36 @@ class AppsAPI(BaseAPI):
             params=params,
             data=b"",
         )
+
+    def launch(self, app_id: str) -> AppsResultResponse:
+        """Launch an installed JavaScript application."""
+        return self.post(
+            "/api/apps/launch",
+            AppsResultResponse,
+            params={"app_id": app_id},
+            data=b"",
+        )
+
+    def launch_raw(self, app_id: str | None = None):
+        """Attempt to launch an application and return the raw response."""
+        params = {"app_id": app_id} if app_id is not None else None
+        return self.post_raw(
+            "/api/apps/launch",
+            params=params,
+            data=b"",
+        )
+
+    def quit(self) -> AppsResultResponse:
+        """Quit the currently running JavaScript application."""
+        return self.post(
+            "/api/apps/quit",
+            AppsResultResponse,
+            data=b"",
+        )
+
+    def quit_raw(self):
+        """Attempt to quit the current application and return the response."""
+        return self.post_raw("/api/apps/quit", data=b"")
 
     def delete_app(self, app_id: str) -> AppsResultResponse:
         """Delete an installed app while preserving its settings."""

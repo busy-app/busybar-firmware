@@ -86,6 +86,8 @@ API_ENDPOINTS = [
     ("/api/apps/list", "GET"),
     ("/api/apps/stage", "POST"),
     ("/api/apps/install", "POST"),
+    ("/api/apps/launch", "POST"),
+    ("/api/apps/quit", "POST"),
     ("/api/apps/settings", "GET"),
     ("/api/apps/settings", "PUT"),
     ("/api/apps/settings", "DELETE"),
