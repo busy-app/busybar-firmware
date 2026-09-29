@@ -392,7 +392,9 @@ class TestAppsAPI:
                 menu_frame = wait_for_stable(
                     "stable AppsMenu screen after quit",
                     streaming_api.front_frame,
-                    lambda frame: frame.digest(),
+                    lambda frame: (
+                        frame.digest() != running_frame.digest()
+                    ),
                     predicate=lambda frame: (
                         frame.digest() != running_frame.digest()
                     ),
@@ -537,7 +539,7 @@ class TestAppsAPI:
                 cleared_frame = wait_for_stable(
                     "stable front screen without the app-owned canvas",
                     streaming_api.front_frame,
-                    lambda frame: frame.digest(),
+                    lambda frame: frame.raw != red_frame,
                     predicate=lambda frame: frame.raw != red_frame,
                     stable_samples=3,
                     timeout=APP_EXIT_RENDER_TIMEOUT,
