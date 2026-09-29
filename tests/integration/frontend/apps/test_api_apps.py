@@ -9,6 +9,7 @@ import pytest
 
 from clients.api import AppInfo, AppsAPI, AssetsAPI, StorageAPI, StreamingAPI
 from clients.api.streaming import FRONT_DISPLAY_HEIGHT, FRONT_DISPLAY_WIDTH
+from clients.cli import SimpleCLIConnection
 from utils.js_app_package import (
     APP_AUTHOR,
     APP_DESCRIPTION,
@@ -21,6 +22,7 @@ from utils.wait import wait_for, wait_for_stable
 
 APP_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_\-][a-zA-Z0-9_\-.]{0,31}$")
 APP_EXIT_RENDER_TIMEOUT = 15
+JS_APP_LAUNCHER_APP_ID = "js_app_launcher"
 
 
 def _find_app(apps: list[AppInfo], app_id: str) -> AppInfo | None:
@@ -145,23 +147,65 @@ def _wait_for_launch_marker(
     return payload
 
 
-def _wait_for_launcher_exit(apps_api: AppsAPI):
+def _launcher_is_running(top_output: str) -> bool:
+    return any(
+        line.split(maxsplit=1)[0] == JS_APP_LAUNCHER_APP_ID
+        for line in top_output.splitlines()
+        if line.split(maxsplit=1)
+    )
+
+
+def _wait_for_launcher_state(
+    cli: SimpleCLIConnection,
+    *,
+    running: bool,
+) -> str:
     return wait_for(
-        "JavaScript launcher to stop",
-        apps_api.quit_raw,
-        lambda response: response.status_code == 500,
+        f"JavaScript launcher to {'start' if running else 'stop'}",
+        lambda: cli.execute_command("top 0", timeout=5),
+        lambda output: (
+            "Threads:" in output
+            and "AppID" in output
+            and _launcher_is_running(output) is running
+        ),
         timeout=5,
         interval=0.2,
     )
 
 
+def _wait_for_launcher_exit(cli: SimpleCLIConnection) -> str:
+    return _wait_for_launcher_state(cli, running=False)
+
+
+def _wait_for_launcher_start(cli: SimpleCLIConnection) -> str:
+    return _wait_for_launcher_state(cli, running=True)
+
+
+def _stop_launcher_if_running(
+    apps_api: AppsAPI,
+    cli: SimpleCLIConnection,
+) -> None:
+    top_output = cli.execute_command("top 0", timeout=5)
+    if (
+        "Threads:" in top_output
+        and "AppID" in top_output
+        and not _launcher_is_running(top_output)
+    ):
+        return
+
+    response = apps_api.quit_raw()
+    if response.status_code == 200:
+        _wait_for_launcher_exit(cli)
+
+
 def _cleanup_observable_app(
     apps_api: AppsAPI,
     storage_api: StorageAPI,
+    cli: SimpleCLIConnection,
     app_id: str,
     storage_path: str,
 ) -> None:
-    apps_api.quit_raw()
+    _stop_launcher_if_running(apps_api, cli)
     apps_api.delete_app_raw(app_id)
     storage_api.remove_raw(storage_path)
 
@@ -287,6 +331,7 @@ class TestAppsAPI:
         apps_api: AppsAPI,
         storage_api: StorageAPI,
         streaming_api,
+        persistent_cli_connection: SimpleCLIConnection,
         test_app_id: str,
     ):
         launch_token = uuid.uuid4().hex
@@ -314,6 +359,7 @@ class TestAppsAPI:
                 assert payload["data"]["integration_launch_count"] == "1", (
                     f"Unexpected launch count: {payload!r}"
                 )
+                _wait_for_launcher_start(persistent_cli_connection)
 
                 running_frame = wait_for_stable(
                     "stable running-app screen",
@@ -331,12 +377,16 @@ class TestAppsAPI:
                     f"Unexpected quit result: {stopped.result!r}"
                 )
 
-                no_launcher = _wait_for_launcher_exit(apps_api)
-                assert no_launcher.status_code == 500, (
-                    f"Expected quit without a running app to return 500, "
-                    f"got {no_launcher.status_code}: "
-                    f"{no_launcher.text[:200]!r}"
+                _wait_for_launcher_exit(persistent_cli_connection)
+
+                repeated = apps_api.quit_raw()
+                assert repeated.status_code == 409, (
+                    f"Repeated quit returned HTTP {repeated.status_code}: "
+                    f"{repeated.text[:200]!r}"
                 )
+                assert repeated.json() == {
+                    "error": "application is not running"
+                }, f"Unexpected repeated quit response: {repeated.text!r}"
 
             with allure.step("Verify AppsMenu forgot the stopped app"):
                 menu_frame = wait_for_stable(
@@ -364,6 +414,7 @@ class TestAppsAPI:
             _cleanup_observable_app(
                 apps_api,
                 storage_api,
+                persistent_cli_connection,
                 test_app_id,
                 storage_path,
             )
@@ -372,6 +423,7 @@ class TestAppsAPI:
     def test_quit_while_app_is_starting(
         self,
         apps_api: AppsAPI,
+        persistent_cli_connection: SimpleCLIConnection,
         test_app_id: str,
     ):
         quit_response = None
@@ -394,28 +446,25 @@ class TestAppsAPI:
                 quit_response = apps_api.quit_raw()
 
             with allure.step("Verify the starting-state conflict contract"):
-                # TODO: Align the accepted status and response body with the
-                # firmware contract once the FW developer finalizes it.
                 assert quit_response.status_code == 409, (
                     "Quit while the application is starting returned HTTP "
                     f"{quit_response.status_code}: "
                     f"{quit_response.text[:200]!r}"
                 )
                 assert quit_response.json() == {
-                    "error": "application is starting",
-                    "state": "starting",
+                    "error": "application is not running"
                 }, f"Unexpected conflict response: {quit_response.text!r}"
         finally:
             if launch_accepted:
                 if quit_response is None or quit_response.status_code != 200:
-                    wait_for(
-                        "the launcher to accept cleanup quit",
-                        apps_api.quit_raw,
-                        lambda response: response.status_code == 200,
-                        timeout=5,
-                        interval=0.2,
+                    _wait_for_launcher_start(persistent_cli_connection)
+                    cleanup_quit = apps_api.quit_raw()
+                    assert cleanup_quit.status_code == 200, (
+                        "Cleanup quit returned HTTP "
+                        f"{cleanup_quit.status_code}: "
+                        f"{cleanup_quit.text[:200]!r}"
                     )
-                _wait_for_launcher_exit(apps_api)
+                _wait_for_launcher_exit(persistent_cli_connection)
 
     @allure.title("Quitting a JS app removes its owned canvas elements")
     def test_quit_clears_app_canvas(
@@ -424,6 +473,7 @@ class TestAppsAPI:
         assets_api: AssetsAPI,
         storage_api: StorageAPI,
         streaming_api: StreamingAPI,
+        persistent_cli_connection: SimpleCLIConnection,
         test_app_id: str,
     ):
         launch_token = uuid.uuid4().hex
@@ -483,7 +533,7 @@ class TestAppsAPI:
                 assert stopped.result == "OK", (
                     f"Unexpected quit result: {stopped.result!r}"
                 )
-                _wait_for_launcher_exit(apps_api)
+                _wait_for_launcher_exit(persistent_cli_connection)
                 cleared_frame = wait_for_stable(
                     "stable front screen without the app-owned canvas",
                     streaming_api.front_frame,
@@ -495,7 +545,10 @@ class TestAppsAPI:
                 )
                 cleared_frame.attach("Front screen after app quit")
         finally:
-            apps_api.quit_raw()
+            _stop_launcher_if_running(
+                apps_api,
+                persistent_cli_connection,
+            )
             assets_api.clear_display_by_app(test_app_id)
             apps_api.delete_app_raw(test_app_id)
             storage_api.remove_raw(storage_path)
@@ -538,6 +591,7 @@ class TestAppsAPI:
         self,
         apps_api: AppsAPI,
         streaming_api,
+        persistent_cli_connection: SimpleCLIConnection,
     ):
         control_app_id = f"t{uuid.uuid4().hex[:30]}"
         max_length_app_id = f"t{uuid.uuid4().hex[:31]}"
@@ -583,7 +637,7 @@ class TestAppsAPI:
                 assert control_stop.result == "OK", (
                     f"Unexpected control quit: {control_stop.result!r}"
                 )
-                _wait_for_launcher_exit(apps_api)
+                _wait_for_launcher_exit(persistent_cli_connection)
 
             with allure.step("Launch the boundary-length application"):
                 initial_frame = streaming_api.front_frame()
@@ -614,9 +668,12 @@ class TestAppsAPI:
                 assert stopped.result == "OK", (
                     f"Unexpected quit result: {stopped.result!r}"
                 )
-                _wait_for_launcher_exit(apps_api)
+                _wait_for_launcher_exit(persistent_cli_connection)
         finally:
-            apps_api.quit_raw()
+            _stop_launcher_if_running(
+                apps_api,
+                persistent_cli_connection,
+            )
             apps_api.delete_app_raw(control_app_id)
             apps_api.delete_app_raw(max_length_app_id)
 
@@ -625,6 +682,7 @@ class TestAppsAPI:
         self,
         apps_api: AppsAPI,
         storage_api: StorageAPI,
+        persistent_cli_connection: SimpleCLIConnection,
     ):
         first_app_id = f"test.{uuid.uuid4().hex[:12]}"
         second_app_id = f"test.{uuid.uuid4().hex[:12]}"
@@ -694,17 +752,19 @@ class TestAppsAPI:
                 assert stopped.result == "OK", (
                     f"Unexpected quit result: {stopped.result!r}"
                 )
-                _wait_for_launcher_exit(apps_api)
+                _wait_for_launcher_exit(persistent_cli_connection)
         finally:
             _cleanup_observable_app(
                 apps_api,
                 storage_api,
+                persistent_cli_connection,
                 first_app_id,
                 first_storage_path,
             )
             _cleanup_observable_app(
                 apps_api,
                 storage_api,
+                persistent_cli_connection,
                 second_app_id,
                 second_storage_path,
             )
