@@ -54,6 +54,9 @@ const APPS_PATH = '/ext/user_assets';
 const SETTINGS_SCHEMA_PATH = 'appmeta/settings.json';
 const ICON_EXTENSION = '.png';
 const STORAGE_READ_PATH_MAX_LENGTH = 63;
+const PROBE_APP_ID = 'app.probe.none';
+const PROBE_ELEMENT_ID = 'probe.absent';
+const SHOW_GRACE_MS = 4000;
 
 export const useAppsStore = defineStore('apps', () => {
   const deviceStore = useDeviceStore();
@@ -61,6 +64,10 @@ export const useAppsStore = defineStore('apps', () => {
   const apps = ref<AppInfo[]>([]);
   const icons = ref<Record<string, string>>({});
   const loading = ref(false);
+  const runningAppId = ref<string>();
+  let runningAppEpoch = 0;
+  let showGraceUntil = 0;
+  let refreshInFlight = false;
 
   async function fetchApps () {
     loading.value = true;
@@ -133,8 +140,81 @@ export const useAppsStore = defineStore('apps', () => {
   }
 
   async function installApp (installKey: number) {
-    await deviceStore.busyBar.AppsInstall({ install_key: installKey }, { timeout: 0 });
-    await fetchApps();
+    const stateStreamStore = useStateStreamStore();
+    const checkOnStale = stateStreamStore.doCheckConnectionOnStreamDataStale;
+    stateStreamStore.doCheckConnectionOnStreamDataStale = false;
+    deviceStore.pauseAvailabilityPolling();
+
+    try {
+      await deviceStore.busyBar.AppsInstall({ install_key: installKey }, { timeout: 0 });
+      await fetchApps();
+    } finally {
+      stateStreamStore.doCheckConnectionOnStreamDataStale = checkOnStale;
+      deviceStore.resumeAvailabilityPolling();
+    }
+  }
+
+  async function refreshRunningApp (appId: string) {
+    if (refreshInFlight) {
+      return;
+    }
+
+    refreshInFlight = true;
+    const epoch = runningAppEpoch;
+
+    try {
+      const showing = await isAppOnDisplay(appId);
+
+      if (epoch !== runningAppEpoch || showing === null) {
+        return;
+      }
+
+      if (showing) {
+        showGraceUntil = 0;
+        runningAppId.value = appId;
+        return;
+      }
+
+      if (runningAppId.value === appId && Date.now() < showGraceUntil) {
+        return;
+      }
+
+      runningAppId.value = undefined;
+    } finally {
+      refreshInFlight = false;
+    }
+  }
+
+  async function launchApp (appId: string) {
+    runningAppEpoch += 1;
+
+    await useApiStore().apiRequest('/api/apps/launch', {
+      method: 'POST',
+      query: { app_id: appId }
+    });
+    runningAppId.value = appId;
+    showGraceUntil = Date.now() + SHOW_GRACE_MS;
+  }
+
+  async function quitApp () {
+    runningAppEpoch += 1;
+
+    try {
+      await useApiStore().apiRequest('/api/apps/quit', { method: 'POST' });
+    } catch (error) {
+      // 409 means nothing was running, which is the state we are after anyway
+      if (httpErrorStatus(error) !== 409) {
+        throw error;
+      }
+    }
+
+    runningAppId.value = undefined;
+    showGraceUntil = 0;
+  }
+
+  async function restartApp (appId: string) {
+    await quitApp();
+    await launchApp(appId);
   }
 
   async function removeApp (appId: string) {
@@ -163,16 +243,58 @@ export const useAppsStore = defineStore('apps', () => {
     apps,
     icons,
     loading,
+    runningAppId,
     fetchApps,
     readIcon,
     stageApp,
     installApp,
+    refreshRunningApp,
+    launchApp,
+    quitApp,
+    restartApp,
     removeApp,
     readSettingsSchema,
     getSettings,
     setSettings
   };
 });
+
+async function isAppOnDisplay (appId: string) {
+  const canvas = await probeCanvas(PROBE_APP_ID);
+
+  if (canvas === null) {
+    return null;
+  }
+
+  if (canvas === 'idle') {
+    return false;
+  }
+
+  const app = await probeCanvas(appId);
+  return app === null ? null : app === 'idle';
+}
+
+async function probeCanvas (applicationName: string) {
+  try {
+    await useDeviceStore().busyBar.DisplayClear({
+      application_name: applicationName,
+      element_ids: [PROBE_ELEMENT_ID]
+    });
+    return 'idle';
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '';
+
+    if (message.includes('non-existent')) {
+      return 'idle';
+    }
+
+    if (message.includes('not displaying anything')) {
+      return 'foreign';
+    }
+
+    return null;
+  }
+}
 
 function toDataUrl (blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {

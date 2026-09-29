@@ -33,6 +33,7 @@
         </div>
 
         <UButton
+          v-if="canShareLocation"
           label="Share my location"
           variant="outline"
           color="neutral"
@@ -88,6 +89,9 @@ const value = defineModel<AppSettingsGeolocationValue>({ required: true });
 
 const toast = useToast();
 
+// Browsers only expose geolocation in a secure context, which the bar's plain-HTTP address is not.
+const canShareLocation = window.isSecureContext && !!navigator.geolocation;
+
 const cityMenu = useTemplateRef('cityMenu');
 const manual = ref(value.value.mode === 'fixed');
 const searchTerm = ref('');
@@ -137,16 +141,6 @@ async function selectCity (city: CityItem | undefined) {
 }
 
 async function shareLocation () {
-  if (!navigator.geolocation) {
-    toast.add({
-      title: 'Location unavailable',
-      description: 'This browser does not support sharing your location.',
-      icon: 'i-bi-alert',
-      color: 'error'
-    });
-    return;
-  }
-
   sharing.value = true;
 
   try {

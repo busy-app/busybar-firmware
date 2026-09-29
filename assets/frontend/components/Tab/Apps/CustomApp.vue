@@ -2,6 +2,7 @@
   <TabAppsAppScreen
     :app-id="app.id"
     :title="app.name"
+    :settings-saving="settingsSaving"
     @back="emit('back')"
     @update="emit('update')"
   >
@@ -97,6 +98,7 @@ const appsStore = useAppsStore();
 
 const loading = ref(true);
 const saved = ref(false);
+const settingsSaving = ref(false);
 const deleting = ref(false);
 const showDeleteModal = ref(false);
 const schema = ref<AppSettingsSchema>();
@@ -104,7 +106,6 @@ const settings = ref<AppSettingsDocument>();
 
 let savedSettings = '';
 let isSaving = false;
-let isSaveQueued = false;
 let saveTimeout: ReturnType<typeof setTimeout> | undefined;
 let savedTimeout: ReturnType<typeof setTimeout> | undefined;
 
@@ -114,10 +115,10 @@ async function loadSettings () {
     const loadedSchema = await appsStore.readSettingsSchema(props.app.id);
 
     schema.value = loadedSchema;
-    settings.value = loadedSettings;
     savedSettings = JSON.stringify(loadedSettings);
+    settings.value = loadedSettings;
   } catch (error) {
-    if ((error as { status?: number })?.status !== 404) {
+    if (httpErrorStatus(error) !== 404) {
       await handleHTTPError(error, 'Couldn\'t load app settings');
     }
   } finally {
@@ -125,44 +126,42 @@ async function loadSettings () {
   }
 }
 
-// Each request replaces the whole document, so overlapping saves could land out of order.
 async function saveSettings () {
   saveTimeout = undefined;
 
-  if (isSaving) {
-    isSaveQueued = true;
-    return;
-  }
-
-  if (!settings.value || (schema.value && hasInvalidAppSettings(schema.value.fields, settings.value.values))) {
-    return;
-  }
-
-  const serialized = JSON.stringify(settings.value);
-  if (serialized === savedSettings) {
+  if (isSaving || !settings.value) {
     return;
   }
 
   isSaving = true;
+  let didSave = false;
 
   try {
-    await appsStore.setSettings(props.app.id, JSON.parse(serialized));
-    savedSettings = serialized;
-    saved.value = JSON.stringify(settings.value) === serialized;
+    // Each request replaces the whole document, so saves go one at a time with the newest state last.
+    while (settings.value) {
+      const serialized = JSON.stringify(settings.value);
 
-    clearTimeout(savedTimeout);
-    savedTimeout = setTimeout(() => {
-      saved.value = false;
-    }, SAVED_INDICATOR_DURATION);
+      if (serialized === savedSettings || (schema.value && hasInvalidAppSettings(schema.value.fields, settings.value.values))) {
+        break;
+      }
+
+      await appsStore.setSettings(props.app.id, JSON.parse(serialized));
+      savedSettings = serialized;
+      didSave = true;
+    }
   } catch (error) {
     await handleHTTPError(error, 'Couldn\'t save app settings');
   } finally {
     isSaving = false;
+    settingsSaving.value = saveTimeout !== undefined;
+  }
 
-    if (isSaveQueued) {
-      isSaveQueued = false;
-      saveSettings();
-    }
+  if (didSave) {
+    saved.value = true;
+    clearTimeout(savedTimeout);
+    savedTimeout = setTimeout(() => {
+      saved.value = false;
+    }, SAVED_INDICATOR_DURATION);
   }
 }
 
@@ -170,7 +169,6 @@ async function deleteApp () {
   deleting.value = true;
   clearTimeout(saveTimeout);
   saveTimeout = undefined;
-  isSaveQueued = false;
 
   try {
     await appsStore.removeApp(props.app.id);
@@ -184,7 +182,12 @@ async function deleteApp () {
 }
 
 watch(settings, () => {
+  if (!settings.value || JSON.stringify(settings.value) === savedSettings) {
+    return;
+  }
+
   saved.value = false;
+  settingsSaving.value = true;
   clearTimeout(saveTimeout);
   saveTimeout = setTimeout(saveSettings, SAVE_DELAY);
 }, { deep: true });
