@@ -18,4 +18,4 @@
  * @param[in] app_id zero-terminated string to be validated
  * @return true if app_id is a valid application ID
  */
-bool js_app_registry_is_valid_app_id(const char* app_id);
+bool js_app_is_valid_id(const char* app_id);
