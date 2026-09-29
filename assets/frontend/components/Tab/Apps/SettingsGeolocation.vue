@@ -80,6 +80,11 @@ const SEARCH_DEBOUNCE_MS = 300;
 const NAME_MAX_LENGTH = 128;
 const AUTO_LOCATION_NAME = 'Auto';
 
+const canShareLocation = window.isSecureContext && !!navigator.geolocation;
+
+let searchTimeout: ReturnType<typeof setTimeout> | undefined;
+let searchController: AbortController | undefined;
+
 const props = defineProps<{
   label: string;
   defaultValue: AppSettingsGeolocationValue;
@@ -88,9 +93,6 @@ const props = defineProps<{
 const value = defineModel<AppSettingsGeolocationValue>({ required: true });
 
 const toast = useToast();
-
-// Browsers only expose geolocation in a secure context, which the bar's plain-HTTP address is not.
-const canShareLocation = window.isSecureContext && !!navigator.geolocation;
 
 const cityMenu = useTemplateRef('cityMenu');
 const manual = ref(value.value.mode === 'fixed');
@@ -101,9 +103,6 @@ const searching = ref(false);
 const sharing = ref(false);
 
 const cityItems = computed<CityItem[]>(() => suggestions.value.map(city => ({ ...city, label: cityLabel(city) })));
-
-let searchTimeout: ReturnType<typeof setTimeout> | undefined;
-let searchController: AbortController | undefined;
 
 function setAutoDetect (enabled: boolean) {
   manual.value = !enabled;

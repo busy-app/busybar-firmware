@@ -137,7 +137,6 @@ async function saveSettings () {
   let didSave = false;
 
   try {
-    // Each request replaces the whole document, so saves go one at a time with the newest state last.
     while (settings.value) {
       const serialized = JSON.stringify(settings.value);
 

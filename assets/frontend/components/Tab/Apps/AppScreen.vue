@@ -96,7 +96,6 @@ async function syncRunning () {
   await appsStore.refreshRunningApp(props.appId);
 }
 
-// Starting and restarting must not race a pending settings save, or the app comes up with stale settings.
 function actionDisabled (action: AppAction) {
   if (pendingAction.value !== undefined) {
     return pendingAction.value !== action;
