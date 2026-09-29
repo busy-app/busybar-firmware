@@ -52,7 +52,6 @@
       v-model:search-term="searchTerm"
       :items="cityItems"
       ignore-filter
-      :loading="searching"
       placeholder="Search city"
       icon="i-bi-search"
       variant="none"
@@ -67,7 +66,18 @@
         content: 'shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-2px_rgba(0,0,0,0.05)]'
       }"
       @update:model-value="selectCity"
-    />
+    >
+      <template #empty="{ searchTerm: term }">
+        <div class="flex items-center gap-2">
+          <UIcon
+            v-if="searching"
+            name="i-busy-loader"
+            class="size-4 shrink-0 animate-spin"
+          />
+          <span>{{ emptyLabel(term) }}</span>
+        </div>
+      </template>
+    </UInputMenu>
   </div>
 </template>
 
@@ -166,28 +176,46 @@ async function shareLocation () {
   }
 }
 
+function emptyLabel (term: string | undefined) {
+  if (searching.value) {
+    return 'Searching…';
+  }
+
+  return (term ?? '').trim().length < MIN_QUERY_LENGTH
+    ? `Type at least ${MIN_QUERY_LENGTH} characters`
+    : 'No cities found';
+}
+
 async function findCities (query: string) {
   searchController?.abort();
 
-  if (query.trim().length < MIN_QUERY_LENGTH) {
+  const trimmed = query.trim();
+
+  if (trimmed.length < MIN_QUERY_LENGTH) {
     suggestions.value = [];
+    searching.value = false;
     return;
   }
 
-  searchController = new AbortController();
-  searching.value = true;
+  const controller = new AbortController();
+  searchController = controller;
 
   try {
-    suggestions.value = await searchCities(query.trim(), searchController.signal);
+    suggestions.value = await searchCities(trimmed, controller.signal);
   } catch {
-    suggestions.value = [];
+    if (!controller.signal.aborted) {
+      suggestions.value = [];
+    }
   } finally {
-    searching.value = false;
+    if (!controller.signal.aborted) {
+      searching.value = false;
+    }
   }
 }
 
 watch(searchTerm, query => {
   clearTimeout(searchTimeout);
+  searching.value = query.trim().length >= MIN_QUERY_LENGTH;
   searchTimeout = setTimeout(() => findCities(query), SEARCH_DEBOUNCE_MS);
 });
 
