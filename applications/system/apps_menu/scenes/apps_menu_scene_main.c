@@ -129,7 +129,7 @@ static void apps_menu_scene_main_start_selected_app(AppsMenu* instance) {
     }
 
     if(app_id != NULL) {
-        if(apps_menu_start_application(app_id, false)) {
+        if(apps_menu_start_application(app_id, AppsMenuModeShowMenu)) {
             apps_menu_set_active_application(&instance->settings, app_id);
         }
     } else {
