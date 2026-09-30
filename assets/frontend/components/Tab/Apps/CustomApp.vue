@@ -33,7 +33,7 @@
 
     <div class="flex items-center gap-4 pt-4">
       <div
-        v-if="saved || needsRestart"
+        v-if="saved || showRestart"
         :data-id="`apps-section-${app.id}-saved`"
         class="flex min-w-0 items-center gap-2"
       >
@@ -46,7 +46,7 @@
         </template>
 
         <UButton
-          v-if="needsRestart"
+          v-if="showRestart"
           :data-id="`apps-section-${app.id}-restart-button`"
           label="Restart the app to apply"
           icon="i-bi-refresh"
@@ -108,6 +108,11 @@ const emit = defineEmits<{
 const SAVE_DELAY = 1500;
 const SAVED_INDICATOR_DURATION = 5000;
 
+let savedSettings = '';
+let isSaving = false;
+let saveTimeout: ReturnType<typeof setTimeout> | undefined;
+let savedTimeout: ReturnType<typeof setTimeout> | undefined;
+
 const appsStore = useAppsStore();
 
 const loading = ref(true);
@@ -118,14 +123,11 @@ const deleting = ref(false);
 const showDeleteModal = ref(false);
 const schema = ref<AppSettingsSchema>();
 const settings = ref<AppSettingsDocument>();
-
 // An app reads its settings once at startup, so saved changes only reach it on a restart.
 const needsRestart = ref(false);
 
-let savedSettings = '';
-let isSaving = false;
-let saveTimeout: ReturnType<typeof setTimeout> | undefined;
-let savedTimeout: ReturnType<typeof setTimeout> | undefined;
+const running = computed(() => appsStore.runningAppId === props.app.id);
+const showRestart = computed(() => needsRestart.value && running.value);
 
 async function loadSettings () {
   try {
