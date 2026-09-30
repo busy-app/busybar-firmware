@@ -171,7 +171,6 @@ export const useAppsStore = defineStore('apps', () => {
     runningAppId.value = undefined;
   }
 
-  // A launch replaces whatever is running, including the same app, so no quit is needed first.
   function restartApp (appId: string) {
     return launchApp(appId);
   }
