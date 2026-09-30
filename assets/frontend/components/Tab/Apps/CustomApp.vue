@@ -33,16 +33,30 @@
 
     <div class="flex items-center gap-4 pt-4">
       <div
-        v-if="saved"
+        v-if="saved || needsRestart"
         :data-id="`apps-section-${app.id}-saved`"
-        class="flex min-w-0 items-center gap-1.5 text-toned"
+        class="flex min-w-0 items-center gap-2"
       >
-        <UIcon
-          name="i-bi-checkmark-circle-fill"
-          class="size-5 shrink-0 text-success"
+        <template v-if="saved">
+          <UIcon
+            name="i-bi-checkmark-circle-fill"
+            class="size-5 shrink-0 text-success"
+          />
+          <span class="text-toned">Saved</span>
+        </template>
+
+        <UButton
+          v-if="needsRestart"
+          :data-id="`apps-section-${app.id}-restart-button`"
+          label="Restart the app to apply"
+          icon="i-bi-refresh"
+          color="neutral"
+          variant="outline"
+          class="shrink-0"
+          :loading="restarting"
+          :disabled="settingsSaving"
+          @click="restartApp"
         />
-        <span>Saved</span>
-        <span class="truncate text-muted">· Restart the app to apply</span>
       </div>
 
       <UButton
@@ -51,7 +65,7 @@
         icon="i-bi-trash"
         label="Delete app"
         color="neutral"
-        variant="ghost"
+        variant="outline"
         @click="() => { showDeleteModal = true; }"
       />
     </div>
@@ -99,10 +113,14 @@ const appsStore = useAppsStore();
 const loading = ref(true);
 const saved = ref(false);
 const settingsSaving = ref(false);
+const restarting = ref(false);
 const deleting = ref(false);
 const showDeleteModal = ref(false);
 const schema = ref<AppSettingsSchema>();
 const settings = ref<AppSettingsDocument>();
+
+// An app reads its settings once at startup, so saved changes only reach it on a restart.
+const needsRestart = ref(false);
 
 let savedSettings = '';
 let isSaving = false;
@@ -157,10 +175,26 @@ async function saveSettings () {
 
   if (didSave) {
     saved.value = true;
+    needsRestart.value = true;
     clearTimeout(savedTimeout);
     savedTimeout = setTimeout(() => {
       saved.value = false;
     }, SAVED_INDICATOR_DURATION);
+  }
+}
+
+async function restartApp () {
+  restarting.value = true;
+  clearTimeout(savedTimeout);
+  saved.value = false;
+
+  try {
+    await appsStore.restartApp(props.app.id);
+    needsRestart.value = false;
+  } catch (error) {
+    await handleHTTPError(error, 'Couldn\'t restart the app');
+  } finally {
+    restarting.value = false;
   }
 }
 
@@ -190,6 +224,10 @@ watch(settings, () => {
   clearTimeout(saveTimeout);
   saveTimeout = setTimeout(saveSettings, SAVE_DELAY);
 }, { deep: true });
+
+watch(() => appsStore.runningAppId, () => {
+  needsRestart.value = false;
+});
 
 onMounted(loadSettings);
 

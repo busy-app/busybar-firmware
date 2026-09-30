@@ -24,29 +24,16 @@
       />
 
       <UButton
-        v-if="running"
-        :data-id="`apps-section-${appId}-restart-button`"
-        label="Restart"
-        icon="i-bi-refresh"
-        color="neutral"
-        variant="outline"
-        class="justify-center"
-        :disabled="actionDisabled('restart')"
-        :ui="BUTTON_UI"
-        @click="runAction('restart')"
-      />
-
-      <UButton
         :data-id="`apps-section-${appId}-${running ? 'stop' : 'start'}-button`"
         :label="running ? 'Stop' : 'Start'"
         :icon="running ? 'i-bi-control-stop' : 'i-bi-control-play'"
         color="neutral"
         variant="solid"
         class="justify-center"
-        :loading="pendingAction === 'start' || pendingAction === 'stop'"
-        :disabled="checkingRunning || actionDisabled(running ? 'stop' : 'start')"
+        :loading="pending"
+        :disabled="!running && settingsSaving"
         :ui="BUTTON_UI"
-        @click="runAction(running ? 'stop' : 'start')"
+        @click="toggle"
       />
     </template>
 
@@ -57,19 +44,7 @@
 </template>
 
 <script setup lang="ts">
-type AppAction = 'start' | 'stop' | 'restart';
-
-const ACTION_ERROR: Record<AppAction, string> = {
-  start: 'Couldn\'t start the app',
-  stop: 'Couldn\'t stop the app',
-  restart: 'Couldn\'t restart the app'
-};
-
-const RUNNING_POLL_MS = 2000;
-
 const BUTTON_UI = { base: 'px-4 py-2.5 gap-1.5' };
-
-let runningPoll: ReturnType<typeof setInterval> | undefined;
 
 const props = defineProps<{
   appId: string;
@@ -83,62 +58,28 @@ const emit = defineEmits<{
 
 const appsStore = useAppsStore();
 
-const pendingAction = ref<AppAction>();
-const checkingRunning = ref(true);
+const pending = ref(false);
 
-const running = computed(() => pendingAction.value === 'restart' || appsStore.runningAppId === props.appId);
+const running = computed(() => appsStore.runningAppId === props.appId);
 
-async function syncRunning () {
-  if (pendingAction.value) {
+async function toggle () {
+  if (pending.value || (!running.value && props.settingsSaving)) {
     return;
   }
 
-  await appsStore.refreshRunningApp(props.appId);
-}
-
-function actionDisabled (action: AppAction) {
-  if (pendingAction.value !== undefined) {
-    return pendingAction.value !== action;
-  }
-
-  return action !== 'stop' && !!props.settingsSaving;
-}
-
-async function runAction (action: AppAction) {
-  if (pendingAction.value || (action !== 'stop' && props.settingsSaving)) {
-    return;
-  }
-
-  pendingAction.value = action;
+  const stopping = running.value;
+  pending.value = true;
 
   try {
-    switch (action) {
-      case 'start':
-        await appsStore.launchApp(props.appId);
-        break;
-      case 'stop':
-        await appsStore.quitApp();
-        break;
-      case 'restart':
-        await appsStore.restartApp(props.appId);
-        break;
+    if (stopping) {
+      await appsStore.quitApp();
+    } else {
+      await appsStore.launchApp(props.appId);
     }
   } catch (error) {
-    await handleHTTPError(error, ACTION_ERROR[action]);
+    await handleHTTPError(error, stopping ? 'Couldn\'t stop the app' : 'Couldn\'t start the app');
   } finally {
-    pendingAction.value = undefined;
+    pending.value = false;
   }
 }
-
-onMounted(() => {
-  syncRunning().finally(() => {
-    checkingRunning.value = false;
-  });
-
-  runningPoll = setInterval(syncRunning, RUNNING_POLL_MS);
-});
-
-onBeforeUnmount(() => {
-  clearInterval(runningPoll);
-});
 </script>
