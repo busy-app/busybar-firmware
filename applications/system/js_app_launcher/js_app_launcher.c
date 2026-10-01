@@ -90,6 +90,9 @@ static JsAppLauncherStatus js_app_launcher_handle_get_app_id(
             furi_string_set(app_id, info.manifest.id);
             status = JsAppLauncherStatusOk;
         }
+
+    } else {
+        status = JsAppLauncherStatusNotRunning;
     }
 
     return status;
