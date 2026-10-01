@@ -2,6 +2,7 @@
   <TabAppsAppScreen
     :app-id="app.id"
     :title="app.name"
+    :settings-saving="settingsSaving"
     @back="emit('back')"
     @update="emit('update')"
   >
@@ -32,16 +33,30 @@
 
     <div class="flex items-center gap-4 pt-4">
       <div
-        v-if="saved"
+        v-if="saved || showRestart"
         :data-id="`apps-section-${app.id}-saved`"
-        class="flex min-w-0 items-center gap-1.5 text-toned"
+        class="flex min-w-0 items-center gap-2"
       >
-        <UIcon
-          name="i-bi-checkmark-circle-fill"
-          class="size-5 shrink-0 text-success"
+        <template v-if="saved">
+          <UIcon
+            name="i-bi-checkmark-circle-fill"
+            class="size-5 shrink-0 text-success"
+          />
+          <span class="text-toned">Saved</span>
+        </template>
+
+        <UButton
+          v-if="showRestart"
+          :data-id="`apps-section-${app.id}-restart-button`"
+          label="Restart the app to apply"
+          icon="i-bi-refresh"
+          color="neutral"
+          variant="outline"
+          class="shrink-0"
+          :loading="restarting"
+          :disabled="settingsSaving"
+          @click="restartApp"
         />
-        <span>Saved</span>
-        <span class="truncate text-muted">· Restart the app to apply</span>
       </div>
 
       <UButton
@@ -50,7 +65,7 @@
         icon="i-bi-trash"
         label="Delete app"
         color="neutral"
-        variant="ghost"
+        variant="outline"
         @click="() => { showDeleteModal = true; }"
       />
     </div>
@@ -93,20 +108,26 @@ const emit = defineEmits<{
 const SAVE_DELAY = 1500;
 const SAVED_INDICATOR_DURATION = 5000;
 
+let savedSettings = '';
+let isSaving = false;
+let saveTimeout: ReturnType<typeof setTimeout> | undefined;
+let savedTimeout: ReturnType<typeof setTimeout> | undefined;
+
 const appsStore = useAppsStore();
 
 const loading = ref(true);
 const saved = ref(false);
+const settingsSaving = ref(false);
+const restarting = ref(false);
 const deleting = ref(false);
 const showDeleteModal = ref(false);
 const schema = ref<AppSettingsSchema>();
 const settings = ref<AppSettingsDocument>();
+// An app reads its settings once at startup, so saved changes only reach it on a restart.
+const needsRestart = ref(false);
 
-let savedSettings = '';
-let isSaving = false;
-let isSaveQueued = false;
-let saveTimeout: ReturnType<typeof setTimeout> | undefined;
-let savedTimeout: ReturnType<typeof setTimeout> | undefined;
+const running = computed(() => appsStore.runningAppId === props.app.id);
+const showRestart = computed(() => needsRestart.value && running.value);
 
 async function loadSettings () {
   try {
@@ -114,10 +135,10 @@ async function loadSettings () {
     const loadedSchema = await appsStore.readSettingsSchema(props.app.id);
 
     schema.value = loadedSchema;
-    settings.value = loadedSettings;
     savedSettings = JSON.stringify(loadedSettings);
+    settings.value = loadedSettings;
   } catch (error) {
-    if ((error as { status?: number })?.status !== 404) {
+    if (httpErrorStatus(error) !== 404) {
       await handleHTTPError(error, 'Couldn\'t load app settings');
     }
   } finally {
@@ -125,44 +146,57 @@ async function loadSettings () {
   }
 }
 
-// Each request replaces the whole document, so overlapping saves could land out of order.
 async function saveSettings () {
   saveTimeout = undefined;
 
-  if (isSaving) {
-    isSaveQueued = true;
-    return;
-  }
-
-  if (!settings.value || (schema.value && hasInvalidAppSettings(schema.value.fields, settings.value.values))) {
-    return;
-  }
-
-  const serialized = JSON.stringify(settings.value);
-  if (serialized === savedSettings) {
+  if (isSaving || !settings.value) {
     return;
   }
 
   isSaving = true;
+  let didSave = false;
 
   try {
-    await appsStore.setSettings(props.app.id, JSON.parse(serialized));
-    savedSettings = serialized;
-    saved.value = JSON.stringify(settings.value) === serialized;
+    while (settings.value) {
+      const serialized = JSON.stringify(settings.value);
 
-    clearTimeout(savedTimeout);
-    savedTimeout = setTimeout(() => {
-      saved.value = false;
-    }, SAVED_INDICATOR_DURATION);
+      if (serialized === savedSettings || (schema.value && hasInvalidAppSettings(schema.value.fields, settings.value.values))) {
+        break;
+      }
+
+      await appsStore.setSettings(props.app.id, JSON.parse(serialized));
+      savedSettings = serialized;
+      didSave = true;
+    }
   } catch (error) {
     await handleHTTPError(error, 'Couldn\'t save app settings');
   } finally {
     isSaving = false;
+    settingsSaving.value = saveTimeout !== undefined;
+  }
 
-    if (isSaveQueued) {
-      isSaveQueued = false;
-      saveSettings();
-    }
+  if (didSave) {
+    saved.value = true;
+    needsRestart.value = true;
+    clearTimeout(savedTimeout);
+    savedTimeout = setTimeout(() => {
+      saved.value = false;
+    }, SAVED_INDICATOR_DURATION);
+  }
+}
+
+async function restartApp () {
+  restarting.value = true;
+  clearTimeout(savedTimeout);
+  saved.value = false;
+
+  try {
+    await appsStore.restartApp(props.app.id);
+    needsRestart.value = false;
+  } catch (error) {
+    await handleHTTPError(error, 'Couldn\'t restart the app');
+  } finally {
+    restarting.value = false;
   }
 }
 
@@ -170,7 +204,6 @@ async function deleteApp () {
   deleting.value = true;
   clearTimeout(saveTimeout);
   saveTimeout = undefined;
-  isSaveQueued = false;
 
   try {
     await appsStore.removeApp(props.app.id);
@@ -184,10 +217,19 @@ async function deleteApp () {
 }
 
 watch(settings, () => {
+  if (!settings.value || JSON.stringify(settings.value) === savedSettings) {
+    return;
+  }
+
   saved.value = false;
+  settingsSaving.value = true;
   clearTimeout(saveTimeout);
   saveTimeout = setTimeout(saveSettings, SAVE_DELAY);
 }, { deep: true });
+
+watch(() => appsStore.runningAppId, () => {
+  needsRestart.value = false;
+});
 
 onMounted(loadSettings);
 

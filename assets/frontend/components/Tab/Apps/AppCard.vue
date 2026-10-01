@@ -5,17 +5,13 @@
   >
     <div class="flex min-w-0 flex-1 items-center gap-2">
       <img
-        v-if="icon"
-        :src="icon"
+        :src="icon && !broken ? icon : unknownAppIcon"
         alt=""
         width="32"
         height="32"
         class="size-8 shrink-0 [image-rendering:pixelated]"
+        @error="broken = true"
       >
-      <div
-        v-else
-        class="size-8 shrink-0 rounded-lg bg-accented/25"
-      />
 
       <div class="truncate text-xl font-medium">
         {{ title }}
@@ -30,8 +26,16 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
+import unknownAppIcon from '@/assets/images/unknown-app-icon.png';
+
+const props = defineProps<{
   title: string;
   icon?: string;
 }>();
+
+const broken = ref(false);
+
+watch(() => props.icon, () => {
+  broken.value = false;
+});
 </script>
