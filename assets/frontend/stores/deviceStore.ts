@@ -9,6 +9,8 @@ import type {
   AccountInfo
 } from '@busy-app/busy-lib';
 
+type ConnCheckResult = true | false | 'aborted';
+
 export const useDeviceStore = defineStore('device', () => {
   const apiRequest = useApiStore().apiRequest;
   const wifiStore = useWifiStore();
@@ -21,12 +23,14 @@ export const useDeviceStore = defineStore('device', () => {
     timeout: Number(configStore.get('httpRequestTimeout'))
   }));
 
+  const refreshInterval = ref<NodeJS.Timeout>();
+  const availabilityPollingPaused = ref(false);
   // Assume device is connected unless the screenstream stops.
   // Upon stream failure, a probing HTTP request is sent. If it fails too, set isConnected to false.
   const isConnected = ref<boolean>(true);
   const checkingConnection = ref<boolean>(false);
-  type ConnCheckResult = true | false | 'aborted';
   const successfulConnchecksWithDataStale = ref(0);
+
   async function checkConnection (): Promise<ConnCheckResult> {
     if (checkingConnection.value) {
       return 'aborted';
@@ -100,8 +104,19 @@ export const useDeviceStore = defineStore('device', () => {
     return isConnected.value;
   }
 
-  const refreshInterval = ref<NodeJS.Timeout>();
+  function pauseAvailabilityPolling () {
+    availabilityPollingPaused.value = true;
+  }
+
+  function resumeAvailabilityPolling () {
+    availabilityPollingPaused.value = false;
+  }
+
   async function refreshDeviceData () {
+    if (availabilityPollingPaused.value) {
+      return;
+    }
+
     if (configStore.get('refreshDeviceDataAbortIfStreamActive')) {
       console.debug('Checking whether to refresh device data. Stream status:', stateStreamStore.streamStatus);
       if (stateStreamStore.streamStatus?.main.status === StreamLifecycle.RUNNING && stateStreamStore.streamStatus?.data.status === DataStatus.ACTIVE) {
@@ -141,6 +156,7 @@ export const useDeviceStore = defineStore('device', () => {
     await fetchHttpAPIAccess();
   }
   function setRefreshInterval () {
+    clearRefreshInterval();
     refreshInterval.value = setInterval(refreshDeviceData, Number(configStore.get('httpPollingInterval')));
   }
   function clearRefreshInterval () {
@@ -316,7 +332,11 @@ export const useDeviceStore = defineStore('device', () => {
     checkConnection,
     connectionType,
     detectConnectionType,
+
     refreshInterval,
+    availabilityPollingPaused,
+    pauseAvailabilityPolling,
+    resumeAvailabilityPolling,
     setRefreshInterval,
     clearRefreshInterval,
 

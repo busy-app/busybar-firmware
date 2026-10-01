@@ -19,23 +19,21 @@
         color="neutral"
         variant="outline"
         class="justify-center"
-        :ui="{
-          base: 'px-4 py-2.5 gap-1.5'
-        }"
+        :ui="BUTTON_UI"
         @click="emit('update')"
       />
 
       <UButton
-        :data-id="`apps-section-${appId}-start-button`"
-        label="Start"
-        icon="i-bi-play-fill"
+        :data-id="`apps-section-${appId}-${running ? 'stop' : 'start'}-button`"
+        :label="running ? 'Stop' : 'Start'"
+        :icon="running ? 'i-bi-control-stop' : 'i-bi-control-play'"
         color="neutral"
         variant="solid"
         class="justify-center"
-        :ui="{
-          base: 'px-4 py-2.5 gap-1.5'
-        }"
-        @click="startApp"
+        :loading="pending"
+        :disabled="!running && settingsSaving"
+        :ui="BUTTON_UI"
+        @click="toggle"
       />
     </template>
 
@@ -46,22 +44,42 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
+const BUTTON_UI = { base: 'px-4 py-2.5 gap-1.5' };
+
+const props = defineProps<{
   appId: string;
   title: string;
+  settingsSaving?: boolean;
 }>();
 
 const emit = defineEmits<{
   (e: 'back' | 'update'): void;
 }>();
 
-const toast = useToast();
+const appsStore = useAppsStore();
 
-function startApp () {
-  toast.add({
-    title: 'Coming soon',
-    description: 'Starting apps from the web interface is not available yet.',
-    icon: 'i-bi-info'
-  });
+const pending = ref(false);
+
+const running = computed(() => appsStore.runningAppId === props.appId);
+
+async function toggle () {
+  if (pending.value || (!running.value && props.settingsSaving)) {
+    return;
+  }
+
+  const stopping = running.value;
+  pending.value = true;
+
+  try {
+    if (stopping) {
+      await appsStore.quitApp();
+    } else {
+      await appsStore.launchApp(props.appId);
+    }
+  } catch (error) {
+    await handleHTTPError(error, stopping ? 'Couldn\'t stop the app' : 'Couldn\'t start the app');
+  } finally {
+    pending.value = false;
+  }
 }
 </script>
