@@ -14,6 +14,8 @@
 #include <js_app/js_app.h>
 #include <js_app/js_app_settings_storage.h>
 
+#include <toolbox/api_lock.h>
+
 #define TAG "JsAppLauncher"
 
 #define JS_APP_LAUNCHER_APP_ID "js_app_launcher"
@@ -52,6 +54,7 @@ typedef struct {
 typedef enum {
     JsAppLauncherApiMessageTypeInvalid,
     JsAppLauncherApiMessageTypeStop,
+    JsAppLauncherApiMessageTypeGetAppId,
     JsAppLauncherApiMessageTypeMax,
 } JsAppLauncherApiMessageType;
 
@@ -60,9 +63,16 @@ typedef struct {
 } JsAppLauncherApiMessageStop;
 
 typedef struct {
+    FuriString* app_id;
+} JsAppLauncherApiMessageGetAppId;
+
+typedef struct {
     JsAppLauncherApiMessageType type;
+    JsAppLauncherStatus* status;
+    FuriApiLock lock;
     union {
         JsAppLauncherApiMessageStop stop;
+        JsAppLauncherApiMessageGetAppId get_app_id;
     };
 } JsAppLauncherApiMessage;
 
@@ -97,3 +107,9 @@ void js_app_launcher_send_custom_event(JsAppLauncher* instance, uint32_t event);
 const JsAppLauncherErrorDesc* js_app_launcher_get_error_desc(const JsAppLauncher* instance);
 
 JsAppLauncherError js_app_launcher_translate_from_js_runner_error(JsRunnerError js_runner_error);
+
+void js_app_launcher_api_unlock_message(
+    JsAppLauncherApiMessage* api_message,
+    JsAppLauncherStatus status);
+
+void js_app_launcher_api_abort_pending_messages(JsAppLauncher* instance);

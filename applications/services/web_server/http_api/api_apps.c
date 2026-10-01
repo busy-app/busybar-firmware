@@ -471,6 +471,41 @@ static bool api_apps_list_request_callback(
     return true;
 }
 
+static bool api_apps_stop_running_app(const char* app_id) {
+    bool success = false;
+    FuriString* running_app_id = furi_string_alloc();
+
+    do {
+        JsAppLauncherStatus status;
+
+        status = js_app_launcher_get_app_id(running_app_id);
+        FURI_LOG_W(TAG, "ONE");
+        if(status != JsAppLauncherStatusOk) {
+            FURI_LOG_W(TAG, "TWO");
+            success = (status == JsAppLauncherStatusNotRunning);
+            break;
+        }
+
+        if(!furi_string_equal(running_app_id, app_id)) {
+            FURI_LOG_W(TAG, "THREE");
+            success = true;
+            break;
+        }
+        FURI_LOG_W(TAG, "FOUR");
+
+        status = js_app_launcher_stop(JsAppLauncherStopModeForget);
+        if((status != JsAppLauncherStatusOk) && (status != JsAppLauncherStatusNotRunning)) {
+        FURI_LOG_W(TAG, "FIVE");
+            break;
+        }
+
+        success = true;
+    } while(false);
+
+    furi_string_free(running_app_id);
+    return success;
+}
+
 static bool api_apps_delete_callback(
     FuriString* path,
     HttpMethod method,
@@ -493,21 +528,28 @@ static bool api_apps_delete_callback(
     int app_id_len = mg_http_get_var(&msg->query, "app_id", app_id, APP_ID_LEN_MAX);
     if(app_id_len <= 0) {
         MG_REPLY_BAD_REQUEST(conn);
-    } else {
-        JsAppRegistryAppUninstallResult uninstall_result = js_app_registry_uninstall_app(app_id);
-        switch(uninstall_result) {
-        case JsAppRegistryAppUninstallResultOk:
-            MG_REPLY_OK(conn);
-            break;
-        case JsAppRegistryAppUninstallResultNotFound:
-            MG_REPLY_NOT_FOUND(conn);
-            break;
-        case JsAppRegistryAppUninstallResultStorageError:
-            MG_REPLY_ERROR(conn, 508, "filesystem error");
-            break;
-        default:
-            furi_check(false);
-        }
+        return true;
+    }
+
+    if(!api_apps_stop_running_app(app_id)) {
+        MG_REPLY_ERROR(
+            conn, 500, "Failed to quit from application before uninstalling, try again");
+        return true;
+    }
+
+    JsAppRegistryAppUninstallResult uninstall_result = js_app_registry_uninstall_app(app_id);
+    switch(uninstall_result) {
+    case JsAppRegistryAppUninstallResultOk:
+        MG_REPLY_OK(conn);
+        break;
+    case JsAppRegistryAppUninstallResultNotFound:
+        MG_REPLY_NOT_FOUND(conn);
+        break;
+    case JsAppRegistryAppUninstallResultStorageError:
+        MG_REPLY_ERROR(conn, 508, "Filesystem error");
+        break;
+    default:
+        furi_crash();
     }
 
     return true;

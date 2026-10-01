@@ -62,6 +62,39 @@ static void js_app_launcher_event_queue_callback(FuriEventLoopObject* object, vo
     }
 }
 
+static JsAppLauncherStatus
+    js_app_launcher_handle_stop(JsAppLauncher* instance, const JsAppLauncherApiMessage* message) {
+    const JsAppLauncherStopMode stop_mode = message->stop.mode;
+    furi_check(stop_mode < JsAppLauncherStopModeMax);
+
+    if(stop_mode == JsAppLauncherStopModeForget) {
+        apps_menu_forget_current_app();
+    }
+
+    furi_event_loop_stop(instance->event_loop);
+    return JsAppLauncherStatusOk;
+}
+
+static JsAppLauncherStatus js_app_launcher_handle_get_app_id(
+    JsAppLauncher* instance,
+    const JsAppLauncherApiMessage* message) {
+    JsAppLauncherStatus status = JsAppLauncherStatusError;
+
+    FuriString* app_id = message->get_app_id.app_id;
+    furi_string_reset(app_id);
+
+    const JsApp* js_app = instance->js_app;
+    if(js_app != NULL) {
+        JsAppInfo info;
+        if(js_app_get_info(js_app, &info)) {
+            furi_string_set(app_id, info.manifest.id);
+            status = JsAppLauncherStatusOk;
+        }
+    }
+
+    return status;
+}
+
 static void js_app_launcher_api_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
@@ -70,19 +103,17 @@ static void js_app_launcher_api_queue_callback(FuriEventLoopObject* object, void
 
     JsAppLauncherApiMessage message;
     while(furi_message_queue_get(instance->api_queue, &message, 0) == FuriStatusOk) {
+        JsAppLauncherStatus status;
+
         if(message.type == JsAppLauncherApiMessageTypeStop) {
-            const JsAppLauncherStopMode stop_mode = message.stop.mode;
-            furi_check(stop_mode < JsAppLauncherStopModeMax);
-
-            if(message.stop.mode == JsAppLauncherStopModeForget) {
-                apps_menu_forget_current_app();
-            }
-
-            furi_event_loop_stop(instance->event_loop);
-
+            status = js_app_launcher_handle_stop(instance, &message);
+        } else if(message.type == JsAppLauncherApiMessageTypeGetAppId) {
+            status = js_app_launcher_handle_get_app_id(instance, &message);
         } else {
             furi_crash("Invalid JsAppLauncherApiMessageType value");
         }
+
+        js_app_launcher_api_unlock_message(&message, status);
     }
 }
 
@@ -280,6 +311,7 @@ static void js_app_launcher_clear_canvas(JsAppLauncher* instance) {
 }
 
 static void js_app_launcher_free(JsAppLauncher* instance) {
+    js_app_launcher_api_abort_pending_messages(instance);
     furi_record_destroy(RECORD_JS_APP_LAUNCHER);
     // TODO [FW-602]: scene_manager_free() MUST be called before
     //      all other free()s to avoid use-after-free.
