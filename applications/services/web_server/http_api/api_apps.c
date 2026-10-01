@@ -479,23 +479,18 @@ static bool api_apps_stop_running_app(const char* app_id) {
         JsAppLauncherStatus status;
 
         status = js_app_launcher_get_app_id(running_app_id);
-        FURI_LOG_W(TAG, "ONE");
         if(status != JsAppLauncherStatusOk) {
-            FURI_LOG_W(TAG, "TWO");
             success = (status == JsAppLauncherStatusNotRunning);
             break;
         }
 
         if(!furi_string_equal(running_app_id, app_id)) {
-            FURI_LOG_W(TAG, "THREE");
             success = true;
             break;
         }
-        FURI_LOG_W(TAG, "FOUR");
 
         status = js_app_launcher_stop(JsAppLauncherStopModeForget);
         if((status != JsAppLauncherStatusOk) && (status != JsAppLauncherStatusNotRunning)) {
-        FURI_LOG_W(TAG, "FIVE");
             break;
         }
 
