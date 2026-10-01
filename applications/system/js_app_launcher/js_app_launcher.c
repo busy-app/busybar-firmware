@@ -17,11 +17,14 @@
 #define NAV_BAR_HEIGHT (14)
 
 static void js_app_launcher_handle_back_press(JsAppLauncher* instance, const InputEvent* event) {
-    instance->input_sequence_num = event->sequence_number;
+    if(event->sequence_source == INPUT_SEQUENCE_SOURCE_HARDWARE) {
+        instance->input_sequence_num = event->sequence_number;
+    }
 }
 
 static void js_app_launcher_handle_back_short(JsAppLauncher* instance, const InputEvent* event) {
-    if(event->sequence_number == instance->input_sequence_num) {
+    if((event->sequence_number == instance->input_sequence_num) ||
+       (event->sequence_source == INPUT_SEQUENCE_SOURCE_SOFTWARE)) {
         if(!scene_manager_handle_back_event(instance->scene_manager)) {
             apps_menu_forget_current_app();
             furi_event_loop_stop(instance->event_loop);
