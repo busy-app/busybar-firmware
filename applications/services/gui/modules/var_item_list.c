@@ -1,8 +1,8 @@
 #include "var_item_list.h"
 #include "private/menu_base_i.h"
 
+#include <lvgl_addons/extensions/lv_label_ext.h>
 #include <lvgl/src/core/lv_obj_class_private.h>
-#include <lvgl/src/widgets/label/lv_label_private.h>
 
 #define MY_CLASS        (&var_item_list_lvgl_class)
 #define MY_ITEM_CLASS   (&var_item_lvgl_class)
@@ -14,6 +14,11 @@
 #define SYM_CURSOR_ARROW     "▶" // U+25B6
 #define SYM_EDIT_ARROW_LEFT  "‹" // U+2039
 #define SYM_EDIT_ARROW_RIGHT "›" // U+203A
+
+#define LONG_TEXT_ANIM_SPEED_PX_PER_M  1000
+#define LONG_TEXT_ANIM_START_DELAY_MS  1000
+#define LONG_TEXT_ANIM_REPEAT_DELAY_MS 2500
+#define EDITOR_FADE_WIDTH              10
 
 #define CHECK_RANGE_AND_STEP(min, max, step)                                                 \
     do {                                                                                     \
@@ -54,10 +59,14 @@ typedef struct {
 } VarItemEditor;
 
 struct VarItem {
-    lv_obj_t base;
+    Widget base;
     lv_obj_t* cursor;
+    lv_obj_t* label_box;
     lv_obj_t* label;
     VarItemEditor* editor;
+
+    lv_label_long_mode_t label_long_mode;
+    bool do_draw_fader;
 };
 
 struct VarItemList {
@@ -81,6 +90,12 @@ static void var_item_editor_clear_choices(VarItemEditor* instance);
 
 // VarItem
 
+static const lv_anim_t var_item_list_item_anim_template = {
+    .act_time = -LONG_TEXT_ANIM_START_DELAY_MS,
+    .repeat_cnt = LV_ANIM_REPEAT_INFINITE,
+    .repeat_delay = LONG_TEXT_ANIM_REPEAT_DELAY_MS,
+};
+
 static void var_item_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     LV_UNUSED(class_p);
 
@@ -91,18 +106,28 @@ static void var_item_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* o
     lv_obj_add_flag(obj, LV_OBJ_FLAG_SCROLL_ON_FOCUS);
 
     VarItem* instance = (VarItem*)obj;
+
     instance->cursor = lv_obj_class_create_obj(MY_CURSOR_CLASS, obj);
     lv_obj_class_init_obj(instance->cursor);
     lv_label_set_text(instance->cursor, SYM_CURSOR_ARROW);
 
-    instance->label = lv_label_create(obj);
-    lv_obj_set_flex_grow(instance->label, 1);
-    lv_label_set_long_mode(instance->label, LV_LABEL_LONG_MODE_CLIP);
+    /* this container is the hack to fix lvgl's clip long mode (without it label text would overlap left arrow) */
+    instance->label_box = lv_obj_create(obj);
+    lv_obj_remove_style(instance->label_box, NULL, LV_PART_MAIN);
+    lv_obj_set_flex_grow(instance->label_box, 1);
+    lv_obj_set_height(instance->label_box, LV_SIZE_CONTENT);
+    lv_obj_remove_flag(instance->label_box, LV_OBJ_FLAG_SCROLLABLE);
+
+    instance->label = lv_label_create(instance->label_box);
+    lv_obj_set_width(instance->label, LV_PCT(100));
+    lv_label_ext_set_max_lines(instance->label, 1);
+    lv_obj_set_style_anim(instance->label, &var_item_list_item_anim_template, LV_PART_MAIN);
 
     lv_obj_t* editor = lv_obj_class_create_obj(MY_EDITOR_CLASS, obj);
     lv_obj_class_init_obj(editor);
 
     instance->editor = (VarItemEditor*)editor;
+    lv_obj_set_style_anim(instance->editor->text, &var_item_list_item_anim_template, LV_PART_MAIN);
 }
 
 static void var_item_lvgl_event(const lv_obj_class_t* class_p, lv_event_t* event) {
@@ -117,9 +142,73 @@ static void var_item_lvgl_event(const lv_obj_class_t* class_p, lv_event_t* event
 
     if(code == LV_EVENT_FOCUSED) {
         lv_obj_add_state(instance->cursor, LV_STATE_FOCUSED);
+
+        if(lv_obj_has_state((lv_obj_t*)instance->editor, LV_STATE_EDITED)) {
+            lv_label_set_long_mode(instance->editor->text, LV_LABEL_LONG_MODE_SCROLL_CIRCULAR);
+            lv_label_set_long_mode(instance->label, instance->label_long_mode);
+        } else {
+            lv_label_set_long_mode(instance->label, LV_LABEL_LONG_MODE_SCROLL_CIRCULAR);
+            lv_label_ext_set_anim_speed(instance->label, LONG_TEXT_ANIM_SPEED_PX_PER_M);
+            lv_label_set_long_mode(instance->editor->text, LV_LABEL_LONG_MODE_DOTS);
+        }
     } else if(code == LV_EVENT_DEFOCUSED) {
         lv_obj_remove_state(instance->cursor, LV_STATE_FOCUSED);
+        lv_label_set_long_mode(instance->label, instance->label_long_mode);
+        lv_label_set_long_mode(instance->editor->text, LV_LABEL_LONG_MODE_DOTS);
+    } else if(code == LV_EVENT_DRAW_POST) {
+        if(instance->do_draw_fader) {
+            lv_layer_t* layer = lv_event_get_param(event);
+
+            lv_draw_rect_dsc_t descriptor;
+            lv_draw_rect_dsc_init(&descriptor);
+            descriptor.bg_opa = LV_OPA_COVER;
+            descriptor.bg_grad.dir = LV_GRAD_DIR_HOR;
+            descriptor.bg_grad.stops_count = 2;
+            descriptor.bg_grad.stops[0].color = lv_color_black();
+            descriptor.bg_grad.stops[0].frac = 0;
+            descriptor.bg_grad.stops[0].opa = LV_OPA_TRANSP;
+            descriptor.bg_grad.stops[1].color = lv_color_black();
+            descriptor.bg_grad.stops[1].frac = 255;
+            descriptor.bg_grad.stops[1].opa = LV_OPA_COVER;
+
+            lv_obj_t* editor = TO_LV_OBJ(instance->editor);
+            lv_draw_rect(
+                layer,
+                &descriptor,
+                &(lv_area_t){
+                    .x1 = editor->coords.x1 - EDITOR_FADE_WIDTH,
+                    .x2 = editor->coords.x1 - 1,
+                    .y1 = TO_LV_OBJ(instance)->coords.y1,
+                    .y2 = TO_LV_OBJ(instance)->coords.y2,
+                });
+        }
     }
+}
+
+static void var_item_style_front(Widget* widget) {
+    VarItem* instance = (VarItem*)widget;
+
+    instance->label_long_mode = LV_LABEL_LONG_MODE_CLIP;
+    instance->do_draw_fader = true;
+
+    lv_obj_set_style_min_width(instance->label_box, 28, LV_PART_MAIN);
+
+    lv_label_set_long_mode(instance->label, instance->label_long_mode);
+
+    lv_obj_set_style_max_width(instance->editor->text, 30, LV_PART_MAIN);
+}
+
+static void var_item_style_back(Widget* widget) {
+    VarItem* instance = (VarItem*)widget;
+
+    instance->label_long_mode = LV_LABEL_LONG_MODE_DOTS;
+    instance->do_draw_fader = false;
+
+    lv_obj_set_style_min_width(instance->label_box, 56, LV_PART_MAIN);
+
+    lv_label_set_long_mode(instance->label, instance->label_long_mode);
+
+    lv_obj_set_style_max_width(instance->editor->text, 58, LV_PART_MAIN);
 }
 
 // VarItemSpinbox
@@ -137,6 +226,8 @@ static void var_item_editor_lvgl_constructor(const lv_obj_class_t* class_p, lv_o
     lv_obj_class_init_obj(instance->arrow_left);
 
     instance->text = lv_label_create(obj);
+    lv_label_ext_set_max_lines(instance->text, 1);
+    lv_label_set_long_mode(instance->text, LV_LABEL_LONG_MODE_DOTS);
 
     instance->arrow_right = lv_obj_class_create_obj(MY_ARROW_CLASS, obj);
     lv_obj_class_init_obj(instance->arrow_right);
@@ -296,6 +387,11 @@ static void var_item_editor_update(VarItemEditor* instance) {
     } else {
         furi_crash();
     }
+
+    if(lv_obj_has_state((lv_obj_t*)instance, LV_STATE_EDITED)) {
+        lv_label_set_long_mode(label, LV_LABEL_LONG_MODE_SCROLL_CIRCULAR);
+        lv_label_ext_set_anim_speed(label, LONG_TEXT_ANIM_SPEED_PX_PER_M);
+    }
 }
 
 static void var_item_editor_increment(VarItemEditor* instance) {
@@ -333,11 +429,18 @@ static void var_item_editor_set_edited(VarItemEditor* instance, bool set) {
         lv_obj_add_state((lv_obj_t*)item->cursor, LV_STATE_EDITED);
         lv_obj_remove_state((lv_obj_t*)item->cursor, LV_STATE_FOCUSED);
 
+        lv_label_set_long_mode(item->label, item->label_long_mode);
+        lv_label_set_long_mode(instance->text, LV_LABEL_LONG_MODE_SCROLL_CIRCULAR);
+        lv_label_ext_set_anim_speed(instance->text, LONG_TEXT_ANIM_SPEED_PX_PER_M);
     } else {
         lv_obj_remove_state((lv_obj_t*)instance, LV_STATE_EDITED);
         lv_obj_add_state((lv_obj_t*)item, LV_STATE_FOCUSED);
         lv_obj_add_state((lv_obj_t*)item->cursor, LV_STATE_FOCUSED);
         lv_obj_remove_state((lv_obj_t*)item->cursor, LV_STATE_EDITED);
+
+        lv_label_set_long_mode(item->label, LV_LABEL_LONG_MODE_SCROLL_CIRCULAR);
+        lv_label_ext_set_anim_speed(item->label, LONG_TEXT_ANIM_SPEED_PX_PER_M);
+        lv_label_set_long_mode(instance->text, LV_LABEL_LONG_MODE_DOTS);
     }
 }
 
@@ -645,22 +748,25 @@ const lv_obj_class_t var_item_list_lvgl_class = {
     .user_data =
         (void*)&(const WidgetClassData){
             .input_callback = var_item_list_input_callback,
-            .style_callbacks =
-                {
-                    [GuiDisplayIdFront] = NULL,
-                    [GuiDisplayIdBack] = NULL,
-                },
         },
 };
 
 const lv_obj_class_t var_item_lvgl_class = {
-    .base_class = &lv_obj_class,
+    .base_class = &widget_lvgl_class,
     .constructor_cb = var_item_lvgl_constructor,
     .event_cb = var_item_lvgl_event,
     .name = "var-item",
     .width_def = LV_PCT(100),
     .height_def = LV_SIZE_CONTENT,
     .instance_size = sizeof(VarItem),
+    .user_data =
+        (void*)&(const WidgetClassData){
+            .style_callbacks =
+                {
+                    [GuiDisplayIdFront] = var_item_style_front,
+                    [GuiDisplayIdBack] = var_item_style_back,
+                },
+        },
 };
 
 const lv_obj_class_t var_item_editor_lvgl_class = {
