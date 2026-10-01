@@ -72,6 +72,7 @@ typedef struct {
     FuriMessageQueue* event_queue;
     FuriMessageQueue* api_queue;
     SceneManager* scene_manager;
+    uint32_t input_sequence_num;
     Gui* gui;
 
     Widget* front_window;
