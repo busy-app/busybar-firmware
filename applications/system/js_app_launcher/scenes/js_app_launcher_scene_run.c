@@ -40,6 +40,21 @@ static void js_app_launcher_scene_run_console_out_callback(
     }
 }
 
+static bool js_app_launcher_scene_run_input_callback(const InputEvent* event, void* context) {
+    furi_assert(event);
+    furi_assert(context);
+
+    JsAppLauncher* instance = context;
+    bool consumed = false;
+
+    if((event->type == InputTypeLong) && (event->key == InputKeyBack)) {
+        js_app_launcher_send_custom_event(instance, JsAppLauncherCustomEventLongBackPressed);
+        consumed = true;
+    }
+
+    return consumed;
+}
+
 static void js_app_launcher_scene_run_event_callback(const JsRunnerEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
@@ -111,6 +126,20 @@ static void js_app_launcher_scene_run_deinit_widgets(JsAppLauncher* instance) {
     });
 }
 
+static void js_app_launcher_scene_run_init_input(JsAppLauncher* instance) {
+    with_gui(instance->gui, {
+        GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdSystem);
+        gui_layer_add_input_callback(layer, js_app_launcher_scene_run_input_callback, instance);
+    });
+}
+
+static void js_app_launcher_scene_run_deinit_input(JsAppLauncher* instance) {
+    with_gui(instance->gui, {
+        GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdSystem);
+        gui_layer_remove_input_callback(layer, js_app_launcher_scene_run_input_callback);
+    });
+}
+
 static bool js_app_launcher_scene_run_start_app(JsAppLauncher* instance) {
     bool success = false;
 
@@ -128,6 +157,7 @@ static bool js_app_launcher_scene_run_start_app(JsAppLauncher* instance) {
         }
 
         js_app_launcher_scene_run_init_widgets(instance);
+        js_app_launcher_scene_run_init_input(instance);
 
         const JsAppManifestInfo* js_manifest = &js_info.manifest;
         const JsRunnerContextInitResult init_result = js_runner_context_alloc(
@@ -195,6 +225,7 @@ static void js_app_launcher_scene_run_on_exit(void* context) {
     }
 
     js_app_launcher_scene_run_deinit_widgets(instance);
+    js_app_launcher_scene_run_deinit_input(instance);
 
     furi_record_close(RECORD_JS_RUNNER);
 }
@@ -224,6 +255,10 @@ static void js_app_launcher_scene_run_handle_script_finished(JsAppLauncher* inst
     }
 }
 
+static void js_app_launcher_scene_run_handle_long_back_pressed(JsAppLauncher* instance) {
+    scene_manager_previous_scene(instance->scene_manager);
+}
+
 static bool js_app_launcher_scene_run_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
@@ -236,11 +271,13 @@ static bool js_app_launcher_scene_run_on_event(const SceneManagerEvent* event, v
             js_app_launcher_scene_run_handle_script_started(instance);
         } else if(event->event == JsAppLauncherCustomEventScriptFinished) {
             js_app_launcher_scene_run_handle_script_finished(instance);
+        } else if(event->event == JsAppLauncherCustomEventLongBackPressed) {
+            js_app_launcher_scene_run_handle_long_back_pressed(instance);
         }
 
         consumed = true;
     } else if(event->type == SceneManagerEventTypeBack) {
-        // TODO: Special Back key treatment?
+        // Prevent exit from scene on regular back press
         consumed = true;
     }
 

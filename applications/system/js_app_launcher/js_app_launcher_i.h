@@ -90,6 +90,7 @@ typedef enum {
     JsAppLauncherCustomEventScriptStarted,
     JsAppLauncherCustomEventScriptFinished,
     JsAppLauncherCustomEventSettingsChanged,
+    JsAppLauncherCustomEventLongBackPressed,
 } JsAppLauncherCustomEvent;
 
 void js_app_launcher_send_custom_event(JsAppLauncher* instance, uint32_t event);
