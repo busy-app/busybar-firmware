@@ -61,6 +61,8 @@ export const useAppsStore = defineStore('apps', () => {
   const apps = ref<AppInfo[]>([]);
   const icons = ref<Record<string, string>>({});
   const loading = ref(false);
+  // Only what this session started itself; the device has no way to report a running app.
+  const runningAppId = ref<string>();
 
   async function fetchApps () {
     loading.value = true;
@@ -133,8 +135,44 @@ export const useAppsStore = defineStore('apps', () => {
   }
 
   async function installApp (installKey: number) {
-    await deviceStore.busyBar.AppsInstall({ install_key: installKey }, { timeout: 0 });
-    await fetchApps();
+    const stateStreamStore = useStateStreamStore();
+    const checkOnStale = stateStreamStore.doCheckConnectionOnStreamDataStale;
+    stateStreamStore.doCheckConnectionOnStreamDataStale = false;
+    deviceStore.pauseAvailabilityPolling();
+
+    try {
+      await deviceStore.busyBar.AppsInstall({ install_key: installKey }, { timeout: 0 });
+      await fetchApps();
+    } finally {
+      stateStreamStore.doCheckConnectionOnStreamDataStale = checkOnStale;
+      deviceStore.resumeAvailabilityPolling();
+    }
+  }
+
+  async function launchApp (appId: string) {
+    await useApiStore().apiRequest('/api/apps/launch', {
+      method: 'POST',
+      query: { app_id: appId }
+    });
+
+    runningAppId.value = appId;
+  }
+
+  async function quitApp () {
+    try {
+      await useApiStore().apiRequest('/api/apps/quit', { method: 'POST' });
+    } catch (error) {
+      // 409 means nothing was running, which is the state we are after anyway
+      if (httpErrorStatus(error) !== 409) {
+        throw error;
+      }
+    }
+
+    runningAppId.value = undefined;
+  }
+
+  function restartApp (appId: string) {
+    return launchApp(appId);
   }
 
   async function removeApp (appId: string) {
@@ -163,10 +201,14 @@ export const useAppsStore = defineStore('apps', () => {
     apps,
     icons,
     loading,
+    runningAppId,
     fetchApps,
     readIcon,
     stageApp,
     installApp,
+    launchApp,
+    quitApp,
+    restartApp,
     removeApp,
     readSettingsSchema,
     getSettings,

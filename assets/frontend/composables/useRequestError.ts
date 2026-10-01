@@ -30,6 +30,12 @@ export async function handleHTTPError (error: any, title: string, shouldCheckFor
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function httpErrorStatus (error: any) {
+  const status = error?.status ?? error?.statusCode;
+  return typeof status === 'number' ? status : undefined;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isDisplayPriorityConflict (error: any) {
   return error?.status === 409;
 }

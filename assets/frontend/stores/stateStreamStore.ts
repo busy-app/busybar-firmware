@@ -292,7 +292,7 @@ export const useStateStreamStore = defineStore('stateStream', () => {
 
     streamStatus.value = status;
 
-    if (streamStatus.value.data.status === DataStatus.STALE && oldStatus?.data.status !== DataStatus.STALE && doCheckConnectionOnStreamDataStale.value) {
+    if (streamStatus.value.data.status === DataStatus.STALE && oldStatus?.data.status !== DataStatus.STALE && doCheckConnectionOnStreamDataStale.value && !deviceStore.availabilityPollingPaused) {
       console.debug('No state messages received for a while, checking connection...');
       const conncheckResult = await deviceStore.checkConnection();
       if (conncheckResult === false) {
