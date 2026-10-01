@@ -278,10 +278,6 @@ static void js_app_launcher_scene_run_handle_script_finished(JsAppLauncher* inst
     }
 }
 
-static void js_app_launcher_scene_run_handle_long_back_pressed(JsAppLauncher* instance) {
-    scene_manager_previous_scene(instance->scene_manager);
-}
-
 static bool js_app_launcher_scene_run_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
@@ -295,7 +291,7 @@ static bool js_app_launcher_scene_run_on_event(const SceneManagerEvent* event, v
         } else if(event->event == JsAppLauncherCustomEventScriptFinished) {
             js_app_launcher_scene_run_handle_script_finished(instance);
         } else if(event->event == JsAppLauncherCustomEventLongBackPressed) {
-            js_app_launcher_scene_run_handle_long_back_pressed(instance);
+            js_app_launcher_scene_run_handle_script_finished(instance);
         }
 
         consumed = true;
