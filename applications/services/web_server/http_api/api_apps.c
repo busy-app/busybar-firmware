@@ -533,7 +533,7 @@ static bool api_apps_delete_callback(
 
     if(!api_apps_stop_running_app(app_id)) {
         MG_REPLY_ERROR(
-            conn, 500, "Failed to quit from application before uninstalling, try again");
+            conn, 503, "Failed to quit from application before uninstalling, try again");
         return true;
     }
 
