@@ -6,7 +6,6 @@
 #include <gui/modules/anim_player.h>
 
 #define MESSAGE_LOADING "Loading..."
-#define MESSAGE_RUNNING "Running..."
 
 typedef struct {
     FlexBox* flex;
@@ -210,12 +209,6 @@ static void js_app_launcher_scene_run_handle_script_started(JsAppLauncher* insta
 
         anim_player_pause(front_widgets->spinner);
         anim_player_pause(back_widgets->spinner);
-
-        widget_set_visible(anim_player_get_base(front_widgets->spinner), false);
-        widget_set_visible(anim_player_get_base(back_widgets->spinner), false);
-
-        label_set_text(front_widgets->label, MESSAGE_RUNNING);
-        label_set_text(back_widgets->label, MESSAGE_RUNNING);
     });
 }
 
