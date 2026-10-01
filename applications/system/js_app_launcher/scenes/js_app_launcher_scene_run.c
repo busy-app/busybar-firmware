@@ -205,9 +205,10 @@ static void js_app_launcher_scene_run_clear_canvas(JsAppLauncher* instance) {
     JsAppLauncherSceneRun* data =
         scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdRun);
 
-    if(data->js_app_id != NULL) {
+    const char* app_id = data->js_app_id;
+    if(app_id != NULL) {
         CanvasSrv* canvas = furi_record_open(RECORD_CANVAS);
-        const CanvasResult result = canvas_delete_elements(canvas, data->js_app_id, NULL);
+        const CanvasResult result = canvas_delete_elements(canvas, app_id, NULL);
         furi_record_close(RECORD_CANVAS);
 
         if((result != CanvasResultOk) && (result != CanvasResultEmptyScreen)) {
@@ -232,21 +233,21 @@ static void js_app_launcher_scene_run_on_exit(void* context) {
     JsAppLauncherSceneRun* data =
         scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdRun);
 
-    if(data->js_runner_exec_handle) {
-        js_runner_abort(data->js_runner_exec_handle);
-        furi_check(
-            js_runner_join(data->js_runner_exec_handle, FuriWaitForever) == JsRunnerErrorNone);
+    JsRunnerExecutionHandle* exec_handle = data->js_runner_exec_handle;
+    if(exec_handle != NULL) {
+        js_runner_abort(exec_handle);
+        furi_check(js_runner_join(exec_handle, FuriWaitForever) == JsRunnerErrorNone);
         data->js_runner_exec_handle = NULL;
     }
 
-    if(data->js_runner_handle) {
-        js_runner_context_free(data->js_runner_handle);
+    JsRunnerContextHandle* context_handle = data->js_runner_handle;
+    if(context_handle != NULL) {
+        js_runner_context_free(context_handle);
         data->js_runner_handle = NULL;
     }
 
     js_app_launcher_scene_run_deinit_widgets(instance);
     js_app_launcher_scene_run_deinit_input(instance);
-
     js_app_launcher_scene_run_clear_canvas(instance);
 
     furi_record_close(RECORD_JS_RUNNER);
