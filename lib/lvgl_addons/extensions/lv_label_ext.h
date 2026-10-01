@@ -29,6 +29,16 @@ extern "C" {
  */
 void lv_label_ext_set_anim_speed(lv_obj_t* label, uint32_t px_per_min);
 
+/**
+ * @brief Cap the label's height to N text lines.
+ * Sets max_height to line_height * max_lines + line_space * (max_lines - 1),
+ * computed once at call time from the label's current font.
+ *
+ * @param[in, out] label     label lvgl object
+ * @param[in]      max_lines maximum number of text lines (must be > 0)
+ */
+void lv_label_ext_set_max_lines(lv_obj_t* label, uint32_t max_lines);
+
 #ifdef __cplusplus
 }
 #endif

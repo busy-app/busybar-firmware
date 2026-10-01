@@ -15,3 +15,15 @@ void lv_label_ext_set_anim_speed(lv_obj_t* label, uint32_t px_per_min) {
         lv_obj_send_event(label, LV_EVENT_STYLE_CHANGED, NULL);
     }
 }
+
+void lv_label_ext_set_max_lines(lv_obj_t* label, uint32_t max_lines) {
+    furi_check(max_lines > 0);
+
+    LV_ASSERT_OBJ(label, &lv_label_class);
+
+    const lv_font_t* font = lv_obj_get_style_text_font(label, LV_PART_MAIN);
+    int32_t line_space = lv_obj_get_style_text_line_space(label, LV_PART_MAIN);
+    int32_t max_height = lv_font_get_line_height(font) * max_lines + line_space * (max_lines - 1);
+
+    lv_obj_set_style_max_height(label, max_height, LV_PART_MAIN);
+}
