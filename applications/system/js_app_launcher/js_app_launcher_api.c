@@ -94,12 +94,14 @@ JsAppLauncherStatus js_app_launcher_stop(JsAppLauncherStopMode stop_mode) {
         return JsAppLauncherStatusNotRunning;
     }
 
+    JsAppLauncherStatus status = JsAppLauncherStatusOk;
+
     const JsAppLauncherApiMessage message = {
         .type = JsAppLauncherApiMessageTypeStop,
+        .status = &status,
+        .lock = api_lock_alloc_locked(),
         .stop = {.mode = stop_mode},
     };
-
-    JsAppLauncherStatus status = JsAppLauncherStatusOk;
 
     if(!js_app_launcher_send_api_message(instance, &message)) {
         status = JsAppLauncherStatusTimeout;
