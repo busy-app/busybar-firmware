@@ -1,6 +1,8 @@
 #include "../js_app_launcher_i.h"
 #include "js_app_launcher_scenes.h"
 
+#include <canvas/canvas.h>
+
 #include <gui/modules/flex_box.h>
 #include <gui/modules/label.h>
 #include <gui/modules/anim_player.h>
@@ -18,6 +20,7 @@ typedef struct {
     JsAppLauncherSceneRunWidgets back_widgets;
     JsRunnerContextHandle* js_runner_handle;
     JsRunnerExecutionHandle* js_runner_exec_handle;
+    const char* js_app_id;
     JsRunnerError js_error;
 } JsAppLauncherSceneRun;
 
@@ -147,6 +150,7 @@ static bool js_app_launcher_scene_run_start_app(JsAppLauncher* instance) {
     JsAppLauncherSceneRun* data =
         scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdRun);
 
+    data->js_app_id = NULL;
     data->js_error = JsRunnerErrorUnknown;
 
     do {
@@ -173,6 +177,7 @@ static bool js_app_launcher_scene_run_start_app(JsAppLauncher* instance) {
         }
 
         data->js_runner_handle = init_result.handle;
+        data->js_app_id = js_manifest->id;
 
         const JsRunnerRunResult run_result = js_runner_run(
             data->js_runner_handle,
@@ -194,6 +199,21 @@ static bool js_app_launcher_scene_run_start_app(JsAppLauncher* instance) {
     instance->error = js_app_launcher_translate_from_js_runner_error(data->js_error);
 
     return success;
+}
+
+static void js_app_launcher_scene_run_clear_canvas(JsAppLauncher* instance) {
+    JsAppLauncherSceneRun* data =
+        scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdRun);
+
+    if(data->js_app_id != NULL) {
+        CanvasSrv* canvas = furi_record_open(RECORD_CANVAS);
+        const CanvasResult result = canvas_delete_elements(canvas, data->js_app_id, NULL);
+        furi_record_close(RECORD_CANVAS);
+
+        if((result != CanvasResultOk) && (result != CanvasResultEmptyScreen)) {
+            FURI_LOG_W(TAG, "Failed to clear canvas: %d", result);
+        }
+    }
 }
 
 static void js_app_launcher_scene_run_on_enter(void* context) {
@@ -226,6 +246,8 @@ static void js_app_launcher_scene_run_on_exit(void* context) {
 
     js_app_launcher_scene_run_deinit_widgets(instance);
     js_app_launcher_scene_run_deinit_input(instance);
+
+    js_app_launcher_scene_run_clear_canvas(instance);
 
     furi_record_close(RECORD_JS_RUNNER);
 }

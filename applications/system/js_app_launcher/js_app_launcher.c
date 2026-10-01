@@ -1,7 +1,6 @@
 #include "js_app_launcher_i.h"
 
 #include <apps_menu/apps_menu.h>
-#include <canvas/canvas.h>
 #include <storage/storage.h>
 
 #include <js_app/js_app_common.h>
@@ -264,21 +263,6 @@ static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
     return instance;
 }
 
-static void js_app_launcher_clear_canvas(JsAppLauncher* instance) {
-    CanvasSrv* canvas = furi_record_open(RECORD_CANVAS);
-
-    JsAppInfo info;
-    if(js_app_get_info(instance->js_app, &info)) {
-        const char* app_id = info.manifest.id;
-        const CanvasResult result = canvas_delete_elements(canvas, app_id, NULL);
-        if((result != CanvasResultOk) && (result != CanvasResultEmptyScreen)) {
-            FURI_LOG_W(TAG, "Failed to clear canvas: %d", result);
-        }
-    }
-
-    furi_record_close(RECORD_CANVAS);
-}
-
 static void js_app_launcher_free(JsAppLauncher* instance) {
     furi_record_destroy(RECORD_JS_APP_LAUNCHER);
     // TODO [FW-602]: scene_manager_free() MUST be called before
@@ -300,7 +284,6 @@ static void js_app_launcher_free(JsAppLauncher* instance) {
     }
 
     if(instance->js_app) {
-        js_app_launcher_clear_canvas(instance);
         js_app_free(instance->js_app);
     }
 
