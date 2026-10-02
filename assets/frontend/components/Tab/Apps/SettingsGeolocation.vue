@@ -2,7 +2,7 @@
   <div class="flex flex-col gap-1 rounded-group">
     <div
       class="flex flex-col gap-4 bg-accented/25 p-4 dark:bg-[var(--ui-surface-card)]"
-      :class="manual ? 'rounded-[12px_12px_4px_4px]' : 'rounded-[12px]'"
+      :class="manual ? 'rounded-[12px_12px_4px_4px]!' : 'rounded-[12px]'"
     >
       <div class="flex w-full items-center gap-2">
         <div class="min-w-0 flex-1 truncate">
