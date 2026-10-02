@@ -478,7 +478,7 @@ static bool api_apps_stop_running_app(const char* app_id) {
     do {
         JsAppLauncherStatus status;
 
-        status = js_app_launcher_get_app_id(running_app_id);
+        status = js_app_launcher_get_running_app_id(running_app_id);
         if(status != JsAppLauncherStatusOk) {
             success = (status == JsAppLauncherStatusNotRunning);
             break;

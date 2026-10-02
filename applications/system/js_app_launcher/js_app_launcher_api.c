@@ -111,7 +111,7 @@ JsAppLauncherStatus js_app_launcher_stop(JsAppLauncherStopMode stop_mode) {
     return status;
 }
 
-JsAppLauncherStatus js_app_launcher_get_app_id(FuriString* app_id) {
+JsAppLauncherStatus js_app_launcher_get_running_app_id(FuriString* app_id) {
     furi_check(app_id);
 
     JsAppLauncher* instance = furi_record_open_ex(RECORD_JS_APP_LAUNCHER, RECORD_TIMEOUT_TICKS);

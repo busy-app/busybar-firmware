@@ -73,7 +73,7 @@ JsAppLauncherStatus js_app_launcher_stop(JsAppLauncherStopMode stop_mode);
  * @returns @c JsAppLauncherStatusAborted operation was aborted
  * @returns @c JsAppLauncherStatusError internal error or unexpected state
  */
-JsAppLauncherStatus js_app_launcher_get_app_id(FuriString* app_id);
+JsAppLauncherStatus js_app_launcher_get_running_app_id(FuriString* app_id);
 
 #ifdef __cplusplus
 }
