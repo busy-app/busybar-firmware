@@ -125,6 +125,8 @@ static JsAppLauncherApiHandler js_app_launcher_api_handlers[] = {
     [JsAppLauncherApiMessageTypeGetAppId] = js_app_launcher_handle_get_app_id,
 };
 
+static_assert(COUNT_OF(js_app_launcher_api_handlers) == JsAppLauncherApiMessageTypeMax);
+
 static void js_app_launcher_api_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
