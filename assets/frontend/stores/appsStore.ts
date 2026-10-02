@@ -237,4 +237,3 @@ export const useAppsStore = defineStore('apps', () => {
     setSettings
   };
 });
-
