@@ -191,90 +191,90 @@
                 <VLayer :ref="esRefs.displayLayerRef">
                   <VRect :config="stageBackgroundConfig" />
 
-                <VGroup :config="workspaceBackgroundGroupConfig">
-                  <VRect :config="workspaceBackgroundConfig" />
-                </VGroup>
+                  <VGroup :config="workspaceBackgroundGroupConfig">
+                    <VRect :config="workspaceBackgroundConfig" />
+                  </VGroup>
 
-                <VGroup :config="workspaceCustomBackgroundGroupConfig">
-                  <VRect :config="workspaceColorLayerConfig" />
-                </VGroup>
+                  <VGroup :config="workspaceCustomBackgroundGroupConfig">
+                    <VRect :config="workspaceColorLayerConfig" />
+                  </VGroup>
 
-                <VGroup
-                  :ref="esRefs.displayGroupRef"
-                  :config="displayGroupConfig"
-                >
-                  <VGroup :config="displayShapesGroupConfig">
+                  <VGroup
+                    :ref="esRefs.displayGroupRef"
+                    :config="displayGroupConfig"
+                  >
+                    <VGroup :config="displayShapesGroupConfig">
+                      <template
+                        v-for="shape in es.shapes"
+                        :key="shape.id"
+                      >
+                        <VRect
+                          v-if="shape.type === 'rect'"
+                          :config="getDisplayRectConfig(shape)"
+                        />
+                        <VText
+                          v-else-if="shape.type === 'text'"
+                          :config="getDisplayTextConfig(shape)"
+                        />
+                        <VImage
+                          v-else-if="shape.type === 'video'"
+                          :config="getDisplayVideoConfig(shape)"
+                        />
+                        <VImage
+                          v-else
+                          :config="getDisplayImageConfig(shape)"
+                        />
+                      </template>
+                    </VGroup>
+                  </VGroup>
+
+                  <VGroup
+                    v-for="overflowGroup in overflowPreviewClipGroups"
+                    :key="overflowGroup.key"
+                    :config="overflowGroup"
+                  >
                     <template
                       v-for="shape in es.shapes"
-                      :key="shape.id"
+                      :key="`${shape.id}-${overflowGroup.key}`"
                     >
                       <VRect
                         v-if="shape.type === 'rect'"
-                        :config="getDisplayRectConfig(shape)"
+                        :config="getOverflowPreviewRectConfig(shape)"
                       />
                       <VText
                         v-else-if="shape.type === 'text'"
-                        :config="getDisplayTextConfig(shape)"
+                        :config="getOverflowPreviewTextConfig(shape)"
                       />
                       <VImage
                         v-else-if="shape.type === 'video'"
-                        :config="getDisplayVideoConfig(shape)"
+                        :config="getOverflowPreviewVideoConfig(shape)"
                       />
                       <VImage
                         v-else
-                        :config="getDisplayImageConfig(shape)"
+                        :config="getOverflowPreviewImageConfig(shape)"
                       />
                     </template>
                   </VGroup>
-                </VGroup>
 
-                <VGroup
-                  v-for="overflowGroup in overflowPreviewClipGroups"
-                  :key="overflowGroup.key"
-                  :config="overflowGroup"
-                >
-                  <template
-                    v-for="shape in es.shapes"
-                    :key="`${shape.id}-${overflowGroup.key}`"
-                  >
+                  <VGroup :config="workspaceGridGroupConfig">
+                    <template v-if="showGrid">
+                      <VLine
+                        v-for="line in verticalGridLines"
+                        :key="line.key"
+                        :config="line"
+                      />
+                      <VLine
+                        v-for="line in horizontalGridLines"
+                        :key="line.key"
+                        :config="line"
+                      />
+                    </template>
                     <VRect
-                      v-if="shape.type === 'rect'"
-                      :config="getOverflowPreviewRectConfig(shape)"
+                      v-for="pixel in borderPixelConfigs"
+                      :key="pixel.key"
+                      :config="pixel"
                     />
-                    <VText
-                      v-else-if="shape.type === 'text'"
-                      :config="getOverflowPreviewTextConfig(shape)"
-                    />
-                    <VImage
-                      v-else-if="shape.type === 'video'"
-                      :config="getOverflowPreviewVideoConfig(shape)"
-                    />
-                    <VImage
-                      v-else
-                      :config="getOverflowPreviewImageConfig(shape)"
-                    />
-                  </template>
-                </VGroup>
-
-                <VGroup :config="workspaceGridGroupConfig">
-                  <template v-if="showGrid">
-                    <VLine
-                      v-for="line in verticalGridLines"
-                      :key="line.key"
-                      :config="line"
-                    />
-                    <VLine
-                      v-for="line in horizontalGridLines"
-                      :key="line.key"
-                      :config="line"
-                    />
-                  </template>
-                  <VRect
-                    v-for="pixel in borderPixelConfigs"
-                    :key="pixel.key"
-                    :config="pixel"
-                  />
-                </VGroup>
+                  </VGroup>
                 </VLayer>
 
                 <VLayer>
@@ -433,31 +433,31 @@
                 class="w-40"
                 data-draw-tool-preserve-selection
                 @update:model-value="es.handleActiveTextFontChange"
-                >
-                  <template #default>
-                    <span
-                      :style="{
-                        fontFamily: activeTextFont.family,
-                        fontSize: `calc(1rem + ${activeTextFont.fontSize - activeTextFont.capHeight}px)`,
-                        lineHeight: '1rem'
-                      }"
-                    >
-                      {{ activeTextFont.label }}
-                    </span>
-                  </template>
+              >
+                <template #default>
+                  <span
+                    :style="{
+                      fontFamily: activeTextFont.family,
+                      fontSize: `calc(1rem + ${activeTextFont.fontSize - activeTextFont.capHeight}px)`,
+                      lineHeight: '1rem'
+                    }"
+                  >
+                    {{ activeTextFont.label }}
+                  </span>
+                </template>
 
-                  <template #item-label="{ item }">
-                    <span
-                      :style="{
-                        fontFamily: item.family,
-                        fontSize: `calc(1rem + ${item.fontSize - item.capHeight}px)`,
-                        lineHeight: '1rem'
-                      }"
-                    >
-                      {{ item.label }}
-                    </span>
-                  </template>
-                </USelect>
+                <template #item-label="{ item }">
+                  <span
+                    :style="{
+                      fontFamily: item.family,
+                      fontSize: `calc(1rem + ${item.fontSize - item.capHeight}px)`,
+                      lineHeight: '1rem'
+                    }"
+                  >
+                    {{ item.label }}
+                  </span>
+                </template>
+              </USelect>
 
               <UPopover>
                 <UButton

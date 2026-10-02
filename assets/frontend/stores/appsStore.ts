@@ -111,8 +111,23 @@ export const useAppsStore = defineStore('apps', () => {
     }
   }
 
+  async function whileDeviceIsBusy<T> (action: () => Promise<T>): Promise<T> {
+    const stateStreamStore = useStateStreamStore();
+    const checkOnStale = stateStreamStore.doCheckConnectionOnStreamDataStale;
+
+    stateStreamStore.doCheckConnectionOnStreamDataStale = false;
+    deviceStore.pauseAvailabilityPolling();
+
+    try {
+      return await action();
+    } finally {
+      stateStreamStore.doCheckConnectionOnStreamDataStale = checkOnStale;
+      deviceStore.resumeAvailabilityPolling();
+    }
+  }
+
   function stageApp (file: File, signal: AbortSignal, onProgress: (percent: number) => void): Promise<AppStageResult> {
-    return new Promise((resolve, reject) => {
+    return whileDeviceIsBusy(() => new Promise<AppStageResult>((resolve, reject) => {
       const apiStore = useApiStore();
       const xhr = new XMLHttpRequest();
 
@@ -142,22 +157,14 @@ export const useAppsStore = defineStore('apps', () => {
       signal.addEventListener('abort', () => xhr.abort(), { once: true });
 
       xhr.send(file);
-    });
+    }));
   }
 
-  async function installApp (installKey: number) {
-    const stateStreamStore = useStateStreamStore();
-    const checkOnStale = stateStreamStore.doCheckConnectionOnStreamDataStale;
-    stateStreamStore.doCheckConnectionOnStreamDataStale = false;
-    deviceStore.pauseAvailabilityPolling();
-
-    try {
+  function installApp (installKey: number) {
+    return whileDeviceIsBusy(async () => {
       await deviceStore.busyBar.AppsInstall({ install_key: installKey }, { timeout: 0 });
       await fetchApps();
-    } finally {
-      stateStreamStore.doCheckConnectionOnStreamDataStale = checkOnStale;
-      deviceStore.resumeAvailabilityPolling();
-    }
+    });
   }
 
   async function launchApp (appId: string) {
@@ -193,10 +200,12 @@ export const useAppsStore = defineStore('apps', () => {
     return launchApp(appId);
   }
 
-  async function removeApp (appId: string) {
-    await deviceStore.busyBar.AppsRemove({ app_id: appId }, { timeout: 0 });
-    settingsSavedByApp.value[appId] = false;
-    await fetchApps();
+  function removeApp (appId: string) {
+    return whileDeviceIsBusy(async () => {
+      await deviceStore.busyBar.AppsRemove({ app_id: appId }, { timeout: 0 });
+      settingsSavedByApp.value[appId] = false;
+      await fetchApps();
+    });
   }
 
   async function readSettingsSchema (appId: string) {

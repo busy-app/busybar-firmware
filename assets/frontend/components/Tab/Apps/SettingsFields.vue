@@ -20,6 +20,7 @@
 
       <SettingsFields
         v-model:values="values[key] as Record<string, unknown>"
+        :app-id="appId"
         :fields="field.fields"
       />
     </div>
@@ -161,6 +162,7 @@ const NUMBER_BUTTON_PROPS = {
 } as const;
 
 const props = defineProps<{
+  appId: string;
   fields: Record<string, AppSettingsNode>;
 }>();
 

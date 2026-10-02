@@ -7,7 +7,10 @@
     <template #title>
       <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
         <span>{{ title }}</span>
-        <slot name="title-status" :restarting="pending === 'restart'" />
+        <slot
+          name="title-status"
+          :restarting="pending === 'restart'"
+        />
       </div>
     </template>
 
