@@ -11,9 +11,10 @@
         :items="tzListStore.timezoneOptions.map(tz => ({ label: `UTC${tz.offset}, ${tz.name}`, value: tz.name }))"
         variant="soft"
         size="xl"
+        :style="GLASS_CONTROL_STYLE"
         class="h-12 min-w-56"
         :ui="{
-          base: 'text-base rounded-xl',
+          base: 'text-base focus-visible:outline-2 focus-visible:outline-primary',
           label: 'text-base',
           item: 'text-base'
         }"
@@ -24,6 +25,8 @@
 </template>
 
 <script setup lang="ts">
+import { GLASS_CONTROL_STYLE } from '@/util/formControlStyles';
+
 const timezoneStore = useTimezoneStore();
 const tzListStore = useTzListStore();
 

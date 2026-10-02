@@ -146,15 +146,25 @@ export async function resolveByGeoIp (signal?: AbortSignal) {
     signal
   });
 
-  const { location } = response;
+  const location = response?.location;
 
-  if (location.source !== 'geoip') {
+  if (
+    location?.source !== 'geoip'
+    || typeof location.name !== 'string'
+    || !location.name.trim()
+    || !Number.isFinite(location.latitude)
+    || location.latitude < -90
+    || location.latitude > 90
+    || !Number.isFinite(location.longitude)
+    || location.longitude < -180
+    || location.longitude > 180
+  ) {
     return null;
   }
 
   return {
     id: `${location.latitude},${location.longitude}`,
-    name: location.name ?? formatCoordinates(location.latitude, location.longitude),
+    name: location.name.trim(),
     lat: location.latitude,
     lng: location.longitude,
     timezone: location.timezone

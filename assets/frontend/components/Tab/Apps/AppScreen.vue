@@ -4,6 +4,13 @@
     :title="title"
     :ui="{ title: 'font-medium', titleWrapper: 'gap-2' }"
   >
+    <template #title>
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <span>{{ title }}</span>
+        <slot name="title-status" :restarting="pending === 'restart'" />
+      </div>
+    </template>
+
     <template #leading-actions>
       <SectionBackButton
         :data-id="`apps-section-${appId}-back-button`"
@@ -13,14 +20,17 @@
 
     <template #actions>
       <UButton
-        :data-id="`apps-section-${appId}-update-button`"
-        label="Update app"
-        icon="i-bi-upload"
+        v-if="needsRestart || pending === 'restart'"
+        :data-id="`apps-section-${appId}-restart-button`"
+        :label="pending === 'restart' ? 'Restarting...' : 'Restart'"
+        icon="i-bi-restart"
         color="neutral"
         variant="outline"
         class="justify-center"
+        :loading="pending === 'restart'"
+        :disabled="settingsSaving || pending !== undefined"
         :ui="BUTTON_UI"
-        @click="emit('update')"
+        @click="run('restart')"
       />
 
       <UButton
@@ -30,10 +40,10 @@
         color="neutral"
         variant="solid"
         class="justify-center"
-        :loading="pending"
-        :disabled="!running && settingsSaving"
+        :loading="pending === 'stop' || pending === 'start'"
+        :disabled="pending === 'restart' || (!running && settingsSaving)"
         :ui="BUTTON_UI"
-        @click="toggle"
+        @click="run(running ? 'stop' : 'start')"
       />
     </template>
 
@@ -44,42 +54,52 @@
 </template>
 
 <script setup lang="ts">
+type AppAction = 'start' | 'stop' | 'restart';
+
+const ACTION_ERROR: Record<AppAction, string> = {
+  start: 'Couldn\'t start the app',
+  stop: 'Couldn\'t stop the app',
+  restart: 'Couldn\'t restart the app'
+};
+
 const BUTTON_UI = { base: 'px-4 py-2.5 gap-1.5' };
 
 const props = defineProps<{
   appId: string;
   title: string;
   settingsSaving?: boolean;
+  needsRestart?: boolean;
 }>();
 
 const emit = defineEmits<{
-  (e: 'back' | 'update'): void;
+  (e: 'back'): void;
 }>();
 
 const appsStore = useAppsStore();
 
-const pending = ref(false);
+const pending = ref<AppAction>();
 
 const running = computed(() => appsStore.runningAppId === props.appId);
 
-async function toggle () {
-  if (pending.value || (!running.value && props.settingsSaving)) {
+async function run (action: AppAction) {
+  if (pending.value || (action !== 'stop' && props.settingsSaving)) {
     return;
   }
 
-  const stopping = running.value;
-  pending.value = true;
+  pending.value = action;
 
   try {
-    if (stopping) {
+    if (action === 'restart') {
+      await appsStore.restartApp(props.appId);
+    } else if (action === 'stop') {
       await appsStore.quitApp();
     } else {
       await appsStore.launchApp(props.appId);
     }
   } catch (error) {
-    await handleHTTPError(error, stopping ? 'Couldn\'t stop the app' : 'Couldn\'t start the app');
+    await handleHTTPError(error, ACTION_ERROR[action]);
   } finally {
-    pending.value = false;
+    pending.value = undefined;
   }
 }
 </script>

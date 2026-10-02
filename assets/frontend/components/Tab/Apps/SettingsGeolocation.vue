@@ -26,8 +26,18 @@
               name="i-bi-location"
               class="size-6 shrink-0"
             />
-            <div class="truncate font-medium text-toned">
-              {{ value.name }}
+            <USkeleton
+              v-if="resolvingAuto && value.mode === 'auto'"
+              data-id="app-settings-geolocation-loading"
+              aria-label="Detecting location"
+              class="h-5 w-40 max-w-full rounded-md"
+            />
+            <div
+              v-else
+              data-id="app-settings-geolocation-name"
+              class="truncate font-medium text-toned"
+            >
+              {{ locationName }}
             </div>
           </div>
         </div>
@@ -63,7 +73,8 @@
         base: 'rounded-[inherit] py-3 text-base bg-accented/25 dark:bg-[var(--ui-surface-card)]',
         leadingIcon: 'size-6',
         trailing: 'hidden',
-        content: 'shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-2px_rgba(0,0,0,0.05)]'
+        content: 'shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-2px_rgba(0,0,0,0.05)]',
+        viewport: 'me-2 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:my-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-accented'
       }"
       @update:model-value="selectCity"
     >
@@ -94,6 +105,7 @@ const canShareLocation = window.isSecureContext && !!navigator.geolocation;
 
 let searchTimeout: ReturnType<typeof setTimeout> | undefined;
 let searchController: AbortController | undefined;
+let autoController: AbortController | undefined;
 
 const props = defineProps<{
   label: string;
@@ -106,6 +118,8 @@ const toast = useToast();
 
 const cityMenu = useTemplateRef('cityMenu');
 const manual = ref(value.value.mode === 'fixed');
+const autoLocation = ref<CitySuggestion | null>(null);
+const resolvingAuto = ref(!manual.value);
 const searchTerm = ref('');
 const selectedCity = ref<CityItem>();
 const suggestions = ref<CitySuggestion[]>([]);
@@ -113,6 +127,9 @@ const searching = ref(false);
 const sharing = ref(false);
 
 const cityItems = computed<CityItem[]>(() => suggestions.value.map(city => ({ ...city, label: cityLabel(city) })));
+const locationName = computed(() => value.value.mode === 'fixed'
+  ? value.value.name
+  : autoLocation.value?.name ?? AUTO_LOCATION_NAME);
 
 function setAutoDetect (enabled: boolean) {
   manual.value = !enabled;
@@ -122,6 +139,41 @@ function setAutoDetect (enabled: boolean) {
       mode: 'auto',
       name: props.defaultValue.mode === 'auto' ? props.defaultValue.name : AUTO_LOCATION_NAME
     };
+
+    loadAutoLocation();
+  } else if (value.value.mode === 'auto' && autoLocation.value) {
+    setFixedLocation(autoLocation.value.name, autoLocation.value.lat, autoLocation.value.lng);
+  }
+}
+
+async function loadAutoLocation () {
+  autoController?.abort();
+
+  const controller = new AbortController();
+  autoController = controller;
+  autoLocation.value = null;
+  resolvingAuto.value = true;
+
+  try {
+    const location = await resolveByGeoIp(controller.signal);
+
+    if (controller.signal.aborted || autoController !== controller) {
+      return;
+    }
+
+    autoLocation.value = location;
+
+    if (manual.value && value.value.mode === 'auto' && location) {
+      setFixedLocation(location.name, location.lat, location.lng);
+    }
+  } catch {
+    if (!controller.signal.aborted && autoController === controller) {
+      autoLocation.value = null;
+    }
+  } finally {
+    if (autoController === controller) {
+      resolvingAuto.value = false;
+    }
   }
 }
 
@@ -163,7 +215,9 @@ async function shareLocation () {
     const { latitude, longitude } = position.coords;
     const city = await resolveByCoords(latitude, longitude);
 
-    setFixedLocation(city ? cityLabel(city) : formatCoordinates(latitude, longitude), latitude, longitude);
+    if (manual.value) {
+      setFixedLocation(city ? cityLabel(city) : formatCoordinates(latitude, longitude), latitude, longitude);
+    }
   } catch {
     toast.add({
       title: 'Couldn\'t share location',
@@ -219,8 +273,15 @@ watch(searchTerm, query => {
   searchTimeout = setTimeout(() => findCities(query), SEARCH_DEBOUNCE_MS);
 });
 
+onMounted(() => {
+  if (!manual.value) {
+    loadAutoLocation();
+  }
+});
+
 onBeforeUnmount(() => {
   clearTimeout(searchTimeout);
   searchController?.abort();
+  autoController?.abort();
 });
 </script>

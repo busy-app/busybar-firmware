@@ -3,9 +3,39 @@
     :app-id="app.id"
     :title="app.name"
     :settings-saving="settingsSaving"
+    :needs-restart="needsRestart"
     @back="emit('back')"
-    @update="emit('update')"
   >
+    <template #title-status="{ restarting }">
+      <UBadge
+        v-if="settingsSaving"
+        :data-id="`apps-section-${app.id}-saving-badge`"
+        icon="i-bi-loader"
+        label="Saving changes"
+        color="neutral"
+        variant="soft"
+        :ui="{ leadingIcon: 'animate-spin' }"
+      />
+
+      <UBadge
+        v-else-if="needsRestart || restarting"
+        :data-id="`apps-section-${app.id}-restart-badge`"
+        icon="i-bi-info"
+        label="Restart the app to apply changes"
+        color="warning"
+        variant="soft"
+      />
+
+      <UBadge
+        v-else-if="saved"
+        :data-id="`apps-section-${app.id}-saved-badge`"
+        icon="i-bi-checkmark"
+        label="Saved"
+        color="success"
+        variant="soft"
+      />
+    </template>
+
     <UIcon
       v-if="loading"
       name="i-busy-loader"
@@ -19,6 +49,7 @@
     >
       <TabAppsSettingsFields
         v-model:values="settings.values"
+        :app-id="app.id"
         :fields="schema.fields"
       />
     </div>
@@ -31,41 +62,24 @@
       This app has no settings.
     </div>
 
-    <div class="flex items-center gap-4 pt-4">
-      <div
-        v-if="saved || showRestart"
-        :data-id="`apps-section-${app.id}-saved`"
-        class="flex min-w-0 items-center gap-2"
-      >
-        <template v-if="saved">
-          <UIcon
-            name="i-bi-checkmark-circle-fill"
-            class="size-5 shrink-0 text-success"
-          />
-          <span class="text-toned">Saved</span>
-        </template>
-
-        <UButton
-          v-if="showRestart"
-          :data-id="`apps-section-${app.id}-restart-button`"
-          label="Restart the app to apply"
-          icon="i-bi-refresh"
-          color="neutral"
-          variant="outline"
-          class="shrink-0"
-          :loading="restarting"
-          :disabled="settingsSaving"
-          @click="restartApp"
-        />
-      </div>
+    <div class="flex items-center justify-between pt-6">
+      <UButton
+        :data-id="`apps-section-${app.id}-update-button`"
+        icon="i-bi-upload"
+        label="Update app"
+        color="neutral"
+        variant="link"
+        :ui="TEXT_BUTTON_UI"
+        @click="emit('update')"
+      />
 
       <UButton
         :data-id="`apps-section-${app.id}-delete-button`"
-        class="ml-auto shrink-0"
         icon="i-bi-trash"
         label="Delete app"
         color="neutral"
-        variant="outline"
+        variant="link"
+        :ui="TEXT_BUTTON_UI"
         @click="() => { showDeleteModal = true; }"
       />
     </div>
@@ -105,29 +119,29 @@ const emit = defineEmits<{
   (e: 'deleted', app: AppInfo): void;
 }>();
 
+const TEXT_BUTTON_UI = {
+  base: 'text-white hover:text-white active:text-white',
+  leadingIcon: 'text-white'
+};
+
 const SAVE_DELAY = 1500;
-const SAVED_INDICATOR_DURATION = 5000;
 
 let savedSettings = '';
 let isSaving = false;
 let saveTimeout: ReturnType<typeof setTimeout> | undefined;
-let savedTimeout: ReturnType<typeof setTimeout> | undefined;
 
 const appsStore = useAppsStore();
 
 const loading = ref(true);
-const saved = ref(false);
 const settingsSaving = ref(false);
-const restarting = ref(false);
 const deleting = ref(false);
 const showDeleteModal = ref(false);
 const schema = ref<AppSettingsSchema>();
 const settings = ref<AppSettingsDocument>();
-// An app reads its settings once at startup, so saved changes only reach it on a restart.
-const needsRestart = ref(false);
 
+const saved = computed(() => appsStore.settingsSavedByApp[props.app.id] === true);
 const running = computed(() => appsStore.runningAppId === props.app.id);
-const showRestart = computed(() => needsRestart.value && running.value);
+const needsRestart = computed(() => running.value && saved.value);
 
 async function loadSettings () {
   try {
@@ -154,7 +168,6 @@ async function saveSettings () {
   }
 
   isSaving = true;
-  let didSave = false;
 
   try {
     while (settings.value) {
@@ -166,37 +179,12 @@ async function saveSettings () {
 
       await appsStore.setSettings(props.app.id, JSON.parse(serialized));
       savedSettings = serialized;
-      didSave = true;
     }
   } catch (error) {
     await handleHTTPError(error, 'Couldn\'t save app settings');
   } finally {
     isSaving = false;
     settingsSaving.value = saveTimeout !== undefined;
-  }
-
-  if (didSave) {
-    saved.value = true;
-    needsRestart.value = true;
-    clearTimeout(savedTimeout);
-    savedTimeout = setTimeout(() => {
-      saved.value = false;
-    }, SAVED_INDICATOR_DURATION);
-  }
-}
-
-async function restartApp () {
-  restarting.value = true;
-  clearTimeout(savedTimeout);
-  saved.value = false;
-
-  try {
-    await appsStore.restartApp(props.app.id);
-    needsRestart.value = false;
-  } catch (error) {
-    await handleHTTPError(error, 'Couldn\'t restart the app');
-  } finally {
-    restarting.value = false;
   }
 }
 
@@ -221,21 +209,20 @@ watch(settings, () => {
     return;
   }
 
-  saved.value = false;
   settingsSaving.value = true;
   clearTimeout(saveTimeout);
   saveTimeout = setTimeout(saveSettings, SAVE_DELAY);
 }, { deep: true });
 
-watch(() => appsStore.runningAppId, () => {
-  needsRestart.value = false;
+onMounted(() => {
+  if (!running.value) {
+    appsStore.settingsSavedByApp[props.app.id] = false;
+  }
+
+  loadSettings();
 });
 
-onMounted(loadSettings);
-
 onBeforeUnmount(() => {
-  clearTimeout(savedTimeout);
-
   if (saveTimeout) {
     clearTimeout(saveTimeout);
     saveSettings();
