@@ -1,12 +1,13 @@
 #include "../js_app_launcher_i.h"
 #include "js_app_launcher_scenes.h"
 
+#include <canvas/canvas.h>
+
 #include <gui/modules/flex_box.h>
 #include <gui/modules/label.h>
 #include <gui/modules/anim_player.h>
 
 #define MESSAGE_LOADING "Loading..."
-#define MESSAGE_RUNNING "Running..."
 
 typedef struct {
     FlexBox* flex;
@@ -19,6 +20,7 @@ typedef struct {
     JsAppLauncherSceneRunWidgets back_widgets;
     JsRunnerContextHandle* js_runner_handle;
     JsRunnerExecutionHandle* js_runner_exec_handle;
+    const char* js_app_id;
     JsRunnerError js_error;
 } JsAppLauncherSceneRun;
 
@@ -39,6 +41,21 @@ static void js_app_launcher_scene_run_console_out_callback(
     } else if(severity == JsRunnerConsoleSeverityError) {
         FURI_LOG_E(TAG, "%.*s", size, buf);
     }
+}
+
+static bool js_app_launcher_scene_run_input_callback(const InputEvent* event, void* context) {
+    furi_assert(event);
+    furi_assert(context);
+
+    JsAppLauncher* instance = context;
+    bool consumed = false;
+
+    if((event->type == InputTypeLong) && (event->key == InputKeyBack)) {
+        js_app_launcher_send_custom_event(instance, JsAppLauncherCustomEventLongBackPressed);
+        consumed = true;
+    }
+
+    return consumed;
 }
 
 static void js_app_launcher_scene_run_event_callback(const JsRunnerEvent* event, void* context) {
@@ -112,6 +129,20 @@ static void js_app_launcher_scene_run_deinit_widgets(JsAppLauncher* instance) {
     });
 }
 
+static void js_app_launcher_scene_run_init_input(JsAppLauncher* instance) {
+    with_gui(instance->gui, {
+        GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdSystem);
+        gui_layer_add_input_callback(layer, js_app_launcher_scene_run_input_callback, instance);
+    });
+}
+
+static void js_app_launcher_scene_run_deinit_input(JsAppLauncher* instance) {
+    with_gui(instance->gui, {
+        GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdSystem);
+        gui_layer_remove_input_callback(layer, js_app_launcher_scene_run_input_callback);
+    });
+}
+
 static bool js_app_launcher_scene_run_start_app(JsAppLauncher* instance) {
     bool success = false;
 
@@ -119,6 +150,7 @@ static bool js_app_launcher_scene_run_start_app(JsAppLauncher* instance) {
     JsAppLauncherSceneRun* data =
         scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdRun);
 
+    data->js_app_id = NULL;
     data->js_error = JsRunnerErrorUnknown;
 
     do {
@@ -129,6 +161,7 @@ static bool js_app_launcher_scene_run_start_app(JsAppLauncher* instance) {
         }
 
         js_app_launcher_scene_run_init_widgets(instance);
+        js_app_launcher_scene_run_init_input(instance);
 
         const JsAppManifestInfo* js_manifest = &js_info.manifest;
         const JsRunnerContextInitResult init_result = js_runner_context_alloc(
@@ -144,6 +177,7 @@ static bool js_app_launcher_scene_run_start_app(JsAppLauncher* instance) {
         }
 
         data->js_runner_handle = init_result.handle;
+        data->js_app_id = js_manifest->id;
 
         const JsRunnerRunResult run_result = js_runner_run(
             data->js_runner_handle,
@@ -167,6 +201,22 @@ static bool js_app_launcher_scene_run_start_app(JsAppLauncher* instance) {
     return success;
 }
 
+static void js_app_launcher_scene_run_clear_canvas(JsAppLauncher* instance) {
+    JsAppLauncherSceneRun* data =
+        scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdRun);
+
+    const char* app_id = data->js_app_id;
+    if(app_id != NULL) {
+        CanvasSrv* canvas = furi_record_open(RECORD_CANVAS);
+        const CanvasResult result = canvas_delete_elements(canvas, app_id, NULL);
+        furi_record_close(RECORD_CANVAS);
+
+        if((result != CanvasResultOk) && (result != CanvasResultEmptyScreen)) {
+            FURI_LOG_W(TAG, "Failed to clear canvas: %d", result);
+        }
+    }
+}
+
 static void js_app_launcher_scene_run_on_enter(void* context) {
     furi_assert(context);
     JsAppLauncher* instance = context;
@@ -183,19 +233,22 @@ static void js_app_launcher_scene_run_on_exit(void* context) {
     JsAppLauncherSceneRun* data =
         scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdRun);
 
-    if(data->js_runner_exec_handle) {
-        js_runner_abort(data->js_runner_exec_handle);
-        furi_check(
-            js_runner_join(data->js_runner_exec_handle, FuriWaitForever) == JsRunnerErrorNone);
+    JsRunnerExecutionHandle* exec_handle = data->js_runner_exec_handle;
+    if(exec_handle != NULL) {
+        js_runner_abort(exec_handle);
+        furi_check(js_runner_join(exec_handle, FuriWaitForever) == JsRunnerErrorNone);
         data->js_runner_exec_handle = NULL;
     }
 
-    if(data->js_runner_handle) {
-        js_runner_context_free(data->js_runner_handle);
+    JsRunnerContextHandle* context_handle = data->js_runner_handle;
+    if(context_handle != NULL) {
+        js_runner_context_free(context_handle);
         data->js_runner_handle = NULL;
     }
 
     js_app_launcher_scene_run_deinit_widgets(instance);
+    js_app_launcher_scene_run_deinit_input(instance);
+    js_app_launcher_scene_run_clear_canvas(instance);
 
     furi_record_close(RECORD_JS_RUNNER);
 }
@@ -210,12 +263,6 @@ static void js_app_launcher_scene_run_handle_script_started(JsAppLauncher* insta
 
         anim_player_pause(front_widgets->spinner);
         anim_player_pause(back_widgets->spinner);
-
-        widget_set_visible(anim_player_get_base(front_widgets->spinner), false);
-        widget_set_visible(anim_player_get_base(back_widgets->spinner), false);
-
-        label_set_text(front_widgets->label, MESSAGE_RUNNING);
-        label_set_text(back_widgets->label, MESSAGE_RUNNING);
     });
 }
 
@@ -243,11 +290,13 @@ static bool js_app_launcher_scene_run_on_event(const SceneManagerEvent* event, v
             js_app_launcher_scene_run_handle_script_started(instance);
         } else if(event->event == JsAppLauncherCustomEventScriptFinished) {
             js_app_launcher_scene_run_handle_script_finished(instance);
+        } else if(event->event == JsAppLauncherCustomEventLongBackPressed) {
+            js_app_launcher_scene_run_handle_script_finished(instance);
         }
 
         consumed = true;
     } else if(event->type == SceneManagerEventTypeBack) {
-        // TODO: Special Back key treatment?
+        // Prevent exit from scene on regular back press
         consumed = true;
     }
 
