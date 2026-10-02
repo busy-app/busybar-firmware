@@ -112,16 +112,11 @@ export const useAppsStore = defineStore('apps', () => {
   }
 
   async function whileDeviceIsBusy<T> (action: () => Promise<T>): Promise<T> {
-    const stateStreamStore = useStateStreamStore();
-    const checkOnStale = stateStreamStore.doCheckConnectionOnStreamDataStale;
-
-    stateStreamStore.doCheckConnectionOnStreamDataStale = false;
     deviceStore.pauseAvailabilityPolling();
 
     try {
       return await action();
     } finally {
-      stateStreamStore.doCheckConnectionOnStreamDataStale = checkOnStale;
       deviceStore.resumeAvailabilityPolling();
     }
   }

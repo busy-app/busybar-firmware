@@ -120,8 +120,8 @@ const emit = defineEmits<{
 }>();
 
 const TEXT_BUTTON_UI = {
-  base: 'text-white hover:text-white active:text-white',
-  leadingIcon: 'text-white'
+  base: 'text-default hover:text-default active:text-default dark:text-white dark:hover:text-white dark:active:text-white',
+  leadingIcon: 'text-current'
 };
 
 const SAVE_DELAY = 1500;
