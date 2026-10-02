@@ -72,6 +72,7 @@ typedef struct {
     FuriMessageQueue* event_queue;
     FuriMessageQueue* api_queue;
     SceneManager* scene_manager;
+    uint32_t input_sequence_num;
     Gui* gui;
 
     Widget* front_window;
@@ -90,6 +91,7 @@ typedef enum {
     JsAppLauncherCustomEventScriptStarted,
     JsAppLauncherCustomEventScriptFinished,
     JsAppLauncherCustomEventSettingsChanged,
+    JsAppLauncherCustomEventLongBackPressed,
 } JsAppLauncherCustomEvent;
 
 void js_app_launcher_send_custom_event(JsAppLauncher* instance, uint32_t event);
