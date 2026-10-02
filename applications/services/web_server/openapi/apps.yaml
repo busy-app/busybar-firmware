@@ -173,6 +173,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "503":
+          description: |
+            Failed to quit from the application that needs to be uninstalled.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /api/apps/list:
     get:
       tags:
