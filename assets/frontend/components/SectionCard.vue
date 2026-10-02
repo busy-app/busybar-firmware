@@ -21,7 +21,9 @@
           </div>
 
           <div>
-            <div :class="resolvedUi.title">{{ title }}</div>
+            <div :class="resolvedUi.title">
+              <slot name="title">{{ title }}</slot>
+            </div>
             <div
               v-if="subtitle && !$slots.subtitle"
               :class="resolvedUi.subtitle"
@@ -128,7 +130,7 @@ const resolvedUi = computed<Required<SectionCardCustomUi>>(() => ({
   actionsWrapper: mergeUiClass(DEFAULT_UI.actionsWrapper, props.ui?.actionsWrapper)
 }));
 
-const headerExists = computed(() => !!(props.title || props.subtitle || props.icon || !isEmptySlot('subtitle') || !isEmptySlot('leading-actions') || !isEmptySlot('actions')));
+const headerExists = computed(() => !!(props.title || props.subtitle || props.icon || !isEmptySlot('title') || !isEmptySlot('subtitle') || !isEmptySlot('leading-actions') || !isEmptySlot('actions')));
 const bodyExists = computed(() => isEmptySlot('default') === false || isEmptySlot('raw-body') === false);
 
 function mergeUiClass (defaultClass: string, overrideClass?: string): string {

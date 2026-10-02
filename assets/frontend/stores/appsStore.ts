@@ -55,6 +55,15 @@ const SETTINGS_SCHEMA_PATH = 'appmeta/settings.json';
 const ICON_EXTENSION = '.png';
 const STORAGE_READ_PATH_MAX_LENGTH = 63;
 
+function toDataUrl (blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
 export const useAppsStore = defineStore('apps', () => {
   const deviceStore = useDeviceStore();
 
@@ -63,6 +72,8 @@ export const useAppsStore = defineStore('apps', () => {
   const loading = ref(false);
   // Only what this session started itself; the device has no way to report a running app.
   const runningAppId = ref<string>();
+  // Keep the saved notice when an app's settings screen is reopened.
+  const settingsSavedByApp = ref<Record<string, boolean>>({});
 
   async function fetchApps () {
     loading.value = true;
@@ -100,8 +111,18 @@ export const useAppsStore = defineStore('apps', () => {
     }
   }
 
+  async function whileDeviceIsBusy<T> (action: () => Promise<T>): Promise<T> {
+    deviceStore.pauseAvailabilityPolling();
+
+    try {
+      return await action();
+    } finally {
+      deviceStore.resumeAvailabilityPolling();
+    }
+  }
+
   function stageApp (file: File, signal: AbortSignal, onProgress: (percent: number) => void): Promise<AppStageResult> {
-    return new Promise((resolve, reject) => {
+    return whileDeviceIsBusy(() => new Promise<AppStageResult>((resolve, reject) => {
       const apiStore = useApiStore();
       const xhr = new XMLHttpRequest();
 
@@ -131,22 +152,14 @@ export const useAppsStore = defineStore('apps', () => {
       signal.addEventListener('abort', () => xhr.abort(), { once: true });
 
       xhr.send(file);
-    });
+    }));
   }
 
-  async function installApp (installKey: number) {
-    const stateStreamStore = useStateStreamStore();
-    const checkOnStale = stateStreamStore.doCheckConnectionOnStreamDataStale;
-    stateStreamStore.doCheckConnectionOnStreamDataStale = false;
-    deviceStore.pauseAvailabilityPolling();
-
-    try {
+  function installApp (installKey: number) {
+    return whileDeviceIsBusy(async () => {
       await deviceStore.busyBar.AppsInstall({ install_key: installKey }, { timeout: 0 });
       await fetchApps();
-    } finally {
-      stateStreamStore.doCheckConnectionOnStreamDataStale = checkOnStale;
-      deviceStore.resumeAvailabilityPolling();
-    }
+    });
   }
 
   async function launchApp (appId: string) {
@@ -155,6 +168,10 @@ export const useAppsStore = defineStore('apps', () => {
       query: { app_id: appId }
     });
 
+    if (runningAppId.value) {
+      settingsSavedByApp.value[runningAppId.value] = false;
+    }
+    settingsSavedByApp.value[appId] = false;
     runningAppId.value = appId;
   }
 
@@ -168,6 +185,9 @@ export const useAppsStore = defineStore('apps', () => {
       }
     }
 
+    if (runningAppId.value) {
+      settingsSavedByApp.value[runningAppId.value] = false;
+    }
     runningAppId.value = undefined;
   }
 
@@ -175,9 +195,12 @@ export const useAppsStore = defineStore('apps', () => {
     return launchApp(appId);
   }
 
-  async function removeApp (appId: string) {
-    await deviceStore.busyBar.AppsRemove({ app_id: appId }, { timeout: 0 });
-    await fetchApps();
+  function removeApp (appId: string) {
+    return whileDeviceIsBusy(async () => {
+      await deviceStore.busyBar.AppsRemove({ app_id: appId }, { timeout: 0 });
+      settingsSavedByApp.value[appId] = false;
+      await fetchApps();
+    });
   }
 
   async function readSettingsSchema (appId: string) {
@@ -193,8 +216,10 @@ export const useAppsStore = defineStore('apps', () => {
     return deviceStore.busyBar.AppsSettingsGet({ app_id: appId });
   }
 
-  function setSettings (appId: string, settings: AppSettingsDocument) {
-    return deviceStore.busyBar.AppsSettingsSet({ app_id: appId, settings });
+  async function setSettings (appId: string, settings: AppSettingsDocument) {
+    const result = await deviceStore.busyBar.AppsSettingsSet({ app_id: appId, settings });
+    settingsSavedByApp.value[appId] = true;
+    return result;
   }
 
   return {
@@ -202,6 +227,7 @@ export const useAppsStore = defineStore('apps', () => {
     icons,
     loading,
     runningAppId,
+    settingsSavedByApp,
     fetchApps,
     readIcon,
     stageApp,
@@ -215,12 +241,3 @@ export const useAppsStore = defineStore('apps', () => {
     setSettings
   };
 });
-
-function toDataUrl (blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(blob);
-  });
-}

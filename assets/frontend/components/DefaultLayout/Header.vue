@@ -146,17 +146,17 @@
             :disabled="loading.rename"
             @keyup.enter="updateDeviceName"
           >
-          <template #trailing>
-            <div
-              id="character-count"
-              class="text-xs text-muted tabular-nums"
-              aria-live="polite"
-              role="status"
-            >
-              {{ nameModel?.length }}/{{ maxNameLength }}
-            </div>
-          </template>
-        </UInput>
+            <template #trailing>
+              <div
+                id="character-count"
+                class="text-xs text-muted tabular-nums"
+                aria-live="polite"
+                role="status"
+              >
+                {{ nameModel?.length }}/{{ maxNameLength }}
+              </div>
+            </template>
+          </UInput>
         </template>
       </ModalGeneric>
 
