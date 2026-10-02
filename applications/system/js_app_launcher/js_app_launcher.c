@@ -17,6 +17,9 @@
 
 #define NAV_BAR_HEIGHT (14)
 
+typedef JsAppLauncherStatus (
+    *JsAppLauncherApiHandler)(JsAppLauncher* instance, const JsAppLauncherApiMessage* message);
+
 static bool js_app_launcher_gui_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
@@ -98,6 +101,11 @@ static JsAppLauncherStatus js_app_launcher_handle_get_app_id(
     return status;
 }
 
+static JsAppLauncherApiHandler js_app_launcher_api_handlers[] = {
+    [JsAppLauncherApiMessageTypeStop] = js_app_launcher_handle_stop,
+    [JsAppLauncherApiMessageTypeGetAppId] = js_app_launcher_handle_get_app_id,
+};
+
 static void js_app_launcher_api_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
@@ -106,15 +114,13 @@ static void js_app_launcher_api_queue_callback(FuriEventLoopObject* object, void
 
     JsAppLauncherApiMessage message;
     while(furi_message_queue_get(instance->api_queue, &message, 0) == FuriStatusOk) {
-        JsAppLauncherStatus status;
+        const JsAppLauncherApiMessageType type = message.type;
+        furi_assert(
+            (type > JsAppLauncherApiMessageTypeInvalid) &&
+            (type < JsAppLauncherApiMessageTypeMax));
 
-        if(message.type == JsAppLauncherApiMessageTypeStop) {
-            status = js_app_launcher_handle_stop(instance, &message);
-        } else if(message.type == JsAppLauncherApiMessageTypeGetAppId) {
-            status = js_app_launcher_handle_get_app_id(instance, &message);
-        } else {
-            furi_crash("Invalid JsAppLauncherApiMessageType value");
-        }
+        const JsAppLauncherApiHandler handler = js_app_launcher_api_handlers[type];
+        const JsAppLauncherStatus status = handler(instance, &message);
 
         js_app_launcher_api_unlock_message(&message, status);
     }
