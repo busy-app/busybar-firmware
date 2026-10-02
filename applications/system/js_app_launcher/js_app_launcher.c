@@ -1,7 +1,6 @@
 #include "js_app_launcher_i.h"
 
 #include <apps_menu/apps_menu.h>
-#include <canvas/canvas.h>
 #include <storage/storage.h>
 
 #include <js_app/js_app_common.h>
@@ -17,6 +16,22 @@
 
 #define NAV_BAR_HEIGHT (14)
 
+static void js_app_launcher_handle_back_press(JsAppLauncher* instance, const InputEvent* event) {
+    if(event->sequence_source == INPUT_SEQUENCE_SOURCE_HARDWARE) {
+        instance->input_sequence_num = event->sequence_number;
+    }
+}
+
+static void js_app_launcher_handle_back_short(JsAppLauncher* instance, const InputEvent* event) {
+    if((event->sequence_number == instance->input_sequence_num) ||
+       (event->sequence_source == INPUT_SEQUENCE_SOURCE_SOFTWARE)) {
+        if(!scene_manager_handle_back_event(instance->scene_manager)) {
+            apps_menu_forget_current_app();
+            furi_event_loop_stop(instance->event_loop);
+        }
+    }
+}
+
 static bool js_app_launcher_gui_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
@@ -24,9 +39,13 @@ static bool js_app_launcher_gui_input_callback(const InputEvent* event, void* co
     JsAppLauncher* instance = context;
     bool consumed = false;
 
-    if((event->type == InputTypeShort) && (event->key == InputKeyBack)) {
-        furi_check(
-            furi_message_queue_put(instance->input_queue, event, FuriWaitForever) == FuriStatusOk);
+    const InputKey key = event->key;
+    const InputType type = event->type;
+
+    if((key == InputKeyBack) && (type == InputTypePress || type == InputTypeShort)) {
+        const FuriStatus status =
+            furi_message_queue_put(instance->input_queue, event, FuriWaitForever);
+        furi_check(status == FuriStatusOk);
         consumed = true;
     }
 
@@ -41,11 +60,11 @@ static void js_app_launcher_input_queue_callback(FuriEventLoopObject* object, vo
 
     InputEvent event;
     while(furi_message_queue_get(instance->input_queue, &event, 0) == FuriStatusOk) {
-        if((event.type == InputTypeShort) && (event.key == InputKeyBack)) {
-            if(!scene_manager_handle_back_event(instance->scene_manager)) {
-                apps_menu_forget_current_app();
-                furi_event_loop_stop(instance->event_loop);
-            }
+        furi_assert(event.key == InputKeyBack);
+        if(event.type == InputTypePress) {
+            js_app_launcher_handle_back_press(instance, &event);
+        } else if(event.type == InputTypeShort) {
+            js_app_launcher_handle_back_short(instance, &event);
         }
     }
 }
@@ -231,6 +250,7 @@ static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
     instance->scene_manager =
         scene_manager_alloc(js_app_launcher_scenes, JsAppLauncherSceneIdMax, instance);
     instance->gui = furi_record_open(RECORD_GUI);
+    instance->input_sequence_num = UINT32_MAX;
 
     furi_record_create(RECORD_JS_APP_LAUNCHER, instance);
 
@@ -264,21 +284,6 @@ static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
     return instance;
 }
 
-static void js_app_launcher_clear_canvas(JsAppLauncher* instance) {
-    CanvasSrv* canvas = furi_record_open(RECORD_CANVAS);
-
-    JsAppInfo info;
-    if(js_app_get_info(instance->js_app, &info)) {
-        const char* app_id = info.manifest.id;
-        const CanvasResult result = canvas_delete_elements(canvas, app_id, NULL);
-        if((result != CanvasResultOk) && (result != CanvasResultEmptyScreen)) {
-            FURI_LOG_W(TAG, "Failed to clear canvas: %d", result);
-        }
-    }
-
-    furi_record_close(RECORD_CANVAS);
-}
-
 static void js_app_launcher_free(JsAppLauncher* instance) {
     furi_record_destroy(RECORD_JS_APP_LAUNCHER);
     // TODO [FW-602]: scene_manager_free() MUST be called before
@@ -300,7 +305,6 @@ static void js_app_launcher_free(JsAppLauncher* instance) {
     }
 
     if(instance->js_app) {
-        js_app_launcher_clear_canvas(instance);
         js_app_free(instance->js_app);
     }
 
