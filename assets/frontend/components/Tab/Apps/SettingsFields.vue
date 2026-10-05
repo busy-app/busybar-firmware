@@ -20,6 +20,7 @@
 
       <SettingsFields
         v-model:values="values[key] as Record<string, unknown>"
+        :app-id="appId"
         :fields="field.fields"
       />
     </div>
@@ -30,6 +31,7 @@
       :data-id="`app-settings-field-${key}`"
       :label="field.label"
       :default-value="field.default"
+      class="mb-5 last:mb-0"
       @update:model-value="values[key] = $event"
     />
 
@@ -67,6 +69,10 @@
         :min="field.min"
         :max="field.max"
         :step="field.step"
+        :increment="NUMBER_BUTTON_PROPS"
+        :decrement="NUMBER_BUTTON_PROPS"
+        :ui="INPUT_UI"
+        :style="GLASS_CONTROL_STYLE"
         class="w-36 shrink-0"
         @update:model-value="values[key] = $event"
       />
@@ -77,6 +83,8 @@
         :type="field.sensitive ? 'password' : 'text'"
         :color="errors[key] ? 'error' : undefined"
         :highlight="!!errors[key]"
+        :ui="errors[key] ? { base: 'focus-visible:outline-2 focus-visible:outline-error' } : INPUT_UI"
+        :style="errors[key] ? { ...GLASS_CONTROL_STYLE, borderColor: 'var(--ui-error)' } : GLASS_CONTROL_STYLE"
         class="w-56 shrink-0"
         @update:model-value="values[key] = $event"
       />
@@ -85,7 +93,19 @@
         v-else-if="field.type === 'enum'"
         :model-value="values[key] as string"
         :items="field.options"
-        class="w-56 shrink-0"
+        variant="soft"
+        size="sm"
+        :style="GLASS_CONTROL_STYLE"
+        class="h-7 w-fit min-w-[53px] shrink-0"
+        :ui="{
+          base: 'text-sm leading-4.5 ps-2 pe-2 py-1 gap-1 focus-visible:outline-2 focus-visible:outline-primary',
+          trailing: 'static p-0 pe-0',
+          trailingIcon: 'size-3',
+          content: 'min-w-max',
+          label: 'text-base',
+          item: 'text-base',
+          viewport: '[&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-accented'
+        }"
         @update:model-value="values[key] = $event"
       />
 
@@ -122,6 +142,8 @@
         :model-value="values[key] as string"
         type="time"
         :step="(values[key] as string).length > 5 ? 1 : 60"
+        :ui="INPUT_UI"
+        :style="GLASS_CONTROL_STYLE"
         class="w-36 shrink-0"
         @update:model-value="values[key] = $event"
       />
@@ -131,8 +153,16 @@
 
 <script setup lang="ts">
 import type { AppSettingsGeolocationValue, AppSettingsNode } from '@/stores/appsStore';
+import { GLASS_CONTROL_STYLE } from '@/util/formControlStyles';
+
+const INPUT_UI = { base: 'focus-visible:outline-2 focus-visible:outline-primary' };
+const NUMBER_BUTTON_PROPS = {
+  color: 'neutral',
+  variant: 'link'
+} as const;
 
 const props = defineProps<{
+  appId: string;
   fields: Record<string, AppSettingsNode>;
 }>();
 

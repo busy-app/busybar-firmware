@@ -2,7 +2,7 @@
   <div class="flex flex-col gap-1 rounded-group">
     <div
       class="flex flex-col gap-4 bg-accented/25 p-4 dark:bg-[var(--ui-surface-card)]"
-      :class="manual ? 'rounded-[12px_12px_4px_4px]' : 'rounded-[12px]'"
+      :class="manual ? 'rounded-[12px_12px_4px_4px]!' : 'rounded-[12px]'"
     >
       <div class="flex w-full items-center gap-2">
         <div class="min-w-0 flex-1 truncate">
@@ -26,8 +26,30 @@
               name="i-bi-location"
               class="size-6 shrink-0"
             />
-            <div class="truncate font-medium text-toned">
-              {{ value.name }}
+            <USkeleton
+              v-if="resolvingLocation"
+              data-id="app-settings-geolocation-loading"
+              aria-label="Detecting location"
+              class="h-5 w-40 max-w-full rounded-md"
+            />
+            <div
+              v-else
+              class="flex min-w-0 flex-col"
+            >
+              <div
+                data-id="app-settings-geolocation-name"
+                class="truncate font-medium text-toned"
+              >
+                {{ locationName }}
+              </div>
+
+              <div
+                v-if="showsTimezoneName"
+                data-id="app-settings-geolocation-hint"
+                class="flex min-w-0 items-center gap-1 text-xs text-muted"
+              >
+                Based on your time zone
+              </div>
             </div>
           </div>
         </div>
@@ -63,7 +85,8 @@
         base: 'rounded-[inherit] py-3 text-base bg-accented/25 dark:bg-[var(--ui-surface-card)]',
         leadingIcon: 'size-6',
         trailing: 'hidden',
-        content: 'shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-2px_rgba(0,0,0,0.05)]'
+        content: 'shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-2px_rgba(0,0,0,0.05)]',
+        viewport: 'me-2 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:my-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-accented'
       }"
       @update:model-value="selectCity"
     >
@@ -94,6 +117,7 @@ const canShareLocation = window.isSecureContext && !!navigator.geolocation;
 
 let searchTimeout: ReturnType<typeof setTimeout> | undefined;
 let searchController: AbortController | undefined;
+let autoController: AbortController | undefined;
 
 const props = defineProps<{
   label: string;
@@ -106,6 +130,8 @@ const toast = useToast();
 
 const cityMenu = useTemplateRef('cityMenu');
 const manual = ref(value.value.mode === 'fixed');
+const fromTimezone = ref(false);
+const resolvingLocation = ref(false);
 const searchTerm = ref('');
 const selectedCity = ref<CityItem>();
 const suggestions = ref<CitySuggestion[]>([]);
@@ -113,19 +139,67 @@ const searching = ref(false);
 const sharing = ref(false);
 
 const cityItems = computed<CityItem[]>(() => suggestions.value.map(city => ({ ...city, label: cityLabel(city) })));
+const locationName = computed(() => value.value.mode === 'fixed' ? value.value.name : AUTO_LOCATION_NAME);
+
+// The name came from the bar's time zone, which the app's own geoip may disagree with.
+const showsTimezoneName = computed(() => value.value.mode === 'fixed' && fromTimezone.value);
 
 function setAutoDetect (enabled: boolean) {
   manual.value = !enabled;
 
   if (enabled) {
+    autoController?.abort();
+    fromTimezone.value = false;
+    resolvingLocation.value = false;
+
     value.value = {
       mode: 'auto',
       name: props.defaultValue.mode === 'auto' ? props.defaultValue.name : AUTO_LOCATION_NAME
     };
+  } else if (value.value.mode === 'auto') {
+    loadTimezoneLocation();
+  }
+}
+
+/**
+ * Fills the manual field in from the bar's time zone, which names a city. It is only a starting
+ * point: the automatic mode resolves the place on the device itself, by address.
+ */
+async function loadTimezoneLocation () {
+  autoController?.abort();
+
+  const controller = new AbortController();
+  autoController = controller;
+  resolvingLocation.value = true;
+
+  try {
+    const timezone = await useTimezoneStore().fetchTimezone();
+
+    if (controller.signal.aborted || autoController !== controller) {
+      return;
+    }
+
+    const [city] = timezone ? await searchCities(timezone, controller.signal).catch(() => []) : [];
+
+    if (controller.signal.aborted || autoController !== controller || !manual.value) {
+      return;
+    }
+
+    if (city) {
+      setFixedLocation(cityLabel(city), city.lat, city.lng);
+      fromTimezone.value = true;
+    }
+  } catch {
+    // No time zone, no suggestion: the field stays empty and waits for the city search.
+  } finally {
+    if (autoController === controller) {
+      resolvingLocation.value = false;
+    }
   }
 }
 
 function setFixedLocation (name: string, lat: number, lon: number) {
+  fromTimezone.value = false;
   value.value = {
     mode: 'fixed',
     name: truncateUtf8(name, NAME_MAX_LENGTH),
@@ -163,9 +237,12 @@ async function shareLocation () {
     const { latitude, longitude } = position.coords;
     const city = await resolveByCoords(latitude, longitude);
 
-    setFixedLocation(city ? cityLabel(city) : formatCoordinates(latitude, longitude), latitude, longitude);
+    if (manual.value) {
+      setFixedLocation(city ? cityLabel(city) : formatCoordinates(latitude, longitude), latitude, longitude);
+    }
   } catch {
     toast.add({
+      id: 'app-settings-geolocation-share-location-error',
       title: 'Couldn\'t share location',
       description: 'Allow location access and try again.',
       icon: 'i-bi-alert',
@@ -222,5 +299,6 @@ watch(searchTerm, query => {
 onBeforeUnmount(() => {
   clearTimeout(searchTimeout);
   searchController?.abort();
+  autoController?.abort();
 });
 </script>

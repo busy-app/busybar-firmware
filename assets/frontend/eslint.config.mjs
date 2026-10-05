@@ -70,6 +70,9 @@ export default withNuxt(
       'unicorn/no-null': 0,
 
       // Vue specific
+      'vue/html-indent': ['error', 2],
+      'vue/max-attributes-per-line': ['error', { singleline: 1, multiline: 1 }],
+      'vue/html-closing-bracket-newline': ['error', { singleline: 'never', multiline: 'always' }],
       'vue/no-multi-spaces': 'error',
       'vue/singleline-html-element-content-newline': 'off'
     }
