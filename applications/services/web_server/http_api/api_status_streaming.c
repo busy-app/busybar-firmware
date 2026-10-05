@@ -336,13 +336,13 @@ bool http_api_status_ws_callback(
 
     do {
         if(!instance->state_publisher) {
-            if(!furi_record_exists(RECORD_STATE_PUBLISHER)) {
+            instance->state_publisher = furi_record_open_ex(RECORD_STATE_PUBLISHER, 0);
+            if(!instance->state_publisher) {
                 FURI_LOG_W(TAG, "State publisher is unavailable");
                 ConnectionContext* conn_ctx = (void*)conn->data;
                 conn_ctx->ws.on_open = client_connection_on_open_rejected;
                 break;
             }
-            instance->state_publisher = furi_record_open(RECORD_STATE_PUBLISHER);
         }
 
         Client* client = client_alloc(instance, conn);
