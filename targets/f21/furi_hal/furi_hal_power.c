@@ -1,6 +1,7 @@
 #include <furi_hal.h>
 #include <stm32u5xx_ll_pwr.h>
 #include <stm32u5xx_ll_cortex.h>
+#include <stm32u5xx_ll_usart.h>
 
 typedef struct {
     volatile uint8_t insomnia;
@@ -14,6 +15,7 @@ static volatile FuriHalPower furi_hal_power = {
 
 void furi_hal_power_init_super_early(void) {
     volatile uint32_t* const status_register = &PWR->WUSR;
+    // FURI_LOG_D("sleep", "WUSR %032lb", *status_register);
     if(*status_register) {
         furi_hal_power.reset_source = FuriHalPowerResetSourceWakeup;
     } else {
@@ -76,6 +78,8 @@ bool furi_hal_power_sleep_available(void) {
 void furi_hal_power_sleep_wakeup_clear(void) {
     FURI_CRITICAL_ENTER();
     LL_PWR_ClearFlag_WU();
+    volatile uint32_t* const enable_register = &PWR->WUCR1;
+    *enable_register = 0;
     FURI_CRITICAL_EXIT();
 }
 
@@ -136,8 +140,12 @@ void furi_hal_power_deep_sleep(void) {
     NVIC_ClearPendingIRQ(SysTick_IRQn);
 
     __disable_irq();
-    SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
 
+    // disable usart dma
+    LL_USART_DisableDMAReq_RX(USART1);
+    LL_USART_DisableDMAReq_TX(USART1);
+
+    SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
     __asm__ volatile("wfi\n"
                      "nop\n"
                      "nop\n");
