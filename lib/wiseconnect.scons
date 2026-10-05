@@ -73,7 +73,7 @@ env.Append(
         "SL_WIFI_COMPONENT_INCLUDED=1",
         "SLI_SI91X_ENABLE_OS",
         "SLI_MULTITHREAD_DEVICE_SI91X",
-        # "ENABLE_DEBUG_MODULE",  # This is for debug power down mode
+        "ENABLE_DEBUG_MODULE",  # This is for debug power down mode
         "SLI_SI91X_MCU_ENABLE_FLASH_BASED_EXECUTION",
         # SDK BLE Silabs
         "SLI_SI91X_ENABLE_BLE",
