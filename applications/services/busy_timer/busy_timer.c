@@ -722,12 +722,9 @@ static void busy_timer_mqtt_snapshot_callback(const MqttMessage* message, void* 
     size_t json_text_len;
     const char* json_text = mqtt_message_get_data(message, &json_text_len);
 
-    BusyTimerSnapshot snapshot;
-    if(busy_timer_snapshot_deserialize(&snapshot, json_text, json_text_len)) {
-        busy_timer_set_snapshot(instance, &snapshot);
-    } else {
-        FURI_LOG_W(TAG, "Invalid snapshot data");
-    }
+    // NOTE: Parse on the busy_timer thread to start from the current snapshot.
+    // A blocking get from the MQTT thread would deadlock against mqtt_publish.
+    busy_timer_set_snapshot_json(instance, json_text, json_text_len);
 }
 
 static void busy_timer_mqtt_profile_busy_callback(const MqttMessage* message, void* context) {
@@ -738,12 +735,7 @@ static void busy_timer_mqtt_profile_busy_callback(const MqttMessage* message, vo
     size_t json_text_len;
     const char* json_text = mqtt_message_get_data(message, &json_text_len);
 
-    BusyTimerProfile profile;
-    if(busy_timer_profile_deserialize(&profile, json_text, json_text_len)) {
-        busy_timer_set_profile(instance, BusyTimerProfileIdBusy, &profile);
-    } else {
-        FURI_LOG_W(TAG, "Invalid busy profile data");
-    }
+    busy_timer_set_profile_json(instance, BusyTimerProfileIdBusy, json_text, json_text_len);
 }
 
 static void busy_timer_mqtt_profile_custom_callback(const MqttMessage* message, void* context) {
@@ -754,12 +746,7 @@ static void busy_timer_mqtt_profile_custom_callback(const MqttMessage* message, 
     size_t json_text_len;
     const char* json_text = mqtt_message_get_data(message, &json_text_len);
 
-    BusyTimerProfile profile;
-    if(busy_timer_profile_deserialize(&profile, json_text, json_text_len)) {
-        busy_timer_set_profile(instance, BusyTimerProfileIdCustom, &profile);
-    } else {
-        FURI_LOG_W(TAG, "Invalid custom profile data");
-    }
+    busy_timer_set_profile_json(instance, BusyTimerProfileIdCustom, json_text, json_text_len);
 }
 
 // Private API
@@ -962,6 +949,24 @@ static void busy_timer_set_snapshot_api_message_handler(
     busy_timer_apply_snapshot(instance, &set_snapshot->snapshot);
 }
 
+static void busy_timer_set_snapshot_json_api_message_handler(
+    BusyTimer* instance,
+    BusyTimerApiMessageData* data) {
+    const BusyTimerApiMessageSetSnapshotJson* set_snapshot_json = &data->set_snapshot_json;
+
+    // NOTE: Start from the last known snapshot so optional keys keep their value
+    BusyTimerSnapshot snapshot = instance->last_known_snapshot;
+
+    if(busy_timer_snapshot_deserialize(
+           &snapshot, set_snapshot_json->json_text, set_snapshot_json->json_text_len)) {
+        busy_timer_apply_snapshot(instance, &snapshot);
+    } else {
+        FURI_LOG_W(TAG, "Invalid snapshot data");
+    }
+
+    free(set_snapshot_json->json_text);
+}
+
 static void
     busy_timer_get_profile_api_message_handler(BusyTimer* instance, BusyTimerApiMessageData* data) {
     const BusyTimerApiMessageGetProfile* get_profile = &data->get_profile;
@@ -973,13 +978,10 @@ static void
     *profile = *current_profile;
 }
 
-static void
-    busy_timer_set_profile_api_message_handler(BusyTimer* instance, BusyTimerApiMessageData* data) {
-    const BusyTimerApiMessageSetProfile* set_profile = &data->set_profile;
-
-    const BusyTimerProfile* profile = &set_profile->profile;
-    const BusyTimerProfileId profile_id = set_profile->profile_id;
-
+static void busy_timer_handle_set_profile(
+    BusyTimer* instance,
+    BusyTimerProfileId profile_id,
+    const BusyTimerProfile* profile) {
     const BusyTimerSetProfileResult result =
         busy_timer_set_profile_internal(instance, profile, profile_id);
 
@@ -991,6 +993,33 @@ static void
        result != BusyTimerSetProfileResultRejectedOwn) {
         busy_timer_schedule_publish_profile(instance, profile_id);
     }
+}
+
+static void
+    busy_timer_set_profile_api_message_handler(BusyTimer* instance, BusyTimerApiMessageData* data) {
+    const BusyTimerApiMessageSetProfile* set_profile = &data->set_profile;
+    busy_timer_handle_set_profile(instance, set_profile->profile_id, &set_profile->profile);
+}
+
+static void busy_timer_set_profile_json_api_message_handler(
+    BusyTimer* instance,
+    BusyTimerApiMessageData* data) {
+    const BusyTimerApiMessageSetProfileJson* set_profile_json = &data->set_profile_json;
+
+    const BusyTimerProfileId profile_id = set_profile_json->profile_id;
+    furi_assert(profile_id < BusyTimerProfileIdMax);
+
+    // NOTE: Start from the stored profile so optional keys keep their value
+    BusyTimerProfile profile = instance->settings[profile_id].profile;
+
+    if(busy_timer_profile_deserialize(
+           &profile, set_profile_json->json_text, set_profile_json->json_text_len)) {
+        busy_timer_handle_set_profile(instance, profile_id, &profile);
+    } else {
+        FURI_LOG_W(TAG, "Invalid %s profile data", busy_timer_get_profile_name(profile_id));
+    }
+
+    free(set_profile_json->json_text);
 }
 
 static void
@@ -1132,8 +1161,11 @@ static const BusyTimerApiMessageHandler
         [BusyTimerApiMessageTypeGetRunInfo] = busy_timer_get_run_info_api_message_handler,
         [BusyTimerApiMessageTypeGetSnapshot] = busy_timer_get_snapshot_api_message_handler,
         [BusyTimerApiMessageTypeSetSnapshot] = busy_timer_set_snapshot_api_message_handler,
+        [BusyTimerApiMessageTypeSetSnapshotJson] =
+            busy_timer_set_snapshot_json_api_message_handler,
         [BusyTimerApiMessageTypeGetProfile] = busy_timer_get_profile_api_message_handler,
         [BusyTimerApiMessageTypeSetProfile] = busy_timer_set_profile_api_message_handler,
+        [BusyTimerApiMessageTypeSetProfileJson] = busy_timer_set_profile_json_api_message_handler,
         [BusyTimerApiMessageTypeGetPreset] = busy_timer_get_preset_api_message_handler,
         [BusyTimerApiMessageTypeSetPreset] = busy_timer_set_preset_api_message_handler,
         [BusyTimerApiMessageTypeHandleMatter] = busy_timer_handle_matter_api_message_handler,

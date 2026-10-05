@@ -240,6 +240,7 @@ static bool
                 .theme_name = BUSY_APP_THEME_NAME_DEFAULT,
                 .is_smart_home_enabled = BUSY_APP_IS_SMART_HOME_ENABLED_DEFAULT,
                 .is_show_work_only_enabled = BUSY_APP_IS_SHOW_WORK_ONLY_ENABLED_DEFAULT,
+                .is_show_time_left_enabled = BUSY_APP_IS_SHOW_TIME_LEFT_ENABLED_DEFAULT,
             };
         }
 

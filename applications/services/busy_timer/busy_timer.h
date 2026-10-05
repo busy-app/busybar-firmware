@@ -109,6 +109,8 @@ void busy_timer_get_snapshot(BusyTimer* instance, BusyTimerSnapshot* snapshot);
 
 void busy_timer_set_snapshot(BusyTimer* instance, const BusyTimerSnapshot* snapshot);
 
+void busy_timer_set_snapshot_json(BusyTimer* instance, const char* json_text, size_t json_text_len);
+
 const char* busy_timer_get_profile_name(BusyTimerProfileId profile_id);
 
 void busy_timer_get_profile(
@@ -120,6 +122,12 @@ void busy_timer_set_profile(
     BusyTimer* instance,
     BusyTimerProfileId profile_id,
     const BusyTimerProfile* profile);
+
+void busy_timer_set_profile_json(
+    BusyTimer* instance,
+    BusyTimerProfileId profile_id,
+    const char* json_text,
+    size_t json_text_len);
 
 void busy_timer_get_preset(
     BusyTimer* instance,
