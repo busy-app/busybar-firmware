@@ -104,12 +104,16 @@ export const useDeviceStore = defineStore('device', () => {
     return isConnected.value;
   }
 
+  let pausedBy = 0;
+
   function pauseAvailabilityPolling () {
+    pausedBy += 1;
     availabilityPollingPaused.value = true;
   }
 
   function resumeAvailabilityPolling () {
-    availabilityPollingPaused.value = false;
+    pausedBy = Math.max(0, pausedBy - 1);
+    availabilityPollingPaused.value = pausedBy > 0;
   }
 
   async function refreshDeviceData () {

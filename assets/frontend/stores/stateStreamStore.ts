@@ -37,6 +37,8 @@ function inferWifiProtocol (value: BSB_State.IpAddress['address']) {
 }
 
 export const useStateStreamStore = defineStore('stateStream', () => {
+  let checkingStaleStream = false;
+
   const apiStore = useApiStore();
   const deviceStore = useDeviceStore();
   const audioStore = useAudioStore();
@@ -64,6 +66,12 @@ export const useStateStreamStore = defineStore('stateStream', () => {
   ));
   const streamStatus = ref<StreamStatus | null>(null);
   const doCheckConnectionOnStreamDataStale = ref(true);
+
+  watch(() => doCheckConnectionOnStreamDataStale.value && !deviceStore.availabilityPollingPaused, async enabled => {
+    if (enabled) {
+      await checkStaleStreamConnection();
+    }
+  });
 
   function stopStream () {
     stream.value.stop();
@@ -270,6 +278,38 @@ export const useStateStreamStore = defineStore('stateStream', () => {
     }
   }
 
+  async function checkStaleStreamConnection () {
+    if (checkingStaleStream
+      || streamStatus.value?.data.status !== DataStatus.STALE
+      || !doCheckConnectionOnStreamDataStale.value
+      || deviceStore.availabilityPollingPaused
+    ) {
+      return;
+    }
+
+    checkingStaleStream = true;
+
+    try {
+      const conncheckResult = await deviceStore.checkConnection();
+
+      if (streamStatus.value?.data.status !== DataStatus.STALE
+        || !doCheckConnectionOnStreamDataStale.value
+        || deviceStore.availabilityPollingPaused
+      ) {
+        return;
+      }
+
+      if (!conncheckResult) {
+        stopStream();
+        deviceStore.setRefreshInterval();
+      } else if (conncheckResult === true) {
+        await deviceStore.fetchDeviceStatus();
+      }
+    } finally {
+      checkingStaleStream = false;
+    }
+  }
+
   async function applyStreamStatus (status: StreamStatus) {
     const oldStatus = streamStatus.value;
 
@@ -292,17 +332,8 @@ export const useStateStreamStore = defineStore('stateStream', () => {
 
     streamStatus.value = status;
 
-    if (streamStatus.value.data.status === DataStatus.STALE && oldStatus?.data.status !== DataStatus.STALE && doCheckConnectionOnStreamDataStale.value && !deviceStore.availabilityPollingPaused) {
-      console.debug('No state messages received for a while, checking connection...');
-      const conncheckResult = await deviceStore.checkConnection();
-      if (conncheckResult === false) {
-        console.debug('Connection check failed after state stream data stale, stopping stream and starting polling');
-        stopStream();
-        deviceStore.setRefreshInterval();
-      } else if (conncheckResult === true) {
-        console.debug('Connection check succeeded after state stream data stale, refreshing device status');
-        await deviceStore.fetchDeviceStatus();
-      }
+    if (streamStatus.value.data.status === DataStatus.STALE && oldStatus.data.status !== DataStatus.STALE) {
+      await checkStaleStreamConnection();
     }
 
     if (streamStatus.value.data.status === DataStatus.ACTIVE
