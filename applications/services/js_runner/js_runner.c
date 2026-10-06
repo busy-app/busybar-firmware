@@ -595,7 +595,6 @@ JsRunnerError js_runner_join(JsRunnerExecutionHandle* handle, uint32_t timeout) 
 
     JsRunnerError result = JsRunnerErrorNone;
     if(wait_result == JS_RUNNER_APP_FLAG_IDLE) {
-        handle->app->should_terminate = false;
         execution_handle_free(handle);
     } else if((FuriStatus)wait_result == FuriStatusErrorTimeout) {
         result = JsRunnerErrorTimeout;
