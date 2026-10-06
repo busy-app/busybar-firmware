@@ -17,13 +17,13 @@ static int32_t init_task(void* context) {
 }
 
 int main(void) {
-    furi_init();
     furi_hal_init_super_early();
 
     if(furi_hal_power_get_reset_source() == FuriHalPowerResetSourceWakeup) {
         furi_hal_power_reset();
     }
 
+    furi_init();
     furi_log_set_level(FuriLogLevelDebug);
 
     furi_hal_init_early();
