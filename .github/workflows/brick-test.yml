@@ -172,7 +172,16 @@ jobs:
           set -euo pipefail
           source scripts/toolchain/fbtenv.sh
           echo "Verifying device recovered successfully..."
-          python3 scripts/testops.py sanity
+          # `wait` only checks U5 HTTP; SI917 may still be rebooting and not have
+          # sent SlInfo yet ("sl commit not found"), so poll for up to 5 s
+          deadline=$((SECONDS + 5))
+          until python3 scripts/testops.py sanity; do
+            if [ "$SECONDS" -ge "$deadline" ]; then
+              echo "ERROR: Sanity check still failing after recovery"
+              exit 1
+            fi
+            sleep 1
+          done
           echo "SUCCESS: Device recovered from bricked state!"
 
       - name: 'Configure AWS CLI'
