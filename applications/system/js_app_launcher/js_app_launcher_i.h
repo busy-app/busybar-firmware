@@ -9,6 +9,8 @@
 #include <gui/modules/nav_bar.h>
 #include <gui/modules/flex_layout.h>
 
+#include <loader/loader.h>
+
 #include <js_runner/js_runner.h>
 
 #include <js_app/js_app.h>
@@ -28,6 +30,8 @@
  * Example: "app.busy.js_example" -> "app.busy.js_example+".
  */
 #define JS_APP_LAUNCHER_ARG_RESUME "+"
+
+#define JS_APP_LAUNCHER_LOADER_PRIORITY LOADER_DEFAULT_APP_PRIORITY
 
 typedef enum {
     JsAppLauncherErrorNone,
