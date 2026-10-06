@@ -31,8 +31,6 @@
  */
 #define JS_APP_LAUNCHER_ARG_RESUME "+"
 
-#define JS_APP_LAUNCHER_LOADER_PRIORITY LOADER_DEFAULT_APP_PRIORITY
-
 typedef enum {
     JsAppLauncherErrorNone,
     JsAppLauncherErrorLoadFailed,

@@ -108,7 +108,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "409":
-          description: A higher-priorty application is already running
+          description: A higher-priority application is already running
           content:
             application/json:
               schema:

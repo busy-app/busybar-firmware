@@ -49,7 +49,7 @@ typedef enum {
  * @returns @c JsAppLauncherStatusOk the application was successfully launched
  * @returns @c JsAppLauncherStatusInvalidAppId invalid application ID
  * @returns @c JsAppLauncherStatusTimeout operation timed out
- * @returns @c JsAppLauncherStatusLowPriority a higher-priorty application is already running
+ * @returns @c JsAppLauncherStatusLowPriority a higher-priority application is already running
  */
 JsAppLauncherStatus js_app_launcher_start(const char* app_id, JsAppLauncherStartMode start_mode);
 
