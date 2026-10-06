@@ -135,7 +135,9 @@ typedef struct JsRunnerStaticContext {
 
 typedef void (*JsRunnerExternalDataDestructor)(void* object, void* user_p);
 
-typedef struct JsRunnerByteArrayDestructor {
-    JsRunnerExternalDataDestructor destructor;
-    ByteArray_t* byte_array;
-} JsRunnerByteArrayDestructor;
+typedef void (*JsRunnerArrayBufferDestructor)(void* data);
+
+typedef struct {
+    void* data;
+    JsRunnerArrayBufferDestructor destructor;
+} JsRunnerArrayBufferInfo;
