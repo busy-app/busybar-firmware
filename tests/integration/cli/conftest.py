@@ -16,7 +16,7 @@ from cryptography.x509.oid import NameOID
 
 from clients.api import WIFI_SSID, WifiAPI
 from clients.cli import SimpleCLIConnection
-from utils.cli_helpers import resync
+from utils.cli_helpers import BLOB_PAYLOAD, TEXT_PAYLOAD, resync
 from utils.fetch_http_server import FetchHTTPServer, FetchRequestHandler
 from utils.fetch_mtls_mqtt_broker import FetchMTLSMQTTBroker
 from utils.fetch_mtls_server import FetchMTLSServer
@@ -328,6 +328,18 @@ def sl_cli():
         cli.disconnect()
 
 
+def _rm_rf(cli, target):
+    # `storage remove` only unlinks files and *empty* dirs, so walk the tree
+    # depth-first (`extract` leaves a whole subtree behind in out/)
+    listing = cli.execute_command(f"storage list {target}")
+    for kind, name in re.findall(r"\[([DF])\]\s+(\S+)", listing):
+        child = f"{target}/{name}"
+        _rm_rf(cli, child) if kind == "D" else cli.execute_command(
+            f"storage remove {child}"
+        )
+    cli.execute_command(f"storage remove {target}")
+
+
 @pytest.fixture
 def storage_dir(persistent_cli_connection):
     """Empty `/ext/cli_test`, wiped again afterwards — whatever the test did or
@@ -336,24 +348,42 @@ def storage_dir(persistent_cli_connection):
     cli = persistent_cli_connection
     path = "/ext/cli_test"
 
-    def rm_rf(target):
-        # `storage remove` only unlinks files and *empty* dirs, so walk the tree
-        # depth-first (`extract` leaves a whole subtree behind in out/)
-        listing = cli.execute_command(f"storage list {target}")
-        for kind, name in re.findall(r"\[([DF])\]\s+(\S+)", listing):
-            child = f"{target}/{name}"
-            rm_rf(child) if kind == "D" else cli.execute_command(
-                f"storage remove {child}"
-            )
-        cli.execute_command(f"storage remove {target}")
-
-    rm_rf(path)  # a previous run may have died before its own cleanup
+    _rm_rf(cli, path)  # a previous run may have died before its own cleanup
     cli.execute_command(f"storage mkdir {path}")
     try:
         yield path
     finally:
         resync(cli)
-        rm_rf(path)
+        _rm_rf(cli, path)
+
+
+@pytest.fixture
+def tar_seed_dir(persistent_cli_connection, storage_api):
+    """Small fixed tree in a temporary `/ext/user_assets/cli_test_seed` to archive.
+
+    Archiving the whole `/ext/user_assets` made the tests depend on whatever the
+    firmware bundles there: stock JS apps (#1056) added ~2 MB, and `storage copy`
+    of the archive no longer fit the CLI timeout. Wiped before and after."""
+    cli = persistent_cli_connection
+    path = "/ext/user_assets/cli_test_seed"
+
+    _rm_rf(cli, path)
+    cli.execute_command(f"storage mkdir {path}")
+    cli.execute_command(f"storage mkdir {path}/sub")
+    try:
+        for file, payload in (
+            (f"{path}/seed.txt", TEXT_PAYLOAD),
+            (f"{path}/sub/blob.bin", BLOB_PAYLOAD),
+        ):
+            response = storage_api.write(file, payload)
+            assert response.status_code == 200, (
+                f"seed upload of {file} failed: HTTP {response.status_code}, "
+                f"body={response.text!r}"
+            )
+        yield path
+    finally:
+        resync(cli)
+        _rm_rf(cli, path)
 
 
 @pytest.fixture
