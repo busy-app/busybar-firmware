@@ -81,5 +81,4 @@ void js_runner_del_fetch_thread(JsRunnerApp* app, JsFetch* fetch);
 
 const char* js_runner_app_get_id(const JsRunnerApp* app);
 
-void js_runner_byte_array_destructor(void* object, void* user_p);
 void js_runner_heap_destructor(void* object, void* user_p);
