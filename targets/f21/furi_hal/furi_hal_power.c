@@ -122,13 +122,13 @@ void furi_hal_power_sleep_wakeup_gpio(const GpioPin* wakeup_pin, GpioMode condit
     NVIC_SetPriority(RCC_IRQn, 0);
     NVIC_EnableIRQ(RCC_IRQn);
 
-    LL_PWR_EnablePUPDConfig();
-
     FURI_CRITICAL_EXIT();
 }
 
 void furi_hal_power_deep_sleep(void) {
     FURI_CRITICAL_ENTER();
+
+    LL_PWR_DisablePUPDConfig();
 
     LL_PWR_DisableBkUpRegulator();
     while(LL_PWR_IsEnabledBkUpRegulator())
