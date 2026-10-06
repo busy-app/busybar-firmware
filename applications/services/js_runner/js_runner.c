@@ -499,7 +499,8 @@ static JsRunnerExecutionHandle* execution_handle_alloc(
     handle->context_handle = parent;
     handle->event_callback = event_callback;
     handle->event_callback_context = context;
-    parent->app->execution_handle = handle;
+    handle->app->execution_handle = handle;
+    handle->app->should_terminate = false;
     return handle;
 }
 
@@ -659,7 +660,6 @@ static void run_file_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
     }
 
     app->script_evaluation_done = false;
-    app->should_terminate = false;
 
     bool unlocked = false;
     JsRunnerError ret = JsRunnerErrorNone;
@@ -780,7 +780,6 @@ static void run_snippet_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
     }
 
     app->script_evaluation_done = false;
-    app->should_terminate = false;
 
     bool unlocked = false;
     JsRunnerError ret = JsRunnerErrorNone;
