@@ -659,6 +659,7 @@ static void run_file_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
     }
 
     app->script_evaluation_done = false;
+    app->should_terminate = false;
 
     bool unlocked = false;
     JsRunnerError ret = JsRunnerErrorNone;
@@ -779,6 +780,7 @@ static void run_snippet_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
     }
 
     app->script_evaluation_done = false;
+    app->should_terminate = false;
 
     bool unlocked = false;
     JsRunnerError ret = JsRunnerErrorNone;
