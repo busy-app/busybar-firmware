@@ -3,8 +3,25 @@ import type { TimezoneInfo } from '@busy-app/busy-lib';
 const LOCATIONS_PATH = '/weather/v1/locations';
 const REQUEST_TIMEOUT_MS = 8000;
 const MAX_QUERY_LENGTH = 100;
+const DISPLAY_LANGUAGE = 'en';
 
 export const MIN_QUERY_LENGTH = 2;
+
+const QUERY_LANGUAGES: [script: RegExp, language: string][] = [
+  [/[ҐґЄєІіЇї]/, 'uk'],
+  [/\p{Script=Cyrillic}/u, 'ru'],
+  [/\p{Script=Hiragana}|\p{Script=Katakana}/u, 'ja'],
+  [/\p{Script=Han}/u, 'zh'],
+  [/\p{Script=Hangul}/u, 'ko'],
+  [/\p{Script=Arabic}/u, 'ar'],
+  [/\p{Script=Hebrew}/u, 'he'],
+  [/\p{Script=Devanagari}/u, 'hi'],
+  [/\p{Script=Bengali}/u, 'bn'],
+  [/\p{Script=Greek}/u, 'el'],
+  [/\p{Script=Thai}/u, 'th'],
+  [/\p{Script=Georgian}/u, 'ka'],
+  [/\p{Script=Armenian}/u, 'hy']
+];
 
 export interface CitySuggestion {
   id: string;
@@ -53,10 +70,18 @@ export function cityLabel (city: CitySuggestion) {
   return [city.name, state, city.country].filter(Boolean).join(', ');
 }
 
+function queryLanguage (query: string) {
+  return QUERY_LANGUAGES.find(([script]) => script.test(query))?.[1] ?? DISPLAY_LANGUAGE;
+}
+
 export async function searchCities (query: string, signal?: AbortSignal) {
   const response = await $fetch<LocationsResponse>(LOCATIONS_PATH, {
     baseURL: useRuntimeConfig().public.apiUrl,
-    query: { query: query.slice(0, MAX_QUERY_LENGTH) },
+    query: {
+      query: query.slice(0, MAX_QUERY_LENGTH),
+      language: queryLanguage(query),
+      display_language: DISPLAY_LANGUAGE
+    },
     timeout: REQUEST_TIMEOUT_MS,
     retry: false,
     signal
