@@ -124,6 +124,7 @@ void my_trigger_sleep(
 #ifndef ENABLE_DEBUG_MODULE
     RSI_PS_M4ssPeriPowerDown(M4SS_PWRGATE_ULP_M4_DEBUG_FPU);
 #endif // ENABLE_DEBUG_MODULE
+    RSI_PS_M4ssPeriPowerDown(M4SS_PWRGATE_ULP_EFUSE_PERI);
 
     /* Define 'SLI_SI91X_MCU_ENABLE_FLASH_BASED_EXECUTION' macro if FLASH execution is needed*/
 #ifndef SLI_SI91X_MCU_ENABLE_FLASH_BASED_EXECUTION
@@ -151,6 +152,19 @@ void my_trigger_sleep(
 
 void furi_hal_power_deep_sleep(void) {
     furi_delay_ms(10); // allow previous logs to flush
+
+    sl_wifi_performance_profile_v2_t wifi_performance = {
+        .profile = SL_WIFI_SYSTEM_DEEP_SLEEP_WITHOUT_RAM_RETENTION,
+    };
+    sl_bt_performance_profile_t bt_performance = {
+        .profile = SL_WIFI_SYSTEM_DEEP_SLEEP_WITHOUT_RAM_RETENTION,
+    };
+    sl_status_t status = sli_si91x_send_power_save_request(&wifi_performance, &bt_performance);
+    // UNUSED(status);
+    if(status != SL_STATUS_OK) {
+        FURI_LOG_E("sleep", "err: 0x%lx", status);
+        furi_crash("failed to put NWP to sleep");
+    }
 
     FURI_CRITICAL_ENTER();
 
