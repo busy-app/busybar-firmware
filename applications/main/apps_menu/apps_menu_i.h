@@ -45,17 +45,12 @@ typedef struct {
 } AppsMenu;
 
 typedef enum {
+    AppsMenuCustomEventIndexMax = 0x7F,
     AppsMenuCustomEventLaunchMain,
     AppsMenuCustomEventAboutToExit,
-
-    AppsMenuCustomEventSceneEventsStart,
-
-    AppsMenuCustomEventMAX = 0xFFFFFFFF, // forces enum size, don't use
 } AppsMenuCustomEvent;
 
-static_assert(sizeof(AppsMenuCustomEvent) == sizeof(uint32_t));
-
-void apps_menu_send_custom_event(AppsMenu* app, AppsMenuCustomEvent event);
+void apps_menu_send_custom_event(AppsMenu* app, uint32_t event);
 
 bool apps_menu_start_application(const char* app_id, AppsMenuMode mode);
 

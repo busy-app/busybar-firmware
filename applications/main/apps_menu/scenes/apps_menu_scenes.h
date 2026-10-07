@@ -5,8 +5,7 @@
 typedef enum {
     AppsMenuSceneIdStart,
     AppsMenuSceneIdMain,
-
-    AppsMenuSceneIdMAX
+    AppsMenuSceneIdMax,
 } AppsMenuSceneId;
 
-extern const Scene* const apps_menu_scenes[AppsMenuSceneIdMAX];
+extern const Scene* const apps_menu_scenes[AppsMenuSceneIdMax];

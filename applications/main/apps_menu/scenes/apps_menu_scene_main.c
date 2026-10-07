@@ -14,34 +14,22 @@
 
 ARRAY_DEF(AppIdArray, const char*, M_CSTR_DUP_OPLIST)
 
-typedef enum {
-    SceneCustomEventMenuItemClicked = AppsMenuCustomEventSceneEventsStart,
-} SceneCustomEvent;
-
 typedef struct {
     Menu* front_menu;
     Menu* back_menu;
     AppIdArray_t app_ids;
-
-    uint32_t next_item_idx;
-    _Atomic uint32_t menu_idx;
 } AppsMenuSceneMain;
 
 typedef struct {
     AppsMenu* instance;
     AppsMenuSceneMain* data;
+    uint32_t next_item_idx;
 } AppsMenuSceneMainContext;
 
 static void apps_scene_setup_menu_callback(uint32_t index, void* context) {
     furi_assert(context);
-
     AppsMenu* instance = context;
-    AppsMenuSceneMain* data =
-        scene_manager_get_scene_data(instance->scene_manager, AppsMenuSceneIdMain);
-
-    data->menu_idx = index;
-    furi_message_queue_put(
-        instance->event_queue, &(uint32_t){SceneCustomEventMenuItemClicked}, FuriWaitForever);
+    apps_menu_send_custom_event(instance, index);
 }
 
 static void app_menu_scene_main_js_app_list_callback(const JsAppInfo* info, void* context) {
@@ -54,7 +42,7 @@ static void app_menu_scene_main_js_app_list_callback(const JsAppInfo* info, void
         return;
     }
 
-    const AppsMenuSceneMainContext* ctx = context;
+    AppsMenuSceneMainContext* ctx = context;
 
     AppsMenu* instance = ctx->instance;
     AppsMenuSceneMain* data = ctx->data;
@@ -67,32 +55,33 @@ static void app_menu_scene_main_js_app_list_callback(const JsAppInfo* info, void
         app_name,
         NULL,
         paths->icon.front,
-        data->next_item_idx,
+        ctx->next_item_idx,
         apps_scene_setup_menu_callback,
         instance);
 
     menu_add_item(
-        data->back_menu, app_name, NULL, paths->icon.back, data->next_item_idx, NULL, NULL);
+        data->back_menu, app_name, NULL, paths->icon.back, ctx->next_item_idx, NULL, NULL);
 
     AppIdArray_push_back(data->app_ids, manifest_info->id);
 
-    ++data->next_item_idx;
+    ++ctx->next_item_idx;
 }
 
 static void apps_menu_scene_main_list_apps(AppsMenu* instance, AppsMenuSceneMain* data) {
     AppsMenuSceneMainContext ctx = {
         .instance = instance,
         .data = data,
+        .next_item_idx = 0,
     };
 
     js_app_registry_list_apps(app_menu_scene_main_js_app_list_callback, &ctx);
 }
 
-static void apps_menu_scene_main_start_selected_app(AppsMenu* instance) {
+static void apps_menu_scene_main_start_app(AppsMenu* instance, uint32_t selection_idx) {
     AppsMenuSceneMain* data =
         scene_manager_get_scene_data(instance->scene_manager, AppsMenuSceneIdMain);
 
-    const char* app_id = *AppIdArray_cget(data->app_ids, data->menu_idx);
+    const char* app_id = *AppIdArray_cget(data->app_ids, selection_idx);
 
     if(apps_menu_start_application(app_id, AppsMenuModeShowMenu)) {
         apps_menu_set_active_application(&instance->settings, app_id);
@@ -108,7 +97,6 @@ static void apps_menu_scene_main_on_enter(void* context) {
     with_gui(instance->gui, {
         data->front_menu = menu_alloc(instance->front_scene_window);
         data->back_menu = menu_alloc(instance->back_scene_window);
-        data->next_item_idx = 0;
 
         AppIdArray_init(data->app_ids);
         apps_menu_scene_main_list_apps(instance, data);
@@ -142,8 +130,8 @@ static bool apps_menu_scene_main_on_event(const SceneManagerEvent* event, void* 
     AppsMenu* instance = context;
 
     if(event->type == SceneManagerEventTypeCustom) {
-        if(event->event == SceneCustomEventMenuItemClicked) {
-            apps_menu_scene_main_start_selected_app(instance);
+        if(event->event <= AppsMenuCustomEventIndexMax) {
+            apps_menu_scene_main_start_app(instance, event->event);
             consumed = true;
         }
     }
