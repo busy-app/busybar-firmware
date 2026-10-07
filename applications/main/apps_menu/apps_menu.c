@@ -105,6 +105,10 @@ static bool apps_menu_has_active_application(const AppsMenuSettings* settings) {
     return strnlen(settings->active_application, sizeof(settings->active_application)) > 0;
 }
 
+static void apps_menu_reset_active_application(AppsMenuSettings* settings) {
+    apps_menu_set_active_application(settings, APPS_MENU_ACTIVE_APP_NONE);
+}
+
 static AppsMenu* apps_menu_alloc(void) {
     FuriThread* thread = furi_thread_get_current();
     const AppsMenuMode mode = apps_menu_get_mode();
@@ -113,7 +117,7 @@ static AppsMenu* apps_menu_alloc(void) {
     apps_menu_settings_load(&settings);
 
     if(mode == AppsMenuModeShowMenu) {
-        apps_menu_set_active_application(&settings, APPS_MENU_ACTIVE_APP_NONE);
+        apps_menu_reset_active_application(&settings);
 
     } else if(apps_menu_has_active_application(&settings)) {
         if(apps_menu_start_application(settings.active_application, AppsMenuModeResume)) {
