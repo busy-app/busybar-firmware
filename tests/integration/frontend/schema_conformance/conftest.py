@@ -45,6 +45,15 @@ SKIP_OPERATION_IDS: frozenset[str] = frozenset(
         # Asset uploads — would overwrite application assets
         "uploadAssetWithAppId",
         "deleteAppAssets",
+        # JS application lifecycle is stateful: stage requires a valid archive,
+        # install requires the key returned by stage, launch requires an installed
+        # app, and quit requires a running app. Stateless positive fuzz cases receive
+        # documented 400/409 responses that Schemathesis reports as
+        # RejectedPositiveData. Covered as a full lifecycle in test_api_apps.py.
+        "stageApp",
+        "installApp",
+        "launchApp",
+        "quitApp",
         # BLE pairing — alters pairing state
         "setBleParingMode",
         # Matter commissioning — long-running background operation

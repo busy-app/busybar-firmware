@@ -391,6 +391,8 @@ static bool api_apps_launch_request_callback(
 
     if(status == JsAppLauncherStatusOk) {
         MG_REPLY_OK(conn);
+    } else if(status == JsAppLauncherStatusLowPriority) {
+        MG_REPLY_ERROR(conn, 409, "not started due to low priority");
     } else {
         MG_REPLY_ERROR(conn, 503, "failed to launch application");
     }
