@@ -240,6 +240,8 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
   }
 
   function restoreSnapshot (snapshot: HistorySnapshot) {
+    const hadVideo = hasVideoShapes.value;
+
     shapes.value = snapshot.shapes.map(shape => cloneShape(shape));
     selectedShapeId.value = snapshot.selectedShapeId;
     backgroundColor.value = snapshot.backgroundColor;
@@ -249,6 +251,11 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     borderGapOffset.value = snapshot.borderGapOffset;
     normalizeBorderSettingsState();
     applyPlayheadToVideoShapes(playheadFrame.value);
+
+    // Clips returning to an empty timeline mirror an insert, which starts playback.
+    if (!hadVideo && hasVideoShapes.value) {
+      isTimelinePlaying.value = true;
+    }
   }
 
   watch(timelineFrameCount, frameCount => {
