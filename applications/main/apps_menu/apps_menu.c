@@ -7,6 +7,9 @@
 
 #define TAG "AppsMenu"
 
+#define INPUT_QUEUE_SIZE (8)
+#define EVENT_QUEUE_SIZE (8)
+
 #define APPS_MENU_ACTIVE_APP_NONE ""
 
 static bool apps_menu_thread_signal_callback(uint32_t signal, void* arg, void* context) {
@@ -123,8 +126,8 @@ static AppsMenu* apps_menu_alloc(void) {
     instance->settings = settings;
 
     instance->event_loop = furi_event_loop_alloc();
-    instance->input_queue = furi_message_queue_alloc(1, sizeof(InputEvent));
-    instance->event_queue = furi_message_queue_alloc(1, sizeof(uint32_t));
+    instance->input_queue = furi_message_queue_alloc(INPUT_QUEUE_SIZE, sizeof(InputEvent));
+    instance->event_queue = furi_message_queue_alloc(EVENT_QUEUE_SIZE, sizeof(uint32_t));
     furi_thread_set_signal_callback(thread, apps_menu_thread_signal_callback, instance);
 
     instance->scene_manager =
