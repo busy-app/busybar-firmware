@@ -79,8 +79,7 @@ export async function searchCities (query: string, signal?: AbortSignal) {
     baseURL: useRuntimeConfig().public.apiUrl,
     query: {
       query: query.slice(0, MAX_QUERY_LENGTH),
-      language: queryLanguage(query),
-      display_language: DISPLAY_LANGUAGE
+      language: queryLanguage(query)
     },
     timeout: REQUEST_TIMEOUT_MS,
     retry: false,
