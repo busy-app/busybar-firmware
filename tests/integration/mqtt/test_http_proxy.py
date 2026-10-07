@@ -94,37 +94,47 @@ class TestMqttHttpProxy:
         )
         local_mqtt_client.subscribe(f"{response_topic_prefix}/#", qos=1)
 
+        def request_via_proxy(method: str, path: str) -> bytes:
+            request_id = uuid.uuid4().hex
+            response_topic = f"{response_topic_prefix}/{request_id}"
+            request = _http_request(method, path)
+            local_mqtt_client.publish(
+                f"{local_linked_device_session.down_topic}/http-request",
+                request,
+                qos=1,
+                response_topic=response_topic,
+                correlation_data=request_id.encode("ascii"),
+            )
+            message = local_mqtt_client.wait_for(
+                response_topic,
+                lambda candidate: candidate.topic == response_topic,
+            )
+            allure.attach(
+                request.decode("ascii"),
+                name=f"{method} {path} request",
+                attachment_type=allure.attachment_type.TEXT,
+            )
+            allure.attach(
+                message.payload.decode("utf-8", errors="replace"),
+                name=f"{method} {path} response",
+                attachment_type=allure.attachment_type.TEXT,
+            )
+            return message.payload
+
+        with allure.step("Verify an allowed request passes through the proxy"):
+            control_response = request_via_proxy("GET", "/api/version")
+            control_status = _http_status(control_response)
+            assert control_status == 200, (
+                "Expected allowed GET /api/version to return HTTP 200, "
+                f"got HTTP {control_status}"
+            )
+
         failures = []
         for method, path in operations:
             with allure.step(f"Verify {method} {path} is rejected"):
-                request_id = uuid.uuid4().hex
-                response_topic = f"{response_topic_prefix}/{request_id}"
-                request = _http_request(method, path)
-
-                local_mqtt_client.publish(
-                    f"{local_linked_device_session.down_topic}/http-request",
-                    request,
-                    qos=1,
-                    response_topic=response_topic,
-                    correlation_data=request_id.encode("ascii"),
-                )
-                message = local_mqtt_client.wait_for(
-                    response_topic,
-                    lambda candidate: candidate.topic == response_topic,
-                )
-                allure.attach(
-                    request.decode("ascii"),
-                    name=f"{method} {path} request",
-                    attachment_type=allure.attachment_type.TEXT,
-                )
-                allure.attach(
-                    message.payload.decode("utf-8", errors="replace"),
-                    name=f"{method} {path} response",
-                    attachment_type=allure.attachment_type.TEXT,
-                )
-
-                if message.payload != BLOCKED_RESPONSE:
-                    status = _http_status(message.payload)
+                blocked_response = request_via_proxy(method, path)
+                if blocked_response != BLOCKED_RESPONSE:
+                    status = _http_status(blocked_response)
                     failures.append(
                         f"{method} {path}: expected HTTP 422, "
                         f"got HTTP {status}"

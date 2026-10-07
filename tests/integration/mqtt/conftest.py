@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import threading
 import time
 import uuid
@@ -19,7 +20,7 @@ from utils.fetch_mtls_mqtt_broker import BrokerMessage, MQTTBroker
 from utils.wait import wait_for
 
 
-LOCAL_LINK_CODE = "123456"
+LOCAL_LINK_CODE = "1234"
 LOCAL_LINK_EMAIL = "mqtt-integration@busy.local"
 
 
@@ -103,10 +104,13 @@ def linked_device_session(
 @pytest.fixture
 def local_mqtt_broker(persistent_cli_connection):
     """Start the repository MQTT mock on the device USB network."""
-    host_ip = persistent_cli_connection.tn.sock.getsockname()[0]
+    host_ip = os.getenv("BSB_LOCAL_MQTT_BIND_HOST") or (
+        persistent_cli_connection.tn.sock.getsockname()[0]
+    )
+    host_port = int(os.getenv("BSB_LOCAL_MQTT_BIND_PORT", "0"))
     link_request = threading.Event()
     link_device_id = {"value": None}
-    broker = MQTTBroker((host_ip, 0))
+    broker = MQTTBroker((host_ip, host_port))
 
     def handle_message(message: BrokerMessage) -> None:
         parts = message.topic.split("/")
@@ -188,17 +192,16 @@ def local_linked_device_session(
     try:
         account_api.set_backend(
             AccountBackend(
-                server_url=local_mqtt_broker.url,
+                server_url=os.getenv(
+                    "BSB_LOCAL_MQTT_DEVICE_URL", local_mqtt_broker.url
+                ),
                 client_cert_type="default",
                 ignore_server_cert=False,
             )
         )
-        wait_for(
-            "device to connect to the local MQTT mock",
-            account_api.get_status,
-            lambda status: status.status == "connected",
-            timeout=30,
-            interval=0.5,
+        assert local_mqtt_broker.device_connected.wait(timeout=30), (
+            "Device did not subscribe on the local MQTT mock: "
+            f"{local_mqtt_broker.diagnostics()}"
         )
 
         account_info = account_api.get_info()
@@ -239,6 +242,10 @@ def local_linked_device_session(
             )
             created_local_session = True
 
+        assert local_mqtt_broker.http_proxy_ready.wait(timeout=30), (
+            "Device HTTP proxy did not subscribe on the local MQTT mock: "
+            f"{local_mqtt_broker.diagnostics()}"
+        )
         assert session_id, "Linked device did not expose a session id"
         base = f"sessions/{session_id}"
         yield LinkedMqttSession(
@@ -256,6 +263,13 @@ def local_linked_device_session(
             except Exception:
                 pass
         account_api.set_backend(original_backend)
+        wait_for(
+            "device to disconnect from the local MQTT mock",
+            local_mqtt_broker.device_connected.is_set,
+            lambda connected: not connected,
+            timeout=30,
+            interval=0.1,
+        )
         if original_status == "connected":
             wait_for(
                 "device to reconnect to the original MQTT backend",

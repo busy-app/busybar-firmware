@@ -103,6 +103,8 @@ class _BrokerClient:
     def __init__(self, connection: socket.socket):
         self.connection = connection
         self.subscriptions: list[str] = []
+        self.has_device_subscription = False
+        self.has_http_proxy_subscription = False
         self._send_lock = threading.Lock()
         self._next_packet_id = 1
 
@@ -157,9 +159,7 @@ class _MQTTHandler(socketserver.BaseRequestHandler):
                     client.send(b"\x70\x02" + payload[:2])
                 elif packet_type == 8:  # SUBSCRIBE
                     packet_id, subscriptions = broker.parse_subscribe(payload)
-                    client.subscriptions.extend(
-                        topic for topic, _qos in subscriptions
-                    )
+                    broker.add_subscriptions(client, subscriptions)
                     reason_codes = bytes(qos for _topic, qos in subscriptions)
                     response = packet_id + b"\x00" + reason_codes
                     client.send(
@@ -167,6 +167,7 @@ class _MQTTHandler(socketserver.BaseRequestHandler):
                         + _encode_variable_integer(len(response))
                         + response
                     )
+                    broker.mark_subscriptions_ready(client, subscriptions)
                 elif packet_type == 12:  # PINGREQ
                     client.send(b"\xD0\x00")
                 elif packet_type == 14:  # DISCONNECT
@@ -193,6 +194,8 @@ class MQTTBroker(socketserver.ThreadingTCPServer):
         message_callback: Callable[[BrokerMessage], None] | None = None,
     ):
         self.connected = threading.Event()
+        self.device_connected = threading.Event()
+        self.http_proxy_ready = threading.Event()
         self.peer_certificates = queue.Queue()
         self.packet_types = queue.Queue()
         self.connect_protocol_levels = queue.Queue()
@@ -267,10 +270,47 @@ class MQTTBroker(socketserver.ThreadingTCPServer):
         with self._state_lock:
             self._clients.append(client)
 
+    def add_subscriptions(
+        self,
+        client: _BrokerClient,
+        subscriptions: list[tuple[str, int]],
+    ) -> None:
+        topics = [topic for topic, _qos in subscriptions]
+        with self._state_lock:
+            client.subscriptions.extend(topics)
+
+    def mark_subscriptions_ready(
+        self,
+        client: _BrokerClient,
+        subscriptions: list[tuple[str, int]],
+    ) -> None:
+        topics = [topic for topic, _qos in subscriptions]
+        with self._state_lock:
+            if any(
+                topic.startswith("devices/")
+                and topic.endswith("/link/otp")
+                for topic in topics
+            ):
+                client.has_device_subscription = True
+                self.device_connected.set()
+            if any(topic.endswith("/http-request") for topic in topics):
+                client.has_http_proxy_subscription = True
+                self.http_proxy_ready.set()
+
     def remove_client(self, client: _BrokerClient) -> None:
         with self._state_lock:
             if client in self._clients:
                 self._clients.remove(client)
+            if client.has_device_subscription and not any(
+                candidate.has_device_subscription
+                for candidate in self._clients
+            ):
+                self.device_connected.clear()
+            if client.has_http_proxy_subscription and not any(
+                candidate.has_http_proxy_subscription
+                for candidate in self._clients
+            ):
+                self.http_proxy_ready.clear()
 
     def route_message(
         self,
