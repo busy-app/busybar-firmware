@@ -1,6 +1,7 @@
 #include "js_app_launcher_i.h"
 
 #include <desktop/desktop.h>
+#include <loader/loader.h>
 
 #include <js_app/js_app_common.h>
 

@@ -9,8 +9,6 @@
 #include <gui/modules/nav_bar.h>
 #include <gui/modules/flex_layout.h>
 
-#include <loader/loader.h>
-
 #include <js_runner/js_runner.h>
 
 #include <js_app/js_app.h>
