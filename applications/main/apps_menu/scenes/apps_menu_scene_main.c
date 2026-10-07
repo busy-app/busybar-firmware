@@ -36,13 +36,17 @@ static void app_menu_scene_main_js_app_list_callback(const JsAppInfo* info, void
     furi_assert(info);
     furi_assert(context);
 
+    AppsMenuSceneMainContext* ctx = context;
+
+    if(ctx->next_item_idx > AppsMenuCustomEventIndexMax) {
+        return;
+    }
+
     const JsAppManifestInfo* manifest_info = &info->manifest;
 
     if(manifest_info->is_debug && !furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {
         return;
     }
-
-    AppsMenuSceneMainContext* ctx = context;
 
     AppsMenu* instance = ctx->instance;
     AppsMenuSceneMain* data = ctx->data;

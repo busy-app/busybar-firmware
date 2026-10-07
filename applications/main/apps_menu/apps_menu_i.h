@@ -45,7 +45,7 @@ typedef struct {
 } AppsMenu;
 
 typedef enum {
-    AppsMenuCustomEventIndexMax = 0x7F,
+    AppsMenuCustomEventIndexMax = 0xFF,
     AppsMenuCustomEventLaunchMain,
     AppsMenuCustomEventAboutToExit,
 } AppsMenuCustomEvent;
