@@ -339,7 +339,6 @@ class TestAppSettingsAPI:
                     f"{name} changed settings: {current.model_dump()!r}"
                 )
 
-    @pytest.mark.skip(reason="Pending agreement on installed app validation semantics")
     @allure.title("Settings endpoints reject uninstalled asset directories")
     def test_settings_reject_uninstalled_asset_directory(
         self,

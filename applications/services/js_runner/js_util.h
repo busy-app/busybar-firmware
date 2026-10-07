@@ -209,6 +209,14 @@ jerry_value_t js_rejected_promise_from_exception(jerry_value_t exception);
  */
 void js_reject_promise_with_exception(jerry_value_t promise, jerry_value_t exception);
 
+/**
+ * @brief Check if the exception holds a null as the value.
+ *
+ * @param exception JS exception. This value is not freed.
+ * @return @c true if the exception holds @c null, @c false otherwise
+ */
+bool js_exception_is_null(jerry_value_t exception);
+
 /** @brief Create a string out of a JS exception.
  *
  * @param exception JS exception. This value is not freed.

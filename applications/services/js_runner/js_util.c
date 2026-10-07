@@ -135,6 +135,14 @@ FuriString* js_string_to_furi_string(jerry_value_t value) {
     return result;
 }
 
+bool js_exception_is_null(jerry_value_t exception) {
+    furi_check(jerry_value_is_exception(exception));
+    jerry_value_t val = jerry_exception_value(exception, false);
+    const bool is_null = jerry_value_is_null(val);
+    jerry_value_free(val);
+    return is_null;
+}
+
 FuriString* js_get_exception_string(jerry_value_t exception) {
     furi_check(jerry_value_is_exception(exception));
     jerry_value_t val = jerry_exception_value(exception, false);
@@ -254,14 +262,29 @@ bool js_value_to_integer(jerry_value_t value, int* result) {
     return ok;
 }
 
+static void js_runner_array_buffer_heap_destructor(void* data) {
+    furi_assert(data);
+    free(data);
+}
+
+static void js_runner_array_buffer_byte_array_destructor(void* data) {
+    furi_assert(data);
+    ByteArray_t* byte_array = data;
+    ByteArray_clear(*byte_array);
+    free(byte_array);
+}
+
 jerry_value_t js_arraybuffer_from_byte_array(ByteArray_t* array) {
-    size_t size = ByteArray_size(*array);
-    JsRunnerByteArrayDestructor* destructor = malloc(sizeof(JsRunnerByteArrayDestructor));
-    destructor->destructor = js_runner_byte_array_destructor;
-    destructor->byte_array = array;
-    return jerry_arraybuffer_external(ByteArray_get(*array, 0), size, destructor);
+    const size_t size = ByteArray_size(*array);
+    JsRunnerArrayBufferInfo* info = malloc(sizeof(JsRunnerArrayBufferInfo));
+    info->data = array;
+    info->destructor = js_runner_array_buffer_byte_array_destructor;
+    return jerry_arraybuffer_external(ByteArray_get(*array, 0), size, info);
 }
 
 jerry_value_t js_arraybuffer_from_sized_buffer(SizedBuffer buffer) {
-    return jerry_arraybuffer_external(buffer.buffer, buffer.size, js_runner_heap_destructor);
+    JsRunnerArrayBufferInfo* info = malloc(sizeof(JsRunnerArrayBufferInfo));
+    info->data = buffer.buffer;
+    info->destructor = js_runner_array_buffer_heap_destructor;
+    return jerry_arraybuffer_external(buffer.buffer, buffer.size, info);
 }

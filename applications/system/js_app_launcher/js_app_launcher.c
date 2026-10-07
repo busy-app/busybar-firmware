@@ -3,25 +3,37 @@
 #include <apps_menu/apps_menu.h>
 #include <storage/storage.h>
 
+#include <js_app/js_app_common.h>
 #include <js_app/js_app_registry.h>
 
 #include "scenes/js_app_launcher_scenes.h"
 
-#define INPUT_QUEUE_SIZE       (8)
-#define EVENT_QUEUE_SIZE       (8)
+#define INPUT_QUEUE_SIZE (8)
+#define EVENT_QUEUE_SIZE (8)
+#define API_QUEUE_SIZE   (2)
+
 #define EVENT_QUEUE_TIMEOUT_MS (3000)
 
 #define NAV_BAR_HEIGHT (14)
 
-static const JsAppLauncherError js_app_launcher_settings_storage_error_map[] = {
-    [JsAppSettingsStorageStatusOk] = JsAppLauncherErrorNone,
-    [JsAppSettingsStorageStatusSchemaMissing] = JsAppLauncherErrorSettingsSchemaMissing,
-    [JsAppSettingsStorageStatusSchemaInvalid] = JsAppLauncherErrorSettingsSchemaInvalid,
-    [JsAppSettingsStorageStatusStorageFailure] = JsAppLauncherErrorSettingsStorageFailure,
-};
+typedef JsAppLauncherStatus (
+    *JsAppLauncherApiHandler)(JsAppLauncher* instance, const JsAppLauncherApiMessage* message);
 
-static_assert(
-    COUNT_OF(js_app_launcher_settings_storage_error_map) == JsAppSettingsStorageStatusesCount);
+static void js_app_launcher_handle_back_press(JsAppLauncher* instance, const InputEvent* event) {
+    if(event->sequence_source == INPUT_SEQUENCE_SOURCE_HARDWARE) {
+        instance->input_sequence_num = event->sequence_number;
+    }
+}
+
+static void js_app_launcher_handle_back_short(JsAppLauncher* instance, const InputEvent* event) {
+    if((event->sequence_number == instance->input_sequence_num) ||
+       (event->sequence_source == INPUT_SEQUENCE_SOURCE_SOFTWARE)) {
+        if(!scene_manager_handle_back_event(instance->scene_manager)) {
+            apps_menu_forget_current_app();
+            furi_event_loop_stop(instance->event_loop);
+        }
+    }
+}
 
 static bool js_app_launcher_gui_input_callback(const InputEvent* event, void* context) {
     furi_assert(event);
@@ -30,9 +42,13 @@ static bool js_app_launcher_gui_input_callback(const InputEvent* event, void* co
     JsAppLauncher* instance = context;
     bool consumed = false;
 
-    if((event->type == InputTypeShort) && (event->key == InputKeyBack)) {
-        furi_check(
-            furi_message_queue_put(instance->input_queue, event, FuriWaitForever) == FuriStatusOk);
+    const InputKey key = event->key;
+    const InputType type = event->type;
+
+    if((key == InputKeyBack) && (type == InputTypePress || type == InputTypeShort)) {
+        const FuriStatus status =
+            furi_message_queue_put(instance->input_queue, event, FuriWaitForever);
+        furi_check(status == FuriStatusOk);
         consumed = true;
     }
 
@@ -47,12 +63,11 @@ static void js_app_launcher_input_queue_callback(FuriEventLoopObject* object, vo
 
     InputEvent event;
     while(furi_message_queue_get(instance->input_queue, &event, 0) == FuriStatusOk) {
-        if((event.type == InputTypeShort) && (event.key == InputKeyBack)) {
-            if(!scene_manager_handle_back_event(instance->scene_manager)) {
-                if(!apps_menu_start(AppsMenuModeShowMenu)) {
-                    FURI_LOG_E(TAG, "Failed to exit to apps menu");
-                }
-            }
+        furi_assert(event.key == InputKeyBack);
+        if(event.type == InputTypePress) {
+            js_app_launcher_handle_back_press(instance, &event);
+        } else if(event.type == InputTypeShort) {
+            js_app_launcher_handle_back_short(instance, &event);
         }
     }
 }
@@ -69,6 +84,145 @@ static void js_app_launcher_event_queue_callback(FuriEventLoopObject* object, vo
     }
 }
 
+static JsAppLauncherStatus
+    js_app_launcher_handle_stop(JsAppLauncher* instance, const JsAppLauncherApiMessage* message) {
+    const JsAppLauncherStopMode stop_mode = message->stop.mode;
+    furi_check(stop_mode < JsAppLauncherStopModeMax);
+
+    if(stop_mode == JsAppLauncherStopModeForget) {
+        apps_menu_forget_current_app();
+    }
+
+    furi_event_loop_stop(instance->event_loop);
+    return JsAppLauncherStatusOk;
+}
+
+static JsAppLauncherStatus js_app_launcher_handle_get_app_id(
+    JsAppLauncher* instance,
+    const JsAppLauncherApiMessage* message) {
+    JsAppLauncherStatus status = JsAppLauncherStatusError;
+
+    FuriString* app_id = message->get_app_id.app_id;
+    furi_string_reset(app_id);
+
+    const JsApp* js_app = instance->js_app;
+    if(js_app != NULL) {
+        JsAppInfo info;
+        if(js_app_get_info(js_app, &info)) {
+            furi_string_set(app_id, info.manifest.id);
+            status = JsAppLauncherStatusOk;
+        }
+
+    } else {
+        status = JsAppLauncherStatusNotRunning;
+    }
+
+    return status;
+}
+
+static JsAppLauncherApiHandler js_app_launcher_api_handlers[] = {
+    [JsAppLauncherApiMessageTypeStop] = js_app_launcher_handle_stop,
+    [JsAppLauncherApiMessageTypeGetAppId] = js_app_launcher_handle_get_app_id,
+};
+
+static_assert(COUNT_OF(js_app_launcher_api_handlers) == JsAppLauncherApiMessageTypeMax);
+
+static void js_app_launcher_api_queue_callback(FuriEventLoopObject* object, void* context) {
+    furi_assert(context);
+
+    JsAppLauncher* instance = context;
+    furi_assert(object == instance->api_queue);
+
+    JsAppLauncherApiMessage message;
+    while(furi_message_queue_get(instance->api_queue, &message, 0) == FuriStatusOk) {
+        const JsAppLauncherApiMessageType type = message.type;
+        furi_assert(
+            (type > JsAppLauncherApiMessageTypeInvalid) &&
+            (type < JsAppLauncherApiMessageTypeMax));
+
+        const JsAppLauncherApiHandler handler = js_app_launcher_api_handlers[type];
+        const JsAppLauncherStatus status = handler(instance, &message);
+
+        js_app_launcher_api_unlock_message(&message, status);
+    }
+}
+
+static void js_app_launcher_init_current_app(JsAppLauncher* instance, const char* app_id) {
+    JsApp* js_app = NULL;
+    JsAppLauncherStartMode start_mode = JsAppLauncherStartModeShowMenu;
+
+    do {
+        const size_t app_id_len = strlen(app_id);
+        if((app_id_len == 0) ||
+           (app_id_len > (JS_APP_ID_LEN_MAX + strlen(JS_APP_LAUNCHER_ARG_RESUME)))) {
+            break;
+        }
+
+        char app_id_tmp[app_id_len + 1];
+        strcpy(app_id_tmp, app_id);
+
+        const size_t resume_flag_len = strlen(JS_APP_LAUNCHER_ARG_RESUME);
+        if(app_id_len > resume_flag_len) {
+            char* flag_p = &app_id_tmp[app_id_len - resume_flag_len];
+            if(strcmp(flag_p, JS_APP_LAUNCHER_ARG_RESUME) == 0) {
+                strcpy(flag_p, "");
+                start_mode = JsAppLauncherStartModeResume;
+            }
+        }
+
+        js_app = js_app_registry_get_app(app_id_tmp);
+
+    } while(false);
+
+    instance->js_app = js_app;
+    instance->start_mode = start_mode;
+}
+
+static JsAppLauncherError
+    js_app_launcher_translate_from_settings_storage_status(JsAppSettingsStorageStatus status) {
+    static const JsAppLauncherError status_map[] = {
+        [JsAppSettingsStorageStatusOk] = JsAppLauncherErrorNone,
+        [JsAppSettingsStorageStatusSchemaMissing] = JsAppLauncherErrorSettingsSchemaMissing,
+        [JsAppSettingsStorageStatusSchemaInvalid] = JsAppLauncherErrorSettingsSchemaInvalid,
+        [JsAppSettingsStorageStatusStorageFailure] = JsAppLauncherErrorSettingsStorageFailure,
+    };
+
+    static_assert(COUNT_OF(status_map) == JsAppSettingsStorageStatusesCount);
+    furi_assert(status < JsAppSettingsStorageStatusesCount);
+
+    return status_map[status];
+}
+
+static void js_app_launcher_init_settings_storage(JsAppLauncher* instance) {
+    JsAppLauncherError error;
+
+    do {
+        if(instance->js_app == NULL) {
+            error = JsAppLauncherErrorLoadFailed;
+            break;
+        }
+
+        JsAppInfo app_info;
+        if(!js_app_get_info(instance->js_app, &app_info)) {
+            error = JsAppLauncherErrorLoadFailed;
+            break;
+        }
+
+        JsAppSettingsStorageStatus status;
+        instance->settings_storage = js_app_settings_storage_alloc(app_info.manifest.id, &status);
+
+        if((instance->settings_storage == NULL) &&
+           (status != JsAppSettingsStorageStatusSchemaMissing)) {
+            error = js_app_launcher_translate_from_settings_storage_status(status);
+            break;
+        }
+
+        error = JsAppLauncherErrorNone;
+    } while(false);
+
+    instance->error = error;
+}
+
 static void js_app_launcher_set_navbar_text(const JsAppLauncher* instance) {
     JsAppInfo info;
 
@@ -81,17 +235,7 @@ static void js_app_launcher_set_navbar_text(const JsAppLauncher* instance) {
     }
 }
 
-static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
-    JsAppLauncher* instance = malloc(sizeof(JsAppLauncher));
-
-    instance->event_loop = furi_event_loop_alloc();
-    instance->input_queue = furi_message_queue_alloc(INPUT_QUEUE_SIZE, sizeof(InputEvent));
-    instance->event_queue = furi_message_queue_alloc(EVENT_QUEUE_SIZE, sizeof(uint32_t));
-    instance->scene_manager =
-        scene_manager_alloc(js_app_launcher_scenes, JsAppLauncherSceneIdMax, instance);
-    instance->gui = furi_record_open(RECORD_GUI);
-    instance->js_app = js_app_registry_get_app(app_id);
-
+static void js_app_launcher_init_gui(JsAppLauncher* instance) {
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
         gui_layer_add_input_callback(layer, js_app_launcher_gui_input_callback, instance);
@@ -114,6 +258,47 @@ static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
             js_app_launcher_set_navbar_text(instance);
         }
     });
+}
+
+static void js_app_launcher_go_to_next_scene(const JsAppLauncher* instance) {
+    uint32_t scene_ids[2];
+    size_t scene_ids_count;
+
+    if(instance->error == JsAppLauncherErrorNone) {
+        scene_ids[0] = JsAppLauncherSceneIdStart;
+        scene_ids_count = 1;
+
+        if(instance->start_mode == JsAppLauncherStartModeResume) {
+            scene_ids[1] = JsAppLauncherSceneIdRun;
+            scene_ids_count = 2;
+        }
+
+    } else {
+        scene_ids[0] = JsAppLauncherSceneIdError;
+        scene_ids_count = 1;
+    }
+
+    scene_manager_next_scenes(instance->scene_manager, scene_ids, scene_ids_count);
+}
+
+static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
+    JsAppLauncher* instance = malloc(sizeof(JsAppLauncher));
+
+    instance->event_loop = furi_event_loop_alloc();
+    instance->input_queue = furi_message_queue_alloc(INPUT_QUEUE_SIZE, sizeof(InputEvent));
+    instance->event_queue = furi_message_queue_alloc(EVENT_QUEUE_SIZE, sizeof(uint32_t));
+    instance->api_queue =
+        furi_message_queue_alloc(API_QUEUE_SIZE, sizeof(JsAppLauncherApiMessage));
+    instance->scene_manager =
+        scene_manager_alloc(js_app_launcher_scenes, JsAppLauncherSceneIdMax, instance);
+    instance->gui = furi_record_open(RECORD_GUI);
+    instance->input_sequence_num = UINT32_MAX;
+
+    furi_record_create(RECORD_JS_APP_LAUNCHER, instance);
+
+    js_app_launcher_init_current_app(instance, app_id);
+    js_app_launcher_init_settings_storage(instance);
+    js_app_launcher_init_gui(instance);
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
@@ -129,37 +314,32 @@ static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
         js_app_launcher_event_queue_callback,
         instance);
 
-    JsAppLauncherSceneId scene_id;
-    if(instance->js_app) {
-        JsAppSettingsStorageStatus status;
-        instance->settings_storage = js_app_settings_storage_alloc(app_id, &status);
+    furi_event_loop_subscribe_message_queue(
+        instance->event_loop,
+        instance->api_queue,
+        FuriEventLoopEventIn,
+        js_app_launcher_api_queue_callback,
+        instance);
 
-        if(instance->settings_storage || status == JsAppSettingsStorageStatusSchemaMissing) {
-            scene_id = JsAppLauncherSceneIdStart;
-        } else {
-            instance->error = js_app_launcher_settings_storage_error_map[status];
-            scene_id = JsAppLauncherSceneIdError;
-        }
-    } else {
-        instance->settings_storage = NULL;
-        instance->error = JsAppLauncherErrorLoadFailed;
-        scene_id = JsAppLauncherSceneIdError;
-    }
-
-    scene_manager_next_scene(instance->scene_manager, scene_id);
+    js_app_launcher_go_to_next_scene(instance);
 
     return instance;
 }
 
 static void js_app_launcher_free(JsAppLauncher* instance) {
-    // TODO [FW-602]: this call MUST be first to avoid use-after-free.
+    js_app_launcher_api_abort_pending_messages(instance);
+    furi_record_destroy(RECORD_JS_APP_LAUNCHER);
+    // TODO [FW-602]: scene_manager_free() MUST be called before
+    //      all other free()s to avoid use-after-free.
     scene_manager_free(instance->scene_manager);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->input_queue);
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);
+    furi_event_loop_unsubscribe(instance->event_loop, instance->api_queue);
 
     furi_message_queue_free(instance->input_queue);
     furi_message_queue_free(instance->event_queue);
+    furi_message_queue_free(instance->api_queue);
 
     furi_event_loop_free(instance->event_loop);
 
@@ -185,7 +365,7 @@ static void js_app_launcher_free(JsAppLauncher* instance) {
 }
 
 int32_t js_app_launcher_app(void* arg) {
-    UNUSED(arg);
+    furi_assert(arg);
 
     JsAppLauncher* instance = js_app_launcher_alloc(arg);
     furi_event_loop_run(instance->event_loop);

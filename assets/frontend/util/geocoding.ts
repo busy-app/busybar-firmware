@@ -15,19 +15,6 @@ export interface CitySuggestion {
   timezone?: string;
 }
 
-interface ResolvedLocation {
-  latitude: number;
-  longitude: number;
-  name: string | null;
-  timezone: string;
-  utc_offset_seconds: number;
-  source: 'request' | 'geoip';
-}
-
-interface ForecastResponse {
-  location: ResolvedLocation;
-}
-
 interface PhotonFeature {
   properties: {
     osm_id?: number;
@@ -42,10 +29,6 @@ interface PhotonFeature {
 
 interface PhotonResponse {
   features: PhotonFeature[];
-}
-
-function getApiUrl () {
-  return useRuntimeConfig().public.apiUrl;
 }
 
 function toSuggestion (feature: PhotonFeature) {
@@ -135,28 +118,5 @@ export async function resolveByCoords (lat: number, lng: number, signal?: AbortS
     country: properties.country,
     lat,
     lng
-  };
-}
-
-export async function resolveByGeoIp (signal?: AbortSignal) {
-  const response = await $fetch<ForecastResponse>('/weather/v1/forecast', {
-    baseURL: getApiUrl(),
-    timeout: REQUEST_TIMEOUT_MS,
-    retry: false,
-    signal
-  });
-
-  const { location } = response;
-
-  if (location.source !== 'geoip') {
-    return null;
-  }
-
-  return {
-    id: `${location.latitude},${location.longitude}`,
-    name: location.name ?? formatCoordinates(location.latitude, location.longitude),
-    lat: location.latitude,
-    lng: location.longitude,
-    timezone: location.timezone
   };
 }

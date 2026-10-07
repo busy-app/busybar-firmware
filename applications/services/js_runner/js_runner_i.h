@@ -68,6 +68,8 @@ void js_runner_thread_context_free(void);
  * */
 void* js_runner_thread_context_get(void);
 
+void js_runner_handle_fatal_error(jerry_fatal_code_t code);
+
 /** @brief Get root path of the current JS app (folder containing entry point).
  * This function is used by jerryscript glue.
  *
@@ -79,5 +81,4 @@ void js_runner_del_fetch_thread(JsRunnerApp* app, JsFetch* fetch);
 
 const char* js_runner_app_get_id(const JsRunnerApp* app);
 
-void js_runner_byte_array_destructor(void* object, void* user_p);
 void js_runner_heap_destructor(void* object, void* user_p);

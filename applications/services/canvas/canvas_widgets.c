@@ -88,10 +88,10 @@ static Widget*
         widget_set_width_content(base);
     }
     if(element->text.scroll_rate_cpm) {
-        label_set_long_content_anim_speed(widget->text, element->text.scroll_rate_cpm);
         label_set_long_content_anim_start_delay(widget->text, element->text.scroll_start_delay);
         label_set_long_content_anim_repeat_delay(widget->text, element->text.scroll_repeat_delay);
         label_set_long_content_mode(widget->text, LabelLongContentModeScrollCircular);
+        label_set_long_content_anim_speed(widget->text, element->text.scroll_rate_cpm);
     } else {
         label_set_long_content_mode(widget->text, LabelLongContentModeClip);
     }

@@ -5,6 +5,7 @@
 
 #include <js_app_installer/js_app_installer_paths.h>
 #include <js_app_installer/js_app_installer.h>
+#include <js_app_launcher/js_app_launcher.h>
 #include <js_app/js_app_registry.h>
 #include <js_app/js_app_settings_storage.h>
 #include <js_app/js_app_common.h>
@@ -355,6 +356,75 @@ static bool api_apps_install_request_callback(
     return true;
 }
 
+static bool api_apps_launch_request_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(method);
+    UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) {
+        return false;
+    }
+
+    char app_id[APP_ID_LEN_MAX];
+    if(mg_http_get_var(&msg->query, "app_id", app_id, APP_ID_LEN_MAX) <= 0) {
+        MG_REPLY_BAD_REQUEST(conn);
+        return true;
+    }
+
+    if(!js_app_is_valid_id(app_id)) {
+        MG_REPLY_BAD_REQUEST(conn);
+        return true;
+    }
+
+    JsApp* app = js_app_registry_get_app(app_id);
+    if(app == NULL) {
+        MG_REPLY_NOT_FOUND(conn);
+        return true;
+    }
+    js_app_free(app);
+
+    const JsAppLauncherStatus status = js_app_launcher_start(app_id, JsAppLauncherStartModeResume);
+
+    if(status == JsAppLauncherStatusOk) {
+        MG_REPLY_OK(conn);
+    } else {
+        MG_REPLY_ERROR(conn, 503, "failed to launch application");
+    }
+
+    return true;
+}
+
+static bool api_apps_quit_request_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(method);
+    UNUSED(ctx);
+    UNUSED(msg);
+
+    if(!IS_HTTP_ENDPOINT(path)) {
+        return false;
+    }
+
+    const JsAppLauncherStatus status = js_app_launcher_stop(JsAppLauncherStopModeForget);
+
+    if(status == JsAppLauncherStatusOk) {
+        MG_REPLY_OK(conn);
+    } else if(status == JsAppLauncherStatusNotRunning) {
+        MG_REPLY_ERROR(conn, 409, "application is not running");
+    } else {
+        MG_REPLY_ERROR(conn, 503, "failed to quit from application");
+    }
+
+    return true;
+}
+
 static cJSON* serialize_app_info(const JsAppInfo* info) {
     cJSON* entry = cJSON_CreateObject();
     cJSON_AddStringToObject(entry, "id", info->manifest.id);
@@ -401,6 +471,36 @@ static bool api_apps_list_request_callback(
     return true;
 }
 
+static bool api_apps_stop_running_app(const char* app_id) {
+    bool success = false;
+    FuriString* running_app_id = furi_string_alloc();
+
+    do {
+        JsAppLauncherStatus status;
+
+        status = js_app_launcher_get_running_app_id(running_app_id);
+        if(status != JsAppLauncherStatusOk) {
+            success = (status == JsAppLauncherStatusNotRunning);
+            break;
+        }
+
+        if(!furi_string_equal(running_app_id, app_id)) {
+            success = true;
+            break;
+        }
+
+        status = js_app_launcher_stop(JsAppLauncherStopModeForget);
+        if((status != JsAppLauncherStatusOk) && (status != JsAppLauncherStatusNotRunning)) {
+            break;
+        }
+
+        success = true;
+    } while(false);
+
+    furi_string_free(running_app_id);
+    return success;
+}
+
 static bool api_apps_delete_callback(
     FuriString* path,
     HttpMethod method,
@@ -423,21 +523,28 @@ static bool api_apps_delete_callback(
     int app_id_len = mg_http_get_var(&msg->query, "app_id", app_id, APP_ID_LEN_MAX);
     if(app_id_len <= 0) {
         MG_REPLY_BAD_REQUEST(conn);
-    } else {
-        JsAppRegistryAppUninstallResult uninstall_result = js_app_registry_uninstall_app(app_id);
-        switch(uninstall_result) {
-        case JsAppRegistryAppUninstallResultOk:
-            MG_REPLY_OK(conn);
-            break;
-        case JsAppRegistryAppUninstallResultNotFound:
-            MG_REPLY_NOT_FOUND(conn);
-            break;
-        case JsAppRegistryAppUninstallResultStorageError:
-            MG_REPLY_ERROR(conn, 508, "filesystem error");
-            break;
-        default:
-            furi_check(false);
-        }
+        return true;
+    }
+
+    if(!api_apps_stop_running_app(app_id)) {
+        MG_REPLY_ERROR(
+            conn, 503, "Failed to quit from application before uninstalling, try again");
+        return true;
+    }
+
+    JsAppRegistryAppUninstallResult uninstall_result = js_app_registry_uninstall_app(app_id);
+    switch(uninstall_result) {
+    case JsAppRegistryAppUninstallResultOk:
+        MG_REPLY_OK(conn);
+        break;
+    case JsAppRegistryAppUninstallResultNotFound:
+        MG_REPLY_NOT_FOUND(conn);
+        break;
+    case JsAppRegistryAppUninstallResultStorageError:
+        MG_REPLY_ERROR(conn, 508, "Filesystem error");
+        break;
+    default:
+        furi_crash();
     }
 
     return true;
@@ -502,16 +609,23 @@ static bool api_apps_settings_callback(
         return false;
     }
 
-    char app_id[APP_ID_LEN_MAX];
-    if(mg_http_get_var(&msg->query, "app_id", app_id, APP_ID_LEN_MAX) <= 0) {
+    char app_id[JS_APP_ID_LEN_MAX + 1];
+    if(mg_http_get_var(&msg->query, "app_id", app_id, COUNT_OF(app_id)) <= 0) {
         MG_REPLY_BAD_REQUEST(conn);
         return true;
     }
 
-    if(!js_app_registry_is_valid_app_id(app_id)) {
+    if(!js_app_is_valid_id(app_id)) {
         MG_REPLY_BAD_REQUEST(conn);
         return true;
     }
+
+    JsApp* app = js_app_registry_get_app(app_id);
+    if(!app) {
+        MG_REPLY_NOT_FOUND(conn);
+        return true;
+    }
+    js_app_free(app);
 
     JsAppSettingsStorageStatus status;
     JsAppSettingsStorage* storage = js_app_settings_storage_alloc(app_id, &status);
@@ -561,6 +675,18 @@ static const HttpHandler api_apps_handlers[] = {
         .method = HttpMethodPost,
         .type = HttpHandlerCustom,
         .on_request = api_apps_install_request_callback,
+    },
+    {
+        .uri = "launch",
+        .method = HttpMethodPost,
+        .type = HttpHandlerCustom,
+        .on_request = api_apps_launch_request_callback,
+    },
+    {
+        .uri = "quit",
+        .method = HttpMethodPost,
+        .type = HttpHandlerCustom,
+        .on_request = api_apps_quit_request_callback,
     },
     {
         .uri = "list",

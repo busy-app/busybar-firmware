@@ -1,0 +1,82 @@
+name: 'Nightly Tests'
+
+on:
+  schedule:
+    - cron: '17 3 * * *'
+      timezone: Europe/London
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  resolve-firmware:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      commit_sha: ${{ steps.firmware.outputs.commit_sha }}
+      update_url: ${{ steps.firmware.outputs.update_url }}
+    steps:
+      - name: Resolve latest published dev firmware
+        id: firmware
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FIRMWARE_BASE_URL: https://update.busy.app/builds/busybar-firmware/dev
+        run: |
+          set -euo pipefail
+          # The manifest is published with the build. It pins the bundle and
+          # source even when dev has advanced or several builds share a date.
+          manifest=$(curl --fail --silent --show-error --location \
+            --connect-timeout 10 --max-time 60 --retry 2 \
+            "$FIRMWARE_BASE_URL/busybar-f22-sha256sum.txt")
+          update_file=$(printf '%s\n' "$manifest" | sed -nE \
+            's/^[0-9a-f]{64} [ *](busybar-f22-update-dev-[0-9]{8}-[0-9a-f]{8}\.tgz)$/\1/p')
+          if [[ ! "$update_file" =~ ^busybar-f22-update-dev-[0-9]{8}-[0-9a-f]{8}\.tgz$ ]]; then
+            echo '::error::Expected exactly one dev f22 update bundle in the build manifest.'
+            exit 1
+          fi
+
+          short_sha="${update_file%.tgz}"
+          short_sha="${short_sha##*-}"
+          commit_sha=$(gh api "repos/$GITHUB_REPOSITORY/commits/$short_sha" --jq .sha)
+          if [[ ! "$commit_sha" =~ ^[0-9a-f]{40}$ || "$commit_sha" != "$short_sha"* ]]; then
+            echo '::error::Cannot resolve the published firmware revision to a full commit SHA.'
+            exit 1
+          fi
+
+          u5_elf="${update_file/-update-/-firmware-}"
+          si917_elf="${update_file/-update-/-sil_firmware-}"
+          for artifact in "$update_file" "${u5_elf%.tgz}.elf" "${si917_elf%.tgz}.elf"; do
+            curl --fail --silent --show-error --location --head --output /dev/null \
+              --connect-timeout 10 --max-time 60 --retry 2 \
+              "$FIRMWARE_BASE_URL/$artifact"
+          done
+
+          {
+            echo "commit_sha=$commit_sha"
+            echo "update_url=dev/$update_file"
+          } >> "$GITHUB_OUTPUT"
+          {
+            echo '## Nightly test input'
+            echo '- Schedule: 03:17 Europe/London (daily)'
+            echo '- Suite: full Integration Tests (smoke + regression), f22'
+            echo "- Firmware source: [$commit_sha]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/commit/$commit_sha)"
+            echo "- [Published dev firmware]($FIRMWARE_BASE_URL/$update_file)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  integration-tests:
+    needs: resolve-firmware
+    uses: ./.github/workflows/integration-tests.yml
+    with:
+      branch_name: dev
+      commit_sha: ${{ needs.resolve-firmware.outputs.commit_sha }}
+      update_url: ${{ needs.resolve-firmware.outputs.update_url }}
+      target: '22'
+      marker_filter: 'all'
+    secrets: inherit

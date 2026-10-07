@@ -111,6 +111,7 @@ typedef struct JsRunnerApp {
 typedef struct JsRunner {
     FuriEventLoop* event_loop;
     FuriMessageQueue* message_queue;
+    FuriPubSub* fatal_pubsub;
 } JsRunner;
 
 typedef struct JsRunnerContextHandle {
@@ -123,8 +124,8 @@ typedef struct JsRunnerContextHandle {
 typedef struct JsRunnerExecutionHandle {
     JsRunnerContextHandle* context_handle;
     JsRunnerApp* app;
-    JsRunnerTerminationCallback termination_callback;
-    void* termination_callback_context;
+    JsRunnerEventCallback event_callback;
+    void* event_callback_context;
 } JsRunnerExecutionHandle;
 
 typedef struct JsRunnerStaticContext {
@@ -134,7 +135,9 @@ typedef struct JsRunnerStaticContext {
 
 typedef void (*JsRunnerExternalDataDestructor)(void* object, void* user_p);
 
-typedef struct JsRunnerByteArrayDestructor {
-    JsRunnerExternalDataDestructor destructor;
-    ByteArray_t* byte_array;
-} JsRunnerByteArrayDestructor;
+typedef void (*JsRunnerArrayBufferDestructor)(void* data);
+
+typedef struct {
+    void* data;
+    JsRunnerArrayBufferDestructor destructor;
+} JsRunnerArrayBufferInfo;
