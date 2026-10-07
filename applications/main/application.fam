@@ -3,6 +3,7 @@ App(
     name="Basic applications for main menu",
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
+        "apps_menu",
         "canvas",
         "busy",
         "soft_off",
