@@ -499,7 +499,8 @@ static JsRunnerExecutionHandle* execution_handle_alloc(
     handle->context_handle = parent;
     handle->event_callback = event_callback;
     handle->event_callback_context = context;
-    parent->app->execution_handle = handle;
+    handle->app->execution_handle = handle;
+    handle->app->should_terminate = false;
     return handle;
 }
 
@@ -595,7 +596,6 @@ JsRunnerError js_runner_join(JsRunnerExecutionHandle* handle, uint32_t timeout) 
 
     JsRunnerError result = JsRunnerErrorNone;
     if(wait_result == JS_RUNNER_APP_FLAG_IDLE) {
-        handle->app->should_terminate = false;
         execution_handle_free(handle);
     } else if((FuriStatus)wait_result == FuriStatusErrorTimeout) {
         result = JsRunnerErrorTimeout;

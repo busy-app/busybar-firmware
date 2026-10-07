@@ -3,11 +3,11 @@ App(
     name="Basic applications for main menu",
     apptype=FlipperAppType.METAPACKAGE,
     provides=[
+        "apps_menu",
         "canvas",
         "busy",
         "soft_off",
         "power_on",
-        "clock",
         "settings_menu",
     ],
     targets=["f20", "f21", "f22"],

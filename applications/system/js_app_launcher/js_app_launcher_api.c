@@ -1,6 +1,7 @@
 #include "js_app_launcher_i.h"
 
 #include <desktop/desktop.h>
+#include <loader/loader.h>
 
 #include <js_app/js_app_common.h>
 
@@ -77,11 +78,21 @@ JsAppLauncherStatus js_app_launcher_start(const char* app_id, JsAppLauncherStart
 
     JsAppLauncherStatus status = JsAppLauncherStatusOk;
 
-    Desktop* desktop = furi_record_open(RECORD_DESKTOP);
-    if(!desktop_replace_current_app(desktop, JS_APP_LAUNCHER_APP_ID, args)) {
-        status = JsAppLauncherStatusTimeout;
-    }
-    furi_record_close(RECORD_DESKTOP);
+    Loader* loader = furi_record_open(RECORD_LOADER);
+    do {
+        size_t current_priority = loader_get_priority(loader);
+        if(current_priority > LOADER_DEFAULT_APP_PRIORITY) {
+            status = JsAppLauncherStatusLowPriority;
+            break;
+        }
+
+        Desktop* desktop = furi_record_open(RECORD_DESKTOP);
+        if(!desktop_replace_current_app(desktop, JS_APP_LAUNCHER_APP_ID, args)) {
+            status = JsAppLauncherStatusTimeout;
+        }
+        furi_record_close(RECORD_DESKTOP);
+    } while(false);
+    furi_record_close(RECORD_LOADER);
 
     return status;
 }
