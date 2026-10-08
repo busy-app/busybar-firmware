@@ -43,7 +43,7 @@
         }                                                                        \
     } while(false)
 
-/** @brief Check if value is not and exception and free it
+/** @brief Check if value is not an exception and free it
  * @param value value to check and free
  */
 void js_check_and_free(jerry_value_t value);
