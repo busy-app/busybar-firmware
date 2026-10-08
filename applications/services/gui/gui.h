@@ -14,6 +14,8 @@ extern "C" {
 
 #define RECORD_GUI "gui"
 
+#define GUI_TICK_PERIOD_MS (8)
+
 /** Enumeration of available display identifiers. */
 typedef enum {
     GuiDisplayIdFront = 0, /**< Front (main display) */
