@@ -25,7 +25,8 @@ static void semver_set_place_value(SemVer* instance, SemVerPlaceIdx place_idx, u
     }
 }
 
-static bool semver_split_places(const char* str, size_t str_len, StringSlice* places) {
+static bool
+    semver_split_places(const char* str, size_t str_len, StringSlice* places, size_t places_count) {
     StringSlice* place = places;
     place->first_char = str;
     place->length = 0;
@@ -34,7 +35,7 @@ static bool semver_split_places(const char* str, size_t str_len, StringSlice* pl
     for(i = 0, place_idx = 0; i < str_len; ++i) {
         if(str[i] == '.') {
             ++place_idx;
-            if(place_idx >= SemVerPlaceIdxMax) {
+            if(place_idx >= places_count) {
                 break;
             }
 
@@ -49,7 +50,7 @@ static bool semver_split_places(const char* str, size_t str_len, StringSlice* pl
 
     bool can_split = false;
 
-    if((i = str_len) && (place_idx == (SemVerPlaceIdxMax - 1))) {
+    if((i = str_len) && (place_idx == (places_count - 1))) {
         can_split = true;
     }
 
@@ -76,10 +77,10 @@ static bool semver_is_place_valid(const StringSlice* place) {
     return is_valid;
 }
 
-static bool semver_validate_places(const StringSlice* places) {
+static bool semver_validate_places(const StringSlice* places, size_t places_count) {
     bool is_valid = true;
 
-    for(size_t i = 0; i < SemVerPlaceIdxMax; ++i) {
+    for(size_t i = 0; i < places_count; ++i) {
         if(!semver_is_place_valid(&places[i])) {
             is_valid = false;
             break;
@@ -106,10 +107,10 @@ static bool semver_parse_place(const StringSlice* place, uint32_t* value) {
     return can_parse;
 }
 
-static bool semver_parse_places(SemVer* instance, const StringSlice* places) {
+static bool semver_parse_places(SemVer* instance, const StringSlice* places, size_t places_count) {
     bool can_parse = true;
 
-    for(size_t i = 0; i < SemVerPlaceIdxMax; ++i) {
+    for(size_t i = 0; i < places_count; ++i) {
         uint32_t value;
         if(!semver_parse_place(&places[i], &value)) {
             can_parse = false;
@@ -132,15 +133,15 @@ static bool semver_parse_with_length(SemVer* instance, const char* str, size_t s
 
         StringSlice places[SemVerPlaceIdxMax];
 
-        if(!semver_split_places(str, str_len, places)) {
+        if(!semver_split_places(str, str_len, places, COUNT_OF(places))) {
             break;
         }
 
-        if(!semver_validate_places(places)) {
+        if(!semver_validate_places(places, COUNT_OF(places))) {
             break;
         }
 
-        if(!semver_parse_places(instance, places)) {
+        if(!semver_parse_places(instance, places, COUNT_OF(places))) {
             break;
         }
 
