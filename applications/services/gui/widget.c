@@ -377,6 +377,18 @@ WidgetBlendMode widget_get_blend_mode(const Widget* instance) {
     return (WidgetBlendMode)lv_obj_get_style_blend_mode(TO_LV_OBJ(instance), LV_PART_MAIN);
 }
 
+void widget_set_context(Widget* instance, void* context) {
+    furi_check(instance);
+
+    lv_obj_set_user_data(TO_LV_OBJ(instance), context);
+}
+
+void* widget_get_context(const Widget* instance) {
+    furi_check(instance);
+
+    return lv_obj_get_user_data(TO_LV_OBJ(instance));
+}
+
 // Private API
 
 bool widget_input(Widget* instance, const InputEvent* event) {
