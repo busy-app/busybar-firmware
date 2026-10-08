@@ -45,21 +45,13 @@ typedef struct {
 } AppsMenu;
 
 typedef enum {
+    AppsMenuCustomEventIndexMax = 0xFF,
     AppsMenuCustomEventLaunchMain,
     AppsMenuCustomEventAboutToExit,
-
-    AppsMenuCustomEventSceneEventsStart,
-
-    AppsMenuCustomEventMAX = 0xFFFFFFFF, // forces enum size, don't use
 } AppsMenuCustomEvent;
 
-static_assert(sizeof(AppsMenuCustomEvent) == sizeof(uint32_t));
-
-void apps_menu_send_custom_event(AppsMenu* app, AppsMenuCustomEvent event);
+void apps_menu_send_custom_event(AppsMenu* app, uint32_t event);
 
 bool apps_menu_start_application(const char* app_id, AppsMenuMode mode);
 
 void apps_menu_set_active_application(AppsMenuSettings* settings, const char* app_id);
-
-// TODO: Remove this when JS apps support is fully functional
-bool apps_menu_is_js_apps_enabled(void);

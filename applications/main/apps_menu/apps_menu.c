@@ -1,18 +1,16 @@
 #include "apps_menu.h"
 #include "apps_menu_i.h"
 #include "scenes/apps_menu_scenes.h"
-#include "app_list.h"
 
 #include <storage/storage.h>
-#include <gui/modules/submenu.h>
 #include <js_app_launcher/js_app_launcher.h>
 
 #define TAG "AppsMenu"
 
-#define APPS_MENU_ARG_SKIP_MENU   "-s"
-#define APPS_MENU_ACTIVE_APP_NONE ""
+#define INPUT_QUEUE_SIZE (8)
+#define EVENT_QUEUE_SIZE (8)
 
-#define APPS_MENU_JS_APPS_ENABLE_FLAG_PATH APP_DATA_PATH("js_apps_enabled")
+#define APPS_MENU_ACTIVE_APP_NONE ""
 
 static bool apps_menu_thread_signal_callback(uint32_t signal, void* arg, void* context) {
     UNUSED(arg);
@@ -107,6 +105,10 @@ static bool apps_menu_has_active_application(const AppsMenuSettings* settings) {
     return strnlen(settings->active_application, sizeof(settings->active_application)) > 0;
 }
 
+static void apps_menu_reset_active_application(AppsMenuSettings* settings) {
+    apps_menu_set_active_application(settings, APPS_MENU_ACTIVE_APP_NONE);
+}
+
 static AppsMenu* apps_menu_alloc(void) {
     FuriThread* thread = furi_thread_get_current();
     const AppsMenuMode mode = apps_menu_get_mode();
@@ -115,7 +117,7 @@ static AppsMenu* apps_menu_alloc(void) {
     apps_menu_settings_load(&settings);
 
     if(mode == AppsMenuModeShowMenu) {
-        apps_menu_set_active_application(&settings, APPS_MENU_ACTIVE_APP_NONE);
+        apps_menu_reset_active_application(&settings);
 
     } else if(apps_menu_has_active_application(&settings)) {
         if(apps_menu_start_application(settings.active_application, AppsMenuModeResume)) {
@@ -128,8 +130,8 @@ static AppsMenu* apps_menu_alloc(void) {
     instance->settings = settings;
 
     instance->event_loop = furi_event_loop_alloc();
-    instance->input_queue = furi_message_queue_alloc(1, sizeof(InputEvent));
-    instance->event_queue = furi_message_queue_alloc(1, sizeof(AppsMenuCustomEvent));
+    instance->input_queue = furi_message_queue_alloc(INPUT_QUEUE_SIZE, sizeof(InputEvent));
+    instance->event_queue = furi_message_queue_alloc(EVENT_QUEUE_SIZE, sizeof(uint32_t));
     furi_thread_set_signal_callback(thread, apps_menu_thread_signal_callback, instance);
 
     instance->scene_manager =
@@ -217,7 +219,7 @@ static AppsMenuControl* apps_menu_control_alloc(void) {
     return control;
 }
 
-void apps_menu_send_custom_event(AppsMenu* app, AppsMenuCustomEvent event) {
+void apps_menu_send_custom_event(AppsMenu* app, uint32_t event) {
     furi_assert(app);
     furi_check(furi_message_queue_put(app->event_queue, &event, FuriWaitForever) == FuriStatusOk);
 }
@@ -235,45 +237,16 @@ bool apps_menu_start_application(const char* app_id, AppsMenuMode mode) {
 
     bool success = false;
 
-    if(apps_list_contains(app_id)) {
-        static const char* const args_table[AppsMenuModeMax] = {
-            [AppsMenuModeShowMenu] = NULL,
-            [AppsMenuModeResume] = APPS_MENU_ARG_SKIP_MENU,
-        };
+    static const JsAppLauncherStartMode mode_table[AppsMenuModeMax] = {
+        [AppsMenuModeShowMenu] = JsAppLauncherStartModeShowMenu,
+        [AppsMenuModeResume] = JsAppLauncherStartModeResume,
+    };
 
-        Desktop* desktop = furi_record_open(RECORD_DESKTOP);
-        success = desktop_replace_current_app(desktop, app_id, args_table[mode]);
-        furi_record_close(RECORD_DESKTOP);
-
-    } else if(apps_menu_is_js_apps_enabled()) {
-        static const JsAppLauncherStartMode mode_table[AppsMenuModeMax] = {
-            [AppsMenuModeShowMenu] = JsAppLauncherStartModeShowMenu,
-            [AppsMenuModeResume] = JsAppLauncherStartModeResume,
-        };
-
-        if(js_app_launcher_start(app_id, mode_table[mode]) == JsAppLauncherStatusOk) {
-            success = true;
-        }
+    if(js_app_launcher_start(app_id, mode_table[mode]) == JsAppLauncherStatusOk) {
+        success = true;
     }
 
     return success;
-}
-
-bool apps_menu_is_js_apps_enabled(void) {
-    bool is_enabled = false;
-
-    Storage* storage = furi_record_open(RECORD_STORAGE);
-
-    FileInfo file_info;
-    if(storage_common_stat(storage, APPS_MENU_JS_APPS_ENABLE_FLAG_PATH, &file_info) == FSE_OK) {
-        if((file_info.flags & FSF_DIRECTORY) == 0) {
-            is_enabled = true;
-        }
-    }
-
-    furi_record_close(RECORD_STORAGE);
-
-    return is_enabled;
 }
 
 void apps_menu_forget_current_app(void) {

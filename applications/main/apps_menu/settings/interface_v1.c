@@ -2,7 +2,12 @@
 
 #define ACTIVE_APP_DEFAULT ""
 
-const SettingProviderSetting apps_menu_v1_settings[] = {
+typedef enum {
+    AppsMenuSettingV1IdxActiveApp,
+    AppsMenuSettingV1IdxMax,
+} AppsMenuSettingV1Idx;
+
+static const SettingProviderSetting apps_menu_v1_settings[] = {
     [AppsMenuSettingV1IdxActiveApp] =
         {
             .name = "active_application",
@@ -16,6 +21,8 @@ const SettingProviderSetting apps_menu_v1_settings[] = {
         },
 };
 
+static_assert(COUNT_OF(apps_menu_v1_settings) == AppsMenuSettingV1IdxMax);
+
 const SettingProviderSetting apps_menu_v1_settings_root = {
     .name = NULL,
     .interface =
@@ -26,5 +33,3 @@ const SettingProviderSetting apps_menu_v1_settings_root = {
     .field_offset = 0,
     .type = SettingProviderSettingTypeStruct,
 };
-
-static_assert(COUNT_OF(apps_menu_v1_settings) == AppsMenuSettingV1IdxsCount);
