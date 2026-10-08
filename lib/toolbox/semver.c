@@ -14,14 +14,16 @@ typedef enum {
 } SemVerPartIdx;
 
 static void semver_set_part_value(SemVer* instance, SemVerPartIdx part_idx, uint32_t value) {
-    if(part_idx == SemVerPartIdxMajor) {
-        instance->major = value;
-    } else if(part_idx == SemVerPartIdxMinor) {
-        instance->minor = value;
-    } else if(part_idx == SemVerPartIdxPatch) {
-        instance->patch = value;
-    } else {
-        furi_crash("Invalid SemVerPartIdx value");
+    furi_assert(part_idx < SemVerPartIdxMax);
+
+    if(instance != NULL) {
+        if(part_idx == SemVerPartIdxMajor) {
+            instance->major = value;
+        } else if(part_idx == SemVerPartIdxMinor) {
+            instance->minor = value;
+        } else if(part_idx == SemVerPartIdxPatch) {
+            instance->patch = value;
+        }
     }
 }
 
@@ -156,7 +158,6 @@ static bool semver_parse_with_length(SemVer* instance, const char* source, size_
 }
 
 bool semver_parse(SemVer* instance, const char* source) {
-    furi_check(instance);
     furi_check(source);
 
     const size_t str_len = strlen(source);

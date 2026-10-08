@@ -5,6 +5,7 @@
 #include <core/log.h>
 
 #include <cjson/cJSON.h>
+#include <toolbox/semver.h>
 
 #include <storage/storage.h>
 
@@ -22,6 +23,7 @@
 #define JS_APP_MANIFEST_ID_KEY             "id"
 #define JS_APP_MANIFEST_NAME_KEY           "name"
 #define JS_APP_MANIFEST_VERSION_KEY        "version"
+#define JS_APP_MANIFEST_API_VERSION_KEY    "api_version"
 #define JS_APP_MANIFEST_DESCRIPTION_KEY    "description"
 #define JS_APP_MANIFEST_AUTHOR_KEY         "author"
 #define JS_APP_MANIFEST_HEAP_SIZE_KEY      "heap_size_kib"
@@ -37,6 +39,51 @@ static void js_app_manifest_reset(JsAppManifest* instance) {
         cJSON_Delete(instance->parsed_json);
         instance->parsed_json = NULL;
     }
+}
+
+static const char* js_app_manifest_parse_semver(const cJSON* json, const char* key) {
+    const char* parsed_value = NULL;
+
+    do {
+        const cJSON* item = cJSON_GetObjectItem(json, key);
+        if(!cJSON_IsString(item)) {
+            break;
+        }
+
+        const char* str = cJSON_GetStringValue(item);
+
+        if(!semver_parse(NULL, str)) {
+            break;
+        }
+
+        parsed_value = str;
+    } while(false);
+
+    return parsed_value;
+}
+
+static bool js_app_manifest_parse_version(const cJSON* json, JsAppManifestInfo* info) {
+    bool success = false;
+
+    const char* parsed_value = js_app_manifest_parse_semver(json, JS_APP_MANIFEST_VERSION_KEY);
+    if(parsed_value != NULL) {
+        info->version = parsed_value;
+        success = true;
+    }
+
+    return success;
+}
+
+static bool js_app_manifest_parse_api_version(const cJSON* json, JsAppManifestInfo* info) {
+    bool success = false;
+
+    const char* parsed_value = js_app_manifest_parse_semver(json, JS_APP_MANIFEST_API_VERSION_KEY);
+    if(parsed_value != NULL) {
+        info->api_version = parsed_value;
+        success = true;
+    }
+
+    return success;
 }
 
 static bool js_app_manifest_parse_heap_size(const cJSON* json, JsAppManifestInfo* info) {
@@ -113,12 +160,13 @@ static bool
 
         info->name = cJSON_GetStringValue(item);
 
-        item = cJSON_GetObjectItem(json, JS_APP_MANIFEST_VERSION_KEY);
-        if(!cJSON_IsString(item)) {
+        if(!js_app_manifest_parse_version(json, info)) {
             break;
         }
 
-        info->version = cJSON_GetStringValue(item);
+        if(!js_app_manifest_parse_api_version(json, info)) {
+            break;
+        }
 
         item = cJSON_GetObjectItem(json, JS_APP_MANIFEST_DESCRIPTION_KEY);
         if(cJSON_IsString(item)) {

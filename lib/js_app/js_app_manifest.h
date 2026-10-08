@@ -13,6 +13,7 @@
  *     "id": "app_id",
  *     "name": "Free form app name",
  *     "version": "1.2.3",
+ *     "api_version" : "4.5.6",
  *     "description": "Free form description", // Optional, default: ""
  *     "author": "Application author",         // Optional, default: ""
  *     "heap_size_kib": 128,                   // Optional, default: 128
@@ -51,6 +52,7 @@ typedef struct {
     const char* id; /**< Unique application identifier */
     const char* name; /**< Display name (e.g. will show up in menus) */
     const char* version; /**< Application version in semver format (x.y.z) */
+    const char* api_version; /**< Minimum required HTTP API version (x.y.z) */
     const char* description; /**< Application description (free form) */
     const char* author; /**< Application author (free form) */
     uint32_t heap_size; /**< Heap size for the JS process, in bytes */

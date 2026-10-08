@@ -22,7 +22,10 @@ typedef struct {
 /**
  * @brief Parse semantic version from a string.
  *
- * @param[in,out] instance pointer to the instance to contain the parsed data
+ * If the @p instance pointer is @c NULL, the @p source string will still be parsed normally.
+ * This can be useful if the calling code only needs to validate the source string.
+ *
+ * @param[in,out] instance pointer to the instance to contain the parsed data (can be @c NULL)
  * @param[in] source pointer to a zero-terminated URL string
  * @returns @c true if the source string could be parsed, @c false otherwise
  */
