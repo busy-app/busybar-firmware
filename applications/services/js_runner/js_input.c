@@ -23,6 +23,9 @@ static const char* control_names[JsInputControlMax] = {
 static const char* button_actions[InputTypeMAX] = {
     [InputTypePress] = "press",
     [InputTypeRelease] = "release",
+    [InputTypeShort] = "short",
+    [InputTypeLong] = "long",
+    [InputTypeRepeat] = "repeat",
 };
 
 static bool js_input_control_from_event(const InputEvent* event, JsInputControl* control) {
@@ -33,15 +36,13 @@ static bool js_input_control_from_event(const InputEvent* event, JsInputControl*
         *control = JsInputControlEncoder;
         return true;
     case InputKeyBack:
-        if((event->type != InputTypePress) && (event->type != InputTypeRelease)) return false;
+        if(event->type == InputTypeLong) return false;
         *control = JsInputControlBack;
         return true;
     case InputKeyStart:
-        if((event->type != InputTypePress) && (event->type != InputTypeRelease)) return false;
         *control = JsInputControlStart;
         return true;
     case InputKeyOk:
-        if((event->type != InputTypePress) && (event->type != InputTypeRelease)) return false;
         *control = JsInputControlOk;
         return true;
     default:
