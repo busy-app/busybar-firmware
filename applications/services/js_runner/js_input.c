@@ -137,6 +137,7 @@ static void js_input_unbind(JsRunnerApp* app) {
     with_gui(app->input.gui, {
         GuiLayer* main_layer = gui_get_layer(app->input.gui, GuiLayerIdMain);
         gui_layer_remove_input_callback(main_layer, input_callback);
+        app->input.subscribed = false;
     });
 }
 
