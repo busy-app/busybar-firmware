@@ -13,7 +13,7 @@ typedef enum {
     SemVerPlaceIdxMax,
 } SemVerPlaceIdx;
 
-static void semver_set_place(SemVer* instance, SemVerPlaceIdx place_idx, uint32_t value) {
+static void semver_set_place_value(SemVer* instance, SemVerPlaceIdx place_idx, uint32_t value) {
     if(place_idx == SemVerPlaceIdxMajor) {
         instance->major = value;
     } else if(place_idx == SemVerPlaceIdxMinor) {
@@ -23,20 +23,6 @@ static void semver_set_place(SemVer* instance, SemVerPlaceIdx place_idx, uint32_
     } else {
         furi_crash("Invalid SemVerPlaceIdx value");
     }
-}
-
-static bool semver_is_place_valid(const StringSlice* place) {
-    bool is_valid = true;
-
-    for(size_t i = 0; i < place->length; ++i) {
-        int c = place->first_char[i];
-        if(c > 0x7f || !isdigit(c)) {
-            is_valid = false;
-            break;
-        }
-    }
-
-    return is_valid;
 }
 
 static bool semver_split_places(const char* str, size_t str_len, StringSlice* places) {
@@ -70,28 +56,52 @@ static bool semver_split_places(const char* str, size_t str_len, StringSlice* pl
     return can_split;
 }
 
+static bool semver_is_place_valid(const StringSlice* place) {
+    const size_t place_len = place->length;
+
+    if((place_len == 0) || (place_len > SEMVER_PLACE_LEN_MAX)) {
+        return false;
+    }
+
+    bool is_valid = true;
+
+    for(size_t i = 0; i < place_len; ++i) {
+        int c = place->first_char[i];
+        if(c > 0x7f || !isdigit(c)) {
+            is_valid = false;
+            break;
+        }
+    }
+
+    return is_valid;
+}
+
+static bool semver_validate_places(const StringSlice* places) {
+    bool is_valid = true;
+
+    for(size_t i = 0; i < SemVerPlaceIdxMax; ++i) {
+        if(!semver_is_place_valid(&places[i])) {
+            is_valid = false;
+            break;
+        }
+    }
+
+    return is_valid;
+}
+
 static bool semver_parse_place(const StringSlice* place, uint32_t* value) {
     bool can_parse = false;
 
-    do {
-        const size_t span_len = place->length;
-        if((span_len == 0) || (span_len > SEMVER_PLACE_LEN_MAX)) {
-            break;
-        }
+    char tmp[SEMVER_PLACE_LEN_MAX + 1];
+    strncpy(tmp, place->first_char, place->length);
+    tmp[place->length] = '\0';
 
-        char tmp[SEMVER_PLACE_LEN_MAX + 1];
-        strncpy(tmp, place->first_char, span_len);
-        tmp[span_len] = '\0';
+    const long long parsed_val = atoll(tmp);
 
-        const long long parsed_val = atoll(tmp);
-        if(parsed_val > UINT32_MAX) {
-            break;
-        }
-
+    if(parsed_val <= UINT32_MAX) {
         *value = parsed_val;
         can_parse = true;
-
-    } while(false);
+    }
 
     return can_parse;
 }
@@ -100,24 +110,13 @@ static bool semver_parse_places(SemVer* instance, const StringSlice* places) {
     bool can_parse = true;
 
     for(size_t i = 0; i < SemVerPlaceIdxMax; ++i) {
-        const StringSlice* place = &places[i];
-        if(place->length == 0) {
-            can_parse = false;
-            break;
-        }
-
-        if(!semver_is_place_valid(place)) {
-            can_parse = false;
-            break;
-        }
-
         uint32_t value;
-        if(!semver_parse_place(place, &value)) {
+        if(!semver_parse_place(&places[i], &value)) {
             can_parse = false;
             break;
         }
 
-        semver_set_place(instance, i, value);
+        semver_set_place_value(instance, i, value);
     }
 
     return can_parse;
@@ -134,6 +133,10 @@ static bool semver_parse_with_length(SemVer* instance, const char* str, size_t s
         StringSlice places[SemVerPlaceIdxMax];
 
         if(!semver_split_places(str, str_len, places)) {
+            break;
+        }
+
+        if(!semver_validate_places(places)) {
             break;
         }
 
