@@ -68,6 +68,8 @@ static bool js_app_manifest_parse_heap_size(const cJSON* json, JsAppManifestInfo
 
 static bool
     js_app_manifest_parse_data(JsAppManifest* instance, const char* data, uint32_t data_len) {
+    furi_assert(instance->parsed_json == NULL);
+
     bool success = false;
 
     JsAppManifestInfo* info = &instance->info;
@@ -172,6 +174,8 @@ bool js_app_manifest_load_from_file(JsAppManifest* instance, const char* file_pa
     furi_check(file_path);
 
     bool success = false;
+
+    js_app_manifest_reset(instance);
 
     Storage* storage = furi_record_open(RECORD_STORAGE);
     File* file = storage_file_alloc(storage);
