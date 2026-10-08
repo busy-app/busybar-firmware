@@ -6,8 +6,8 @@
 
 #define DISPLAY_MIRROR_MIN_REFRESH_MS 32 /* 30 fps */
 
-// LVGL timers run with GUI_TICK_PERIOD_MS precision.
-static_assert(DISPLAY_MIRROR_MIN_REFRESH_MS % GUI_TICK_PERIOD_MS == 0);
+// LVGL timers run with TICK_PERIOD_MS precision.
+static_assert(DISPLAY_MIRROR_MIN_REFRESH_MS % TICK_PERIOD_MS == 0);
 
 struct DisplayMirror {
     Widget base;
