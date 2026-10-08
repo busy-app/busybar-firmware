@@ -66,7 +66,7 @@ MU_TEST(semver_limits_test) {
         &semver, SEMVER(SEMVER_TEST_MAJOR, SEMVER_TEST_MINOR, SEMVER_TEST_U32_TOO_LONG)));
 }
 
-MU_TEST(semver_missing_places_test) {
+MU_TEST(semver_missing_parts_test) {
     SemVer semver;
 
     mu_check(!semver_parse(&semver, SEMVER_TEST_MAJOR));
@@ -80,7 +80,7 @@ MU_TEST(semver_missing_places_test) {
     mu_check(!semver_parse(&semver, SEMVER(SEMVER_TEST_MAJOR, "", "")));
 }
 
-MU_TEST(semver_extra_places_test) {
+MU_TEST(semver_extra_parts_test) {
     SemVer semver;
 
     mu_check(!semver_parse(&semver, SEMVER_TEST_VALID "."));
@@ -115,8 +115,8 @@ MU_TEST_SUITE(semver_test_suite) {
     MU_RUN_TEST(semver_empty_test);
     MU_RUN_TEST(semver_valid_test);
     MU_RUN_TEST(semver_limits_test);
-    MU_RUN_TEST(semver_missing_places_test);
-    MU_RUN_TEST(semver_extra_places_test);
+    MU_RUN_TEST(semver_missing_parts_test);
+    MU_RUN_TEST(semver_extra_parts_test);
     MU_RUN_TEST(semver_invalid_chars_test);
 }
 
