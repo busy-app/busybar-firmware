@@ -21,7 +21,11 @@ static const char* control_names[JsInputControlMax] = {
 };
 
 static const char* button_actions[InputTypeMAX] = {
+    [InputTypePress] = "press",
+    [InputTypeRelease] = "release",
     [InputTypeShort] = "short",
+    [InputTypeLong] = "long",
+    [InputTypeRepeat] = "repeat",
 };
 
 static bool js_input_control_from_event(const InputEvent* event, JsInputControl* control) {
@@ -32,15 +36,13 @@ static bool js_input_control_from_event(const InputEvent* event, JsInputControl*
         *control = JsInputControlEncoder;
         return true;
     case InputKeyBack:
-        if(event->type != InputTypeShort) return false;
+        if(event->type == InputTypeLong) return false;
         *control = JsInputControlBack;
         return true;
     case InputKeyStart:
-        if(event->type != InputTypeShort) return false;
         *control = JsInputControlStart;
         return true;
     case InputKeyOk:
-        if(event->type != InputTypeShort) return false;
         *control = JsInputControlOk;
         return true;
     default:
@@ -55,7 +57,6 @@ static inline bool js_input_listener_attached(JsRunnerAppInput* input) {
 bool input_callback(const InputEvent* event, void* context) {
     JsRunnerAppInput* instance = context;
 
-    FURI_LOG_D(TAG, "input_callback k=%d t=%d", event->key, event->type);
     JsInputControl control = JsInputControlMax;
     if(!js_input_control_from_event(event, &control)) return false;
 
@@ -114,7 +115,7 @@ static void js_input_listen(JsRunnerApp* app) {
     }
 
     with_gui(instance->gui, {
-        GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdSystem);
         gui_layer_add_input_callback(main_layer, input_callback, instance);
         instance->subscribed = true;
     });
@@ -135,7 +136,7 @@ static void js_input_unbind(JsRunnerApp* app) {
     furi_event_loop_unsubscribe(app->event_loop, app->input.input_queue);
 
     with_gui(app->input.gui, {
-        GuiLayer* main_layer = gui_get_layer(app->input.gui, GuiLayerIdMain);
+        GuiLayer* main_layer = gui_get_layer(app->input.gui, GuiLayerIdSystem);
         gui_layer_remove_input_callback(main_layer, input_callback);
         app->input.subscribed = false;
     });
