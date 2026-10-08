@@ -61,16 +61,17 @@ static bool semver_split_parts(
 }
 
 static bool semver_is_part_valid(const StringSlice* part) {
-    const size_t part_len = part->length;
+    const size_t part_length = part->length;
 
-    if((part_len == 0) || (part_len > SEMVER_PART_LEN_MAX)) {
+    if((part_length == 0) || (part_length > SEMVER_PART_LEN_MAX)) {
         return false;
     }
 
     bool is_valid = true;
+    const char* part_source = part->first_char;
 
-    for(size_t i = 0; i < part_len; ++i) {
-        int c = part->first_char[i];
+    for(size_t i = 0; i < part_length; ++i) {
+        const int c = part_source[i];
         if(c > 0x7f || !isdigit(c)) {
             is_valid = false;
             break;
