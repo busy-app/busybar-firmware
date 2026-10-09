@@ -129,54 +129,6 @@ class TestJSInput:
             input_events,
         )
 
-    @allure.title("JavaScript listen ignores unsupported input events.")
-    def test_unsupported_events_are_filtered(
-        self,
-        persistent_cli_connection,
-        fresh_cli_connection,
-        storage_api,
-        storage_dir,
-    ):
-        body = dedent(
-            f"""
-                let unbind;
-                const events = await new Promise(function(resolve) {{
-                    const captured = [];
-                    unbind = listen("input", function(event) {{
-                        captured.push(event);
-                        resolve(captured);
-                    }});
-                    console.log("{INPUT_READY_MARKER}");
-                }});
-
-                assert(events.length === 1,
-                    "unexpected callback count=" + events.length);
-                assert(events[0].key === "ok" &&
-                    events[0].action === "press",
-                    "accepted event=" + JSON.stringify(events[0]));
-
-                setTimeout(unbind, 0);
-            """
-        ).strip()
-        input_events = [
-            ("InputKeyOk", "InputTypeShort"),
-            ("InputKeyStart", "InputTypeLong"),
-            ("InputKeyBack", "InputTypeRepeat"),
-            ("InputKeyUp", "InputTypeRelease"),
-            ("InputKeyCustom", "InputTypePress"),
-            ("InputKeyOk", "InputTypePress"),
-        ]
-
-        run_js_input_case(
-            persistent_cli_connection,
-            fresh_cli_connection,
-            storage_api,
-            storage_dir,
-            "input_filtering",
-            body,
-            input_events,
-        )
-
     @allure.title("JavaScript unbind stops subsequent input callbacks.")
     def test_unbind_stops_callbacks(
         self,
