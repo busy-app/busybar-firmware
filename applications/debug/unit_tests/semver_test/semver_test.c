@@ -21,6 +21,18 @@
         mu_check((semver).patch == (patch_ref));              \
     } while(false)
 
+#define SEMVER_COMPARE_CHECK_EQUAL(instance, other)                                   \
+    do {                                                                              \
+        mu_assert_int_eq(SemVerOrderingEqual, semver_compare(&(instance), &(other))); \
+        mu_assert_int_eq(SemVerOrderingEqual, semver_compare(&(other), &(instance))); \
+    } while(false)
+
+#define SEMVER_COMPARE_CHECK_NEWER(newer, older)                                   \
+    do {                                                                           \
+        mu_assert_int_eq(SemVerOrderingNewer, semver_compare(&(newer), &(older))); \
+        mu_assert_int_eq(SemVerOrderingOlder, semver_compare(&(older), &(newer))); \
+    } while(false)
+
 MU_TEST(semver_empty_test) {
     SemVer semver;
 
@@ -111,6 +123,63 @@ MU_TEST(semver_invalid_chars_test) {
     mu_check(!semver_parse(&semver, SEMVER(SEMVER_TEST_MAJOR, SEMVER_TEST_MINOR, "\xd9\xa3")));
 }
 
+MU_TEST(semver_compare_equal_test) {
+    const SemVer semver = {1, 23, 456};
+    const SemVer semver_copy = semver;
+    const SemVer semver_zero = {0, 0, 0};
+    const SemVer semver_max = {UINT32_MAX, UINT32_MAX, UINT32_MAX};
+
+    mu_assert_int_eq(SemVerOrderingEqual, semver_compare(&semver, &semver));
+    SEMVER_COMPARE_CHECK_EQUAL(semver, semver_copy);
+    SEMVER_COMPARE_CHECK_EQUAL(semver_zero, semver_zero);
+    SEMVER_COMPARE_CHECK_EQUAL(semver_max, semver_max);
+}
+
+MU_TEST(semver_compare_major_test) {
+    const SemVer semver = {1, 23, 456};
+    const SemVer semver_major_newer = {2, 0, 0};
+    const SemVer semver_major_older = {0, 99, 999};
+
+    SEMVER_COMPARE_CHECK_NEWER(semver_major_newer, semver);
+    SEMVER_COMPARE_CHECK_NEWER(semver, semver_major_older);
+    SEMVER_COMPARE_CHECK_NEWER(semver_major_newer, semver_major_older);
+}
+
+MU_TEST(semver_compare_minor_test) {
+    const SemVer semver = {1, 23, 456};
+    const SemVer semver_minor_newer = {1, 24, 0};
+    const SemVer semver_minor_older = {1, 22, 999};
+
+    SEMVER_COMPARE_CHECK_NEWER(semver_minor_newer, semver);
+    SEMVER_COMPARE_CHECK_NEWER(semver, semver_minor_older);
+    SEMVER_COMPARE_CHECK_NEWER(semver_minor_newer, semver_minor_older);
+}
+
+MU_TEST(semver_compare_patch_test) {
+    const SemVer semver = {1, 23, 456};
+    const SemVer semver_patch_newer = {1, 23, 457};
+    const SemVer semver_patch_older = {1, 23, 455};
+
+    SEMVER_COMPARE_CHECK_NEWER(semver_patch_newer, semver);
+    SEMVER_COMPARE_CHECK_NEWER(semver, semver_patch_older);
+    SEMVER_COMPARE_CHECK_NEWER(semver_patch_newer, semver_patch_older);
+}
+
+MU_TEST(semver_compare_limits_test) {
+    const SemVer semver_zero = {0, 0, 0};
+    const SemVer semver_max = {UINT32_MAX, UINT32_MAX, UINT32_MAX};
+    const SemVer semver_max_major = {UINT32_MAX, 0, 0};
+    const SemVer semver_max_minor = {0, UINT32_MAX, 0};
+    const SemVer semver_max_patch = {0, 0, UINT32_MAX};
+    const SemVer semver_almost_max = {UINT32_MAX, UINT32_MAX, UINT32_MAX - 1};
+
+    SEMVER_COMPARE_CHECK_NEWER(semver_max, semver_zero);
+    SEMVER_COMPARE_CHECK_NEWER(semver_max, semver_almost_max);
+    SEMVER_COMPARE_CHECK_NEWER(semver_max_major, semver_max_minor);
+    SEMVER_COMPARE_CHECK_NEWER(semver_max_minor, semver_max_patch);
+    SEMVER_COMPARE_CHECK_NEWER(semver_max_patch, semver_zero);
+}
+
 MU_TEST_SUITE(semver_test_suite) {
     MU_RUN_TEST(semver_empty_test);
     MU_RUN_TEST(semver_valid_test);
@@ -118,6 +187,11 @@ MU_TEST_SUITE(semver_test_suite) {
     MU_RUN_TEST(semver_missing_parts_test);
     MU_RUN_TEST(semver_extra_parts_test);
     MU_RUN_TEST(semver_invalid_chars_test);
+    MU_RUN_TEST(semver_compare_equal_test);
+    MU_RUN_TEST(semver_compare_major_test);
+    MU_RUN_TEST(semver_compare_minor_test);
+    MU_RUN_TEST(semver_compare_patch_test);
+    MU_RUN_TEST(semver_compare_limits_test);
 }
 
 int run_minunit_semver_test(void) {

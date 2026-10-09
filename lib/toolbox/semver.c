@@ -27,6 +27,22 @@ static void semver_set_part_value(SemVer* instance, SemVerPartIdx part_idx, uint
     }
 }
 
+static uint32_t semver_get_part_value(const SemVer* instance, SemVerPartIdx part_idx) {
+    furi_assert(part_idx < SemVerPartIdxMax);
+
+    uint32_t value = 0;
+
+    if(part_idx == SemVerPartIdxMajor) {
+        value = instance->major;
+    } else if(part_idx == SemVerPartIdxMinor) {
+        value = instance->minor;
+    } else if(part_idx == SemVerPartIdxPatch) {
+        value = instance->patch;
+    }
+
+    return value;
+}
+
 static bool semver_split_parts(
     const char* source,
     size_t source_len,
@@ -162,4 +178,37 @@ bool semver_parse(SemVer* instance, const char* source) {
 
     const size_t str_len = strlen(source);
     return semver_parse_with_length(instance, source, str_len);
+}
+
+static SemVerOrdering semver_compare_part(uint32_t value, uint32_t other_value) {
+    SemVerOrdering ordering;
+
+    if(value > other_value) {
+        ordering = SemVerOrderingNewer;
+    } else if(value < other_value) {
+        ordering = SemVerOrderingOlder;
+    } else {
+        ordering = SemVerOrderingEqual;
+    }
+
+    return ordering;
+}
+
+SemVerOrdering semver_compare(const SemVer* instance, const SemVer* other) {
+    furi_check(instance);
+    furi_check(other);
+
+    SemVerOrdering ordering;
+
+    for(size_t i = 0; i < SemVerPartIdxMax; ++i) {
+        const uint32_t value = semver_get_part_value(instance, i);
+        const uint32_t other_value = semver_get_part_value(other, i);
+
+        ordering = semver_compare_part(value, other_value);
+        if(ordering != SemVerOrderingEqual) {
+            break;
+        }
+    }
+
+    return ordering;
 }
