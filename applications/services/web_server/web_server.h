@@ -24,6 +24,14 @@ void web_server_get_api_version(SemVer* version);
  */
 void web_server_get_api_version_string(FuriString* version_string);
 
+/**
+ * @brief Check if the given version is compatible with the firmware API version.
+ *
+ * @param[in] version Pointer to a SemVer structure to be checked against.
+ * @returns @c true if the version is compatible, @c false otherwise
+ */
+bool web_server_is_api_version_compatible(const SemVer* version);
+
 #ifdef __cplusplus
 }
 #endif

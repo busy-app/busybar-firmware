@@ -10,6 +10,8 @@
 #include <js_app/js_app_settings_storage.h>
 #include <js_app/js_app_common.h>
 
+#include "../web_server.h"
+
 #define TAG "HttpApiApps"
 
 #define MAX_UPLOAD_FILE_SIZE (100 * 1024 * 1024)
@@ -385,16 +387,29 @@ static bool api_apps_launch_request_callback(
         MG_REPLY_NOT_FOUND(conn);
         return true;
     }
+
+    JsAppInfo app_info;
+    furi_check(js_app_get_info(app, &app_info));
+
+    SemVer app_api_version;
+    furi_check(semver_parse(&app_api_version, app_info.manifest.api_version));
+
+    const bool is_compatible = web_server_is_api_version_compatible(&app_api_version);
     js_app_free(app);
+
+    if(!is_compatible) {
+        MG_REPLY_CONFLICT(conn, "API version mismatch, please update firmware");
+        return true;
+    }
 
     const JsAppLauncherStatus status = js_app_launcher_start(app_id, JsAppLauncherStartModeResume);
 
     if(status == JsAppLauncherStatusOk) {
         MG_REPLY_OK(conn);
     } else if(status == JsAppLauncherStatusLowPriority) {
-        MG_REPLY_ERROR(conn, 409, "not started due to low priority");
+        MG_REPLY_CONFLICT(conn, "not started due to low priority");
     } else {
-        MG_REPLY_ERROR(conn, 503, "failed to launch application");
+        MG_REPLY_SERVICE_UNAVAILABLE(conn, "failed to launch application");
     }
 
     return true;
@@ -419,9 +434,9 @@ static bool api_apps_quit_request_callback(
     if(status == JsAppLauncherStatusOk) {
         MG_REPLY_OK(conn);
     } else if(status == JsAppLauncherStatusNotRunning) {
-        MG_REPLY_ERROR(conn, 409, "application is not running");
+        MG_REPLY_CONFLICT(conn, "application is not running");
     } else {
-        MG_REPLY_ERROR(conn, 503, "failed to quit from application");
+        MG_REPLY_SERVICE_UNAVAILABLE(conn, "failed to quit from application");
     }
 
     return true;
@@ -432,6 +447,7 @@ static cJSON* serialize_app_info(const JsAppInfo* info) {
     cJSON_AddStringToObject(entry, "id", info->manifest.id);
     cJSON_AddStringToObject(entry, "name", info->manifest.name);
     cJSON_AddStringToObject(entry, "version", info->manifest.version);
+    cJSON_AddStringToObject(entry, "api_version", info->manifest.api_version);
     cJSON_AddStringToObject(entry, "author", info->manifest.author);
     cJSON_AddStringToObject(entry, "description", info->manifest.description);
     cJSON_AddBoolToObject(entry, "is_debug", info->manifest.is_debug);
@@ -529,8 +545,8 @@ static bool api_apps_delete_callback(
     }
 
     if(!api_apps_stop_running_app(app_id)) {
-        MG_REPLY_ERROR(
-            conn, 503, "Failed to quit from application before uninstalling, try again");
+        MG_REPLY_SERVICE_UNAVAILABLE(
+            conn, "Failed to quit from application before uninstalling, try again");
         return true;
     }
 

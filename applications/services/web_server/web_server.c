@@ -644,3 +644,13 @@ void web_server_get_api_version_string(FuriString* version) {
     furi_check(version);
     semver_to_string(&web_server_api_version, version);
 }
+
+bool web_server_is_api_version_compatible(const SemVer* version) {
+    bool is_compatible = true;
+
+    if(semver_compare(version, &web_server_api_version) == SemVerOrderingNewer) {
+        is_compatible = false;
+    }
+
+    return is_compatible;
+}
