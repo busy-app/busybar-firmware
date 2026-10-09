@@ -55,7 +55,7 @@ static bool semver_split_parts(
 
     bool can_split = false;
 
-    if((i = source_len) && (part_idx == (parts_count - 1))) {
+    if((i == source_len) && (part_idx == (parts_count - 1))) {
         can_split = true;
     }
 
@@ -74,7 +74,7 @@ static bool semver_is_part_valid(const StringSlice* part) {
 
     for(size_t i = 0; i < part_length; ++i) {
         const int c = part_source[i];
-        if(c > 0x7f || !isdigit(c)) {
+        if(c < 0 || c > 0x7f || !isdigit(c)) {
             is_valid = false;
             break;
         }
