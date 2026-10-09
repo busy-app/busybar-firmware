@@ -25,6 +25,14 @@ void furi_hal_power_init_super_early(void) {
 
     volatile uint32_t* const status_clear_register = &PWR->WUSCR;
     *status_clear_register |= *status_register;
+
+    // disable all pulls during sleep
+    const size_t port_count = 10;
+    const size_t registers_per_port = 2;
+    const size_t register_count = port_count * registers_per_port;
+    for(size_t i = 0; i < register_count; i++) {
+        (&PWR->PUCRA)[i] = 0;
+    }
 }
 
 void furi_hal_power_reset(void) {
@@ -126,9 +134,16 @@ void furi_hal_power_sleep_wakeup_gpio(const GpioPin* wakeup_pin, GpioMode condit
 }
 
 void furi_hal_power_deep_sleep(void) {
+    for(size_t i = 0; i < 10; i++) {
+        char p = 'A' + i;
+        FURI_LOG_D("sleep", "PUCR%c=%016lb  PDCR%c=%016lb", p, (&PWR->PUCRA)[i * 2], p, (&PWR->PDCRA)[i * 2]);
+    }
+
+    furi_delay_ms(10);
+
     FURI_CRITICAL_ENTER();
 
-    LL_PWR_DisablePUPDConfig();
+    LL_PWR_EnablePUPDConfig();
 
     LL_PWR_DisableBkUpRegulator();
     while(LL_PWR_IsEnabledBkUpRegulator())

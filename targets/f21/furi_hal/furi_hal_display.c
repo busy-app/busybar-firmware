@@ -11,6 +11,8 @@ void furi_hal_display_power_pin_init(void) {
         LL_GPIO_OUTPUT_OPENDRAIN);
     LL_GPIO_SetPinMode(
         gpio_front_display_power_en.port, gpio_front_display_power_en.pin, LL_GPIO_MODE_OUTPUT);
+
+    // furi_hal_gpio_set_sleep_pull(&gpio_front_display_power_en, GpioPullDown);
 }
 
 bool furi_hal_display_power_pin_read(void) {

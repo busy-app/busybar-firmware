@@ -52,6 +52,7 @@ typedef enum {
     GpioPullNo,
     GpioPullUp,
     GpioPullDown,
+    GpioPullMAX,
 } GpioPull;
 
 /**
@@ -267,6 +268,14 @@ void furi_hal_gpio_init_ex(
     const GpioPull pull,
     const GpioSpeed speed,
     const GpioAltFn alt_fn);
+
+/**
+ * Selects the the pull of the GPIO pin while the chip is in sleep mode
+ * @param[in] gpio GPIO pin reference
+ * @param     pull Pull resistor selection: pull-up, pull-down or Z-state.
+ *                 It will only be applied while the device is in sleep mode.
+ */
+void furi_hal_gpio_set_sleep_pull(const GpioPin* gpio, const GpioPull pull);
 
 /**
  * Add and enable interrupt
