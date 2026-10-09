@@ -31,15 +31,19 @@ static void js_app_launcher_scene_run_console_out_callback(
     JsRunnerConsoleSeparator separator,
     void* context) {
     UNUSED(separator);
-    UNUSED(context);
+    JsAppLauncher* instance = context;
+
+    const JsAppLauncherSceneRun* scene_data =
+        scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdRun);
+    const char* app_id = scene_data->js_app_id;
 
     // TODO: Better logging ?
     if(severity == JsRunnerConsoleSeverityLog) {
-        FURI_LOG_D(TAG, "%.*s", size, buf);
+        FURI_LOG_D(app_id, "%.*s", size, buf);
     } else if(severity == JsRunnerConsoleSeverityInfo) {
-        FURI_LOG_I(TAG, "%.*s", size, buf);
+        FURI_LOG_I(app_id, "%.*s", size, buf);
     } else if(severity == JsRunnerConsoleSeverityError) {
-        FURI_LOG_E(TAG, "%.*s", size, buf);
+        FURI_LOG_E(app_id, "%.*s", size, buf);
     }
 }
 

@@ -7,6 +7,7 @@ App(
     order=300,
     targets=["f20", "f21", "f22"],
     provides=["cli_js"],
+    requires=["gui"],
     sources=[
         "js_runner.c",
         "js_interval.c",

@@ -89,7 +89,7 @@ static bool has_active_interval(JsRunnerAppInterval* instance) {
 }
 
 static bool has_active_input(JsRunnerAppInput* input) {
-    return input->pubsub_subscription != NULL;
+    return input->subscribed;
 }
 
 static bool app_has_background_tasks(JsRunnerApp* app) {

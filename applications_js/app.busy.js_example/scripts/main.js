@@ -28,7 +28,7 @@ function encoder_handler(event) {
 
 function ok_handler(event) {
     console.log("OK:", event.action)
-    if (event.action == "release") {
+    if (event.action == "short") {
         counter = 0
         setTimeout(displayText, 100)
     }
@@ -36,7 +36,7 @@ function ok_handler(event) {
 
 function start_handler(event) {
     console.log("start", event.action)
-    if (event.action == "release") {
+    if (event.action == "short") {
         counter = 0
         setTimeout(displayText, 100)
     }
