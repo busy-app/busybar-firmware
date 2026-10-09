@@ -6,6 +6,7 @@
 #include <stdatomic.h>
 #include <furi/furi.h>
 #include <toolbox/api_lock.h>
+#include <gui/gui.h>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
@@ -40,7 +41,8 @@ typedef struct JsRunnerAppInterval {
 } JsRunnerAppInterval;
 
 typedef struct JsRunnerAppInput {
-    FuriPubSubSubscription* pubsub_subscription;
+    Gui* gui;
+    bool subscribed;
     jerry_value_t listen_handler;
     FuriMessageQueue* input_queue;
 } JsRunnerAppInput;

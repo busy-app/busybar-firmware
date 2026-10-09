@@ -129,8 +129,8 @@ class TestJSInput:
             input_events,
         )
 
-    @allure.title("JavaScript listen ignores unsupported input events.")
-    def test_unsupported_events_are_filtered(
+    @allure.title("JavaScript listen maps short, long, and repeat actions.")
+    def test_extended_button_actions(
         self,
         persistent_cli_connection,
         fresh_cli_connection,
@@ -144,16 +144,22 @@ class TestJSInput:
                     const captured = [];
                     unbind = listen("input", function(event) {{
                         captured.push(event);
-                        resolve(captured);
+                        if(captured.length === 3) {{
+                            resolve(captured);
+                        }}
                     }});
                     console.log("{INPUT_READY_MARKER}");
                 }});
 
-                assert(events.length === 1,
-                    "unexpected callback count=" + events.length);
                 assert(events[0].key === "ok" &&
-                    events[0].action === "press",
-                    "accepted event=" + JSON.stringify(events[0]));
+                    events[0].action === "short",
+                    "OK short event=" + JSON.stringify(events[0]));
+                assert(events[1].key === "start" &&
+                    events[1].action === "long",
+                    "Start long event=" + JSON.stringify(events[1]));
+                assert(events[2].key === "back" &&
+                    events[2].action === "repeat",
+                    "Back repeat event=" + JSON.stringify(events[2]));
 
                 setTimeout(unbind, 0);
             """
@@ -162,8 +168,44 @@ class TestJSInput:
             ("InputKeyOk", "InputTypeShort"),
             ("InputKeyStart", "InputTypeLong"),
             ("InputKeyBack", "InputTypeRepeat"),
+        ]
+
+        run_js_input_case(
+            persistent_cli_connection,
+            fresh_cli_connection,
+            storage_api,
+            storage_dir,
+            "input_extended_actions",
+            body,
+            input_events,
+        )
+
+    @allure.title("JavaScript listen filters unsupported input events.")
+    def test_unsupported_events_are_filtered(
+        self,
+        persistent_cli_connection,
+        fresh_cli_connection,
+        storage_api,
+        storage_dir,
+    ):
+        body = dedent(
+            f"""
+                let unbind;
+                const event = await new Promise(function(resolve) {{
+                    unbind = listen("input", resolve);
+                    console.log("{INPUT_READY_MARKER}");
+                }});
+
+                assert(event.key === "ok" && event.action === "press",
+                    "first accepted event=" + JSON.stringify(event));
+
+                setTimeout(unbind, 0);
+            """
+        ).strip()
+        input_events = [
             ("InputKeyUp", "InputTypeRelease"),
             ("InputKeyCustom", "InputTypePress"),
+            ("InputKeyBack", "InputTypeLong"),
             ("InputKeyOk", "InputTypePress"),
         ]
 

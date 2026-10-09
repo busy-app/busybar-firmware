@@ -2,29 +2,36 @@
 
 #include <gui/gui_i.h>
 
-#include <toolbox/timers.h>
-
 #define MY_CLASS (&display_mirror_lvgl_class)
 
-#define DISPLAY_MIRROR_MIN_REFRESH_MS 33 /* 30 fps */
+#define DISPLAY_MIRROR_MIN_REFRESH_MS 40 /* 25 fps */
+
+// LVGL timers run with GUI_TICK_PERIOD_MS precision.
+static_assert(DISPLAY_MIRROR_MIN_REFRESH_MS % GUI_TICK_PERIOD_MS == 0);
 
 struct DisplayMirror {
     Widget base;
     lv_display_t* display;
     lv_obj_t* mirror_image;
     lv_image_dsc_t mirror_image_dsc;
-    CoarseTimer refresh_timer;
+    lv_timer_t* refresh_timer;
+    bool is_dirty;
 };
 
 const lv_obj_class_t display_mirror_lvgl_class;
 
+static void display_mirror_refresh_timer_callback(lv_timer_t* timer) {
+    DisplayMirror* instance = lv_timer_get_user_data(timer);
+    if(instance->is_dirty) {
+        lv_obj_invalidate(instance->mirror_image);
+        instance->is_dirty = false;
+    }
+}
+
 static void display_mirror_refresh_callback(lv_event_t* event) {
     DisplayMirror* instance = lv_event_get_user_data(event);
 
-    if(coarse_timer_is_expired(instance->refresh_timer)) {
-        lv_obj_invalidate(instance->mirror_image);
-        instance->refresh_timer = coarse_timer_create(DISPLAY_MIRROR_MIN_REFRESH_MS);
-    }
+    instance->is_dirty = true;
 }
 
 // LVGL-specific code
@@ -55,7 +62,9 @@ static void display_mirror_lvgl_constructor(const lv_obj_class_t* class_p, lv_ob
     lv_image_set_src(instance->mirror_image, image_dsc);
 
     instance->display = front->lv_display;
-    instance->refresh_timer = coarse_timer_create(0);
+    instance->refresh_timer = lv_timer_create(
+        display_mirror_refresh_timer_callback, DISPLAY_MIRROR_MIN_REFRESH_MS, instance);
+    instance->is_dirty = true;
 
     lv_display_add_event_cb(
         instance->display, display_mirror_refresh_callback, LV_EVENT_REFR_READY, instance);
@@ -67,6 +76,7 @@ static void display_mirror_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj
     DisplayMirror* instance = (DisplayMirror*)obj;
     lv_display_remove_event_cb_with_user_data(
         instance->display, display_mirror_refresh_callback, instance);
+    lv_timer_delete(instance->refresh_timer);
     furi_record_close(RECORD_GUI);
 }
 
