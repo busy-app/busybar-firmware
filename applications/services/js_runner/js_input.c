@@ -5,6 +5,8 @@
 
 #define TAG "JsInput"
 
+#define JS_INPUT_QUEUE_SIZE 32
+
 typedef enum JsInputControl {
     JsInputControlEncoder,
     JsInputControlStart,
@@ -60,8 +62,12 @@ bool input_callback(const InputEvent* event, void* context) {
     JsInputControl control = JsInputControlMax;
     if(!js_input_control_from_event(event, &control)) return false;
 
-    furi_check(
-        furi_message_queue_put(instance->input_queue, event, FuriWaitForever) == FuriStatusOk);
+    FuriStatus status = furi_message_queue_put(instance->input_queue, event, 0);
+    if(status == FuriStatusErrorResource) {
+        FURI_LOG_W(TAG, "Input event dropped");
+    } else {
+        furi_check(status == FuriStatusOk);
+    }
     return true;
 }
 
@@ -199,7 +205,7 @@ void js_setup_input_methods(void) {
 void js_runner_app_input_init(JsRunnerAppInput* instance) {
     furi_assert(instance);
     memset(instance, 0, sizeof(JsRunnerAppInput));
-    instance->input_queue = furi_message_queue_alloc(10, sizeof(InputEvent));
+    instance->input_queue = furi_message_queue_alloc(JS_INPUT_QUEUE_SIZE, sizeof(InputEvent));
     instance->gui = furi_record_open(RECORD_GUI);
 }
 
