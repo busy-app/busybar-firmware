@@ -33,13 +33,9 @@ static void js_app_launcher_scene_run_console_out_callback(
     UNUSED(separator);
     JsAppLauncher* instance = context;
 
-    JsAppInfo info;
-    const char* app_id;
-    if(js_app_get_info(instance->js_app, &info)) {
-        app_id = info.manifest.id;
-    } else {
-        app_id = TAG;
-    }
+    const JsAppLauncherSceneRun* scene_data =
+        scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdRun);
+    const char* app_id = scene_data->js_app_id;
 
     // TODO: Better logging ?
     if(severity == JsRunnerConsoleSeverityLog) {
