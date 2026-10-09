@@ -20,10 +20,18 @@
         :value="firmwareStore.autoUpdate.changelog"
         tag="article"
       />
+      <div v-else-if="firmwareStore.autoUpdate.isChangelogError">Couldn't load changelog</div>
     </template>
   </ModalGeneric>
 </template>
 
 <script lang="ts" setup>
 const firmwareStore = useFirmwareStore();
+
+watch(() => firmwareStore.autoUpdate.modals.changelog, open => {
+  const { changelog, isChangelogLoading, availableVersion } = firmwareStore.autoUpdate;
+  if (open && !changelog && !isChangelogLoading && availableVersion) {
+    firmwareStore.fetchAutoUpdateChangelog(availableVersion);
+  }
+});
 </script>

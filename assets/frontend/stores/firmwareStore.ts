@@ -38,6 +38,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
     },
     changelog: null as string | null,
     isChangelogLoading: false,
+    isChangelogError: false,
     stage: UpdateStage.IDLE as UpdateStage,
     progress: 0,
     progressPollingInterval: null as NodeJS.Timeout | null,
@@ -81,6 +82,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
     autoUpdate.value.availableVersion = null;
     autoUpdate.value.isAllowed = null;
     autoUpdate.value.changelog = null;
+    autoUpdate.value.isChangelogError = false;
     autoUpdate.value.progress = 0;
     if (autoUpdate.value.progressPollingInterval) {
       clearInterval(autoUpdate.value.progressPollingInterval);
@@ -199,11 +201,13 @@ export const useFirmwareStore = defineStore('firmware', () => {
 
   async function fetchAutoUpdateChangelog (version: string) {
     autoUpdate.value.isChangelogLoading = true;
+    autoUpdate.value.isChangelogError = false;
     await deviceStore.busyBar.UpdateChangelogGet({ version })
       .then(response => {
         autoUpdate.value.changelog = response.changelog || null;
       })
       .catch(async error => {
+        autoUpdate.value.isChangelogError = true;
         await handleHTTPError(error, 'Couldn\'t fetch update changelog');
         return null;
       })
@@ -465,6 +469,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
     resetAutoUpdateState,
     fetchAutoUpdateStatus,
     requestAutoUpdateCheck,
+    fetchAutoUpdateChangelog,
     setAutoUpdateBackgroundCheckInterval,
     clearAutoUpdateBackgroundCheckInterval,
     startAutoUpdate,
