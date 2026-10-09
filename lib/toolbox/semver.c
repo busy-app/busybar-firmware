@@ -212,3 +212,11 @@ SemVerOrdering semver_compare(const SemVer* instance, const SemVer* other) {
 
     return ordering;
 }
+
+void semver_to_string(const SemVer* instance, FuriString* out_string) {
+    furi_check(instance);
+    furi_check(out_string);
+
+    furi_string_printf(
+        out_string, "%lu.%lu.%lu", instance->major, instance->minor, instance->patch);
+}

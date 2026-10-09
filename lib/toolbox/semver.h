@@ -7,8 +7,7 @@
  */
 #pragma once
 
-#include <stdint.h>
-#include <stdbool.h>
+#include <core/string.h>
 
 /**
  * @brief Enumeration of semantic version orderings.
@@ -50,3 +49,11 @@ bool semver_parse(SemVer* instance, const char* source);
  * @returns @ref SemVerOrderingOlder @p instance is older than @p other
  */
 SemVerOrdering semver_compare(const SemVer* instance, const SemVer* other);
+
+/**
+ * @brief Convert a SemVer instance to string representation.
+ *
+ * @param[in] instance pointer to the instance to be converted
+ * @param[out] out_string pointer to a FuriString to hold the string value (must be allocated)
+ */
+void semver_to_string(const SemVer* instance, FuriString* out_string);

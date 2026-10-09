@@ -166,7 +166,7 @@ static void mqtt_online_message_prepare(FuriString* message) {
         message, "\"firmware_version\":\"%s\",", version_get_version(firmware_version));
 
     FuriString* version_string = furi_string_alloc();
-    web_server_get_api_version(version_string);
+    web_server_get_api_version_string(version_string);
     furi_string_cat_printf(
         message, "\"api_version\":\"%s\",", furi_string_get_cstr(version_string));
     furi_string_free(version_string);

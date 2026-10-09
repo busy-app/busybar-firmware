@@ -5,6 +5,7 @@
 #include <sysctl/sysctl.h>
 #include <netstat/netstat.h>
 #include <toolbox/path.h>
+#include <toolbox/semver.h>
 #include <discovery/discovery.h>
 #include <device_name/device_name.h>
 #include <furi_hal_version.h>
@@ -71,6 +72,8 @@ static HttpMethod http_method_from_str(struct mg_http_message* msg) {
 
 #define HTTP_API_METHODS \
     ((HttpMethod)(HttpMethodGet | HttpMethodPost | HttpMethodPut | HttpMethodDelete))
+
+static const SemVer web_server_api_version = API_VERSION;
 
 void http_reply_405_method_not_allowed(
     struct mg_connection* conn,
@@ -632,8 +635,12 @@ struct mg_mgr* web_srv_get_mgr(void) {
     return (&srv.mgr);
 }
 
-void web_server_get_api_version(FuriString* version) {
-    furi_assert(version);
-    const uint8_t api_ver[] = API_VERSION;
-    furi_string_printf(version, "%u.%u.%u", api_ver[0], api_ver[1], api_ver[2]);
+void web_server_get_api_version(SemVer* version) {
+    furi_check(version);
+    *version = web_server_api_version;
+}
+
+void web_server_get_api_version_string(FuriString* version) {
+    furi_check(version);
+    semver_to_string(&web_server_api_version, version);
 }
