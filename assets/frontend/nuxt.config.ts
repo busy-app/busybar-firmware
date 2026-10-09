@@ -52,7 +52,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       barUrl: '',
-      apiUrl: 'https://api.busy.app'
+      apiUrl: 'https://apps-api.busy.app'
     }
   },
   experimental: {

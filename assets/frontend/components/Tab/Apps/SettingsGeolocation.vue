@@ -53,17 +53,6 @@
             </div>
           </div>
         </div>
-
-        <UButton
-          v-if="canShareLocation"
-          label="Share my location"
-          variant="outline"
-          color="neutral"
-          class="min-w-20 shrink-0"
-          :loading="sharing"
-          :disabled="!manual"
-          @click="shareLocation"
-        />
       </div>
     </div>
 
@@ -113,8 +102,6 @@ const SEARCH_DEBOUNCE_MS = 300;
 const NAME_MAX_LENGTH = 128;
 const AUTO_LOCATION_NAME = 'Auto';
 
-const canShareLocation = window.isSecureContext && !!navigator.geolocation;
-
 let searchTimeout: ReturnType<typeof setTimeout> | undefined;
 let searchController: AbortController | undefined;
 let autoController: AbortController | undefined;
@@ -126,8 +113,6 @@ const props = defineProps<{
 
 const value = defineModel<AppSettingsGeolocationValue>({ required: true });
 
-const toast = useToast();
-
 const cityMenu = useTemplateRef('cityMenu');
 const manual = ref(value.value.mode === 'fixed');
 const fromTimezone = ref(false);
@@ -136,7 +121,6 @@ const searchTerm = ref('');
 const selectedCity = ref<CityItem>();
 const suggestions = ref<CitySuggestion[]>([]);
 const searching = ref(false);
-const sharing = ref(false);
 
 const cityItems = computed<CityItem[]>(() => suggestions.value.map(city => ({ ...city, label: cityLabel(city) })));
 const locationName = computed(() => value.value.mode === 'fixed' ? value.value.name : AUTO_LOCATION_NAME);
@@ -173,13 +157,13 @@ async function loadTimezoneLocation () {
   resolvingLocation.value = true;
 
   try {
-    const timezone = await useTimezoneStore().fetchTimezone();
+    const zone = await useTimezoneStore().fetchTimezone();
 
     if (controller.signal.aborted || autoController !== controller) {
       return;
     }
 
-    const [city] = timezone ? await searchCities(timezone, controller.signal).catch(() => []) : [];
+    const city = zone ? await resolveByTimezone(zone, controller.signal).catch(() => undefined) : undefined;
 
     if (controller.signal.aborted || autoController !== controller || !manual.value) {
       return;
@@ -221,36 +205,6 @@ async function selectCity (city: CityItem | undefined) {
   searchTerm.value = '';
   suggestions.value = [];
   cityMenu.value?.inputRef?.$el?.blur();
-}
-
-async function shareLocation () {
-  sharing.value = true;
-
-  try {
-    const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-      navigator.geolocation.getCurrentPosition(resolve, reject, {
-        enableHighAccuracy: false,
-        timeout: 10000
-      });
-    });
-
-    const { latitude, longitude } = position.coords;
-    const city = await resolveByCoords(latitude, longitude);
-
-    if (manual.value) {
-      setFixedLocation(city ? cityLabel(city) : formatCoordinates(latitude, longitude), latitude, longitude);
-    }
-  } catch {
-    toast.add({
-      id: 'app-settings-geolocation-share-location-error',
-      title: 'Couldn\'t share location',
-      description: 'Allow location access and try again.',
-      icon: 'i-bi-alert',
-      color: 'error'
-    });
-  } finally {
-    sharing.value = false;
-  }
 }
 
 function emptyLabel (term: string | undefined) {
