@@ -318,7 +318,8 @@ static Gui* gui_alloc(void) {
         gui_input_queue_callback,
         instance);
 
-    furi_event_loop_tick_set(instance->event_loop, TICK_PERIOD_MS, gui_tick_callback, instance);
+    furi_event_loop_tick_set(
+        instance->event_loop, GUI_TICK_PERIOD_MS, gui_tick_callback, instance);
 
     lv_init();
     lv_storage_driver_init();
