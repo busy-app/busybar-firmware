@@ -4,7 +4,7 @@
 
 #define MY_CLASS (&display_mirror_lvgl_class)
 
-#define DISPLAY_MIRROR_MIN_REFRESH_MS 32 /* 30 fps */
+#define DISPLAY_MIRROR_MIN_REFRESH_MS 40 /* 25 fps */
 
 // LVGL timers run with GUI_TICK_PERIOD_MS precision.
 static_assert(DISPLAY_MIRROR_MIN_REFRESH_MS % GUI_TICK_PERIOD_MS == 0);
