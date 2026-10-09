@@ -44,6 +44,10 @@ static void low_power_enter(LowPower* instance) {
     front_display_sleep_mode(instance->front_display, true);
     back_display_sleep_mode(instance->back_display, true);
     light_sensor_sleep(instance->light_sensor, true);
+
+    // TODO: make it so that calls to the above services are synchronous
+    furi_delay_ms(500);
+
     power_deep_sleep(instance->power);
 }
 
