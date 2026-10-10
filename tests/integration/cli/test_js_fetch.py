@@ -2,10 +2,14 @@
 
 import json
 import queue
+import re
+from pathlib import Path
 from textwrap import dedent
 
 import allure
 import pytest
+import requests
+import yaml
 
 from utils.fetch_http_server import (
     HEADERS_PAYLOAD,
@@ -20,6 +24,89 @@ from utils.fetch_http_server import (
 pytestmark = pytest.mark.cli
 
 UPDATE_DIRECTORY_URL = "https://update.busy.app/busybar-firmware/directory.json"
+JS_FETCH_HEADER = "X-busybar-fetch"
+JS_FETCH_HEADER_VALUE = "js"
+LOCAL_API_URL = "http://127.0.0.1/api"
+OPENAPI_METHODS = {"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"}
+JS_API_EXACT_OPERATIONS = {
+    ("GET", "/api/apps/settings"),
+    ("POST", "/api/display/draw"),
+    ("DELETE", "/api/display/draw"),
+    ("POST", "/api/audio/play"),
+    ("DELETE", "/api/audio/play"),
+    ("GET", "/api/name"),
+    ("GET", "/api/access"),
+    ("GET", "/api/wifi/status"),
+    ("GET", "/api/wifi/networks"),
+}
+JS_API_FULL_ACCESS_PATHS = {
+    "/api/display/brightness",
+    "/api/audio/volume",
+}
+JS_API_FULL_ACCESS_TAGS = {"Busy"}
+JS_API_GET_ACCESS_TAGS = {"System", "Time"}
+
+
+@pytest.fixture(scope="class", autouse=True)
+def ensure_js_cli_available(request):
+    if request.config.getoption("export_js_only"):
+        return
+
+    web_base_url = request.getfixturevalue("web_base_url")
+    with requests.post(
+        f"{web_base_url}/api/apps/quit",
+        data=b"",
+        timeout=5,
+    ) as response:
+        assert response.status_code in {200, 409}, (
+            f"Failed to release the JS runner: HTTP {response.status_code}, "
+            f"body={response.text!r}"
+        )
+
+
+@pytest.fixture(scope="class")
+def openapi_operations(request):
+    if request.config.getoption("export_js_only"):
+        openapi_dir = (
+            Path(__file__).resolve().parents[3]
+            / "applications"
+            / "services"
+            / "web_server"
+            / "openapi"
+        )
+        paths = {}
+        for fragment_path in openapi_dir.glob("*.yaml"):
+            if fragment_path.name == "openapi.yaml":
+                continue
+            fragment = yaml.safe_load(fragment_path.read_text(encoding="utf-8"))
+            paths.update(fragment.get("paths", {}))
+        schema = {"paths": paths}
+    else:
+        web_base_url = request.getfixturevalue("web_base_url")
+        response = requests.get(f"{web_base_url}/openapi.yaml", timeout=10)
+        response.raise_for_status()
+        schema = yaml.safe_load(response.text)
+    operations = {
+        (method.upper(), path): frozenset(operation.get("tags", []))
+        for path, path_item in schema.get("paths", {}).items()
+        for method, operation in path_item.items()
+        if method.upper() in OPENAPI_METHODS
+    }
+    assert operations, "OpenAPI schema contains no HTTP operations"
+
+    undocumented_allowed = JS_API_EXACT_OPERATIONS - operations.keys()
+    assert not undocumented_allowed, (
+        "JS API allowlist contains operations missing from OpenAPI: "
+        f"{sorted(undocumented_allowed)!r}"
+    )
+    undocumented_full_access_paths = JS_API_FULL_ACCESS_PATHS - {
+        path for _, path in operations
+    }
+    assert not undocumented_full_access_paths, (
+        "JS API full-access paths are missing from OpenAPI: "
+        f"{sorted(undocumented_full_access_paths)!r}"
+    )
+    return operations
 
 
 def captured_request(http_server, output, description):
@@ -28,6 +115,84 @@ def captured_request(http_server, output, description):
         return http_server.requests.get(timeout=1)
     except queue.Empty:
         pytest.fail(f"host server captured no {description}; output={output!r}")
+
+
+def assert_js_fetch_header(captured):
+    """Verify that the reserved JS marker occurs exactly once on the wire."""
+    marker_items = [
+        (name, value)
+        for name, value in captured["header_items"]
+        if name.lower() == JS_FETCH_HEADER.lower()
+    ]
+    marker_values = [value for _, value in marker_items]
+    assert marker_values == [JS_FETCH_HEADER_VALUE], (
+        f"expected one {JS_FETCH_HEADER}: {JS_FETCH_HEADER_VALUE} header, "
+        f"got {marker_items!r}"
+    )
+
+
+def concrete_openapi_path(path):
+    """Replace path parameters with harmless values suitable for an auth probe."""
+    return re.sub(r"\{[^}]+\}", "1", path)
+
+
+def js_api_operation_is_allowed(operation, tags):
+    method, path = operation
+    return (
+        operation in JS_API_EXACT_OPERATIONS
+        or path in JS_API_FULL_ACCESS_PATHS
+        or bool(tags & JS_API_FULL_ACCESS_TAGS)
+        or (method == "GET" and bool(tags & JS_API_GET_ACCESS_TAGS))
+    )
+
+
+def openapi_access_cases(operations):
+    cases = []
+    for method, schema_path in sorted(operations):
+        case = {
+            "method": method,
+            "path": concrete_openapi_path(schema_path).removeprefix("/api"),
+            "operation": f"{method} {schema_path}",
+        }
+        if method in {"POST", "PUT"}:
+            case["body"] = {}
+        cases.append(case)
+    return cases
+
+
+def build_api_access_case(cases, *, forbidden):
+    """Build a JS case that verifies the local API authorization decision."""
+    failure_condition = "!== 403" if forbidden else "=== 403"
+    expectation = "be forbidden" if forbidden else "pass the JS whitelist"
+    return dedent(
+        f"""
+            const cases = {json.dumps(cases)};
+            const failures = [];
+            for (const testCase of cases) {{
+                const options = {{
+                    method: testCase.method,
+                    headers: {{"X-API-Sem-Ver": "invalid"}}
+                }};
+                if (testCase.body !== undefined) {{
+                    options.headers["Content-Type"] = "application/json";
+                    options.body = JSON.stringify(testCase.body);
+                }}
+                const response = await fetch(
+                    {json.dumps(LOCAL_API_URL)} + testCase.path,
+                    options
+                );
+                await response.text();
+                if (response.status {failure_condition}) {{
+                    failures.push(
+                        (testCase.operation ||
+                            testCase.method + " " + testCase.path) +
+                            " should {expectation}, status=" + response.status
+                    );
+                }}
+            }}
+            assert(failures.length === 0, failures.join("; "));
+        """
+    ).strip()
 
 
 @allure.epic("BSB CLI Testing")
@@ -64,6 +229,53 @@ class TestJSFetch:
             assert captured["method"] == "GET", f"captured={captured!r}"
             assert captured["path"] == "/text", f"captured={captured!r}"
             assert captured["body"] == b"", f"captured={captured!r}"
+
+    @allure.title("JavaScript fetch adds one reserved marker header.")
+    def test_adds_reserved_marker_header(self, js_case_runner, http_server):
+        case_name = "reserved_marker_header"
+        url = json.dumps(http_server.url("/request"))
+        body = dedent(
+            f"""
+                const response = await fetch({url});
+                assert(response.status === 200, "status=" + response.status);
+                await response.text();
+            """
+        ).strip()
+
+        output = js_case_runner(case_name, body)
+
+        with allure.step("Verify the host received one trusted JS marker"):
+            captured = captured_request(http_server, output, "marked request")
+            assert_js_fetch_header(captured)
+
+    @allure.title("JavaScript cannot override the reserved fetch marker header.")
+    @pytest.mark.parametrize(
+        "header_name",
+        ["X-busybar-fetch", "x-busybar-fetch", "X-BUSYBAR-FETCH"],
+        ids=["canonical", "lowercase", "uppercase"],
+    )
+    def test_reserved_marker_cannot_be_overridden(
+        self,
+        js_case_runner,
+        http_server,
+        header_name,
+    ):
+        case_name = f"reserved_marker_override_{header_name}"
+        url = json.dumps(http_server.url("/request"))
+        headers = json.dumps({header_name: "untrusted"})
+        body = dedent(
+            f"""
+                const response = await fetch({url}, {{headers: {headers}}});
+                assert(response.status === 200, "status=" + response.status);
+                await response.text();
+            """
+        ).strip()
+
+        output = js_case_runner(case_name, body)
+
+        with allure.step("Verify the user value was replaced, not duplicated"):
+            captured = captured_request(http_server, output, "override request")
+            assert_js_fetch_header(captured)
 
     @allure.title("JavaScript fetch preserves encoded query parameters.")
     def test_get_query_parameters(self, js_case_runner, http_server):
@@ -681,6 +893,7 @@ class TestJSFetch:
 
         with allure.step("Verify all ten headers reached the host server"):
             captured = captured_request(http_server, output, "ten-header request")
+            assert_js_fetch_header(captured)
             for index in range(10):
                 name = f"x-js-fetch-{index}"
                 actual = captured["headers"].get(name)
@@ -688,6 +901,112 @@ class TestJSFetch:
                     f"expected {name}={index}, got {actual!r}; "
                     f"captured={captured!r}, output={output!r}"
                 )
+
+    @allure.title(
+        "JavaScript fetch permits every explicitly allowed OpenAPI operation."
+    )
+    def test_local_api_allows_whitelisted_openapi_operations(
+        self,
+        js_case_runner,
+        openapi_operations,
+    ):
+        allowed_operations = {
+            operation
+            for operation, tags in openapi_operations.items()
+            if js_api_operation_is_allowed(operation, tags)
+        }
+        allowed = openapi_access_cases(allowed_operations)
+
+        js_case_runner(
+            "local_api_openapi_allowed",
+            build_api_access_case(allowed, forbidden=False),
+            timeout=60,
+        )
+
+    @allure.title(
+        "JavaScript fetch rejects every OpenAPI operation outside the explicit allowlist."
+    )
+    def test_local_api_rejects_other_openapi_operations(
+        self,
+        js_case_runner,
+        openapi_operations,
+    ):
+        denied_operations = {
+            operation
+            for operation, tags in openapi_operations.items()
+            if not js_api_operation_is_allowed(operation, tags)
+        }
+        denied = openapi_access_cases(denied_operations)
+
+        js_case_runner(
+            "local_api_openapi_denied",
+            build_api_access_case(denied, forbidden=True),
+            timeout=90,
+        )
+
+    @allure.title("JavaScript API whitelist observes exact and prefix boundaries.")
+    def test_local_api_whitelist_path_boundaries(self, js_case_runner):
+        cases = [
+            {"method": "GET", "path": "/apps/settings/extra"},
+            {"method": "GET", "path": "/display/brightness/extra"},
+            {"method": "DELETE", "path": "/display/draw/extra"},
+            {"method": "DELETE", "path": "/audio/play/extra"},
+            {"method": "GET", "path": "/name/extra"},
+            {"method": "GET", "path": "/version/extra"},
+            {"method": "GET", "path": "/transport/extra"},
+            {"method": "GET", "path": "/busybox"},
+            {"method": "GET", "path": "/audio/volumes"},
+            {"method": "GET", "path": "/timer"},
+            {"method": "GET", "path": "/wifi2/status"},
+            {"method": "GET", "path": "/statusx"},
+        ]
+
+        js_case_runner(
+            "local_api_path_boundaries",
+            build_api_access_case(cases, forbidden=True),
+            timeout=35,
+        )
+
+    @allure.title("JavaScript API whitelist rejects dot-segment traversal.")
+    def test_local_api_whitelist_rejects_dot_segment_traversal(self, js_case_runner):
+        cases = [
+            {
+                "method": "GET",
+                "path": "/time/../account/info",
+                "operation": "literal parent segment",
+            },
+            {
+                "method": "GET",
+                "path": "/time/%2e%2e/account/info",
+                "operation": "lowercase encoded parent segment",
+            },
+            {
+                "method": "GET",
+                "path": "/time/%2E%2E/account/info",
+                "operation": "uppercase encoded parent segment",
+            },
+            {
+                "method": "GET",
+                "path": "/time/.%2e/account/info",
+                "operation": "partially encoded parent segment",
+            },
+            {
+                "method": "GET",
+                "path": "/time/%2e%2e%2faccount/info",
+                "operation": "encoded parent segment and separator",
+            },
+            {
+                "method": "GET",
+                "path": "/time/%252e%252e/account/info",
+                "operation": "double encoded parent segment",
+            },
+        ]
+
+        js_case_runner(
+            "local_api_dot_segment_traversal",
+            build_api_access_case(cases, forbidden=True),
+            timeout=35,
+        )
 
     @allure.title("JavaScript fetch releases resources across repeated requests.")
     @pytest.mark.long_running

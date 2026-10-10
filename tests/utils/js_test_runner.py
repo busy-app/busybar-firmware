@@ -2,6 +2,7 @@
 
 import json
 import time
+from pathlib import Path
 from textwrap import indent
 
 import allure
@@ -31,6 +32,15 @@ def build_js_case(case_name, body):
     )
 
 
+def export_js_case(export_dir, script_name, case_name, body):
+    """Write the exact wrapped JavaScript source without running it."""
+    destination = Path(export_dir).resolve()
+    destination.mkdir(parents=True, exist_ok=True)
+    script_path = destination / f"js_{script_name}.js"
+    script_path.write_bytes(build_js_case(case_name, body).encode("utf-8"))
+    return script_path
+
+
 def _upload_js_case(storage_api, script_path, source, case_name):
     allure.attach(source, "JavaScript source", allure.attachment_type.TEXT)
 
@@ -53,9 +63,17 @@ def _verify_js_case_output(case_name, output):
         )
 
 
-def run_js_case(cli, storage_api, storage_dir, case_name, body, timeout=25):
+def run_js_case(
+    cli,
+    storage_api,
+    storage_dir,
+    case_name,
+    body,
+    timeout=25,
+    script_name=None,
+):
     """Upload one JS case, execute it on the device, and assert its result."""
-    script_path = f"{storage_dir}/js_{case_name}.js"
+    script_path = f"{storage_dir}/js_{script_name or case_name}.js"
     source = build_js_case(case_name, body)
 
     _upload_js_case(storage_api, script_path, source, case_name)
