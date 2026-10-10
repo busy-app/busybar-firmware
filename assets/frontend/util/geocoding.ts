@@ -71,7 +71,7 @@ function queryLanguage (query: string) {
 
 export async function searchCities (query: string, signal?: AbortSignal) {
   const response = await $fetch<LocationsResponse>(LOCATIONS_PATH, {
-    baseURL: useRuntimeConfig().public.apiUrl,
+    baseURL: useRuntimeConfig().public.appsApiUrl,
     query: {
       query: query.slice(0, MAX_QUERY_LENGTH),
       language: queryLanguage(query)
