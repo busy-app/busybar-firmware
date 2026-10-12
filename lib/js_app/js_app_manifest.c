@@ -41,8 +41,8 @@ static void js_app_manifest_reset(JsAppManifest* instance) {
     }
 }
 
-static const char* js_app_manifest_parse_semver(const cJSON* json, const char* key) {
-    const char* parsed_value = NULL;
+static bool js_app_manifest_parse_semver(const cJSON* json, const char* key, SemVer* out) {
+    bool success = false;
 
     do {
         const cJSON* item = cJSON_GetObjectItem(json, key);
@@ -52,38 +52,22 @@ static const char* js_app_manifest_parse_semver(const cJSON* json, const char* k
 
         const char* str = cJSON_GetStringValue(item);
 
-        if(!semver_parse(NULL, str)) {
+        if(!semver_parse(out, str)) {
             break;
         }
 
-        parsed_value = str;
+        success = true;
     } while(false);
 
-    return parsed_value;
+    return success;
 }
 
 static bool js_app_manifest_parse_version(const cJSON* json, JsAppManifestInfo* info) {
-    bool success = false;
-
-    const char* parsed_value = js_app_manifest_parse_semver(json, JS_APP_MANIFEST_VERSION_KEY);
-    if(parsed_value != NULL) {
-        info->version = parsed_value;
-        success = true;
-    }
-
-    return success;
+    return js_app_manifest_parse_semver(json, JS_APP_MANIFEST_VERSION_KEY, &info->version);
 }
 
 static bool js_app_manifest_parse_api_version(const cJSON* json, JsAppManifestInfo* info) {
-    bool success = false;
-
-    const char* parsed_value = js_app_manifest_parse_semver(json, JS_APP_MANIFEST_API_VERSION_KEY);
-    if(parsed_value != NULL) {
-        info->api_version = parsed_value;
-        success = true;
-    }
-
-    return success;
+    return js_app_manifest_parse_semver(json, JS_APP_MANIFEST_API_VERSION_KEY, &info->api_version);
 }
 
 static bool js_app_manifest_parse_heap_size(const cJSON* json, JsAppManifestInfo* info) {

@@ -391,10 +391,8 @@ static bool api_apps_launch_request_callback(
     JsAppInfo app_info;
     furi_check(js_app_get_info(app, &app_info));
 
-    SemVer app_api_version;
-    furi_check(semver_parse(&app_api_version, app_info.manifest.api_version));
-
-    const bool is_compatible = web_server_is_api_version_compatible(&app_api_version);
+    const bool is_compatible =
+        web_server_is_api_version_compatible(&app_info.manifest.api_version);
     js_app_free(app);
 
     if(!is_compatible) {
@@ -443,15 +441,19 @@ static bool api_apps_quit_request_callback(
 }
 
 static cJSON* serialize_app_info(const JsAppInfo* info) {
+    FuriString* tmp = furi_string_alloc();
     cJSON* entry = cJSON_CreateObject();
     cJSON_AddStringToObject(entry, "id", info->manifest.id);
     cJSON_AddStringToObject(entry, "name", info->manifest.name);
-    cJSON_AddStringToObject(entry, "version", info->manifest.version);
-    cJSON_AddStringToObject(entry, "api_version", info->manifest.api_version);
+    semver_to_string(&info->manifest.version, tmp);
+    cJSON_AddStringToObject(entry, "version", furi_string_get_cstr(tmp));
+    semver_to_string(&info->manifest.api_version, tmp);
+    cJSON_AddStringToObject(entry, "api_version", furi_string_get_cstr(tmp));
     cJSON_AddStringToObject(entry, "author", info->manifest.author);
     cJSON_AddStringToObject(entry, "description", info->manifest.description);
     cJSON_AddBoolToObject(entry, "is_debug", info->manifest.is_debug);
     cJSON_AddStringToObject(entry, "icon_path", info->path.icon.front);
+    furi_string_free(tmp);
     return entry;
 }
 

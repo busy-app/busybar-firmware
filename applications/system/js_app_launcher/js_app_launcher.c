@@ -201,12 +201,7 @@ static void js_app_launcher_init_current_app(JsAppLauncher* instance, const char
 
         const JsAppInfo* info = &instance->js_app_info;
 
-        SemVer app_api_version;
-        if(!semver_parse(&app_api_version, info->manifest.api_version)) {
-            break;
-        }
-
-        if(!web_server_is_api_version_compatible(&app_api_version)) {
+        if(!web_server_is_api_version_compatible(&info->manifest.api_version)) {
             error = JsAppLauncherErrorApiVersionMismatch;
             break;
         }
