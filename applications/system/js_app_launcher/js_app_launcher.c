@@ -148,14 +148,13 @@ static void js_app_launcher_api_queue_callback(FuriEventLoopObject* object, void
 
 static JsAppLauncherStartMode
     js_app_launcher_parse_app_id(const char* arg, char* out_buf, size_t out_buf_size) {
-    JsAppLauncherStartMode start_mode = JsAppLauncherStartModeShowMenu;
+    JsAppLauncherStartMode start_mode = JsAppLauncherStartModeMax;
 
     do {
         const size_t arg_len = strlen(arg);
         const size_t resume_flag_len = strlen(JS_APP_LAUNCHER_ARG_RESUME);
 
-        if((arg_len == 0) || (arg_len > (JS_APP_ID_LEN_MAX + resume_flag_len))) {
-            start_mode = JsAppLauncherStartModeMax;
+        if((arg_len == 0) || (arg_len > JS_APP_ID_LEN_MAX + resume_flag_len)) {
             break;
         }
 
@@ -165,11 +164,19 @@ static JsAppLauncherStartMode
             const char* flag_p = &arg[arg_len - resume_flag_len];
             if(strcmp(flag_p, JS_APP_LAUNCHER_ARG_RESUME) == 0) {
                 app_id_len -= resume_flag_len;
-                start_mode = JsAppLauncherStartModeResume;
             }
         }
 
-        furi_check(out_buf_size > app_id_len);
+        if(app_id_len >= out_buf_size) {
+            break;
+        }
+
+        if(app_id_len != arg_len) {
+            start_mode = JsAppLauncherStartModeResume;
+        } else {
+            start_mode = JsAppLauncherStartModeShowMenu;
+        }
+
         memcpy(out_buf, arg, app_id_len);
         out_buf[app_id_len] = '\0';
 
