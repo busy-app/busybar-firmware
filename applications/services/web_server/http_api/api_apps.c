@@ -71,6 +71,7 @@ static const char* const installer_errors[] = {
     [JsAppInstallerErrorNone] = "OK",
     [JsAppInstallerErrorUnpack] = "Cannot unpack",
     [JsAppInstallerErrorManifest] = "Wrong app manifest",
+    [JsAppInstallerErrorApiVersion] = "API version mismatch",
     [JsAppInstallerErrorInstall] = "Installation failed",
 };
 
@@ -78,6 +79,7 @@ static const char* const installer_error_codes[] = {
     [JsAppInstallerErrorNone] = "ok",
     [JsAppInstallerErrorUnpack] = "unpack_error",
     [JsAppInstallerErrorManifest] = "manifest_error",
+    [JsAppInstallerErrorApiVersion] = "api_mismatch",
     [JsAppInstallerErrorInstall] = "installation_failed",
 };
 
