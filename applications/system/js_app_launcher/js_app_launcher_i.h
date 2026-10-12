@@ -32,6 +32,7 @@
 typedef enum {
     JsAppLauncherErrorNone,
     JsAppLauncherErrorLoadFailed,
+    JsAppLauncherErrorApiVersionMismatch,
     JsAppLauncherErrorSettingsSchemaMissing,
     JsAppLauncherErrorSettingsSchemaInvalid,
     JsAppLauncherErrorSettingsStorageFailure,
@@ -91,6 +92,7 @@ typedef struct {
     NavBar* nav_bar;
 
     JsApp* js_app;
+    JsAppInfo js_app_info;
     JsAppSettingsStorage* settings_storage;
     JsAppLauncherError error;
     JsAppLauncherStartMode start_mode;

@@ -2,6 +2,7 @@
 
 #include <apps_menu/apps_menu.h>
 #include <storage/storage.h>
+#include <web_server/web_server.h>
 
 #include <js_app/js_app_common.h>
 #include <js_app/js_app_registry.h>
@@ -107,11 +108,9 @@ static JsAppLauncherStatus js_app_launcher_handle_get_app_id(
 
     const JsApp* js_app = instance->js_app;
     if(js_app != NULL) {
-        JsAppInfo info;
-        if(js_app_get_info(js_app, &info)) {
-            furi_string_set(app_id, info.manifest.id);
-            status = JsAppLauncherStatusOk;
-        }
+        const JsAppInfo* info = &instance->js_app_info;
+        furi_string_set(app_id, info->manifest.id);
+        status = JsAppLauncherStatusOk;
 
     } else {
         status = JsAppLauncherStatusNotRunning;
@@ -150,6 +149,7 @@ static void js_app_launcher_api_queue_callback(FuriEventLoopObject* object, void
 static void js_app_launcher_init_current_app(JsAppLauncher* instance, const char* app_id) {
     JsApp* js_app = NULL;
     JsAppLauncherStartMode start_mode = JsAppLauncherStartModeShowMenu;
+    JsAppLauncherError error = JsAppLauncherErrorLoadFailed;
 
     do {
         const size_t app_id_len = strlen(app_id);
@@ -171,11 +171,38 @@ static void js_app_launcher_init_current_app(JsAppLauncher* instance, const char
         }
 
         js_app = js_app_registry_get_app(app_id_tmp);
+        if(js_app == NULL) {
+            break;
+        }
+
+        if(!js_app_get_info(js_app, &instance->js_app_info)) {
+            break;
+        }
+
+        const JsAppInfo* info = &instance->js_app_info;
+
+        SemVer app_api_version;
+        if(!semver_parse(&app_api_version, info->manifest.api_version)) {
+            break;
+        }
+
+        if(!web_server_is_api_version_compatible(&app_api_version)) {
+            error = JsAppLauncherErrorApiVersionMismatch;
+            break;
+        }
+
+        error = JsAppLauncherErrorNone;
 
     } while(false);
 
+    if((error != JsAppLauncherErrorNone) && (js_app != NULL)) {
+        js_app_free(js_app);
+        js_app = NULL;
+    }
+
     instance->js_app = js_app;
     instance->start_mode = start_mode;
+    instance->error = error;
 }
 
 static JsAppLauncherError
@@ -194,22 +221,17 @@ static JsAppLauncherError
 }
 
 static void js_app_launcher_init_settings_storage(JsAppLauncher* instance) {
-    JsAppLauncherError error;
+    JsAppLauncherError error = instance->error;
 
     do {
         if(instance->js_app == NULL) {
-            error = JsAppLauncherErrorLoadFailed;
             break;
         }
 
-        JsAppInfo app_info;
-        if(!js_app_get_info(instance->js_app, &app_info)) {
-            error = JsAppLauncherErrorLoadFailed;
-            break;
-        }
+        const JsAppInfo* info = &instance->js_app_info;
 
         JsAppSettingsStorageStatus status;
-        instance->settings_storage = js_app_settings_storage_alloc(app_info.manifest.id, &status);
+        instance->settings_storage = js_app_settings_storage_alloc(info->manifest.id, &status);
 
         if((instance->settings_storage == NULL) &&
            (status != JsAppSettingsStorageStatusSchemaMissing)) {
@@ -224,15 +246,12 @@ static void js_app_launcher_init_settings_storage(JsAppLauncher* instance) {
 }
 
 static void js_app_launcher_set_navbar_text(const JsAppLauncher* instance) {
-    JsAppInfo info;
+    const JsAppInfo* info = &instance->js_app_info;
+    FuriString* tmp = furi_string_alloc_set(info->manifest.name);
+    furi_string_to_upper_in_place(tmp);
 
-    if(js_app_get_info(instance->js_app, &info)) {
-        FuriString* tmp = furi_string_alloc_set(info.manifest.name);
-        furi_string_to_upper_in_place(tmp);
-
-        nav_bar_push_location(instance->nav_bar, furi_string_get_cstr(tmp));
-        furi_string_free(tmp);
-    }
+    nav_bar_push_location(instance->nav_bar, furi_string_get_cstr(tmp));
+    furi_string_free(tmp);
 }
 
 static void js_app_launcher_init_gui(JsAppLauncher* instance) {
