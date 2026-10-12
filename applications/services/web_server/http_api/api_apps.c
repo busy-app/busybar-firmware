@@ -391,7 +391,10 @@ static bool api_apps_launch_request_callback(
     }
 
     JsAppInfo app_info;
-    furi_check(js_app_get_info(app, &app_info));
+    if(!js_app_get_info(app, &app_info)) {
+        MG_REPLY_SERVICE_UNAVAILABLE(conn, "Failed to get application info");
+        return true;
+    }
 
     const bool is_compatible =
         web_server_is_api_version_compatible(&app_info.manifest.api_version);
