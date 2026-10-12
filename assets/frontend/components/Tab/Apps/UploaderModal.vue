@@ -242,7 +242,7 @@ const emit = defineEmits<{
 const open = defineModel<boolean>('open', { default: false });
 
 const APP_FILE_EXTENSION = '.tgz';
-const APP_FILE_MAX_SIZE = 4 * 1024 * 1024;
+const APP_FILE_MAX_SIZE = 100 * 1024 * 1024; // 100MB
 
 let uploadController: AbortController | null = null;
 
