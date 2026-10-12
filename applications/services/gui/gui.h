@@ -135,6 +135,14 @@ const uint8_t* gui_display_get_frame_buffer(Gui* instance, GuiDisplayId display_
 const GuiDisplayParameters* gui_display_get_parameters(GuiDisplayId display_id);
 
 /**
+ * @brief Get the display a widget instance belongs to.
+ *
+ * @param[in] widget pointer to the Widget instance to be queried
+ * @return identifier of the display the widget instance is attached to
+ */
+GuiDisplayId gui_get_display_id(Widget* widget);
+
+/**
  * @brief Shorthand for automatically locking and unlocking the GUI.
  *
  * @param[in,out] gui pointer to the Gui instance
