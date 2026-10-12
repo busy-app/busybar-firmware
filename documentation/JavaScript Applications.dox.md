@@ -107,6 +107,11 @@ Application manifest file is a JSON file that matches the following schema:
             "pattern": "^[0-9]+\.[0-9]+\.[0-9]+$",
             "description": "Application version"
         },
+        "api_version": {
+            "type": "string",
+            "pattern": "^[0-9]+\.[0-9]+\.[0-9]+$",
+            "description": "Minimum required HTTP API version"
+        },
         "description": {
             "type": "string",
             "default": "",
