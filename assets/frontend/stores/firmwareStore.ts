@@ -152,10 +152,6 @@ export const useFirmwareStore = defineStore('firmware', () => {
         }
 
         console.debug('Auto-update check completed', status);
-
-        if (autoUpdate.value.availableVersion) {
-          return fetchAutoUpdateChangelog(autoUpdate.value.availableVersion);
-        }
       })
       .catch(async error => {
         autoUpdate.value.isChecking = false;
@@ -201,9 +197,14 @@ export const useFirmwareStore = defineStore('firmware', () => {
     autoUpdate.value.isChangelogLoading = true;
     await deviceStore.busyBar.UpdateChangelogGet({ version })
       .then(response => {
-        autoUpdate.value.changelog = response.changelog || null;
+        if (autoUpdate.value.availableVersion === version) {
+          autoUpdate.value.changelog = response.changelog || null;
+        }
       })
       .catch(async error => {
+        if (autoUpdate.value.availableVersion !== version) {
+          return;
+        }
         await handleHTTPError(error, 'Couldn\'t fetch update changelog');
         return null;
       })
@@ -211,6 +212,13 @@ export const useFirmwareStore = defineStore('firmware', () => {
         autoUpdate.value.isChangelogLoading = false;
       });
   }
+
+  watch(() => autoUpdate.value.availableVersion, version => {
+    autoUpdate.value.changelog = null;
+    if (version) {
+      fetchAutoUpdateChangelog(version);
+    }
+  });
 
   async function requestAutoUpdateInstallation () {
     if (!autoUpdate.value.availableVersion) {

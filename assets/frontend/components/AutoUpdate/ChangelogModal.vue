@@ -14,7 +14,16 @@
     }"
   >
     <template #body>
-      <div v-if="firmwareStore.autoUpdate.isChangelogLoading">Loading changelog...</div>
+      <div
+        v-if="firmwareStore.autoUpdate.isChangelogLoading"
+        data-id="modal-auto-update-changelog-loading"
+        aria-label="Loading changelog"
+        class="flex flex-col gap-3 *:bg-accented"
+      >
+        <USkeleton class="h-6 w-32 rounded-md" />
+        <USkeleton class="h-4 w-full rounded-full" />
+        <USkeleton class="h-4 w-4/5 rounded-full" />
+      </div>
       <MDC
         v-else-if="firmwareStore.autoUpdate.changelog"
         :value="firmwareStore.autoUpdate.changelog"
