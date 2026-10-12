@@ -139,7 +139,8 @@ Application manifest file is a JSON file that matches the following schema:
         "format_version",
         "id",
         "name",
-        "version"
+        "version",
+        "api_version"
     ]
 }
 ```
