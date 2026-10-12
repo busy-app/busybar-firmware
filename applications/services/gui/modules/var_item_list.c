@@ -185,7 +185,9 @@ static void var_item_lvgl_event(const lv_obj_class_t* class_p, lv_event_t* event
     }
 }
 
-static void var_item_style_front(Widget* widget) {
+static void var_item_style_front(const lv_obj_class_t* class, Widget* widget) {
+    UNUSED(class);
+
     VarItem* instance = (VarItem*)widget;
 
     instance->label_long_mode = LV_LABEL_LONG_MODE_CLIP;
@@ -198,7 +200,9 @@ static void var_item_style_front(Widget* widget) {
     lv_obj_set_style_max_width(instance->editor->text, 30, LV_PART_MAIN);
 }
 
-static void var_item_style_back(Widget* widget) {
+static void var_item_style_back(const lv_obj_class_t* class, Widget* widget) {
+    UNUSED(class);
+
     VarItem* instance = (VarItem*)widget;
 
     instance->label_long_mode = LV_LABEL_LONG_MODE_DOTS;

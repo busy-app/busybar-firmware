@@ -432,15 +432,21 @@ bool widget_input(Widget* instance, const InputEvent* event) {
     return consumed;
 }
 
-void widget_style(Widget* instance, GuiDisplayId display_id) {
-    lv_obj_t* lv_object = TO_LV_OBJ(instance);
-    const lv_obj_class_t* lv_class = lv_obj_get_class(lv_object);
+void widget_style(const lv_obj_class_t* class, Widget* instance) {
+    GuiDisplayId display_id = gui_get_display_id(instance);
 
-    if(lv_class->user_data) {
-        const WidgetClassData* class_data = lv_class->user_data;
-        WidgetStyleCallback style_callback = class_data->style_callbacks[display_id];
+    class = class ? class->base_class : lv_obj_get_class(TO_LV_OBJ(instance));
+    for(; class && class != &lv_obj_class; class = class->base_class) {
+        const WidgetClassData* class_data = class->user_data;
 
-        if(style_callback) style_callback(instance);
+        if(class_data) {
+            WidgetStyleCallback style_callback = class_data->style_callbacks[display_id];
+
+            if(style_callback) {
+                style_callback(class, instance);
+                break;
+            }
+        }
     }
 }
 
