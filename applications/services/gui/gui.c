@@ -16,7 +16,7 @@ static void
     gui_flush_front_callback(lv_display_t* lv_display, const lv_area_t* area, uint8_t* px_map) {
     UNUSED(area);
 
-    GuiDisplay* display = lv_display_get_user_data(lv_display);
+    GuiDisplay* display = lv_display_get_driver_data(lv_display);
     furi_check(px_map == display->draw_buffer);
 
     front_display_draw(display->driver, display->draw_buffer);
@@ -28,7 +28,7 @@ static void
     gui_flush_back_callback(lv_display_t* lv_display, const lv_area_t* area, uint8_t* px_map) {
     UNUSED(area);
 
-    GuiDisplay* display = lv_display_get_user_data(lv_display);
+    GuiDisplay* display = lv_display_get_driver_data(lv_display);
     furi_check(px_map == display->draw_buffer);
 
     back_display_draw(display->driver, display->draw_buffer);
@@ -177,7 +177,8 @@ static void gui_init_front(GuiDisplay* display) {
     display->lv_display = lv_display_create(FRONT_W, FRONT_H);
     display->driver = furi_record_open(RECORD_FRONT_DISPLAY);
 
-    lv_display_set_user_data(display->lv_display, display);
+    lv_display_set_driver_data(display->lv_display, display);
+    lv_display_set_user_data(display->lv_display, (void*)GuiDisplayIdFront);
     lv_display_set_flush_cb(display->lv_display, gui_flush_front_callback);
     lv_display_set_color_format(display->lv_display, FRONT_COLOR_FORMAT);
     lv_display_set_buffers(
@@ -205,7 +206,8 @@ static void gui_init_back(GuiDisplay* display) {
     display->lv_display = lv_display_create(back_display_get_width(), back_display_get_height());
     display->driver = furi_record_open(RECORD_BACK_DISPLAY);
 
-    lv_display_set_user_data(display->lv_display, display);
+    lv_display_set_driver_data(display->lv_display, display);
+    lv_display_set_user_data(display->lv_display, (void*)GuiDisplayIdBack);
     lv_display_set_flush_cb(display->lv_display, gui_flush_back_callback);
     lv_display_set_color_format(display->lv_display, BACK_COLOR_FORMAT);
     lv_display_set_buffers(
@@ -452,4 +454,11 @@ const GuiDisplayParameters* gui_display_get_parameters(GuiDisplayId display_id) 
     static_assert(COUNT_OF(display_parameters) == GuiDisplayIdMax);
 
     return &display_parameters[display_id];
+}
+
+GuiDisplayId gui_get_display_id(Widget* widget) {
+    furi_check(widget);
+
+    lv_display_t* display = lv_obj_get_display(TO_LV_OBJ(widget));
+    return (GuiDisplayId)lv_display_get_user_data(display);
 }
