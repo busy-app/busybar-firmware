@@ -13,7 +13,7 @@
  *     "id": "app_id",
  *     "name": "Free form app name",
  *     "version": "1.2.3",
- *     "api_version" : "4.5.6",
+ *     "api_version": "4.5.6",
  *     "description": "Free form description", // Optional, default: ""
  *     "author": "Application author",         // Optional, default: ""
  *     "heap_size_kib": 128,                   // Optional, default: 128

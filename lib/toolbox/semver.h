@@ -34,7 +34,7 @@ typedef struct {
  * This can be useful if the calling code only needs to validate the source string.
  *
  * @param[in,out] instance pointer to the instance to contain the parsed data (can be @c NULL)
- * @param[in] source pointer to a zero-terminated URL string
+ * @param[in] source pointer to a zero-terminated version string in x.y.z format
  * @returns @c true if the source string could be parsed, @c false otherwise
  */
 bool semver_parse(SemVer* instance, const char* source);
