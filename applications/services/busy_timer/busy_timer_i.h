@@ -27,8 +27,10 @@ typedef enum {
     BusyTimerApiMessageTypeGetRunInfo,
     BusyTimerApiMessageTypeGetSnapshot,
     BusyTimerApiMessageTypeSetSnapshot,
+    BusyTimerApiMessageTypeSetSnapshotJson,
     BusyTimerApiMessageTypeGetProfile,
     BusyTimerApiMessageTypeSetProfile,
+    BusyTimerApiMessageTypeSetProfileJson,
     BusyTimerApiMessageTypeGetPreset,
     BusyTimerApiMessageTypeSetPreset,
     BusyTimerApiMessageTypeHandleMatter,
@@ -53,6 +55,11 @@ typedef struct {
 } BusyTimerApiMessageSetSnapshot;
 
 typedef struct {
+    char* json_text;
+    size_t json_text_len;
+} BusyTimerApiMessageSetSnapshotJson;
+
+typedef struct {
     BusyTimerRunInfo* run_info;
 } BusyTimerApiMessageGetRunInfo;
 
@@ -65,6 +72,12 @@ typedef struct {
     BusyTimerProfileId profile_id;
     BusyTimerProfile profile;
 } BusyTimerApiMessageSetProfile;
+
+typedef struct {
+    BusyTimerProfileId profile_id;
+    char* json_text;
+    size_t json_text_len;
+} BusyTimerApiMessageSetProfileJson;
 
 typedef struct {
     BusyTimerProfileId profile_id;
@@ -85,9 +98,11 @@ typedef union {
     BusyTimerApiMessageAddTime add_time;
     BusyTimerApiMessageGetSnapshot get_snapshot;
     BusyTimerApiMessageSetSnapshot set_snapshot;
+    BusyTimerApiMessageSetSnapshotJson set_snapshot_json;
     BusyTimerApiMessageGetRunInfo get_run_info;
     BusyTimerApiMessageGetProfile get_profile;
     BusyTimerApiMessageSetProfile set_profile;
+    BusyTimerApiMessageSetProfileJson set_profile_json;
     BusyTimerApiMessageGetPreset get_preset;
     BusyTimerApiMessageSetPreset set_preset;
     BusyTimerApiMessageHandleMatter handle_matter;
