@@ -17,10 +17,9 @@
     >
       <UInput
         v-model="pms.passwordModel.current"
-        v-maska="'##########'"
+        v-maska="PASSWORD_MASK"
         name="current-password"
         autocomplete="current-password"
-        inputmode="numeric"
         size="xl"
         variant="soft"
         :type="pms.passwordModel.showCurrent ? 'text' : 'password'"

@@ -18,8 +18,8 @@ export const usePasswordModalStore = defineStore('passwordModal', () => {
     return (
       passwordModel.value.new !== ''
       && (
-        /[^0-9]/.test(passwordModel.value.new)
-          ? 'Invalid password (only digits allowed)'
+        /[^A-Za-z0-9]/.test(passwordModel.value.new)
+          ? 'Invalid password (only letters and digits allowed)'
           : passwordModel.value.new.length > PASSWORD_MAX_LENGTH
             ? 'Password too long'
             : passwordModel.value.new.length < PASSWORD_MIN_LENGTH && passwordModel.value.new !== ''

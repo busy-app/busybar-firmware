@@ -30,10 +30,9 @@
         >
           <UInput
             v-model="pms.passwordModel.current"
-            v-maska="'##########'"
+            v-maska="PASSWORD_MASK"
             name="current-password"
             autocomplete="current-password"
-            inputmode="numeric"
             size="xl"
             variant="soft"
             :ui="{ base: 'ring-1 ring-glass bg-accented/50' }"
