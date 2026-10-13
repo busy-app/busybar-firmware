@@ -8,6 +8,10 @@
       @update="openUploader(currentApp.id)"
       @deleted="onAppDeleted"
     />
+    <TabAppsEmpty
+      v-else-if="!appsStore.loading && appsStore.apps.length === 0"
+      @add="openUploader()"
+    />
     <TabAppsCard
       v-else
       @add="openUploader()"
