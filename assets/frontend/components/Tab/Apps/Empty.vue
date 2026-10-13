@@ -11,7 +11,7 @@
           alt=""
           width="440"
           height="172"
-          class="max-w-full rounded-xl"
+          class="max-w-full rounded-xl bg-[#171717] dark:bg-transparent"
         >
 
         <div class="flex max-w-[336px] flex-col gap-2 text-center">
