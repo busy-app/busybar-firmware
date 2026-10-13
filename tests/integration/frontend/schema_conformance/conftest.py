@@ -42,6 +42,10 @@ SKIP_OPERATION_IDS: frozenset[str] = frozenset(
         # Account operations — irreversible, require Cloud
         "unlinkAccount",
         "linkAccount",
+        # Token creation persists credentials on the device, while generated names
+        # may also produce response bytes that are not valid UTF-8. Covered by the
+        # dedicated access-token suite, which tracks and revokes every token it mints.
+        "createAccessToken",
         # Asset uploads — would overwrite application assets
         "uploadAssetWithAppId",
         "deleteAppAssets",
