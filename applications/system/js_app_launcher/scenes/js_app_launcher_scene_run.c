@@ -158,16 +158,11 @@ static bool js_app_launcher_scene_run_start_app(JsAppLauncher* instance) {
     data->js_error = JsRunnerErrorUnknown;
 
     do {
-        JsAppInfo js_info;
-
-        if(!js_app_get_info(instance->js_app, &js_info)) {
-            break;
-        }
-
         js_app_launcher_scene_run_init_widgets(instance);
         js_app_launcher_scene_run_init_input(instance);
 
-        const JsAppManifestInfo* js_manifest = &js_info.manifest;
+        const JsAppInfo* js_info = &instance->js_app_info;
+        const JsAppManifestInfo* js_manifest = &js_info->manifest;
         const JsRunnerContextInitResult init_result = js_runner_context_alloc(
             runner,
             js_manifest->id,
@@ -185,7 +180,7 @@ static bool js_app_launcher_scene_run_start_app(JsAppLauncher* instance) {
 
         const JsRunnerRunResult run_result = js_runner_run(
             data->js_runner_handle,
-            js_info.path.entry,
+            js_info->path.entry,
             js_app_launcher_scene_run_event_callback,
             instance);
 
@@ -223,7 +218,9 @@ static void js_app_launcher_scene_run_clear_canvas(JsAppLauncher* instance) {
 
 static void js_app_launcher_scene_run_on_enter(void* context) {
     furi_assert(context);
+
     JsAppLauncher* instance = context;
+    furi_check(instance->js_app);
 
     if(!js_app_launcher_scene_run_start_app(instance)) {
         scene_manager_next_scene(instance->scene_manager, JsAppLauncherSceneIdError);
