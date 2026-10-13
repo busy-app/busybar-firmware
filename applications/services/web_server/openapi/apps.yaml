@@ -394,6 +394,10 @@ schemas:
         type: string
         description: "Application version"
         example: "1.0.0"
+      api_version:
+        type: string
+        description: "Minimum required HTTP API version"
+        example: "1.0.0"
       author:
         type: string
         description: "Application author"
@@ -414,6 +418,7 @@ schemas:
       - id
       - name
       - version
+      - api_version
       - author
       - description
       - icon_path
