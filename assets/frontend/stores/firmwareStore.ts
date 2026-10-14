@@ -209,7 +209,9 @@ export const useFirmwareStore = defineStore('firmware', () => {
         return null;
       })
       .finally(() => {
-        autoUpdate.value.isChangelogLoading = false;
+        if (autoUpdate.value.availableVersion === version) {
+          autoUpdate.value.isChangelogLoading = false;
+        }
       });
   }
 
