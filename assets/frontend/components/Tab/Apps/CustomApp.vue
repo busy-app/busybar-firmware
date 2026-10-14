@@ -39,6 +39,7 @@
     <div
       v-if="loading"
       :data-id="`apps-section-${app.id}-settings-loading`"
+      role="status"
       aria-label="Loading settings"
       class="flex flex-col gap-1 rounded-group"
     >
@@ -68,6 +69,31 @@
         v-model:values="settings.values"
         :app-id="app.id"
         :fields="schema.fields"
+      />
+    </div>
+
+    <div
+      v-else-if="loadFailed"
+      :data-id="`apps-section-${app.id}-settings-error`"
+      class="flex flex-col items-center gap-6 py-6"
+    >
+      <div class="flex max-w-[336px] flex-col gap-2 text-center">
+        <div
+          :data-id="`apps-section-${app.id}-settings-error-title`"
+          class="text-xl font-medium text-highlighted"
+        >
+          Couldn't load settings
+        </div>
+      </div>
+
+      <UButton
+        :data-id="`apps-section-${app.id}-settings-retry-button`"
+        label="Try again"
+        icon="i-bi-restart"
+        color="neutral"
+        size="sm"
+        class="w-fit"
+        @click="loadSettings"
       />
     </div>
 
@@ -173,6 +199,7 @@ let saveTimeout: ReturnType<typeof setTimeout> | undefined;
 const appsStore = useAppsStore();
 
 const loading = ref(true);
+const loadFailed = ref(false);
 const settingsSaving = ref(false);
 const deleting = ref(false);
 const showDeleteModal = ref(false);
@@ -184,6 +211,9 @@ const running = computed(() => appsStore.runningAppId === props.app.id);
 const needsRestart = computed(() => running.value && saved.value);
 
 async function loadSettings () {
+  loading.value = true;
+  loadFailed.value = false;
+
   try {
     const loadedSettings = await appsStore.getSettings(props.app.id);
     const loadedSchema = await appsStore.readSettingsSchema(props.app.id);
@@ -193,6 +223,7 @@ async function loadSettings () {
     settings.value = loadedSettings;
   } catch (error) {
     if (httpErrorStatus(error) !== 404) {
+      loadFailed.value = true;
       await handleHTTPError(error, 'Couldn\'t load app settings');
     }
   } finally {

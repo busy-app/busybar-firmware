@@ -17,6 +17,7 @@
       <div
         v-if="firmwareStore.autoUpdate.isChangelogLoading"
         data-id="modal-auto-update-changelog-loading"
+        role="status"
         aria-label="Loading changelog"
         class="flex flex-col gap-3 *:bg-accented"
       >
