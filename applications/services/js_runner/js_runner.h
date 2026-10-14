@@ -72,6 +72,7 @@ typedef enum {
 
 typedef struct {
     JsRunnerEventType type;
+    JsRunnerError error;
 } JsRunnerEvent;
 
 typedef void (*JsRunnerEventCallback)(const JsRunnerEvent* event, void* context);
