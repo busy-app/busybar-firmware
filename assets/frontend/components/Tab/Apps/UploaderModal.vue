@@ -2,25 +2,14 @@
   <ModalGeneric
     v-model:open="open"
     data-id="modal-uploader-app"
-    :title="confirming ? stageResult!.staged.name : 'Add your file'"
-    wide
+    :title="title"
+    :wide="!confirming"
+    :content-class="confirming ? 'max-w-[480px]' : undefined"
+    :hide-header="confirming"
     :dismissible="!uploading && !installing"
     :show-close-button="!file || failed"
-    :description="file && !uploading && !failed && !confirming ? 'This file will be added to your BUSY Bar and the local web interface.' : undefined"
+    :description="description"
   >
-    <template
-      v-if="confirming && stagedIcon"
-      #icon
-    >
-      <img
-        :src="stagedIcon"
-        alt=""
-        width="40"
-        height="40"
-        class="size-10 shrink-0 [image-rendering:pixelated]"
-      >
-    </template>
-
     <template #body>
       <UFileUpload
         v-if="!file"
@@ -98,20 +87,23 @@
         data-id="modal-uploader-app-progress"
         class="flex flex-col gap-6 pt-4"
       >
-        <div class="flex items-start gap-2">
+        <div class="flex items-center gap-2">
           <UIcon
-            name="i-bi-upload"
+            name="i-bi-archive"
             class="size-6 shrink-0"
           />
 
-          <div class="min-w-0 flex-1">
-            {{ uploaded ? 'Checking the app. Do not disconnect your BUSY Bar.' : 'Uploading the file. Do not disconnect your BUSY Bar.' }}
+          <div
+            data-id="modal-uploader-app-progress-file-name"
+            class="min-w-0 flex-1 truncate font-medium text-toned"
+          >
+            {{ file.name }}
           </div>
 
           <div
             v-if="!uploaded"
             data-id="modal-uploader-app-progress-value"
-            class="text-muted"
+            class="shrink-0 text-muted"
           >
             {{ progress }}%
           </div>
@@ -128,6 +120,7 @@
         v-else-if="confirming"
         :app="stageResult!.staged"
         :installed="stageResult!.installed"
+        :icon="stagedIcon"
       />
 
       <div
@@ -206,7 +199,7 @@
         <UButton
           v-if="confirming"
           data-id="modal-uploader-app-confirm-button"
-          label="Confirm"
+          :label="stageResult!.installed ? 'Update app' : 'Install app'"
           color="neutral"
           size="lg"
           class="min-w-20 justify-center"
@@ -217,7 +210,7 @@
         <UButton
           v-else-if="!uploading"
           data-id="modal-uploader-app-add-button"
-          label="Add"
+          label="Upload"
           color="neutral"
           size="lg"
           class="min-w-20 justify-center"
@@ -261,6 +254,26 @@ const appMismatch = ref(false);
 
 const confirming = computed(() => !!stageResult.value && !uploading.value && !failed.value);
 const uploaded = computed(() => progress.value >= 100);
+
+const title = computed(() => {
+  if (!uploading.value) {
+    return 'Upload app file';
+  }
+
+  return uploaded.value ? 'Checking app file...' : 'Uploading app file...';
+});
+
+const description = computed(() => {
+  if (uploading.value) {
+    return 'Do not disconnect your BUSY Bar.';
+  }
+
+  if (file.value && !failed.value && !confirming.value) {
+    return 'This file will be added to your BUSY Bar and the local web interface.';
+  }
+
+  return undefined;
+});
 
 function removeFile () {
   file.value = null;
@@ -345,9 +358,9 @@ watch(file, value => {
   }
 
   if (!value.name.toLowerCase().endsWith(APP_FILE_EXTENSION)) {
-    rejectFile('Unsupported file', `Only ${APP_FILE_EXTENSION} app packages can be uploaded.`);
+    rejectFile('File format not supported', `Only ${APP_FILE_EXTENSION} files can be uploaded.`);
   } else if (value.size > APP_FILE_MAX_SIZE) {
-    rejectFile('File is too large', `App packages can be up to ${bytesToSize(APP_FILE_MAX_SIZE)}.`);
+    rejectFile('App file too large', `Max. size: ${APP_FILE_MAX_SIZE / 1024 / 1024} MB. Choose a smaller file.`);
   }
 });
 
