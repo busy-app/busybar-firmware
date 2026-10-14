@@ -1,6 +1,7 @@
 #include "../js_app_launcher_i.h"
 #include "js_app_launcher_scenes.h"
 
+#include <apps_menu/apps_menu.h>
 #include <storage/storage.h>
 #include <gui/modules/status_view.h>
 
@@ -30,6 +31,8 @@ static void js_app_launcher_scene_error_on_enter(void* context) {
         status_view_set_auxiliary_text(data->back_status, desc->auxiliary.back);
         status_view_set_icon(data->back_status, SHARED_IMG_PATH("error_back_11x11.image"), false);
     });
+
+    apps_menu_forget_current_app();
 }
 
 static void js_app_launcher_scene_error_on_exit(void* context) {
