@@ -185,8 +185,25 @@ static JsAppLauncherStartMode
     return start_mode;
 }
 
+static JsAppLauncherError
+    js_app_launcher_translate_from_settings_storage_status(JsAppSettingsStorageStatus status) {
+    static const JsAppLauncherError status_map[] = {
+        [JsAppSettingsStorageStatusOk] = JsAppLauncherErrorNone,
+        [JsAppSettingsStorageStatusSchemaMissing] = JsAppLauncherErrorSettingsSchemaMissing,
+        [JsAppSettingsStorageStatusSchemaInvalid] = JsAppLauncherErrorSettingsSchemaInvalid,
+        [JsAppSettingsStorageStatusStorageFailure] = JsAppLauncherErrorSettingsStorageFailure,
+    };
+
+    static_assert(COUNT_OF(status_map) == JsAppSettingsStorageStatusesCount);
+    furi_assert(status < JsAppSettingsStorageStatusesCount);
+
+    return status_map[status];
+}
+
 static void js_app_launcher_init_current_app(JsAppLauncher* instance, const char* arg) {
     JsApp* js_app = NULL;
+    JsAppSettingsStorage* settings_storage = NULL;
+
     JsAppLauncherStartMode start_mode;
     JsAppLauncherError error = JsAppLauncherErrorLoadFailed;
 
@@ -213,57 +230,31 @@ static void js_app_launcher_init_current_app(JsAppLauncher* instance, const char
             break;
         }
 
+        JsAppSettingsStorageStatus storage_status;
+        settings_storage = js_app_settings_storage_alloc(info->manifest.id, &storage_status);
+
+        if((settings_storage == NULL) &&
+           (storage_status != JsAppSettingsStorageStatusSchemaMissing)) {
+            error = js_app_launcher_translate_from_settings_storage_status(storage_status);
+            break;
+        }
+
         error = JsAppLauncherErrorNone;
 
     } while(false);
 
-    if((error != JsAppLauncherErrorNone) && (js_app != NULL)) {
-        js_app_free(js_app);
-        js_app = NULL;
+    if(error != JsAppLauncherErrorNone) {
+        if(js_app != NULL) {
+            js_app_free(js_app);
+            js_app = NULL;
+        }
+
+        apps_menu_forget_current_app();
     }
 
     instance->js_app = js_app;
+    instance->settings_storage = settings_storage;
     instance->start_mode = start_mode;
-    instance->error = error;
-}
-
-static JsAppLauncherError
-    js_app_launcher_translate_from_settings_storage_status(JsAppSettingsStorageStatus status) {
-    static const JsAppLauncherError status_map[] = {
-        [JsAppSettingsStorageStatusOk] = JsAppLauncherErrorNone,
-        [JsAppSettingsStorageStatusSchemaMissing] = JsAppLauncherErrorSettingsSchemaMissing,
-        [JsAppSettingsStorageStatusSchemaInvalid] = JsAppLauncherErrorSettingsSchemaInvalid,
-        [JsAppSettingsStorageStatusStorageFailure] = JsAppLauncherErrorSettingsStorageFailure,
-    };
-
-    static_assert(COUNT_OF(status_map) == JsAppSettingsStorageStatusesCount);
-    furi_assert(status < JsAppSettingsStorageStatusesCount);
-
-    return status_map[status];
-}
-
-static void js_app_launcher_init_settings_storage(JsAppLauncher* instance) {
-    JsAppLauncherError error = instance->error;
-
-    do {
-        if(instance->js_app == NULL) {
-            break;
-        }
-
-        const JsAppInfo* info = &instance->js_app_info;
-
-        JsAppSettingsStorageStatus status;
-        instance->settings_storage = js_app_settings_storage_alloc(info->manifest.id, &status);
-
-        if((instance->settings_storage == NULL) &&
-           (status != JsAppSettingsStorageStatusSchemaMissing)) {
-            error = js_app_launcher_translate_from_settings_storage_status(status);
-            break;
-        }
-
-        error = JsAppLauncherErrorNone;
-    } while(false);
-
     instance->error = error;
 }
 
@@ -338,7 +329,6 @@ static JsAppLauncher* js_app_launcher_alloc(const char* arg) {
     furi_record_create(RECORD_JS_APP_LAUNCHER, instance);
 
     js_app_launcher_init_current_app(instance, arg);
-    js_app_launcher_init_settings_storage(instance);
     js_app_launcher_init_gui(instance);
 
     furi_event_loop_subscribe_message_queue(
