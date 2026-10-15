@@ -5,6 +5,7 @@
 #include <core/log.h>
 
 #include <cjson/cJSON.h>
+#include <toolbox/semver.h>
 
 #include <storage/storage.h>
 
@@ -22,6 +23,7 @@
 #define JS_APP_MANIFEST_ID_KEY             "id"
 #define JS_APP_MANIFEST_NAME_KEY           "name"
 #define JS_APP_MANIFEST_VERSION_KEY        "version"
+#define JS_APP_MANIFEST_API_VERSION_KEY    "api_version"
 #define JS_APP_MANIFEST_DESCRIPTION_KEY    "description"
 #define JS_APP_MANIFEST_AUTHOR_KEY         "author"
 #define JS_APP_MANIFEST_HEAP_SIZE_KEY      "heap_size_kib"
@@ -37,6 +39,35 @@ static void js_app_manifest_reset(JsAppManifest* instance) {
         cJSON_Delete(instance->parsed_json);
         instance->parsed_json = NULL;
     }
+}
+
+static bool js_app_manifest_parse_semver(const cJSON* json, const char* key, SemVer* out) {
+    bool success = false;
+
+    do {
+        const cJSON* item = cJSON_GetObjectItem(json, key);
+        if(!cJSON_IsString(item)) {
+            break;
+        }
+
+        const char* str = cJSON_GetStringValue(item);
+
+        if(!semver_parse(out, str)) {
+            break;
+        }
+
+        success = true;
+    } while(false);
+
+    return success;
+}
+
+static bool js_app_manifest_parse_version(const cJSON* json, JsAppManifestInfo* info) {
+    return js_app_manifest_parse_semver(json, JS_APP_MANIFEST_VERSION_KEY, &info->version);
+}
+
+static bool js_app_manifest_parse_api_version(const cJSON* json, JsAppManifestInfo* info) {
+    return js_app_manifest_parse_semver(json, JS_APP_MANIFEST_API_VERSION_KEY, &info->api_version);
 }
 
 static bool js_app_manifest_parse_heap_size(const cJSON* json, JsAppManifestInfo* info) {
@@ -68,6 +99,8 @@ static bool js_app_manifest_parse_heap_size(const cJSON* json, JsAppManifestInfo
 
 static bool
     js_app_manifest_parse_data(JsAppManifest* instance, const char* data, uint32_t data_len) {
+    furi_assert(instance->parsed_json == NULL);
+
     bool success = false;
 
     JsAppManifestInfo* info = &instance->info;
@@ -111,12 +144,13 @@ static bool
 
         info->name = cJSON_GetStringValue(item);
 
-        item = cJSON_GetObjectItem(json, JS_APP_MANIFEST_VERSION_KEY);
-        if(!cJSON_IsString(item)) {
+        if(!js_app_manifest_parse_version(json, info)) {
             break;
         }
 
-        info->version = cJSON_GetStringValue(item);
+        if(!js_app_manifest_parse_api_version(json, info)) {
+            break;
+        }
 
         item = cJSON_GetObjectItem(json, JS_APP_MANIFEST_DESCRIPTION_KEY);
         if(cJSON_IsString(item)) {
@@ -172,6 +206,8 @@ bool js_app_manifest_load_from_file(JsAppManifest* instance, const char* file_pa
     furi_check(file_path);
 
     bool success = false;
+
+    js_app_manifest_reset(instance);
 
     Storage* storage = furi_record_open(RECORD_STORAGE);
     File* file = storage_file_alloc(storage);

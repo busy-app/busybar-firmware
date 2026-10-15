@@ -33,6 +33,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "409":
+          description: API version required by the application is not compatible with the firmware.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "413":
           description: Application package too large.
           content:
@@ -103,6 +109,18 @@ paths:
                 $ref: "#/components/schemas/Error"
         "400":
           description: Missing or invalid application id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: API version required by the application is not compatible with the firmware.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "409":
+          description: A higher-priority application is already running
           content:
             application/json:
               schema:
@@ -388,6 +406,10 @@ schemas:
         type: string
         description: "Application version"
         example: "1.0.0"
+      api_version:
+        type: string
+        description: "Minimum required HTTP API version"
+        example: "1.0.0"
       author:
         type: string
         description: "Application author"
@@ -408,6 +430,7 @@ schemas:
       - id
       - name
       - version
+      - api_version
       - author
       - description
       - icon_path

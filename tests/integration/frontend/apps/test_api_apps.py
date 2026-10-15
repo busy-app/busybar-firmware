@@ -10,6 +10,13 @@ import pytest
 from clients.api import AppInfo, AppsAPI, AssetsAPI, StorageAPI, StreamingAPI
 from clients.api.streaming import FRONT_DISPLAY_HEIGHT, FRONT_DISPLAY_WIDTH
 from clients.cli import SimpleCLIConnection
+from utils.busy_timer import (
+    WORK_CARD_UUID,
+    get_snapshot,
+    next_timestamp,
+    set_snapshot,
+    wait_for_snapshot_type,
+)
 from utils.js_app_package import (
     APP_AUTHOR,
     APP_DESCRIPTION,
@@ -222,6 +229,56 @@ def test_app_id(apps_api: AppsAPI):
     )
 
 
+@pytest.fixture
+def priority_test_app(
+    apps_api,
+    storage_api,
+    input_api,
+    persistent_cli_connection,
+    test_app_id,
+    busy_timer_stopped,
+):
+    token = uuid.uuid4().hex
+    path = _local_storage_path(test_app_id)
+    try:
+        _install_observable_app(apps_api, storage_api, test_app_id, token)
+        # A known marker makes a rejected launch distinguishable from an app that
+        # briefly ran and exited before the thread list was sampled.
+        response = storage_api.write(
+            path, json.dumps({"format_version": 1, "data": {}}).encode("utf-8")
+        )
+        assert response.status_code == 200, (
+            f"Failed to seed launch marker: {response.status_code}, {response.text!r}"
+        )
+        # Busy and Custom share the same native AppID. Start from AppsMenu so
+        # waiting for Busy cannot accidentally match the previous mode's thread
+        # while the rotary-switch transition is still pending.
+        response = input_api.send_key("apps")
+        assert response.status_code == 200, (
+            f"Failed to open AppsMenu: {response.status_code}, {response.text!r}"
+        )
+        _wait_for_native_app(persistent_cli_connection, "apps_menu")
+        yield path, token
+    finally:
+        _cleanup_observable_app(
+            apps_api, storage_api, persistent_cli_connection, test_app_id, path
+        )
+
+
+def _wait_for_native_app(cli: SimpleCLIConnection, app_id: str) -> str:
+    return wait_for(
+        f"native app {app_id!r} to run",
+        lambda: cli.execute_command("top 0", timeout=5),
+        lambda output: "AppID" in output and any(
+            line.split()[0] == app_id
+            for line in output.splitlines()
+            if line.split()
+        ),
+        timeout=5,
+        interval=0.2,
+    )
+
+
 @allure.feature("5. Web Frontend")
 @allure.story("JavaScript Applications")
 @pytest.mark.api
@@ -324,6 +381,132 @@ class TestAppsAPI:
                 f"{repeated_delete.status_code}: "
                 f"{repeated_delete.text[:200]!r}"
             )
+
+    @allure.title("JS launch preserves a higher-priority timer and succeeds after stopping it")
+    @pytest.mark.parametrize("mode", ["busy", "custom"])
+    @pytest.mark.parametrize("paused", [False, True], ids=["running", "paused"])
+    def test_launch_respects_busy_priority(
+        self,
+        apps_api,
+        storage_api,
+        input_api,
+        api_session,
+        web_base_url,
+        persistent_cli_connection,
+        test_app_id,
+        priority_test_app,
+        mode,
+        paused,
+    ):
+        storage_path, token = priority_test_app
+        with allure.step(f"Open {mode} and start an infinite timer"):
+            response = input_api.send_key(mode)
+            assert response.status_code == 200, (
+                f"Failed to select {mode}: {response.status_code}, {response.text!r}"
+            )
+            _wait_for_native_app(persistent_cli_connection, "busy")
+            settings = get_snapshot(api_session, web_base_url)["snapshot"][
+                "busy_bar_settings"
+            ]
+            snapshot = {
+                "type": "INFINITE",
+                "card_id": WORK_CARD_UUID,
+                "is_paused": False,
+                "busy_bar_settings": {**settings, "trigger_smart_home": False},
+            }
+            set_snapshot(
+                api_session,
+                web_base_url,
+                {
+                    "snapshot": snapshot,
+                    "snapshot_timestamp_ms": next_timestamp(api_session, web_base_url),
+                },
+            )
+            wait_for_snapshot_type(api_session, web_base_url, "INFINITE")
+            if paused:
+                snapshot = {**snapshot, "is_paused": True}
+                set_snapshot(
+                    api_session,
+                    web_base_url,
+                    {
+                        "snapshot": snapshot,
+                        "snapshot_timestamp_ms": next_timestamp(api_session, web_base_url),
+                    },
+                )
+                wait_for_snapshot_type(api_session, web_base_url, "INFINITE")
+            before = get_snapshot(api_session, web_base_url)
+            assert before["snapshot"] == snapshot, f"Unexpected timer state: {before!r}"
+
+        with allure.step("Reject JS launch with HTTP 409 and keep the timer running"):
+            response = apps_api.launch_raw(test_app_id)
+            assert response.status_code == 409, (
+                f"Expected priority conflict, got {response.status_code}: {response.text!r}"
+            )
+            assert response.json() == {"error": "not started due to low priority"}, (
+                f"Unexpected priority error: {response.text!r}"
+            )
+            _wait_for_launcher_exit(persistent_cli_connection)
+            _wait_for_native_app(persistent_cli_connection, "busy")
+            after = get_snapshot(api_session, web_base_url)
+            assert after == before, f"Rejected launch changed timer: {before!r} -> {after!r}"
+            marker = _read_local_storage(storage_api, storage_path)
+            assert marker == {"format_version": 1, "data": {}}, (
+                f"Rejected app executed its script: {marker!r}"
+            )
+
+        with allure.step("Stop the timer and launch the same app successfully"):
+            set_snapshot(
+                api_session,
+                web_base_url,
+                {
+                    "snapshot": {
+                        "type": "NOT_STARTED",
+                        "busy_bar_settings": snapshot["busy_bar_settings"],
+                    },
+                    "snapshot_timestamp_ms": next_timestamp(api_session, web_base_url),
+                },
+            )
+            wait_for_snapshot_type(api_session, web_base_url, "NOT_STARTED")
+            launched = apps_api.launch(test_app_id)
+            assert launched.result == "OK", f"Unexpected launch result: {launched!r}"
+            marker = _wait_for_launch_marker(storage_api, storage_path, token)
+            assert marker["data"]["integration_launch_count"] == "1", (
+                f"App should execute exactly once: {marker!r}"
+            )
+            _wait_for_launcher_start(persistent_cli_connection)
+
+    @allure.title("JS launch is allowed from screens with equal or lower priority")
+    @pytest.mark.parametrize(
+        "screen,app_id",
+        [("busy", "busy"), ("settings", "settings_menu"), ("apps", "apps_menu")],
+    )
+    def test_launch_from_nonblocking_screen(
+        self,
+        apps_api,
+        storage_api,
+        input_api,
+        persistent_cli_connection,
+        test_app_id,
+        priority_test_app,
+        screen,
+        app_id,
+    ):
+        storage_path, token = priority_test_app
+        with allure.step(f"Open {screen} with the timer stopped"):
+            response = input_api.send_key(screen)
+            assert response.status_code == 200, (
+                f"Failed to select {screen}: {response.status_code}, {response.text!r}"
+            )
+            _wait_for_native_app(persistent_cli_connection, app_id)
+
+        with allure.step("Launch JS and verify its script actually runs"):
+            response = apps_api.launch(test_app_id)
+            assert response.result == "OK", f"Unexpected launch result: {response!r}"
+            marker = _wait_for_launch_marker(storage_api, storage_path, token)
+            assert marker["data"]["integration_launch_count"] == "1", (
+                f"Unexpected launch count: {marker!r}"
+            )
+            _wait_for_launcher_start(persistent_cli_connection)
 
     @allure.title("POST /api/apps/launch starts and quit stops a JS app")
     def test_launch_and_quit_app(

@@ -31,15 +31,19 @@ static void js_app_launcher_scene_run_console_out_callback(
     JsRunnerConsoleSeparator separator,
     void* context) {
     UNUSED(separator);
-    UNUSED(context);
+    JsAppLauncher* instance = context;
+
+    const JsAppLauncherSceneRun* scene_data =
+        scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdRun);
+    const char* app_id = scene_data->js_app_id;
 
     // TODO: Better logging ?
     if(severity == JsRunnerConsoleSeverityLog) {
-        FURI_LOG_D(TAG, "%.*s", size, buf);
+        FURI_LOG_D(app_id, "%.*s", size, buf);
     } else if(severity == JsRunnerConsoleSeverityInfo) {
-        FURI_LOG_I(TAG, "%.*s", size, buf);
+        FURI_LOG_I(app_id, "%.*s", size, buf);
     } else if(severity == JsRunnerConsoleSeverityError) {
-        FURI_LOG_E(TAG, "%.*s", size, buf);
+        FURI_LOG_E(app_id, "%.*s", size, buf);
     }
 }
 
@@ -154,16 +158,11 @@ static bool js_app_launcher_scene_run_start_app(JsAppLauncher* instance) {
     data->js_error = JsRunnerErrorUnknown;
 
     do {
-        JsAppInfo js_info;
-
-        if(!js_app_get_info(instance->js_app, &js_info)) {
-            break;
-        }
-
         js_app_launcher_scene_run_init_widgets(instance);
         js_app_launcher_scene_run_init_input(instance);
 
-        const JsAppManifestInfo* js_manifest = &js_info.manifest;
+        const JsAppInfo* js_info = &instance->js_app_info;
+        const JsAppManifestInfo* js_manifest = &js_info->manifest;
         const JsRunnerContextInitResult init_result = js_runner_context_alloc(
             runner,
             js_manifest->id,
@@ -181,7 +180,7 @@ static bool js_app_launcher_scene_run_start_app(JsAppLauncher* instance) {
 
         const JsRunnerRunResult run_result = js_runner_run(
             data->js_runner_handle,
-            js_info.path.entry,
+            js_info->path.entry,
             js_app_launcher_scene_run_event_callback,
             instance);
 
@@ -219,7 +218,9 @@ static void js_app_launcher_scene_run_clear_canvas(JsAppLauncher* instance) {
 
 static void js_app_launcher_scene_run_on_enter(void* context) {
     furi_assert(context);
+
     JsAppLauncher* instance = context;
+    furi_check(instance->js_app);
 
     if(!js_app_launcher_scene_run_start_app(instance)) {
         scene_manager_next_scene(instance->scene_manager, JsAppLauncherSceneIdError);

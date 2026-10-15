@@ -15,6 +15,7 @@ typedef enum JsAppInstallerError {
     JsAppInstallerErrorNone = 0,
     JsAppInstallerErrorUnpack,
     JsAppInstallerErrorManifest,
+    JsAppInstallerErrorApiVersion,
     JsAppInstallerErrorInstall,
 
     JsAppInstallerErrorMax

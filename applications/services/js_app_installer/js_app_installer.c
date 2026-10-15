@@ -3,6 +3,7 @@
 
 #include <toolbox/tar/tar_archive.h>
 #include <storage/storage.h>
+#include <web_server/web_server.h>
 #include <js_app/js_app.h>
 #include <js_app/js_app_registry.h>
 #include <storage_utils/dir_walk.h>
@@ -41,9 +42,12 @@ static uint32_t gen_install_key(void) {
 static bool
     find_app_folder(JsAppInstaller* instance, Storage* storage, JsAppInstallerStageResult* result) {
     bool found = false;
+    JsAppInstallerError error = JsAppInstallerErrorManifest;
     DirWalk* walk = dir_walk_alloc(storage);
+
     dir_walk_set_recursive(walk, false);
     dir_walk_set_filter_cb(walk, dir_walk_is_dir_callback, NULL);
+
     do {
         if(!dir_walk_open(walk, JS_APP_STAGING_PATH)) {
             FURI_LOG_E(TAG, "Cannot open " JS_APP_STAGING_PATH);
@@ -52,32 +56,47 @@ static bool
 
         FuriString* path = furi_string_alloc();
         JsApp* app = js_app_alloc();
+
         while(!found && dir_walk_read(walk, path, NULL) == DirWalkOK) {
-            if(js_app_load_from_directory(app, furi_string_get_cstr(path))) {
-                FURI_LOG_I(TAG, "Found app at %s", furi_string_get_cstr(path));
-
-                JsAppInfo info;
-                if(js_app_get_info(app, &info)) {
-                    instance->staged_install_key = gen_install_key();
-                    instance->staged_app_path = furi_string_alloc_set(path);
-
-                    result->staged_app = app;
-                    app = NULL;
-
-                    result->install_key = instance->staged_install_key;
-                    result->error = JsAppInstallerErrorNone;
-                    result->installed_app = js_app_registry_get_app(info.manifest.id);
-
-                    found = true;
-                }
+            if(!js_app_load_from_directory(app, furi_string_get_cstr(path))) {
+                continue;
             }
+
+            FURI_LOG_I(TAG, "Found app at %s", furi_string_get_cstr(path));
+
+            JsAppInfo info;
+            if(!js_app_get_info(app, &info)) {
+                break;
+            }
+
+            if(!web_server_is_api_version_compatible(&info.manifest.api_version)) {
+                error = JsAppInstallerErrorApiVersion;
+                break;
+            }
+
+            instance->staged_install_key = gen_install_key();
+            instance->staged_app_path = furi_string_alloc_set(path);
+
+            result->staged_app = app;
+            app = NULL;
+
+            result->install_key = instance->staged_install_key;
+            result->installed_app = js_app_registry_get_app(info.manifest.id);
+
+            error = JsAppInstallerErrorNone;
+            found = true;
         }
+
         furi_string_free(path);
         if(app) {
             js_app_free(app);
         }
+
     } while(false);
+
     dir_walk_free(walk);
+
+    result->error = error;
     return found;
 }
 
@@ -116,7 +135,7 @@ static void handle_stage(JsAppInstaller* instance, JsAppInstallerMsg* message) {
 
             if(!find_app_folder(instance, storage, result)) {
                 FURI_LOG_E(TAG, "Cannot find a valid application folder");
-                result->error = JsAppInstallerErrorManifest;
+                // result->error is set inside the function
                 break;
             }
         } while(false);
