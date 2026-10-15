@@ -355,6 +355,16 @@ static jerry_value_t engine_halt_callback(void* user_p) {
     }
 }
 
+static bool parser_halt_callback(void* user_p) {
+    JsRunnerApp* app = user_p;
+    if(app->should_terminate) {
+        JS_TRACE("terminate!");
+        return true;
+    } else {
+        return false;
+    }
+}
+
 void js_runner_add_fetch_thread(JsRunnerApp* app, JsFetch* fetch) {
     JS_TRACE("Add fetch thread");
     for(size_t i = 0; i != FetchArray_size(app->fetch.fetches); ++i) {
@@ -408,6 +418,7 @@ static int32_t app_thread_callback(void* context) {
 
     jerry_init(JERRY_INIT_EMPTY);
     jerry_halt_handler(1, engine_halt_callback, &app);
+    jerry_parser_halt_handler(parser_halt_callback, &app);
     jerry_arraybuffer_allocator(NULL, arraybuffer_free_callback, NULL);
     jerry_string_external_on_free(external_string_free_callback);
 
