@@ -110,6 +110,10 @@ static void apps_menu_scene_main_on_enter(void* context) {
 
         widget_set_visible(nav_bar_get_base(instance->back_nav_bar), true);
     });
+
+    if(AppIdArray_empty_p(data->app_ids)) {
+        scene_manager_next_scene(instance->scene_manager, AppsMenuSceneIdEmpty);
+    }
 }
 
 static void apps_menu_scene_main_on_exit(void* context) {

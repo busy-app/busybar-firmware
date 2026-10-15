@@ -399,6 +399,14 @@ typedef struct {
     TarArchiveNameConverter converter;
 } TarArchiveDirectoryOpParams;
 
+static bool create_parent_path(Storage* storage, const char* dst_path) {
+    FuriString* dirname = furi_string_alloc();
+    path_extract_dirname(dst_path, dirname);
+    bool result = storage_simply_mkpath(storage, furi_string_get_cstr(dirname));
+    furi_string_free(dirname);
+    return result;
+}
+
 static bool archive_extract_current_file(TarArchive* archive, const char* dst_path) {
     mtar_t* tar = &archive->tar;
     File* out_file = storage_file_alloc(archive->storage);
@@ -408,10 +416,15 @@ static bool archive_extract_current_file(TarArchive* archive, const char* dst_pa
     uint8_t n_tries = FILE_OPEN_NTRIES;
     do {
         while(n_tries-- > 0) {
+            if(!create_parent_path(archive->storage, dst_path)) {
+                FURI_LOG_W(
+                    TAG, "Failed to create parent path '%s', retries: %d", dst_path, n_tries);
+                continue;
+            }
             if(storage_file_open(out_file, dst_path, FSAM_WRITE, FSOM_CREATE_ALWAYS)) {
                 break;
             }
-            FURI_LOG_W(TAG, "Failed to open '%s', reties: %d", dst_path, n_tries);
+            FURI_LOG_W(TAG, "Failed to open '%s', retries: %d", dst_path, n_tries);
             storage_file_close(out_file);
             furi_delay_ms(FILE_OPEN_RETRY_DELAY);
         }
@@ -462,7 +475,7 @@ static int archive_extract_foreach_cb(mtar_t* tar, const mtar_header_t* header, 
         path_concat(op_params->work_dir, header->name, full_extracted_fname);
 
         bool create_res =
-            storage_simply_mkdir(archive->storage, furi_string_get_cstr(full_extracted_fname));
+            storage_simply_mkpath(archive->storage, furi_string_get_cstr(full_extracted_fname));
         furi_string_free(full_extracted_fname);
         return create_res ? 0 : -1;
     }

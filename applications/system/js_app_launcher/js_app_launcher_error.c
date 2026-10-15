@@ -18,6 +18,18 @@ static const JsAppLauncherErrorDesc js_app_launcher_error_descs[JsAppLauncherErr
                     .back = "Try to restart or reinstall it",
                 },
         },
+    [JsAppLauncherErrorApiVersionMismatch] =
+        {
+            .primary =
+                {
+                    .front = "App incompatible,\nupdate firmware.",
+                    .back = "App not compatible",
+                },
+            .auxiliary =
+                {
+                    .back = "Update the firmware",
+                },
+        },
     [JsAppLauncherErrorSettingsSchemaMissing] =
         {
             .primary =
