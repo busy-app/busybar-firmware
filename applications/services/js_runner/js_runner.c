@@ -674,6 +674,7 @@ static void run_file_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
     app->script_evaluation_done = false;
 
     bool unlocked = false;
+    bool set_idle_flag = false;
     JsRunnerError ret = JsRunnerErrorNone;
     Storage* storage = furi_record_open(RECORD_STORAGE);
     File* f = storage_file_alloc(storage);
@@ -707,6 +708,7 @@ static void run_file_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
         furi_event_flag_clear(app->is_idle, JS_RUNNER_APP_FLAG_IDLE);
         unlock_with_result(cmd, JsRunnerErrorNone);
         unlocked = true;
+        set_idle_flag = true;
 
         jerry_parse_options_t parse_options = {
             .options = JERRY_PARSE_HAS_SOURCE_NAME | JERRY_PARSE_MODULE,
@@ -743,9 +745,10 @@ static void run_file_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
                         app, JsRunnerEventTypeScriptFinished, JsRunnerErrorParseException);
                 }
                 jerry_value_free(link_result);
-                ret = JsRunnerErrorParseException;
                 break;
             }
+
+            set_idle_flag = false;
 
             js_runner_notify(app, JsRunnerEventTypeScriptStarted, JsRunnerErrorNone);
 
@@ -773,6 +776,9 @@ static void run_file_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
 
     if(!unlocked) {
         unlock_with_result(cmd, ret);
+    }
+    if(set_idle_flag) {
+        furi_event_flag_set(app->is_idle, JS_RUNNER_APP_FLAG_IDLE);
     }
 }
 
