@@ -505,45 +505,36 @@ class TestDrawBusyTimerTransitions:
 
         The busy_state_guard fixture restores the original snapshot after the test.
         """
-        def _set(snapshot_type: str, is_paused: bool = False):
-            body_snapshot: dict
-            if snapshot_type == "NOT_STARTED":
-                body_snapshot = {"type": "NOT_STARTED"}
-            else:
-                body_snapshot = {
-                    "type": "INFINITE",
-                    "card_id": "00000000-0000-0000-0000-000000000001",
-                    "is_paused": is_paused,
-                }
-            body_snapshot["busy_bar_settings"] = busy_state_guard.get(
-                "snapshot", {}
-            ).get("busy_bar_settings", {})
-            body = {
-                "snapshot": body_snapshot,
-                "snapshot_timestamp_ms": next_timestamp(api_session, web_base_url),
-            }
-            r = api_session.put(
-                f"{web_base_url}/api/busy/snapshot", json=body, timeout=10
-            )
-            r.raise_for_status()
-            time.sleep(1.0)
-
         with allure.step(
             "1. Set NOT_STARTED (loader priority 9) → draw 50 must pass (50 > 9)"
         ):
-            _set("NOT_STARTED")
+            _set_busy_snapshot(
+                api_session, web_base_url, busy_state_guard, "NOT_STARTED"
+            )
             resp = _simple_draw(assets_api, priority=DEFAULT_ELEMENT_PRIORITY)
             assets_api.assert_status(resp, 200)
 
         with allure.step(
             "2. Activate timer (loader priority 101) → draw 50 must be blocked"
         ):
-            _set("INFINITE", is_paused=False)
+            _set_busy_snapshot(
+                api_session,
+                web_base_url,
+                busy_state_guard,
+                "INFINITE",
+                is_paused=False,
+            )
             resp = _simple_draw(assets_api, priority=DEFAULT_ELEMENT_PRIORITY)
             assets_api.assert_status(resp, 409)
 
         with allure.step("3. Pause timer → draw 50 must still not pass"):
-            _set("INFINITE", is_paused=True)
+            _set_busy_snapshot(
+                api_session,
+                web_base_url,
+                busy_state_guard,
+                "INFINITE",
+                is_paused=True,
+            )
             resp = _simple_draw(assets_api, priority=DEFAULT_ELEMENT_PRIORITY)
             assets_api.assert_status(resp, 409)
 
