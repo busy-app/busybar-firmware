@@ -735,7 +735,7 @@ static void run_file_cmd_handler(JsRunnerApp* app, JsRunnerAppCommand* cmd) {
 
             jerry_value_t link_result = jerry_module_link(parse_result, NULL, NULL);
             if(jerry_value_is_exception(link_result)) {
-                if(js_exception_is_null(parse_result)) {
+                if(js_exception_is_null(link_result)) {
                     FURI_LOG_E(TAG, "Error linking modules: possibly out of memory");
                     js_runner_notify(
                         app, JsRunnerEventTypeScriptFinished, JsRunnerErrorOutOfMemory);
