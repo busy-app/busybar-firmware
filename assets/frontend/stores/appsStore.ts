@@ -53,7 +53,7 @@ export interface AppSettingsSchema {
 const APPS_PATH = '/ext/user_assets';
 const SETTINGS_SCHEMA_PATH = 'appmeta/settings.json';
 const ICON_EXTENSION = '.png';
-const STORAGE_READ_PATH_MAX_LENGTH = 63;
+const STORAGE_READ_PATH_MAX_LENGTH = 255;
 
 function toDataUrl (blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
