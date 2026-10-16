@@ -3,7 +3,8 @@
 #include <core/check.h>
 #include <core/string.h>
 
-#define URL_SPECIAL_CHARS "-._~:/?#[]@!$&'()*+,;=%"
+#define URL_HOSTNAME_CHARS "-._"
+#define URL_SPECIAL_CHARS  URL_HOSTNAME_CHARS "~:/?#[]@!$&'()*+,;=%"
 
 struct Url {
     FuriString* source;
@@ -289,8 +290,22 @@ static bool url_encode_protocol(const StringSlice* part, FuriString* out_str) {
 }
 
 static bool url_encode_hostname(const StringSlice* part, FuriString* out_str) {
-    furi_string_cat_printf(out_str, "%.*s", part->length, part->first_char);
-    return true;
+    bool success = true;
+
+    const char* part_str = part->first_char;
+    const size_t part_len = part->length;
+
+    for(size_t i = 0; i < part_len; ++i) {
+        const unsigned char c = part_str[i];
+        if((c == '\0') || (c > 0x7F) || !(isalnum(c) || (strchr(URL_HOSTNAME_CHARS, c) != NULL))) {
+            success = false;
+            break;
+        }
+
+        furi_string_push_back(out_str, tolower(c));
+    }
+
+    return success;
 }
 
 static bool url_encode_port(const StringSlice* part, FuriString* out_str) {
@@ -320,10 +335,10 @@ static bool url_encode_percent(const StringSlice* part, FuriString* out_str) {
     for(size_t i = 0; i < part_len; ++i) {
         const unsigned char c = part_str[i];
 
-        if((c > 0) && (c <= 0x7F) && (isalnum(c) || (strchr(URL_SPECIAL_CHARS, c) != NULL))) {
-            furi_string_push_back(out_str, c);
-        } else {
+        if((c == '\0') || (c > 0x7F) || !(isalnum(c) || (strchr(URL_SPECIAL_CHARS, c) != NULL))) {
             furi_string_cat_printf(out_str, "%%%02X", c);
+        } else {
+            furi_string_push_back(out_str, c);
         }
     }
 
