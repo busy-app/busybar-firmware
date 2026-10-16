@@ -48,7 +48,7 @@ static bool busy_scene_next_input_callback(const InputEvent* event, void* contex
     }
 
     if(consumed) {
-        busy_send_custom_event(instance, custom_event);
+        busy_send_custom_event_nonblocking(instance, custom_event);
     }
 
     return consumed;
