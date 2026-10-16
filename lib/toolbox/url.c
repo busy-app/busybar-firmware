@@ -253,13 +253,12 @@ static bool url_parse_parts(StringSlice* parts, const char* source_str, size_t s
 
     for(UrlParseStepIdx step_idx = UrlParseStepIdxProtocol; step_idx < UrlParseStepIdxMax;) {
         const UrlParseStep* step = &url_parse_steps[step_idx];
-        StringSlice* part = &parts[step->part_id];
 
-        UrlParseStepInfo step_info;
-        url_find_next_step(source_str, offset, step->next_step_idxs, &step_info);
+        UrlParseStepInfo next_step_info;
+        url_find_next_step(source_str, offset, step->next_step_idxs, &next_step_info);
 
-        UrlParseStepIdx next_step_idx = step_info.idx;
-        const size_t part_offset = step_info.part_offset;
+        UrlParseStepIdx next_step_idx = next_step_info.idx;
+        const size_t part_offset = next_step_info.part_offset;
 
         size_t new_offset = part_offset;
 
@@ -281,6 +280,8 @@ static bool url_parse_parts(StringSlice* parts, const char* source_str, size_t s
             success = false;
             break;
         }
+
+        StringSlice* part = &parts[step->part_id];
 
         part->first_char = source_str + offset;
         part->length = part_offset - offset;
@@ -432,6 +433,8 @@ bool url_parse(Url* instance, const char* source_str) {
         if(!url_parse_parts(tmp_parts, source_str, source_len)) {
             break;
         }
+
+        furi_string_reserve(instance->source, source_len);
 
         if(!url_encode_parts(tmp_parts, instance->source)) {
             break;
