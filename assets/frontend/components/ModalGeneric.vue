@@ -8,11 +8,11 @@
     "
     :title="props.title"
     :ui="{
-      content: `${props.wide ? 'max-w-[640px]' : ''}`,
+      content: `${props.wide ? 'max-w-[640px]' : ''} ${props.contentClass || ''}`,
       description: 'hidden',
-      header: 'min-h-20',
+      header: props.hideHeader ? 'hidden' : 'min-h-20',
       title: 'text-xl flex items-center gap-2',
-      body: `${props.stickyActions ? 'pt-0 sm:pt-0 sm:px-5 sm:pb-5 overflow-hidden flex flex-col min-h-0' : 'pt-0 sm:pt-0 sm:px-5 sm:pb-5 overflow-y-auto'}`,
+      body: `${props.hideHeader ? 'pt-5 sm:pt-5' : 'pt-0 sm:pt-0'} sm:px-5 sm:pb-5 ${props.stickyActions ? 'overflow-hidden flex flex-col min-h-0' : 'overflow-y-auto'}`,
       close: showCloseButton ? 'flex top-6 end-5' :'hidden'
     }"
   >
@@ -128,7 +128,9 @@ const props = defineProps<{
   primaryActionProps?: ButtonProps;
   secondaryActionProps?: ButtonProps;
   showCloseButton?: boolean;
+  hideHeader?: boolean;
   wide?: boolean;
+  contentClass?: string;
   stickyActions?: boolean;
   noActions?: boolean;
   form?: string;

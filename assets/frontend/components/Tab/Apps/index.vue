@@ -8,6 +8,10 @@
       @update="openUploader(currentApp.id)"
       @deleted="onAppDeleted"
     />
+    <TabAppsEmpty
+      v-else-if="appsStore.loaded && appsStore.apps.length === 0"
+      @add="openUploader()"
+    />
     <TabAppsCard
       v-else
       @add="openUploader()"
@@ -49,10 +53,10 @@ function openUploader (appId?: string) {
 
 function onAppInstalled (app: AppInfo, updated: boolean) {
   toast.add({
-    title: updated ? 'App updated' : 'App added',
+    title: updated ? 'App updated' : 'App installed',
     description: updated
       ? `${app.name} has been updated to version ${app.version}.`
-      : `${app.name} has been added to your BUSY Bar.`,
+      : 'Start it from BUSY Bar or the local web interface.',
     icon: 'i-bi-checkmark-circle-fill',
     color: 'success'
   });

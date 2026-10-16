@@ -36,11 +36,29 @@
       />
     </template>
 
-    <UIcon
+    <div
       v-if="loading"
-      name="i-busy-loader"
-      class="size-6 animate-spin text-muted"
-    />
+      :data-id="`apps-section-${app.id}-settings-loading`"
+      role="status"
+      aria-label="Loading settings"
+      class="flex flex-col gap-1 rounded-group"
+    >
+      <div
+        v-for="width in SKELETON_LABEL_WIDTHS"
+        :key="width"
+        class="flex items-center gap-4 rounded-xl bg-accented/25 p-4 dark:bg-elevated/75"
+      >
+        <div class="flex min-w-0 flex-1 flex-col gap-2 *:bg-accented">
+          <USkeleton
+            class="h-4 rounded-full"
+            :class="width"
+          />
+          <USkeleton class="h-3 w-full max-w-64 rounded-full" />
+        </div>
+
+        <USkeleton class="h-5 w-9 shrink-0 rounded-full bg-accented" />
+      </div>
+    </div>
 
     <div
       v-else-if="schema && settings"
@@ -55,11 +73,57 @@
     </div>
 
     <div
+      v-else-if="loadFailed"
+      :data-id="`apps-section-${app.id}-settings-error`"
+      class="flex flex-col items-center gap-6 py-6"
+    >
+      <div class="flex max-w-[336px] flex-col gap-2 text-center">
+        <div
+          :data-id="`apps-section-${app.id}-settings-error-title`"
+          class="text-xl font-medium text-highlighted"
+        >
+          Couldn't load settings
+        </div>
+      </div>
+
+      <UButton
+        :data-id="`apps-section-${app.id}-settings-retry-button`"
+        label="Try again"
+        icon="i-bi-restart"
+        color="neutral"
+        size="sm"
+        class="w-fit"
+        @click="loadSettings"
+      />
+    </div>
+
+    <div
       v-else
       :data-id="`apps-section-${app.id}-no-settings`"
-      class="text-muted"
+      class="flex flex-col items-center gap-6 py-6"
     >
-      This app has no settings.
+      <div class="flex items-center rounded-full bg-accented/25 p-3.5 dark:bg-[var(--ui-surface-card)]">
+        <UIcon
+          name="i-bi-slider-fill"
+          class="size-7"
+        />
+      </div>
+
+      <div class="flex max-w-[336px] flex-col gap-2 text-center">
+        <div
+          :data-id="`apps-section-${app.id}-no-settings-title`"
+          class="text-xl font-medium text-highlighted"
+        >
+          No settings to adjust
+        </div>
+
+        <div
+          :data-id="`apps-section-${app.id}-no-settings-description`"
+          class="text-muted"
+        >
+          This app doesn't have any settings to configure right now
+        </div>
+      </div>
     </div>
 
     <div class="flex items-center justify-between pt-6">
@@ -124,6 +188,8 @@ const TEXT_BUTTON_UI = {
   leadingIcon: 'text-current'
 };
 
+const SKELETON_LABEL_WIDTHS = ['w-32', 'w-44', 'w-28'];
+
 const SAVE_DELAY = 1500;
 
 let savedSettings = '';
@@ -133,6 +199,7 @@ let saveTimeout: ReturnType<typeof setTimeout> | undefined;
 const appsStore = useAppsStore();
 
 const loading = ref(true);
+const loadFailed = ref(false);
 const settingsSaving = ref(false);
 const deleting = ref(false);
 const showDeleteModal = ref(false);
@@ -144,6 +211,9 @@ const running = computed(() => appsStore.runningAppId === props.app.id);
 const needsRestart = computed(() => running.value && saved.value);
 
 async function loadSettings () {
+  loading.value = true;
+  loadFailed.value = false;
+
   try {
     const loadedSettings = await appsStore.getSettings(props.app.id);
     const loadedSchema = await appsStore.readSettingsSchema(props.app.id);
@@ -153,6 +223,7 @@ async function loadSettings () {
     settings.value = loadedSettings;
   } catch (error) {
     if (httpErrorStatus(error) !== 404) {
+      loadFailed.value = true;
       await handleHTTPError(error, 'Couldn\'t load app settings');
     }
   } finally {
