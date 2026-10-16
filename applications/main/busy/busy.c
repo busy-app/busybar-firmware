@@ -4,7 +4,7 @@
 #define BUSY_NAV_BAR_HEIGHT 20
 
 #define INPUT_QUEUE_SIZE 8
-#define EVENT_QUEUE_SIZE 8
+#define EVENT_QUEUE_SIZE 16
 #define API_QUEUE_SIZE   4
 
 static void busy_input_queue_callback(FuriEventLoopObject* object, void* context) {
