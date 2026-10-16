@@ -5,8 +5,8 @@
 #define URL_TEST_PROTOCOL "http:"
 #define URL_TEST_HOSTNAME "127.0.0.1"
 #define URL_TEST_PORT     "8080"
-#define URL_TEST_PATHNAME "/api/my_endpoint"
-#define URL_TEST_SEARCH   "?my_arg=awesome&hello=there"
+#define URL_TEST_PATHNAME "/api/my_endpoint:v1"
+#define URL_TEST_SEARCH   "?my_arg=awesome&hello=there&time=12:00&next=/a/b"
 
 #define URL_TEST_REQUIRED     URL_TEST_PROTOCOL "//" URL_TEST_HOSTNAME
 #define URL_TEST_USECASE      URL_TEST_REQUIRED URL_TEST_PATHNAME
@@ -184,6 +184,12 @@ MU_TEST(url_encode_port_test) {
     mu_check(url_parse(url, URL_TEST_REQUIRED ":" URL_TEST_PORT "/"));
     URL_CHECK_PART(url, UrlPartIdPort, URL_TEST_PORT);
 
+    mu_check(url_parse(url, URL_TEST_REQUIRED ":" URL_TEST_PORT URL_TEST_SEARCH));
+    URL_CHECK_PART(url, UrlPartIdHostname, URL_TEST_HOSTNAME);
+    URL_CHECK_PART(url, UrlPartIdPort, URL_TEST_PORT);
+    URL_CHECK_PART(url, UrlPartIdPathname, "");
+    URL_CHECK_PART(url, UrlPartIdSearch, URL_TEST_SEARCH);
+
     url_free(url);
 }
 
@@ -220,6 +226,12 @@ MU_TEST(url_encode_search_test) {
 
     mu_check(url_parse(url, URL_TEST_USECASE "?a=b&c=d/e?f@h#frag"));
     URL_CHECK_PART(url, UrlPartIdSearch, "?a=b&c=d/e?f@h#frag");
+
+    mu_check(url_parse(url, URL_TEST_REQUIRED URL_TEST_SEARCH));
+    URL_CHECK_PART(url, UrlPartIdHostname, URL_TEST_HOSTNAME);
+    URL_CHECK_PART(url, UrlPartIdPort, "");
+    URL_CHECK_PART(url, UrlPartIdPathname, "");
+    URL_CHECK_PART(url, UrlPartIdSearch, URL_TEST_SEARCH);
 
     url_free(url);
 }

@@ -71,6 +71,7 @@ static const UrlParseStep url_parse_steps[] = {
         .delim = ":",
         .next_step_idxs = (const UrlParseStepIdx[]) {
             UrlParseStepIdxPathname,
+            UrlParseStepIdxSearch,
             UrlParseStepIdxMax,
         },
         .encode_callback = url_encode_port,
@@ -184,74 +185,86 @@ static void url_calc_compound_parts(Url* instance) {
     }
 }
 
+static bool url_is_delim_at(const char* str, const char* delim) {
+    const size_t delim_len = strlen(delim);
+    return (delim_len != 0) && (strncmp(str, delim, delim_len) == 0);
+}
+
+static bool url_is_any_step_required(const UrlParseStepIdx* step_idxs) {
+    for(uint32_t i = 0; step_idxs[i] != UrlParseStepIdxMax; ++i) {
+        if(url_parse_steps[step_idxs[i]].is_required) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+static UrlParseStepIdx url_find_next_step(
+    const UrlParseStepIdx* candidate_idxs,
+    const char* source_str,
+    size_t offset,
+    size_t* delim_idx) {
+    const char* p;
+
+    for(p = source_str + offset; *p != '\0'; ++p) {
+        for(uint32_t i = 0; candidate_idxs[i] != UrlParseStepIdxMax; ++i) {
+            if(url_is_delim_at(p, url_parse_steps[candidate_idxs[i]].delim)) {
+                *delim_idx = p - source_str;
+                return candidate_idxs[i];
+            }
+        }
+    }
+
+    *delim_idx = p - source_str;
+    return UrlParseStepIdxMax;
+}
+
 static bool url_parse_parts(StringSlice* parts, const char* source_str, size_t source_len) {
     bool success = true;
 
     size_t offset = 0;
 
-    for(UrlParseStepIdx step_idx = UrlParseStepIdxProtocol; step_idx != UrlParseStepIdxMax;) {
+    for(UrlParseStepIdx step_idx = UrlParseStepIdxProtocol; step_idx < UrlParseStepIdxMax;) {
         const UrlParseStep* step = &url_parse_steps[step_idx];
-        const UrlParseStepIdx* next_step_idxs = step->next_step_idxs;
-
         StringSlice* part = &parts[step->part_id];
 
-        for(uint32_t i = 0;; ++i) {
-            const UrlParseStepIdx next_step_idx = next_step_idxs[i];
-            step_idx = next_step_idx;
+        size_t part_idx;
+        const UrlParseStepIdx next_step_idx =
+            url_find_next_step(step->next_step_idxs, source_str, offset, &part_idx);
 
-            size_t part_idx, new_offset;
+        size_t new_offset = part_idx;
 
-            if(next_step_idx != UrlParseStepIdxMax) {
-                const UrlParseStep* next_step = &url_parse_steps[next_step_idx];
-                const char* next_delim = next_step->delim;
+        if(next_step_idx != UrlParseStepIdxMax) {
+            const UrlParseStep* next_step = &url_parse_steps[next_step_idx];
+            new_offset += strlen(next_step->delim);
 
-                const char* delim_p = strstr(source_str + offset, next_delim);
-                if(delim_p == NULL) {
-                    if(next_step->is_required) {
-                        step_idx = UrlParseStepIdxMax;
-                        success = false;
-                        break;
-                    }
-
-                    continue;
-                }
-
-                part_idx = delim_p - source_str;
-                new_offset = part_idx + strlen(next_delim);
-
-                if(new_offset == source_len) {
-                    if(next_step->is_required) {
-                        step_idx = UrlParseStepIdxMax;
-                        success = false;
-                        break;
-                    }
-                }
-
-            } else {
-                part_idx = source_len;
-                new_offset = source_len;
+            if(next_step->is_required && (new_offset == source_len)) {
+                success = false;
+                break;
             }
 
-            if(part_idx == offset) {
-                if(step->is_required) {
-                    step_idx = UrlParseStepIdxMax;
-                    success = false;
-                    break;
-                }
-            }
-
-            part->first_char = source_str + offset;
-            part->length = part_idx - offset;
-
-            offset = new_offset;
+        } else if(url_is_any_step_required(step->next_step_idxs)) {
+            success = false;
             break;
         }
 
+        if(step->is_required && (part_idx == offset)) {
+            success = false;
+            break;
+        }
+
+        part->first_char = source_str + offset;
+        part->length = part_idx - offset;
+
         if(step->is_include_delim) {
-            const uint8_t delim_len = strlen(step->delim);
+            const size_t delim_len = strlen(step->delim);
             part->first_char -= delim_len;
             part->length += delim_len;
         }
+
+        offset = new_offset;
+        step_idx = next_step_idx;
     }
 
     return success;
