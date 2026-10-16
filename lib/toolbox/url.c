@@ -214,30 +214,36 @@ typedef struct {
     size_t part_offset;
 } UrlParseStepInfo;
 
+static UrlParseStepIdx
+    url_find_step_idx(const char* source_str, const UrlParseStepIdx* step_idxs) {
+    UrlParseStepIdx step_idx = UrlParseStepIdxMax;
+
+    for(uint32_t i = 0;; ++i) {
+        step_idx = step_idxs[i];
+        if(step_idx == UrlParseStepIdxMax) {
+            break;
+        }
+
+        const UrlParseStep* step = &url_parse_steps[step_idx];
+        if(url_find_delim(source_str, step->delim)) {
+            break;
+        }
+    }
+
+    return step_idx;
+}
+
 static void url_find_next_step(
     const char* source_str,
     size_t offset,
     const UrlParseStepIdx* step_idxs,
     UrlParseStepInfo* step_info) {
-    bool is_found = false;
     UrlParseStepIdx step_idx = UrlParseStepIdxMax;
 
     const char* p;
     for(p = source_str + offset; *p != '\0'; ++p) {
-        for(uint32_t i = 0;; ++i) {
-            step_idx = step_idxs[i];
-            if(step_idx == UrlParseStepIdxMax) {
-                break;
-            }
-
-            const UrlParseStep* step = &url_parse_steps[step_idx];
-            if(url_find_delim(p, step->delim)) {
-                is_found = true;
-                break;
-            }
-        }
-
-        if(is_found) {
+        step_idx = url_find_step_idx(p, step_idxs);
+        if(step_idx != UrlParseStepIdxMax) {
             break;
         }
     }
