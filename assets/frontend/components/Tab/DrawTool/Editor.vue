@@ -111,6 +111,36 @@
             class="relative w-full min-h-[400px] rounded-[28px]"
           >
             <div class="relative w-full overflow-hidden rounded-2xl bg-neutral-500 dark:bg-neutral-950">
+              <div
+                v-if="es.hasVideoShapes"
+                class="absolute right-2 top-2 z-40"
+              >
+                <UTooltip
+                  :delay-duration="80"
+                  :content="{
+                    side: 'left',
+                    sideOffset: 12
+                  }"
+                  text="Frame rate for all clips on the canvas"
+                >
+                  <USelect
+                    data-id="draw-tool-timeline-fps"
+                    :model-value="es.timelineFps"
+                    :items="timelineFpsOptions"
+                    icon="i-ri-speed-line"
+                    color="neutral"
+                    variant="soft"
+                    class="h-9 rounded-xl bg-accented/25 hover:bg-accented/75 focus:bg-accented/25 focus-visible:bg-accented/75"
+                    :ui="{
+                      base: 'text-default dark:text-highlighted',
+                      leadingIcon: 'text-default dark:text-dimmed',
+                      trailingIcon: 'text-default dark:text-dimmed'
+                    }"
+                    @update:model-value="value => es.setTimelineFps(Number(value))"
+                  />
+                </UTooltip>
+              </div>
+
               <div class="absolute left-2 top-2 z-40">
                 <UPopover
                   :content="{
@@ -698,56 +728,6 @@
           </template>
         </UPopover>
 
-        <UPopover
-          v-if="es.hasVideoShapes"
-          :content="{
-            side: 'top',
-            sideOffset: 16
-          }"
-          :ui="{
-            content: 'rounded-xl bg-surface-container ring-accented/75'
-          }"
-        >
-          <UTooltip
-            :delay-duration="80"
-            :content="{
-              side: 'top',
-              sideOffset: 16
-            }"
-            text="Frame rate"
-          >
-            <UButton
-              data-id="draw-tool-timeline-fps"
-              color="neutral"
-              variant="ghost"
-              square
-              :class="toolbarIconButtonClass"
-            >
-              <UIcon
-                name="i-ri-speed-line"
-                class="size-6"
-              />
-            </UButton>
-          </UTooltip>
-
-          <template #content>
-            <div class="w-60 p-3">
-              <UFormField
-                label="Frame rate, fps"
-                help="All clips on the canvas play and export at this rate"
-                :ui="{ help: 'text-xs' }"
-              >
-                <USelect
-                  :model-value="es.timelineFps"
-                  :items="timelineFpsOptions"
-                  class="w-full"
-                  @update:model-value="value => es.setTimelineFps(Number(value))"
-                />
-              </UFormField>
-            </div>
-          </template>
-        </UPopover>
-
         <UTooltip
           :delay-duration="80"
           :content="{
@@ -1307,7 +1287,7 @@ const timelineFpsOptions = computed(() => {
     .filter(value => value === es.timelineFps || es.canSetTimelineFps(value))
     .sort((a, b) => a - b);
 
-  return values.map(value => ({ label: String(value), value }));
+  return values.map(value => ({ label: `${value} fps`, value }));
 });
 
 const workspaceBackgroundConfig = computed(() => ({
