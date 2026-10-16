@@ -266,6 +266,11 @@ static bool url_parse_parts(StringSlice* parts, const char* source_str, size_t s
         UrlParseStepIdx next_step_idx = next_step_info.idx;
         const size_t part_offset = next_step_info.part_offset;
 
+        if(step->is_required && (part_offset == offset)) {
+            success = false;
+            break;
+        }
+
         size_t new_offset = part_offset;
 
         if(next_step_idx != UrlParseStepIdxMax) {
@@ -278,11 +283,6 @@ static bool url_parse_parts(StringSlice* parts, const char* source_str, size_t s
             }
 
         } else if(url_is_any_step_required(step->next_step_idxs)) {
-            success = false;
-            break;
-        }
-
-        if(step->is_required && (part_offset == offset)) {
             success = false;
             break;
         }
