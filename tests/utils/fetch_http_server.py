@@ -65,7 +65,8 @@ class FetchRequestHandler(http.server.BaseHTTPRequestHandler):
         request_path = parsed_url.path
         content_length = int(self.headers.get("Content-Length", "0"))
         body = self.rfile.read(content_length) if content_length else b""
-        headers = {name.lower(): value for name, value in self.headers.items()}
+        header_items = list(self.headers.raw_items())
+        headers = {name.lower(): value for name, value in header_items}
         peer_certificate = None
         tls_version = None
         if isinstance(self.connection, ssl.SSLSocket):
@@ -77,6 +78,7 @@ class FetchRequestHandler(http.server.BaseHTTPRequestHandler):
                 "path": self.path,
                 "body": body,
                 "headers": headers,
+                "header_items": header_items,
                 "peer_certificate": peer_certificate,
                 "tls_version": tls_version,
             }

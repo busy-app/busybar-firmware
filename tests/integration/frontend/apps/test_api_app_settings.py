@@ -10,6 +10,7 @@ import pytest
 
 from clients.api import AppsAPI, AssetsAPI, StorageAPI
 from utils.js_app_package import build_app_package
+from utils.wait import wait_for
 
 
 SETTINGS_VERSION = 7
@@ -176,6 +177,40 @@ def _install(apps_api: AppsAPI, package: bytes) -> None:
     )
 
 
+def _settings_access_script(app_id: str, other_app_id: str) -> bytes:
+    own_url = json.dumps(
+        f"http://127.0.0.1/api/apps/settings?app_id={app_id}"
+    )
+    other_url = json.dumps(
+        f"http://127.0.0.1/api/apps/settings?app_id={other_app_id}"
+    )
+    return (
+        "async function checkSettingsAccess() {\n"
+        f"    const own = await fetch({own_url});\n"
+        "    await own.text();\n"
+        f"    const other = await fetch({other_url});\n"
+        "    await other.text();\n"
+        "    localStorage.setItem('settings_own_status', String(own.status));\n"
+        "    localStorage.setItem('settings_other_status', String(other.status));\n"
+        "}\n"
+        "checkSettingsAccess().catch(function(error) {\n"
+        "    localStorage.setItem('settings_error', String(error));\n"
+        "});\n"
+        "globalThis.integrationTestUnbind = listen('input', function() {});\n"
+    ).encode("utf-8")
+
+
+def _read_local_storage(storage_api: StorageAPI, path: str) -> dict | None:
+    response = storage_api.read(path)
+    if response.status_code == 404:
+        return None
+    assert response.status_code == 200, (
+        f"Local storage returned HTTP {response.status_code}: "
+        f"{response.text[:200]!r}"
+    )
+    return response.json()
+
+
 def _assert_storage_document(
     storage_api: StorageAPI,
     path: str,
@@ -218,6 +253,85 @@ def settings_app(
 @pytest.mark.api
 @pytest.mark.frontend
 class TestAppSettingsAPI:
+    @allure.title("JS settings access is limited to the running application")
+    def test_js_settings_access_requires_running_app_id(
+        self,
+        apps_api: AppsAPI,
+        storage_api: StorageAPI,
+    ):
+        running_app_id = f"test.settings.js.{uuid.uuid4().hex[:8]}"
+        other_app_id = f"test.settings.other.{uuid.uuid4().hex[:8]}"
+        local_storage_path = (
+            f"/ext/apps_data/jsrunner/{running_app_id}.localstorage.json"
+        )
+        running_package, _ = build_app_package(
+            running_app_id,
+            main_script=_settings_access_script(running_app_id, other_app_id),
+            extra_files={
+                f"{running_app_id}/appmeta/settings.json": (
+                    _settings_schema_bytes()
+                )
+            },
+        )
+        other_package, _ = build_app_package(
+            other_app_id,
+            extra_files={
+                f"{other_app_id}/appmeta/settings.json": (
+                    _settings_schema_bytes()
+                )
+            },
+        )
+
+        storage_api.remove_raw(local_storage_path)
+        try:
+            with allure.step("Install two applications with settings schemas"):
+                _install(apps_api, running_package)
+                _install(apps_api, other_package)
+
+            with allure.step("Launch the application that performs the checks"):
+                launched = apps_api.launch_raw(running_app_id)
+                assert launched.status_code == 200, (
+                    f"Failed to launch {running_app_id!r}: "
+                    f"HTTP {launched.status_code}, {launched.text!r}"
+                )
+
+            result = wait_for(
+                "JS settings access result",
+                lambda: _read_local_storage(storage_api, local_storage_path),
+                lambda value: (
+                    isinstance(value, dict)
+                    and isinstance(value.get("data"), dict)
+                    and (
+                        "settings_error" in value["data"]
+                        or (
+                            "settings_own_status" in value["data"]
+                            and "settings_other_status" in value["data"]
+                        )
+                    )
+                ),
+                timeout=15,
+                interval=0.2,
+            )
+            data = result["data"]
+            assert "settings_error" not in data, (
+                f"JS settings access script failed: {data!r}"
+            )
+            assert data["settings_own_status"] == "200", data
+            assert data["settings_other_status"] == "403", data
+        finally:
+            stopped = apps_api.quit_raw()
+            assert stopped.status_code in {200, 409}, (
+                f"Failed to stop settings access app: HTTP "
+                f"{stopped.status_code}, {stopped.text!r}"
+            )
+            for app_id in (running_app_id, other_app_id):
+                cleanup = apps_api.delete_app_raw(app_id)
+                assert cleanup.status_code in {200, 404}, (
+                    f"Failed to clean up {app_id!r}: HTTP "
+                    f"{cleanup.status_code}, {cleanup.text[:200]!r}"
+                )
+            storage_api.remove_raw(local_storage_path)
+
     @allure.title("GET materializes complete application defaults")
     def test_get_materializes_defaults(
         self,

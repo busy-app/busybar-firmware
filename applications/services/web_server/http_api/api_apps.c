@@ -654,6 +654,23 @@ static bool api_apps_settings_callback(
     }
     js_app_free(app);
 
+    if(http_api_is_request_from_js(msg)) {
+        bool is_allowed = false;
+
+        FuriString* running_app_id = furi_string_alloc();
+
+        if(js_app_launcher_get_running_app_id(running_app_id) == JsAppLauncherStatusOk) {
+            is_allowed = furi_string_equal(running_app_id, app_id);
+        }
+
+        furi_string_free(running_app_id);
+
+        if(!is_allowed) {
+            MG_REPLY_FORBIDDEN(conn);
+            return true;
+        }
+    }
+
     JsAppSettingsStorageStatus status;
     JsAppSettingsStorage* storage = js_app_settings_storage_alloc(app_id, &status);
 

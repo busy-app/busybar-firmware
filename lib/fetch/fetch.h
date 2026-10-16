@@ -9,7 +9,7 @@
 #include <toolbox/tls_config.h>
 
 /** Maximum number of additional request headers. */
-#define FETCH_HEADERS_COUNT_MAX (10)
+#define FETCH_HEADERS_COUNT_MAX (12)
 
 #ifdef __cplusplus
 extern "C" {

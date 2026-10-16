@@ -71,7 +71,13 @@ static void js_app_launcher_scene_run_event_callback(const JsRunnerEvent* event,
     if(event->type == JsRunnerEventTypeScriptStarted) {
         js_app_launcher_send_custom_event(instance, JsAppLauncherCustomEventScriptStarted);
     } else if(event->type == JsRunnerEventTypeScriptFinished) {
-        js_app_launcher_send_custom_event(instance, JsAppLauncherCustomEventScriptFinished);
+        if(event->error == JsRunnerErrorNone) {
+            js_app_launcher_send_custom_event(instance, JsAppLauncherCustomEventScriptFinished);
+        } else {
+            FURI_LOG_E(TAG, "Error running JS app: %s", js_runner_get_error_message(event->error));
+            js_app_launcher_send_custom_event(
+                instance, JsAppLauncherCustomEventScriptErrorBase | event->error);
+        }
     }
 }
 
@@ -292,6 +298,13 @@ static bool js_app_launcher_scene_run_on_event(const SceneManagerEvent* event, v
         } else if(event->event == JsAppLauncherCustomEventScriptFinished) {
             js_app_launcher_scene_run_handle_script_finished(instance);
         } else if(event->event == JsAppLauncherCustomEventLongBackPressed) {
+            js_app_launcher_scene_run_handle_script_finished(instance);
+        } else if(
+            (event->event & ~JsAppLauncherCustomEventScriptErrorMask) ==
+            JsAppLauncherCustomEventScriptErrorBase) {
+            JsAppLauncherSceneRun* data =
+                scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdRun);
+            data->js_error = event->event & JsAppLauncherCustomEventScriptErrorMask;
             js_app_launcher_scene_run_handle_script_finished(instance);
         }
 

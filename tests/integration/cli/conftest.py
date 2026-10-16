@@ -3,6 +3,7 @@
 Plain helpers and constants live in utils/cli_helpers.py.
 """
 
+import os
 import re
 import threading
 from dataclasses import dataclass
@@ -20,7 +21,7 @@ from utils.cli_helpers import BLOB_PAYLOAD, TEXT_PAYLOAD, resync
 from utils.fetch_http_server import FetchHTTPServer, FetchRequestHandler
 from utils.fetch_mtls_mqtt_broker import FetchMTLSMQTTBroker
 from utils.fetch_mtls_server import FetchMTLSServer
-from utils.js_test_runner import run_js_case
+from utils.js_test_runner import export_js_case, run_js_case
 from utils.mtls_certificates import generate_ca, generate_intermediate, generate_leaf
 from utils.wait import wait_for
 from utils.wifi_helpers import (
@@ -295,13 +296,18 @@ def device_mtls_identity(persistent_cli_connection) -> DeviceMTLSIdentity:
 
 
 @pytest.fixture(scope="module", autouse=True)
-def cli_debug(persistent_cli_connection):
+def cli_debug(request):
     """Debug mode on for the whole CLI module, and left on afterwards.
 
     The flag lives in NVM and survives reboots, so a suite that turned it off would
     leave the bench without the debug-gated commands (`gpio`, `otp`, `factory_reset`).
     Re-enable on teardown as well: `test_sysctl_debug_toggle` flips it off on purpose.
     """
+    if request.config.getoption("export_js_only"):
+        yield
+        return
+
+    persistent_cli_connection = request.getfixturevalue("persistent_cli_connection")
     persistent_cli_connection.execute_command("sysctl debug 1")
     yield
     persistent_cli_connection.execute_command("sysctl debug 1")
@@ -386,9 +392,27 @@ def tar_seed_dir(persistent_cli_connection, storage_api):
         _rm_rf(cli, path)
 
 
+class JSExportHTTPServer:
+    """URL builder used while exporting scripts without starting a server."""
+
+    def __init__(self):
+        self.base_url = os.getenv(
+            "JS_EXPORT_HTTP_BASE_URL",
+            "http://HOST_IP:PORT",
+        ).rstrip("/")
+
+    def url(self, path):
+        return f"{self.base_url}/{path.lstrip('/')}"
+
+
 @pytest.fixture
-def http_server(persistent_cli_connection):
+def http_server(request):
     """HTTP server on the pytest host, reachable from the device under test."""
+    if request.config.getoption("export_js_only"):
+        yield JSExportHTTPServer()
+        return
+
+    persistent_cli_connection = request.getfixturevalue("persistent_cli_connection")
     host_ip = persistent_cli_connection.tn.sock.getsockname()[0]
     server = FetchHTTPServer((host_ip, 0), FetchRequestHandler)
     server_thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -403,8 +427,12 @@ def http_server(persistent_cli_connection):
 
 
 @pytest.fixture
-def device_wifi_ready(wifi_api: WifiAPI):
+def device_wifi_ready(request):
     """Ensure the device has a connected Wi-Fi interface and usable IP."""
+    if request.config.getoption("export_js_only"):
+        return None
+
+    wifi_api: WifiAPI = request.getfixturevalue("wifi_api")
     with allure.step("Ensure the device is connected to Wi-Fi"):
         initial_status = wifi_api.get_status()
         if initial_status.state == "unknown":
@@ -454,9 +482,50 @@ def device_wifi_ready(wifi_api: WifiAPI):
     return ready_status
 
 
+@pytest.fixture(scope="module")
+def kept_js_script_dir(request):
+    """Persistent per-module directory for scripts retained for debugging."""
+    cli = request.getfixturevalue("persistent_cli_connection")
+    path = f"/ext/js_test_cases/{Path(request.module.__file__).stem}"
+
+    _rm_rf(cli, path)
+    cli.execute_command("storage mkdir /ext/js_test_cases")
+    cli.execute_command(f"storage mkdir {path}")
+    return path
+
+
 @pytest.fixture
-def js_case_runner(persistent_cli_connection, storage_api, storage_dir):
-    """Upload and run an isolated JavaScript assertion case on the device."""
+def js_case_runner(request):
+    """Export a JS case, or upload and run it on the device."""
+    export_dir = request.config.getoption("export_js_only")
+    keep_scripts = request.config.getoption("keep_js_scripts")
+    callspec = getattr(request.node, "callspec", None)
+    parameter_id = getattr(callspec, "id", None)
+
+    def unique_script_name(case_name):
+        if (export_dir or keep_scripts) and parameter_id:
+            return f"{case_name}_{parameter_id}"
+        return case_name
+
+    if export_dir:
+
+        def export_runner(case_name, body, timeout=25):
+            del timeout
+            script_path = export_js_case(
+                export_dir,
+                unique_script_name(case_name),
+                case_name,
+                body,
+            )
+            pytest.skip(f"Exported JavaScript case to {script_path}")
+
+        return export_runner
+
+    persistent_cli_connection = request.getfixturevalue("persistent_cli_connection")
+    storage_api = request.getfixturevalue("storage_api")
+    storage_dir = request.getfixturevalue(
+        "kept_js_script_dir" if keep_scripts else "storage_dir"
+    )
 
     def runner(case_name, body, timeout=25):
         return run_js_case(
@@ -466,6 +535,7 @@ def js_case_runner(persistent_cli_connection, storage_api, storage_dir):
             case_name,
             body,
             timeout,
+            script_name=unique_script_name(case_name),
         )
 
     return runner
