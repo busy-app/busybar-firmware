@@ -49,7 +49,7 @@ Url* url_alloc(void);
 void url_free(Url* instance);
 
 /**
- * @brief Parse an URL from a string.
+ * @brief Parse and encode an URL from a string.
  *
  * The following URL parts are required:
  * - Protocol (e.g. "http://")
@@ -57,6 +57,10 @@ void url_free(Url* instance);
  *
  * All part pointers obtained via @p url_get_part will remain VALID after this call,
  * but their underlying values might silently change.
+ *
+ * Percent encoding will be performed where applicable. Non-ASCII hostnames
+ * are NOT supported. If a Unicode hostname is needed, it must be supplied
+ * in the punycode-encoded form.
  *
  * @param[in,out] instance pointer to the instance to contain the parsed data
  * @param[in] source pointer to a zero-terminated URL string

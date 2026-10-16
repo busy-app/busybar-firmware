@@ -129,7 +129,7 @@ static const UrlCompoundPart url_compound_parts[] = {
 
 /* clang-format on */
 
-static void url_reset(Url* instance) {
+static void url_reset_parts(Url* instance) {
     for(uint32_t i = 0; i < COUNT_OF(instance->parts); ++i) {
         string_slice_reset(&instance->parts[i]);
     }
@@ -139,7 +139,7 @@ Url* url_alloc(void) {
     Url* instance = malloc(sizeof(Url));
 
     instance->source = furi_string_alloc();
-    url_reset(instance);
+    url_reset_parts(instance);
 
     return instance;
 }
@@ -380,7 +380,9 @@ bool url_parse(Url* instance, const char* source_str) {
     furi_check(source_str);
 
     bool success = false;
-    url_reset(instance);
+
+    furi_string_reset(instance->source);
+    url_reset_parts(instance);
 
     do {
         StringSlice tmp_parts[UrlPartIdMax] = {0};
