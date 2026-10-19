@@ -1,7 +1,5 @@
 # JavaScript Applications {#javascript-applications}
 
-This is a stub page about the JavaScript applications. Expand it with new aspects as they become established.
-
 # Introduction
 
 JavaScript applications are a locally-run form of [HTTP API](https://docs.busy.app/bar/dev/http-api) applications.
@@ -83,7 +81,7 @@ It is recommended, but not required, to group the resource files necessary for t
 
 Application manifest file is a JSON file that describes all of the application's properties that are necessary to run it.
 
-| Field            | Explanation                   | Required? | Default |
+| Field            | Purpose                       | Required? | Default |
 | ---------------- | ----------------------------- | :-------: | :-----: |
 | `format_version` | File schema version           | YES [1]   | -       |
 | `id`             | Unique application identifier | YES [2]   | -       |
@@ -129,6 +127,63 @@ available from the Web UI or programmaticaly via the HTTP API.
 While running, the application only has the ability to read its settings via the `GET /api/apps/settings` HTTP request.
 
 See @subpage javascript-applications-settings-schema for the complete file format description.
+
+## Input handling
+
+Applications that need to react to user input must use the built-in `listen` function:
+
+```js
+const unbind = listen("input", inputHandler);
+
+function inputHandler(event) {
+    switch(event.key) {
+        // Various handlers
+    }
+}
+
+// Other logic
+
+// Input not needed anymore
+unbind();
+```
+
+The received `event` object will have the following properties:
+
+| Property | Explanation                                  |
+| -------- | -------------------------------------------- |
+| `key`    | Name of the control that produced the event  |
+| `action` | Type of the event that occurred              |
+| `delta`  | For the encoder wheel only: number of clicks |
+
+The `key` property may take one of the following values:
+
+| Value     | Hardware control type   |
+| --------- | ----------------------- |
+| `encoder` | Encoder wheel           |
+| `ok`      | Encoder button          |
+| `start`   | Start/Stop (big button) |
+| `back`    | Back button             |
+
+The `action` property may take one of the following values:
+
+| Value              | Explanation                           |
+| ------------------ | ------------------------------------- |
+| `press`            | Button was pressed [1]                |
+| `release`          | Button was released [1]               |
+| `short`            | Button was pressed shortly [1]        |
+| `long`             | Button was held for a longer time [1] |
+| `repeat`           | Button is being held continuously [1] |
+| `clockwise`        | Rotated clockwise [2]                 |
+| `counterclockwise` | Rotated counterclockwise [2]          |
+
+- [1] Only for buttons
+- [2] Only for encoder wheel
+
+Additionally, if the `key` is equal to `encoder`, then an additional `delta` propery will be present,
+which represents the number of clicks that occurred (currenly, only 1). The sign denotes rotation direction (negative is counterclockwise).
+
+It is recommended that applications react to the `short` action as a normal button press and to `long` action as the long button press.
+Raw `press` and `release` actions may be useful in games or other applications that need to track explicit press and release events.
 
 @page javascript-applications-manifest-schema Appendix 1: Manifest File Schema
 
