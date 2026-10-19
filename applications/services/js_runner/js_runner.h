@@ -35,6 +35,7 @@ typedef enum JsRunnerFatal {
 typedef enum JsRunnerConsoleSeverity {
     JsRunnerConsoleSeverityLog,
     JsRunnerConsoleSeverityInfo,
+    JsRunnerConsoleSeverityWarn,
     JsRunnerConsoleSeverityError,
 } JsRunnerConsoleSeverity;
 

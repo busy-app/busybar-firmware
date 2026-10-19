@@ -42,6 +42,8 @@ static void js_app_launcher_scene_run_console_out_callback(
         FURI_LOG_D(app_id, "%.*s", size, buf);
     } else if(severity == JsRunnerConsoleSeverityInfo) {
         FURI_LOG_I(app_id, "%.*s", size, buf);
+    } else if(severity == JsRunnerConsoleSeverityWarn) {
+        FURI_LOG_W(app_id, "%.*s", size, buf);
     } else if(severity == JsRunnerConsoleSeverityError) {
         FURI_LOG_E(app_id, "%.*s", size, buf);
     }
