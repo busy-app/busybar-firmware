@@ -113,7 +113,7 @@ static void storage_cli_format(PipeSide* pipe, FuriString* path, FuriString* arg
             if(error != FSE_OK) {
                 storage_cli_print_error(error);
             } else {
-                printf("Patition was successfully formatted.\r\n");
+                printf("Partition was successfully formatted.\r\n");
             }
             furi_record_close(RECORD_STORAGE);
             break;
@@ -572,98 +572,129 @@ static void storage_cli_extract(PipeSide* pipe, FuriString* old_path, FuriString
 }
 
 typedef void (*StorageCliCommandCallback)(PipeSide* pipe, FuriString* path, FuriString* args);
+typedef bool (*StorageCliCommandVisibleCallback)(void);
 
 typedef struct {
     const char* command;
     const char* help;
     const StorageCliCommandCallback impl;
+    const StorageCliCommandVisibleCallback visible;
 } StorageCliCommand;
+
+static bool storage_cli_command_visible_always() {
+    return true;
+}
+
+static bool storage_cli_command_visible_debug() {
+#ifndef FURI_DEBUG
+    return false;
+#else
+    return furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug);
+#endif
+}
 
 static const StorageCliCommand storage_cli_commands[] = {
     {
         "write_chunk",
         "read data from cli and append it to file, <args> should contain how many bytes you want to write",
         &storage_cli_write_chunk,
+        &storage_cli_command_visible_always,
     },
     {
         "read_chunks",
         "read data from file and print file size and content to cli, <args> should contain how many bytes you want to read in block",
         &storage_cli_read_chunks,
+        &storage_cli_command_visible_always,
     },
     {
         "list",
         "list files and dirs",
         &storage_cli_list,
+        &storage_cli_command_visible_always,
     },
     {
         "md5",
         "md5 hash of the file",
         &storage_cli_md5,
+        &storage_cli_command_visible_always,
     },
     {
         "stat",
         "info about file or dir",
         &storage_cli_stat,
+        &storage_cli_command_visible_always,
     },
     {
         "info",
         "get FS info",
         &storage_cli_info,
+        &storage_cli_command_visible_always,
     },
     {
         "tree",
         "list files and dirs, recursive",
         &storage_cli_tree,
+        &storage_cli_command_visible_always,
     },
     {
         "read",
         "read text from file and print file size and content to cli",
         &storage_cli_read,
+        &storage_cli_command_visible_always,
     },
     {
         "write",
         "read text from cli and append it to file, stops by ctrl+c",
         &storage_cli_write,
+        &storage_cli_command_visible_always,
     },
     {
         "copy",
         "copy file to new file, <args> must contain new path",
         &storage_cli_copy,
+        &storage_cli_command_visible_always,
     },
     {
         "remove",
         "delete the file or directory",
         &storage_cli_remove,
+        &storage_cli_command_visible_always,
     },
     {
         "rename",
         "move file to new file, <args> must contain new path",
         &storage_cli_rename,
+        &storage_cli_command_visible_always,
     },
     {
         "mkdir",
         "creates a new directory",
         &storage_cli_mkdir,
+        &storage_cli_command_visible_always,
     },
     {
         "timestamp",
         "last modification timestamp",
         &storage_cli_timestamp,
+        &storage_cli_command_visible_always,
     },
     {
         "extract",
         "extract tar archive to destination",
         &storage_cli_extract,
+        &storage_cli_command_visible_always,
     },
     {
         "format",
         "format filesystem on specified partition",
         &storage_cli_format,
+        &storage_cli_command_visible_always,
     },
     {
         "mkfs",
         "create filesystem, path must be \"/\"",
         &storage_cli_mkfs,
+        &storage_cli_command_visible_debug,
     },
 };
 
@@ -675,6 +706,8 @@ static void storage_cli_print_usage(void) {
 
     for(size_t i = 0; i < COUNT_OF(storage_cli_commands); ++i) {
         const StorageCliCommand* command_descr = &storage_cli_commands[i];
+        furi_check(command_descr->visible);
+        if(!command_descr->visible()) continue;
         const char* cli_cmd = command_descr->command;
         printf(
             "\t%s%s - %s\r\n", cli_cmd, strlen(cli_cmd) > 8 ? "\t" : "\t\t", command_descr->help);
@@ -702,6 +735,8 @@ void storage_command(PipeSide* pipe, FuriString* args, void* context) {
         size_t i = 0;
         for(; i < COUNT_OF(storage_cli_commands); ++i) {
             const StorageCliCommand* command_descr = &storage_cli_commands[i];
+            furi_check(command_descr->visible);
+            if(!command_descr->visible()) continue;
             if(furi_string_cmp_str(cmd, command_descr->command) == 0) {
                 command_descr->impl(pipe, path, args);
                 break;

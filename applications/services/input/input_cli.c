@@ -77,6 +77,8 @@ static void input_cli_command_send(PipeSide* pipe, FuriString* args, FuriPubSub*
         InputEvent event = {
             .key = key,
             .type = type,
+            .sequence_source = INPUT_SEQUENCE_SOURCE_SOFTWARE,
+            .sequence_number = 0,
         };
         furi_pubsub_publish(input_events, &event);
     }

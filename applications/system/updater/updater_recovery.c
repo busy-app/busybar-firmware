@@ -40,6 +40,12 @@ void updater_get_check_info(Updater* instance, UpdateCheckInfo* info) {
     UNUSED(info);
 }
 
+UpdaterStatus updater_get_allowance_status(Updater* instance) {
+    UNUSED(instance);
+
+    return UpdaterStatusOk;
+}
+
 UpdaterStatus
     updater_download(Updater* instance, const char* url, const char* path, bool do_wait) {
     UNUSED(instance);

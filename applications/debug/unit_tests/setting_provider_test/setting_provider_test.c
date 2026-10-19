@@ -67,6 +67,12 @@ typedef struct {
     int y;
 } TestPoint;
 
+/* Document root test struct */
+typedef struct {
+    bool enabled;
+    int count;
+} TestDocument;
+
 /* ========== Callbacks ========== */
 
 static bool test_int_is_valid(const SettingProviderSetting* setting, int value) {
@@ -299,6 +305,41 @@ static const SettingProviderSetting test_shape_union_settings[] = {
 };
 
 static const TestPoint test_point_default = {.x = 0, .y = 0};
+
+static const SettingProviderSetting test_document_settings[] = {
+    {
+        .name = "enabled",
+        .interface = &(const SettingProviderBoolInterface){.default_value = true},
+        .context = NULL,
+        .field_offset = offsetof(TestDocument, enabled),
+        .type = SettingProviderSettingTypeBool,
+    },
+    {
+        .name = "count",
+        .interface =
+            &(const SettingProviderIntInterface){
+                .default_value = 7,
+                .is_valid_callback = test_int_is_valid,
+            },
+        .context = NULL,
+        .field_offset = offsetof(TestDocument, count),
+        .type = SettingProviderSettingTypeInt,
+    },
+};
+
+static const SettingProviderStructInterface test_document_root_interface = {
+    .is_valid_callback = NULL,
+    .inner_settings = test_document_settings,
+    .inner_settings_count = COUNT_OF(test_document_settings),
+};
+
+static const SettingProviderSetting test_document_root = {
+    .name = NULL,
+    .interface = &test_document_root_interface,
+    .context = NULL,
+    .field_offset = 0,
+    .type = SettingProviderSettingTypeStruct,
+};
 
 /* ========== Setup/Teardown ========== */
 
@@ -776,6 +817,80 @@ MU_TEST(setting_provider_test_persistence) {
     mu_assert_int_eq(12345, value);
 }
 
+/* ========== Test 16: Document roundtrip ========== */
+
+MU_TEST(setting_provider_test_document_roundtrip) {
+    TestDocument source = {.enabled = false, .count = 42};
+    TestDocument loaded = {0};
+
+    FuriString* document = furi_string_alloc();
+    mu_assert(
+        setting_provider_save_document(provider, &test_document_root, &source, document),
+        "Failed to save document");
+
+    cJSON* json = cJSON_Parse(furi_string_get_cstr(document));
+    cJSON* values = cJSON_GetObjectItem(json, "values");
+    cJSON* version = cJSON_GetObjectItem(json, "version");
+    cJSON* enabled = cJSON_GetObjectItem(values, "enabled");
+    cJSON* count = cJSON_GetObjectItem(values, "count");
+
+    mu_assert(cJSON_IsObject(values), "Missing values object");
+    mu_assert(cJSON_IsNumber(version), "Missing version");
+    mu_assert_int_eq(2, version->valueint);
+    mu_assert(cJSON_IsFalse(enabled), "Wrong enabled value");
+    mu_assert(cJSON_IsNumber(count), "Missing count");
+    mu_assert_int_eq(42, count->valueint);
+
+    cJSON_Delete(json);
+
+    mu_assert(
+        setting_provider_load_document(
+            provider,
+            &test_document_root,
+            furi_string_get_cstr(document),
+            furi_string_size(document),
+            &loaded),
+        "Failed to load own document");
+    mu_assert_int_eq(source.enabled, loaded.enabled);
+    mu_assert_int_eq(source.count, loaded.count);
+
+    furi_string_free(document);
+}
+
+/* ========== Test 17: Document migration ========== */
+
+MU_TEST(setting_provider_test_document_migration) {
+    static const char document[] = "{\"version\":1,\"values\":{\"enabled\":true,\"count\":5}}";
+
+    TestDocument loaded = {0};
+    mu_assert(
+        setting_provider_load_document(
+            provider, &test_document_root, document, strlen(document), &loaded),
+        "Failed to load older document through migrations");
+    mu_assert_int_eq(true, loaded.enabled);
+    mu_assert_int_eq(5, loaded.count);
+}
+
+/* ========== Test 18: Document rejections ========== */
+
+MU_TEST(setting_provider_test_document_rejections) {
+    static const char* const invalid[] = {
+        "{",
+        "{\"version\":3,\"values\":{\"enabled\":true,\"count\":5}}",
+        "{\"version\":2,\"values\":{\"enabled\":true}}",
+        "{\"version\":2,\"values\":{\"enabled\":true,\"count\":2000}}",
+        "{\"version\":2,\"values\":{\"enabled\":true,\"count\":\"5\"}}",
+    };
+
+    for(size_t i = 0; i < COUNT_OF(invalid); i++) {
+        TestDocument loaded = {0};
+        mu_assert(
+            !setting_provider_load_document(
+                provider, &test_document_root, invalid[i], strlen(invalid[i]), &loaded),
+            invalid[i]);
+    }
+}
+
 /* ========== Test Suite ========== */
 
 MU_TEST_SUITE(setting_provider_test_suite) {
@@ -795,6 +910,9 @@ MU_TEST_SUITE(setting_provider_test_suite) {
     MU_RUN_TEST(setting_provider_test_raw_basic);
     MU_RUN_TEST(setting_provider_test_migration_simple);
     MU_RUN_TEST(setting_provider_test_persistence);
+    MU_RUN_TEST(setting_provider_test_document_roundtrip);
+    MU_RUN_TEST(setting_provider_test_document_migration);
+    MU_RUN_TEST(setting_provider_test_document_rejections);
 }
 
 int run_minunit_setting_provider_test(void) {

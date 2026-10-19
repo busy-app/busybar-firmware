@@ -6,6 +6,7 @@
 
 #include "anim_file.h"
 #include "anim_file_format.h"
+#include <toolbox/profiler.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -17,12 +18,16 @@ extern "C" {
 
 #define TAG "AnimFile"
 
+// Debugging flags
 // #define ANIM_FILE_DETAILED_ERRORS
+// #define ANIM_FILE_SHOW_MASK_INSTEAD_OF_IMAGE
+// #define ANIM_FILE_PROFILE_PERFORMANCE
+// #define ANIM_FILE_SHOW_PIPELINE
 
 #ifdef ANIM_FILE_DETAILED_ERRORS
 #define ANIM_FILE_ERR(...) FURI_LOG_E(TAG, __VA_ARGS__)
 #else
-#define ANIM_FILE_ERR(...) FURI_LOG_E(TAG, "Load error")
+#define ANIM_FILE_ERR(...) FURI_LOG_E(TAG, "Error! Enable ANIM_FILE_DETAILED_ERRORS for detail")
 #endif
 
 // =====
@@ -46,24 +51,8 @@ typedef struct {
     size_t start;
     size_t end;
     size_t start_offset;
-    size_t start_duration_override;
     AnimFilePlayFlag flags;
 } AnimFileRange;
-
-#include "components/anim_file_img.h"
-#include "components/anim_file_load.h"
-#include "components/anim_file_seq.h"
-#include "components/anim_file_start.h"
-
-struct AnimFile {
-    File* file;
-    AnimFileMeta meta;
-
-    // Components should not touch other components' state directly.
-    AnimFileImg img;
-    AnimFileSeq seq;
-    AnimFileStart start;
-};
 
 #ifdef __cplusplus
 }

@@ -3,11 +3,9 @@
  * @brief Utility functions for working with JS values
  */
 #pragma once
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wattributes"
-#include <jerryscript.h>
-#pragma GCC diagnostic pop
+#include "js_runner_types.h"
 #include <furi/core/string.h>
+#include <toolbox/sized_buffer.h>
 
 #define JS_CHECK_ARGS_COUNT(n)                                                             \
     do {                                                                                   \
@@ -15,6 +13,7 @@
             return jerry_throw_sz(JERRY_ERROR_TYPE, "At least " #n " arguments required"); \
         }                                                                                  \
     } while(false)
+
 #define JS_CHECK_INSTANCE()                                                    \
     do {                                                                       \
         if(!instance) {                                                        \
@@ -22,10 +21,54 @@
         }                                                                      \
     } while(false)
 
-/** @brief Check if value is not and exception and free it
+#define JS_CHECK_CONSTRUCTOR()                                                          \
+    do {                                                                                \
+        if(!jerry_value_is_object(call_info->this_value)) {                             \
+            return jerry_throw_sz(                                                      \
+                JERRY_ERROR_TYPE, "Class constructor cannot be invoked without 'new'"); \
+        }                                                                               \
+    } while(false)
+
+#define JS_CHECK_ARG_IS_FUNCTION(arg)                                              \
+    do {                                                                           \
+        if(!jerry_value_is_function(arg)) {                                        \
+            return jerry_throw_sz(JERRY_ERROR_TYPE, "Function argument required"); \
+        }                                                                          \
+    } while(false)
+
+#define JS_CHECK_ARG_IS_STRING(arg)                                              \
+    do {                                                                         \
+        if(!jerry_value_is_string(arg)) {                                        \
+            return jerry_throw_sz(JERRY_ERROR_TYPE, "String argument required"); \
+        }                                                                        \
+    } while(false)
+
+/** @brief Check if value is not an exception and free it
  * @param value value to check and free
  */
 void js_check_and_free(jerry_value_t value);
+
+/** @brief Set a prototype object to be used with a constructor
+ *
+ * @param constructor Constructor function (not freed)
+ * @param prototype Prototype value to set (freed)
+ */
+void js_set_constructor_prototype(jerry_value_t constructor, jerry_value_t prototype);
+
+/** @brief Construct an object given the class name
+ *
+ * @p args can be @c NULL if the constructor takes no arguments,
+ * in which case @p args_count must be 0.
+ *
+ * @param name class name as a zero-terminated string
+ * @param args array of arguments to pass to the constructor
+ * @param args_count number of arguments passed to the constructor
+ * @returns constructed object value
+ */
+jerry_value_t js_object_construct(
+    const char* name,
+    const jerry_value_t args[],
+    const jerry_length_t args_count);
 
 /** @brief Set a property in a JS object
  *
@@ -81,6 +124,24 @@ void js_set_property_getset(
 /** @brief Test if an object has a property with given name */
 bool js_object_has_property(jerry_value_t object, const char* key);
 
+/** @brief Get a value of a property nested under several layers.
+ *
+ * Example: get object.foo.bar.baz
+ *
+ * const char* const keys[] = {"foo", "bar", "baz"};
+ * jerry_value_t baz_value = js_object_get_nested_property(object, keys, 3);
+ *
+ * @param object root object.
+ * @param keys array of property names for each nesting level.
+ * @param nesting_count number of entries in the keys array.
+ *
+ * @return the value of the nested property or undefined if any property lookup failed. Exceptions thrown by any member lookup are propagated.
+ */
+jerry_value_t js_object_get_nested_property(
+    jerry_value_t object,
+    const char* const keys[],
+    size_t nesting_count);
+
 /** @brief Create a return value of an Iterator's next() method.
  *
  * The object has two properties: `done` and `value`.
@@ -95,6 +156,15 @@ jerry_value_t js_iterator_result(bool done, jerry_value_t value);
  * @return a heap-allocated string or NULL if value is not a JS string.
  */
 char* js_string_to_c_string(jerry_value_t value);
+
+/** @brief Convert any value to a character string.
+ *
+ * If the value is already a string, it is used as-is,
+ * otherwise it will be converted using the toString method.
+ *
+ * @return a heap-allocated string or NULL if an exception has occurred.
+ */
+char* js_value_to_c_string(jerry_value_t value);
 
 /** @brief If value is a JS string, return its UTF8 representation.
  *
@@ -139,6 +209,14 @@ jerry_value_t js_rejected_promise_from_exception(jerry_value_t exception);
  */
 void js_reject_promise_with_exception(jerry_value_t promise, jerry_value_t exception);
 
+/**
+ * @brief Check if the exception holds a null as the value.
+ *
+ * @param exception JS exception. This value is not freed.
+ * @return @c true if the exception holds @c null, @c false otherwise
+ */
+bool js_exception_is_null(jerry_value_t exception);
+
 /** @brief Create a string out of a JS exception.
  *
  * @param exception JS exception. This value is not freed.
@@ -150,3 +228,23 @@ FuriString* js_get_exception_string(jerry_value_t exception);
  * @brief Log exception message with ERROR severity
  */
 void js_log_exception(const char* tag, const char* msg, jerry_value_t exception);
+
+/**
+ * @brief Create an external ArrayBuffer referencing ByteArray's data.
+ *
+ * Ownership of the ByteArray is transferred to jerryscript.
+ *
+ * @param array pointer to ByteArray (heap-allocated).
+ * @return a JS ArrayBuffer object.
+ */
+jerry_value_t js_arraybuffer_from_byte_array(ByteArray_t* array);
+
+/**
+ * @brief Create an external ArrayBuffer referencing SizedBuffer's data.
+ *
+ * Ownership of the buffer is transferred to jerryscript.
+ *
+ * @param buffer data to build an ArrayBuffer from.
+ * @return a JS ArrayBuffer object.
+ */
+jerry_value_t js_arraybuffer_from_sized_buffer(SizedBuffer buffer);

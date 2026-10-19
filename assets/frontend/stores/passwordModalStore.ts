@@ -20,9 +20,9 @@ export const usePasswordModalStore = defineStore('passwordModal', () => {
       && (
         /[^0-9]/.test(passwordModel.value.new)
           ? 'Invalid password (only digits allowed)'
-          : passwordModel.value.new.length > 10
+          : passwordModel.value.new.length > PASSWORD_MAX_LENGTH
             ? 'Password too long'
-            : passwordModel.value.new.length < 4 && passwordModel.value.new !== ''
+            : passwordModel.value.new.length < PASSWORD_MIN_LENGTH && passwordModel.value.new !== ''
               ? 'Password too short'
               : undefined
       ) as string | undefined

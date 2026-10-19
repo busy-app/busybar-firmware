@@ -8,23 +8,25 @@ import requests
 
 from clients.api import AssetsAPI, StreamingAPI
 from clients.api.assets import DEFAULT_ELEMENT_PRIORITY
+from clients.api.streaming import (
+    FRONT_DISPLAY_HEIGHT,
+    FRONT_DISPLAY_WIDTH,
+)
 from .display_helpers import (
+    BGR_BLACK,
+    BGR_GREEN,
+    BGR_RED,
+    FILL_GREEN,
+    FILL_RED,
     capture_stable_front_frame as _capture_stable_front_frame,
     frame_digest as _frame_digest,
     solid_rectangle as _solid_rectangle,
-    wait_for_front_frame as _wait_for_front_frame,
+    wait_for_front_frame,
 )
 
 
 _APP_NAME = "display_elements_test"
 _OTHER_APP_NAME = "display_elements_other"
-_FRONT_WIDTH = 72
-_FRONT_HEIGHT = 16
-_FILL_BLUE = "#FF0000FF"
-_FILL_GREEN = "#00FF00FF"
-_RGB_BLACK = b"\x00\x00\x00"
-_RGB_BLUE = b"\x00\x00\xff"
-_RGB_GREEN = b"\x00\xff\x00"
 
 
 @pytest.fixture(autouse=True)
@@ -44,14 +46,28 @@ def _clear_test_application_canvases(assets_api: AssetsAPI):
 def _expected_front_frame(
     spans: list[tuple[int, int, bytes]],
 ) -> bytes:
-    """Build an exact 72x16 RGB frame from horizontal color spans."""
-    frame = bytearray(_RGB_BLACK * _FRONT_WIDTH * _FRONT_HEIGHT)
-    for x, width, rgb in spans:
-        assert len(rgb) == 3, f"Expected an RGB triplet, got {len(rgb)} bytes"
-        for y in range(_FRONT_HEIGHT):
-            start = (y * _FRONT_WIDTH + x) * 3
-            frame[start : start + width * 3] = rgb * width
+    """Build an exact 72x16 raw front frame (BGR) from horizontal spans."""
+    frame = bytearray(BGR_BLACK * FRONT_DISPLAY_WIDTH * FRONT_DISPLAY_HEIGHT)
+    for x, width, bgr in spans:
+        assert len(bgr) == 3, f"Expected a BGR triplet, got {len(bgr)} bytes"
+        for y in range(FRONT_DISPLAY_HEIGHT):
+            start = (y * FRONT_DISPLAY_WIDTH + x) * 3
+            frame[start : start + width * 3] = bgr * width
     return bytes(frame)
+
+
+def _wait_for_raw_front_frame(
+    streaming_api: StreamingAPI,
+    predicate,
+    description: str,
+) -> bytes:
+    """Adapter for whole-frame byte comparisons over wait_for_front_frame."""
+    frame = wait_for_front_frame(
+        streaming_api,
+        lambda current: predicate(current.raw),
+        description,
+    )
+    return frame.raw
 
 
 def _draw_and_capture(
@@ -67,7 +83,7 @@ def _draw_and_capture(
     assert (
         response.status_code == 200
     ), f"Expected draw status 200, got {response.status_code}: {response.text[:200]}"
-    return _capture_stable_front_frame(streaming_api)
+    return _capture_stable_front_frame(streaming_api).raw
 
 
 def _assert_rejected_without_frame_change(
@@ -124,9 +140,9 @@ class TestSelectiveDisplayDeletion:
             before = _draw_and_capture(
                 assets_api,
                 streaming_api,
-                [_solid_rectangle("owned_element", _FILL_BLUE)],
+                [_solid_rectangle("owned_element", FILL_RED)],
             )
-            expected = _expected_front_frame([(0, _FRONT_WIDTH, _RGB_BLUE)])
+            expected = _expected_front_frame([(0, FRONT_DISPLAY_WIDTH, BGR_RED)])
             assert before == expected, (
                 f"Expected owned frame sha256={_frame_digest(expected)}, "
                 f"got sha256={_frame_digest(before)}"
@@ -140,7 +156,7 @@ class TestSelectiveDisplayDeletion:
             )
 
         with allure.step("Verify the owned frame disappears"):
-            after = _wait_for_front_frame(
+            after = _wait_for_raw_front_frame(
                 streaming_api,
                 lambda frame: frame != before,
                 "the owned canvas frame to disappear",
@@ -163,9 +179,9 @@ class TestSelectiveDisplayDeletion:
             before = _draw_and_capture(
                 assets_api,
                 streaming_api,
-                [_solid_rectangle("owned_element", _FILL_BLUE)],
+                [_solid_rectangle("owned_element", FILL_RED)],
             )
-            expected = _expected_front_frame([(0, _FRONT_WIDTH, _RGB_BLUE)])
+            expected = _expected_front_frame([(0, FRONT_DISPLAY_WIDTH, BGR_RED)])
             assert before == expected, (
                 f"Expected owned frame sha256={_frame_digest(expected)}, "
                 f"got sha256={_frame_digest(before)}"
@@ -179,7 +195,7 @@ class TestSelectiveDisplayDeletion:
             )
 
         with allure.step("Verify the owned frame disappears"):
-            after = _wait_for_front_frame(
+            after = _wait_for_raw_front_frame(
                 streaming_api,
                 lambda frame: frame != before,
                 "the owned canvas frame to disappear",
@@ -202,9 +218,9 @@ class TestSelectiveDisplayDeletion:
             before = _draw_and_capture(
                 assets_api,
                 streaming_api,
-                [_solid_rectangle("owned_element", _FILL_BLUE)],
+                [_solid_rectangle("owned_element", FILL_RED)],
             )
-            expected = _expected_front_frame([(0, _FRONT_WIDTH, _RGB_BLUE)])
+            expected = _expected_front_frame([(0, FRONT_DISPLAY_WIDTH, BGR_RED)])
             assert before == expected, (
                 f"Expected owned frame sha256={_frame_digest(expected)}, "
                 f"got sha256={_frame_digest(before)}"
@@ -237,23 +253,23 @@ class TestSelectiveDisplayDeletion:
     ):
         keep = _solid_rectangle(
             "keep_right",
-            _FILL_GREEN,
-            x=_FRONT_WIDTH // 2,
-            width=_FRONT_WIDTH // 2,
+            FILL_GREEN,
+            x=FRONT_DISPLAY_WIDTH // 2,
+            width=FRONT_DISPLAY_WIDTH // 2,
         )
         remove = _solid_rectangle(
             "remove_left",
-            _FILL_BLUE,
-            width=_FRONT_WIDTH // 2,
+            FILL_RED,
+            width=FRONT_DISPLAY_WIDTH // 2,
         )
 
         expected = _expected_front_frame(
-            [(_FRONT_WIDTH // 2, _FRONT_WIDTH // 2, _RGB_GREEN)]
+            [(FRONT_DISPLAY_WIDTH // 2, FRONT_DISPLAY_WIDTH // 2, BGR_GREEN)]
         )
         expected_before = _expected_front_frame(
             [
-                (0, _FRONT_WIDTH // 2, _RGB_BLUE),
-                (_FRONT_WIDTH // 2, _FRONT_WIDTH // 2, _RGB_GREEN),
+                (0, FRONT_DISPLAY_WIDTH // 2, BGR_RED),
+                (FRONT_DISPLAY_WIDTH // 2, FRONT_DISPLAY_WIDTH // 2, BGR_GREEN),
             ]
         )
 
@@ -272,7 +288,7 @@ class TestSelectiveDisplayDeletion:
             assert result.result, f"Expected non-empty result, got {result.result!r}"
 
         with allure.step("Verify keep_right remains and remove_left disappears"):
-            actual = _wait_for_front_frame(
+            actual = _wait_for_raw_front_frame(
                 streaming_api,
                 lambda frame: frame == expected,
                 "the kept-element reference after selective deletion",
@@ -295,9 +311,9 @@ class TestSelectiveDisplayDeletion:
             before = _draw_and_capture(
                 assets_api,
                 streaming_api,
-                [_solid_rectangle("owned_element", _FILL_BLUE)],
+                [_solid_rectangle("owned_element", FILL_RED)],
             )
-            expected = _expected_front_frame([(0, _FRONT_WIDTH, _RGB_BLUE)])
+            expected = _expected_front_frame([(0, FRONT_DISPLAY_WIDTH, BGR_RED)])
             assert before == expected, (
                 f"Expected owned frame sha256={_frame_digest(expected)}, "
                 f"got sha256={_frame_digest(before)}"
@@ -323,9 +339,9 @@ class TestSelectiveDisplayDeletion:
             before = _draw_and_capture(
                 assets_api,
                 streaming_api,
-                [_solid_rectangle("owned_element", _FILL_BLUE)],
+                [_solid_rectangle("owned_element", FILL_RED)],
             )
-            expected = _expected_front_frame([(0, _FRONT_WIDTH, _RGB_BLUE)])
+            expected = _expected_front_frame([(0, FRONT_DISPLAY_WIDTH, BGR_RED)])
             assert before == expected, (
                 f"Expected owned frame sha256={_frame_digest(expected)}, "
                 f"got sha256={_frame_digest(before)}"
@@ -354,9 +370,9 @@ class TestSelectiveDisplayDeletion:
             before = _draw_and_capture(
                 assets_api,
                 streaming_api,
-                [_solid_rectangle("existing_element", _FILL_BLUE)],
+                [_solid_rectangle("existing_element", FILL_RED)],
             )
-            expected = _expected_front_frame([(0, _FRONT_WIDTH, _RGB_BLUE)])
+            expected = _expected_front_frame([(0, FRONT_DISPLAY_WIDTH, BGR_RED)])
             assert before == expected, (
                 f"Expected initial frame sha256={_frame_digest(expected)}, "
                 f"got sha256={_frame_digest(before)}"
@@ -383,30 +399,30 @@ class TestSelectiveDisplayDeletion:
     ):
         keep = _solid_rectangle(
             "keep_middle",
-            _FILL_GREEN,
-            x=_FRONT_WIDTH // 3,
-            width=_FRONT_WIDTH // 3,
+            FILL_GREEN,
+            x=FRONT_DISPLAY_WIDTH // 3,
+            width=FRONT_DISPLAY_WIDTH // 3,
         )
         remove_left = _solid_rectangle(
             "remove_left",
-            _FILL_BLUE,
-            width=_FRONT_WIDTH // 3,
+            FILL_RED,
+            width=FRONT_DISPLAY_WIDTH // 3,
         )
         remove_right = _solid_rectangle(
             "remove_right",
-            _FILL_BLUE,
-            x=(_FRONT_WIDTH // 3) * 2,
-            width=_FRONT_WIDTH // 3,
+            FILL_RED,
+            x=(FRONT_DISPLAY_WIDTH // 3) * 2,
+            width=FRONT_DISPLAY_WIDTH // 3,
         )
 
         expected = _expected_front_frame(
-            [(_FRONT_WIDTH // 3, _FRONT_WIDTH // 3, _RGB_GREEN)]
+            [(FRONT_DISPLAY_WIDTH // 3, FRONT_DISPLAY_WIDTH // 3, BGR_GREEN)]
         )
         expected_before = _expected_front_frame(
             [
-                (0, _FRONT_WIDTH // 3, _RGB_BLUE),
-                (_FRONT_WIDTH // 3, _FRONT_WIDTH // 3, _RGB_GREEN),
-                ((_FRONT_WIDTH // 3) * 2, _FRONT_WIDTH // 3, _RGB_BLUE),
+                (0, FRONT_DISPLAY_WIDTH // 3, BGR_RED),
+                (FRONT_DISPLAY_WIDTH // 3, FRONT_DISPLAY_WIDTH // 3, BGR_GREEN),
+                ((FRONT_DISPLAY_WIDTH // 3) * 2, FRONT_DISPLAY_WIDTH // 3, BGR_RED),
             ]
         )
 
@@ -429,7 +445,7 @@ class TestSelectiveDisplayDeletion:
             assert result.result, f"Expected non-empty result, got {result.result!r}"
 
         with allure.step("Verify only the middle element remains"):
-            actual = _wait_for_front_frame(
+            actual = _wait_for_raw_front_frame(
                 streaming_api,
                 lambda frame: frame == expected,
                 "the middle-element reference after selective deletion",
@@ -450,17 +466,17 @@ class TestSelectiveDisplayDeletion:
     ):
         keep = _solid_rectangle(
             "keep_right",
-            _FILL_GREEN,
-            x=_FRONT_WIDTH // 2,
-            width=_FRONT_WIDTH // 2,
+            FILL_GREEN,
+            x=FRONT_DISPLAY_WIDTH // 2,
+            width=FRONT_DISPLAY_WIDTH // 2,
         )
         remove = _solid_rectangle(
             "remove_left",
-            _FILL_BLUE,
-            width=_FRONT_WIDTH // 2,
+            FILL_RED,
+            width=FRONT_DISPLAY_WIDTH // 2,
         )
         expected = _expected_front_frame(
-            [(_FRONT_WIDTH // 2, _FRONT_WIDTH // 2, _RGB_GREEN)]
+            [(FRONT_DISPLAY_WIDTH // 2, FRONT_DISPLAY_WIDTH // 2, BGR_GREEN)]
         )
 
         with allure.step("Draw both independent elements"):
@@ -479,7 +495,7 @@ class TestSelectiveDisplayDeletion:
         with allure.step(
             "Verify the duplicate was deleted once and keep_right remains"
         ):
-            actual = _wait_for_front_frame(
+            actual = _wait_for_raw_front_frame(
                 streaming_api,
                 lambda frame: frame == expected,
                 "the kept-element frame after duplicate-ID deletion",
@@ -515,11 +531,11 @@ class TestSelectiveDisplayDeletion:
         busy_timer_stopped,
     ):
         with allure.step("Draw and verify an element that must be preserved"):
-            expected = _expected_front_frame([(0, _FRONT_WIDTH, _RGB_BLUE)])
+            expected = _expected_front_frame([(0, FRONT_DISPLAY_WIDTH, BGR_RED)])
             before = _draw_and_capture(
                 assets_api,
                 streaming_api,
-                [_solid_rectangle("owned_element", _FILL_BLUE)],
+                [_solid_rectangle("owned_element", FILL_RED)],
             )
             assert before == expected, (
                 f"Expected initial frame sha256={_frame_digest(expected)}, "
@@ -549,7 +565,7 @@ class TestSelectiveDisplayDeletion:
             before = _draw_and_capture(
                 assets_api,
                 streaming_api,
-                [_solid_rectangle("owned_element", _FILL_BLUE)],
+                [_solid_rectangle("owned_element", FILL_RED)],
             )
 
         with allure.step("Send element_ids as null"):
@@ -575,7 +591,7 @@ class TestSelectiveDisplayDeletion:
             before = _draw_and_capture(
                 assets_api,
                 streaming_api,
-                [_solid_rectangle("owned_element", _FILL_BLUE)],
+                [_solid_rectangle("owned_element", FILL_RED)],
             )
 
         with allure.step("Request deletion of an unknown ID"):
@@ -601,7 +617,7 @@ class TestSelectiveDisplayDeletion:
             before = _draw_and_capture(
                 assets_api,
                 streaming_api,
-                [_solid_rectangle("owned_element", _FILL_BLUE)],
+                [_solid_rectangle("owned_element", FILL_RED)],
             )
 
         with allure.step("Request deletion using an ID outside the schema pattern"):
@@ -643,9 +659,9 @@ class TestSelectiveDisplayDeletion:
             before = _draw_and_capture(
                 assets_api,
                 streaming_api,
-                [_solid_rectangle("only_element", _FILL_BLUE)],
+                [_solid_rectangle("only_element", FILL_RED)],
             )
-            expected_before = _expected_front_frame([(0, _FRONT_WIDTH, _RGB_BLUE)])
+            expected_before = _expected_front_frame([(0, FRONT_DISPLAY_WIDTH, BGR_RED)])
             assert before == expected_before, (
                 f"Expected initial frame sha256={_frame_digest(expected_before)}, "
                 f"got sha256={_frame_digest(before)}"
@@ -657,24 +673,24 @@ class TestSelectiveDisplayDeletion:
                 app_name=_APP_NAME,
             )
             assert result.result, f"Expected non-empty result, got {result.result!r}"
-            _wait_for_front_frame(
+            _wait_for_raw_front_frame(
                 streaming_api,
                 lambda frame: frame != before,
                 "the canvas frame to disappear after its last element is deleted",
             )
 
         with allure.step("Verify another application can acquire and draw the canvas"):
-            expected_after = _expected_front_frame([(0, _FRONT_WIDTH, _RGB_GREEN)])
+            expected_after = _expected_front_frame([(0, FRONT_DISPLAY_WIDTH, BGR_GREEN)])
             response = assets_api.draw_response(
                 _OTHER_APP_NAME,
-                [_solid_rectangle("new_owner", _FILL_GREEN)],
+                [_solid_rectangle("new_owner", FILL_GREEN)],
                 priority=DEFAULT_ELEMENT_PRIORITY,
             )
             assert response.status_code == 200, (
                 f"Expected draw status 200, got {response.status_code}: "
                 f"{response.text[:200]}"
             )
-            actual = _capture_stable_front_frame(streaming_api)
+            actual = _capture_stable_front_frame(streaming_api).raw
             assert actual == expected_after, (
                 f"Expected new owner frame sha256={_frame_digest(expected_after)}, "
                 f"got sha256={_frame_digest(actual)}"
@@ -693,10 +709,10 @@ class TestDisplayZIndex:
         streaming_api: StreamingAPI,
         busy_timer_stopped,
     ):
-        lower = _solid_rectangle("lower", _FILL_BLUE, z_index=10)
-        higher = _solid_rectangle("higher", _FILL_GREEN, z_index=100)
-        lower_reference = _expected_front_frame([(0, _FRONT_WIDTH, _RGB_BLUE)])
-        higher_reference = _expected_front_frame([(0, _FRONT_WIDTH, _RGB_GREEN)])
+        lower = _solid_rectangle("lower", FILL_RED, z_index=10)
+        higher = _solid_rectangle("higher", FILL_GREEN, z_index=100)
+        lower_reference = _expected_front_frame([(0, FRONT_DISPLAY_WIDTH, BGR_RED)])
+        higher_reference = _expected_front_frame([(0, FRONT_DISPLAY_WIDTH, BGR_GREEN)])
 
         with allure.step("Verify the two exact reference frames are distinct"):
             assert lower_reference != higher_reference, (
@@ -723,9 +739,9 @@ class TestDisplayZIndex:
         streaming_api: StreamingAPI,
         busy_timer_stopped,
     ):
-        higher = _solid_rectangle("higher", _FILL_GREEN, z_index=100)
-        lower = _solid_rectangle("lower", _FILL_BLUE, z_index=10)
-        higher_reference = _expected_front_frame([(0, _FRONT_WIDTH, _RGB_GREEN)])
+        higher = _solid_rectangle("higher", FILL_GREEN, z_index=100)
+        lower = _solid_rectangle("lower", FILL_RED, z_index=10)
+        higher_reference = _expected_front_frame([(0, FRONT_DISPLAY_WIDTH, BGR_GREEN)])
 
         with allure.step("Draw and verify the higher z-index element"):
             actual = _draw_and_capture(assets_api, streaming_api, [higher])
@@ -744,7 +760,7 @@ class TestDisplayZIndex:
                 f"Expected draw status 200, got {response.status_code}: "
                 f"{response.text[:200]}"
             )
-            actual = _capture_stable_front_frame(streaming_api)
+            actual = _capture_stable_front_frame(streaming_api).raw
 
         with allure.step("Verify the existing higher z-index element remains on top"):
             assert actual == higher_reference, (
@@ -761,9 +777,9 @@ class TestDisplayZIndex:
         streaming_api: StreamingAPI,
         busy_timer_stopped,
     ):
-        first = _solid_rectangle("first", _FILL_BLUE)
-        last = _solid_rectangle("last", _FILL_GREEN)
-        last_reference = _expected_front_frame([(0, _FRONT_WIDTH, _RGB_GREEN)])
+        first = _solid_rectangle("first", FILL_RED)
+        last = _solid_rectangle("last", FILL_GREEN)
+        last_reference = _expected_front_frame([(0, FRONT_DISPLAY_WIDTH, BGR_GREEN)])
 
         with allure.step("Draw both elements without explicit z-indexes"):
             actual = _draw_and_capture(assets_api, streaming_api, [first, last])
@@ -794,19 +810,19 @@ class TestDisplayZIndex:
         implicit_is_top: bool,
     ):
         implicit_elements = [
-            _solid_rectangle(f"implicit_{index}", _FILL_BLUE)
+            _solid_rectangle(f"implicit_{index}", FILL_RED)
             for index in range(1, implicit_count)
         ]
         implicit_elements.append(
-            _solid_rectangle(f"implicit_{implicit_count}", _FILL_GREEN)
+            _solid_rectangle(f"implicit_{implicit_count}", FILL_GREEN)
         )
         explicit_lower = _solid_rectangle(
             "explicit_lower",
-            _FILL_BLUE,
+            FILL_RED,
             z_index=explicit_z_index,
         )
-        expected_rgb = _RGB_GREEN if implicit_is_top else _RGB_BLUE
-        expected = _expected_front_frame([(0, _FRONT_WIDTH, expected_rgb)])
+        expected_rgb = BGR_GREEN if implicit_is_top else BGR_RED
+        expected = _expected_front_frame([(0, FRONT_DISPLAY_WIDTH, expected_rgb)])
 
         with allure.step(
             f"Draw {implicit_count} implicit elements followed by explicit "
@@ -836,10 +852,10 @@ class TestDisplayZIndex:
         streaming_api: StreamingAPI,
         busy_timer_stopped,
     ):
-        first_implicit = _solid_rectangle("implicit_0", _FILL_BLUE)
-        explicit = _solid_rectangle("explicit_15", _FILL_BLUE, z_index=15)
-        second_implicit = _solid_rectangle("implicit_10", _FILL_GREEN)
-        expected = _expected_front_frame([(0, _FRONT_WIDTH, _RGB_BLUE)])
+        first_implicit = _solid_rectangle("implicit_0", FILL_RED)
+        explicit = _solid_rectangle("explicit_15", FILL_RED, z_index=15)
+        second_implicit = _solid_rectangle("implicit_10", FILL_GREEN)
+        expected = _expected_front_frame([(0, FRONT_DISPLAY_WIDTH, BGR_RED)])
 
         with allure.step(
             "Draw implicit, explicit z_index=15, and another implicit element"
@@ -866,9 +882,9 @@ class TestDisplayZIndex:
         streaming_api: StreamingAPI,
         busy_timer_stopped,
     ):
-        explicit_higher = _solid_rectangle("explicit", _FILL_GREEN, z_index=100)
-        implicit_later = _solid_rectangle("implicit", _FILL_BLUE)
-        expected = _expected_front_frame([(0, _FRONT_WIDTH, _RGB_GREEN)])
+        explicit_higher = _solid_rectangle("explicit", FILL_GREEN, z_index=100)
+        implicit_later = _solid_rectangle("implicit", FILL_RED)
+        expected = _expected_front_frame([(0, FRONT_DISPLAY_WIDTH, BGR_GREEN)])
 
         with allure.step("Draw explicit higher element before an implicit element"):
             actual = _draw_and_capture(
@@ -892,16 +908,16 @@ class TestDisplayZIndex:
         streaming_api: StreamingAPI,
         busy_timer_stopped,
     ):
-        blue_lower = _solid_rectangle("blue", _FILL_BLUE, z_index=10)
-        green_higher = _solid_rectangle("green", _FILL_GREEN, z_index=100)
-        expected_green = _expected_front_frame([(0, _FRONT_WIDTH, _RGB_GREEN)])
-        expected_blue = _expected_front_frame([(0, _FRONT_WIDTH, _RGB_BLUE)])
+        red_lower = _solid_rectangle("red", FILL_RED, z_index=10)
+        green_higher = _solid_rectangle("green", FILL_GREEN, z_index=100)
+        expected_green = _expected_front_frame([(0, FRONT_DISPLAY_WIDTH, BGR_GREEN)])
+        expected_red = _expected_front_frame([(0, FRONT_DISPLAY_WIDTH, BGR_RED)])
 
         with allure.step("Draw and verify the initial z-index ordering"):
             initial = _draw_and_capture(
                 assets_api,
                 streaming_api,
-                [blue_lower, green_higher],
+                [red_lower, green_higher],
             )
             assert initial == expected_green, (
                 f"Expected initial frame sha256={_frame_digest(expected_green)}, "
@@ -912,8 +928,8 @@ class TestDisplayZIndex:
             response = assets_api.draw_response(
                 _APP_NAME,
                 [
-                    _solid_rectangle("blue", _FILL_BLUE, z_index=200),
-                    _solid_rectangle("green", _FILL_GREEN, z_index=0),
+                    _solid_rectangle("red", FILL_RED, z_index=200),
+                    _solid_rectangle("green", FILL_GREEN, z_index=0),
                 ],
                 priority=DEFAULT_ELEMENT_PRIORITY,
             )
@@ -921,11 +937,11 @@ class TestDisplayZIndex:
                 f"Expected draw status 200, got {response.status_code}: "
                 f"{response.text[:200]}"
             )
-            actual = _capture_stable_front_frame(streaming_api)
+            actual = _capture_stable_front_frame(streaming_api).raw
 
         with allure.step("Verify the updated higher element is now visible"):
-            assert actual == expected_blue, (
-                f"Expected reordered frame sha256={_frame_digest(expected_blue)}, "
+            assert actual == expected_red, (
+                f"Expected reordered frame sha256={_frame_digest(expected_red)}, "
                 f"got sha256={_frame_digest(actual)}"
             )
 
@@ -938,16 +954,16 @@ class TestDisplayZIndex:
         streaming_api: StreamingAPI,
         busy_timer_stopped,
     ):
-        blue_lower = _solid_rectangle("blue", _FILL_BLUE, z_index=100)
-        green_higher = _solid_rectangle("green", _FILL_GREEN, z_index=200)
-        expected_green = _expected_front_frame([(0, _FRONT_WIDTH, _RGB_GREEN)])
-        expected_blue = _expected_front_frame([(0, _FRONT_WIDTH, _RGB_BLUE)])
+        red_lower = _solid_rectangle("red", FILL_RED, z_index=100)
+        green_higher = _solid_rectangle("green", FILL_GREEN, z_index=200)
+        expected_green = _expected_front_frame([(0, FRONT_DISPLAY_WIDTH, BGR_GREEN)])
+        expected_red = _expected_front_frame([(0, FRONT_DISPLAY_WIDTH, BGR_RED)])
 
         with allure.step("Draw and verify the initial explicit z-index ordering"):
             initial = _draw_and_capture(
                 assets_api,
                 streaming_api,
-                [blue_lower, green_higher],
+                [red_lower, green_higher],
             )
             assert initial == expected_green, (
                 f"Expected initial frame sha256={_frame_digest(expected_green)}, "
@@ -957,18 +973,18 @@ class TestDisplayZIndex:
         with allure.step("Update the higher element without a z_index field"):
             response = assets_api.draw_response(
                 _APP_NAME,
-                [_solid_rectangle("green", _FILL_GREEN)],
+                [_solid_rectangle("green", FILL_GREEN)],
                 priority=DEFAULT_ELEMENT_PRIORITY,
             )
             assert response.status_code == 200, (
                 f"Expected draw status 200, got {response.status_code}: "
                 f"{response.text[:200]}"
             )
-            actual = _capture_stable_front_frame(streaming_api)
+            actual = _capture_stable_front_frame(streaming_api).raw
 
         with allure.step("Verify the omitted z_index was reset to default 0"):
-            assert actual == expected_blue, (
-                f"Expected z_index=100 frame sha256={_frame_digest(expected_blue)}, "
+            assert actual == expected_red, (
+                f"Expected z_index=100 frame sha256={_frame_digest(expected_red)}, "
                 f"got sha256={_frame_digest(actual)}; "
                 "the updated element should use default z_index=0"
             )
@@ -989,7 +1005,7 @@ class TestDisplayZIndex:
     ):
         response = assets_api.draw_response(
             _APP_NAME,
-            [_solid_rectangle("invalid_z", _FILL_BLUE, z_index=z_index)],
+            [_solid_rectangle("invalid_z", FILL_RED, z_index=z_index)],
             priority=DEFAULT_ELEMENT_PRIORITY,
         )
         assert response.status_code == 400, (
@@ -1009,7 +1025,7 @@ class TestDisplayZIndex:
     ):
         response = assets_api.draw_response(
             _APP_NAME,
-            [_solid_rectangle("boundary_z", _FILL_BLUE, z_index=z_index)],
+            [_solid_rectangle("boundary_z", FILL_RED, z_index=z_index)],
             priority=DEFAULT_ELEMENT_PRIORITY,
         )
         assert response.status_code == 200, (

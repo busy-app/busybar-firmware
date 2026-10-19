@@ -98,6 +98,7 @@ paths:
       tags:
         - Storage
       summary: List files on internal storage
+      description: Returns a list of all files and directories located inside the specified storage path
       operationId: listStorageFiles
       parameters:
         - name: path
@@ -225,6 +226,7 @@ paths:
       tags:
         - Storage
       summary: Show storage usage
+      description: Retrieves information about storage partition capacity, including total, used, and free space in bytes
       operationId: getStorageStatus
       responses:
         "200":

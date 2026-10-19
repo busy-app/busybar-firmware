@@ -51,7 +51,9 @@ bool log_storage_dump(LogStorage* instance, const char* path);
  * @brief Temporarily release the remote log UART.
  *
  * Releases the serial line used to receive remote logs so that another consumer
- * can acquire it. Reception is paused until log_storage_resume_remote is called.
+ * can acquire it. Suspends are counted: the line is released on the first call
+ * and stays released until every suspend is matched by a
+ * log_storage_resume_remote call.
  *
  * @param[in] instance pointer to the LogStorage instance
  */
@@ -59,6 +61,9 @@ void log_storage_suspend_remote(LogStorage* instance);
 
 /**
  * @brief Resume remote log reception after log_storage_suspend_remote.
+ *
+ * Restores reception only when all outstanding suspends have been resumed;
+ * otherwise the line remains released for its current owner.
  *
  * @param[in] instance pointer to the LogStorage instance
  */

@@ -1,0 +1,31 @@
+{
+    "format_version": 1,
+    "version": 1,
+    "fields": {
+        "min_value": {
+            "label": "Minimum",
+            "type": "integer",
+            "default": -10000,
+            "min": -10000,
+            "max": 0
+        },
+        "max_value": {
+            "label": "Maximum",
+            "type": "integer",
+            "default": 10000,
+            "min": 0,
+            "max": 10000
+        },
+        "wrap": {
+            "label": "Wrap",
+            "type": "boolean",
+            "default": false
+        },
+        "title": {
+            "label": "Title",
+            "type": "string",
+            "default": "JS counter:",
+            "max_length": 16
+        }
+    }
+}

@@ -8,13 +8,13 @@
       class="justify-between"
       @click="copyToClipboard"
     >
-        <template v-if="!$slots.default">{{ props.text }}</template>
-        <slot />
+      <template v-if="!$slots.default">{{ props.text }}</template>
+      <slot />
 
-        <UIcon
-          :name="currentIcon"
-          :class="iconClassName"
-        />
+      <UIcon
+        :name="currentIcon"
+        :class="iconClassName"
+      />
     </UButton>
   </UTooltip>
 </template>

@@ -15,6 +15,7 @@ typedef struct {
     FuriHalSerialHandle* serial;
     FuriStreamBuffer* rx_stream;
 
+    size_t suspend_nesting_count;
     _Atomic bool did_overrun;
 } LogStorageRemote;
 

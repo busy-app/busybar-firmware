@@ -25,36 +25,40 @@
       />
     </template>
     <template #body>
-      <UFormField
-        label="Password"
-        :error="pms.newPasswordValidation"
-      >
-        <UInput
-          v-model="pms.passwordModel.new"
-          v-maska="'##########'"
-          name="new-password"
-          size="xl"
-          variant="soft"
-          :ui="{ base: 'ring-1 ring-glass bg-accented/50' }"
-          :type="pms.passwordModel.showNew ? 'text' : 'password'"
-          placeholder="From 4 to 10 digits"
-          @keyup.enter="isInvalid || pms.loading ? null : pms.setPassword()"
+      <form @submit.prevent="isInvalid || pms.loading ? null : pms.setPassword()">
+        <UFormField
+          label="Password"
+          :error="pms.newPasswordValidation"
         >
-          <template #trailing>
-            <UButton
-              :icon="pms.passwordModel.showNew ? 'i-bi-eye' : 'i-bi-eye-shut'"
-              variant="ghost"
-              color="neutral"
-              square
-              class="rounded-full"
-              :ui="{
-                leadingIcon: 'size-6 text-muted'
-              }"
-              @click="() => { pms.passwordModel.showNew = !pms.passwordModel.showNew; }"
-            />
-          </template>
-        </UInput>
-      </UFormField>
+          <UInput
+            v-model="pms.passwordModel.new"
+            v-maska="'##########'"
+            name="new-password"
+            autocomplete="new-password"
+            :passwordrules="PASSWORD_RULES_ATTR"
+            inputmode="numeric"
+            size="xl"
+            variant="soft"
+            :ui="{ base: 'ring-1 ring-glass bg-accented/50' }"
+            :type="pms.passwordModel.showNew ? 'text' : 'password'"
+            placeholder="From 4 to 10 digits"
+          >
+            <template #trailing>
+              <UButton
+                :icon="pms.passwordModel.showNew ? 'i-bi-eye' : 'i-bi-eye-shut'"
+                variant="ghost"
+                color="neutral"
+                square
+                class="rounded-full"
+                :ui="{
+                  leadingIcon: 'size-6 text-muted'
+                }"
+                @click="() => { pms.passwordModel.showNew = !pms.passwordModel.showNew; }"
+              />
+            </template>
+          </UInput>
+        </UFormField>
+      </form>
     </template>
   </ModalGeneric>
 </template>

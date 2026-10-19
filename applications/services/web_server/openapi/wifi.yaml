@@ -7,7 +7,8 @@ paths:
     get:
       tags:
         - Wi-Fi
-      description: Returns current Wi-Fi status
+      summary: Get Wi-Fi connection status
+      description: Returns the current connection state of the Wi-Fi module, along with network details like SSID, RSSI, and IP address if connected
       parameters: []
       responses:
         "200":
@@ -88,7 +89,8 @@ paths:
       tags:
         - Wi-Fi
       operationId: getWifiNetworks
-      description: Scans environment for available Wi-Fi networks
+      summary: Scan for available Wi-Fi networks
+      description: Scans to discover nearby available Wi-Fi networks and returns their SSIDs, security styles, and signal strengths
       x-local-only: true
       parameters: []
       responses:

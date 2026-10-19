@@ -51,7 +51,8 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      barUrl: ''
+      barUrl: '',
+      appsApiUrl: 'https://apps-api.busy.app'
     }
   },
   experimental: {

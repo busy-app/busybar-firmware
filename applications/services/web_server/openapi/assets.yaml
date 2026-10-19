@@ -399,6 +399,7 @@ schemas:
               - large
               - extra_large
               - global
+              - superscript
           color:
             type: string
             description: "Color to display the text in, in #RRGGBBAA format"

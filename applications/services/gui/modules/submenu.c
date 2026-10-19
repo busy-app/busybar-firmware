@@ -146,13 +146,12 @@ static void submenu_item_lvgl_event(const lv_obj_class_t* class_p, lv_event_t* e
 
     if(code == LV_EVENT_FOCUSED) {
         lv_obj_add_state(instance->cursor, LV_STATE_FOCUSED);
+        lv_label_set_long_mode(instance->primary_label, LV_LABEL_LONG_MODE_SCROLL_CIRCULAR);
 
         if(instance->awaits_lazy_setup) {
             lv_label_ext_set_anim_speed(instance->primary_label, LONG_TEXT_ANIM_SPEED_PX_PER_M);
             instance->awaits_lazy_setup = false;
         }
-
-        lv_label_set_long_mode(instance->primary_label, LV_LABEL_LONG_MODE_SCROLL_CIRCULAR);
     } else if(code == LV_EVENT_DEFOCUSED) {
         lv_obj_remove_state(instance->cursor, LV_STATE_FOCUSED);
         lv_label_set_long_mode(instance->primary_label, LV_LABEL_LONG_MODE_CLIP);

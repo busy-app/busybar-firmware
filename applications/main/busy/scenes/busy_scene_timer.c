@@ -64,7 +64,7 @@ static bool busy_scene_timer_input_callback(const InputEvent* event, void* conte
     }
 
     if(consumed) {
-        busy_send_custom_event(instance, custom_event);
+        busy_send_custom_event_nonblocking(instance, custom_event);
     }
 
     return consumed;
@@ -83,7 +83,7 @@ static void busy_scene_timer_pubsub_callback(const void* msg, void* context) {
     if(event->type == BusyTimerEventTypeTick) {
         data->time_elapsed_s = event->tick.time_elapsed_s;
         data->time_remaining_s = event->tick.time_remaining_s;
-        busy_send_custom_event(instance, BusyCustomEventTimerTick);
+        busy_send_custom_event_nonblocking(instance, BusyCustomEventTimerTick);
 
     } else if(event->type == BusyTimerEventTypeModeChanged) {
         data->prev_timer_mode = data->timer_mode;
