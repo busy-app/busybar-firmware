@@ -7,10 +7,17 @@
 #pragma once
 
 #include "js_app.h"
+#include <furi/core/string.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+typedef enum JsAppRegistryAppUninstallResult {
+    JsAppRegistryAppUninstallResultOk,
+    JsAppRegistryAppUninstallResultNotFound,
+    JsAppRegistryAppUninstallResultStorageError,
+} JsAppRegistryAppUninstallResult;
 
 /**
  * @brief Type for a callback to be invoked for each JavaScript application found.
@@ -42,6 +49,24 @@ void js_app_registry_list_apps(JsAppRegistryListCallback callback, void* context
  * @returns pointer to a JsApp instance associated with the found app, or @c NULL on failure
  */
 JsApp* js_app_registry_get_app(const char* app_id);
+
+/**
+ * @brief Validate app ID and get installation path for a JavaScript application by its ID.
+ *
+ * Valid app IDs correspond to the following regular expression: [a-zA-Z0-9_\-][a-zA-Z0-9_\-.]*
+ *
+ * @param[in] app_id zero-terminated string containing the desired application's ID
+ * @return path in filesystem or @c NULL if app_id is invalid
+ */
+FuriString* js_app_registry_get_app_path(const char* app_id);
+
+/**
+ * @brief Delete an installed JavaScript application.
+ *
+ * @param[in] app_id zero-terminated string containing the desired application's ID
+ * @return operation result
+ */
+JsAppRegistryAppUninstallResult js_app_registry_uninstall_app(const char* app_id);
 
 #ifdef __cplusplus
 }

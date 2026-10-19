@@ -13,10 +13,12 @@ import requests
 from clients.api import WIFI_SSID, MintedAccessToken, SettingsAPI, WifiAPI
 from utils.wait import wait_for
 
-
 _INITIAL_ACCESS_KEY = "73916482"
 _CHANGED_ACCESS_KEY = "28461739"
 _TOKEN_HEADER = "X-API-Token"
+_JS_FETCH_HEADER = "X-busybar-fetch"
+_JS_FETCH_HEADER_VALUES = ["js", "j", "", "jsX", "JS"]
+_JS_FETCH_HEADER_VALUE_IDS = ["exact", "prefix", "empty", "suffix", "uppercase"]
 
 
 def _headers(token: str) -> dict[str, str]:
@@ -98,6 +100,66 @@ def wifi_token_api(
 @pytest.mark.frontend
 @pytest.mark.uses_si917
 class TestAPITokenAuthenticationWiFi:
+    @allure.title("External clients cannot bypass key mode with a JS fetch marker")
+    @pytest.mark.parametrize(
+        "marker",
+        _JS_FETCH_HEADER_VALUES,
+        ids=_JS_FETCH_HEADER_VALUE_IDS,
+    )
+    def test_external_js_marker_does_not_bypass_key_mode(
+        self,
+        wifi_token_api: SettingsAPI,
+        marker: str,
+    ):
+        with allure.step(f"Request JS-whitelisted API with marker {marker!r}"):
+            response = wifi_token_api.get_raw(
+                "/api/status",
+                headers={_JS_FETCH_HEADER: marker},
+            )
+
+        with allure.step("Verify normal WiFi authorization still applies"):
+            assert response.status_code == 403, (
+                f"Expected external marker {marker!r} to be ignored in key mode, "
+                f"got HTTP {response.status_code}: {response.text!r}"
+            )
+
+    @allure.title("Only a recognized JS marker shadows a valid API token")
+    @pytest.mark.parametrize(
+        ("marker", "expected_status"),
+        [
+            pytest.param("js", 403, id="exact"),
+            pytest.param("j", 200, id="prefix"),
+            pytest.param("", 200, id="empty"),
+            pytest.param("jsX", 200, id="suffix"),
+            pytest.param("JS", 403, id="uppercase"),
+        ],
+    )
+    def test_external_js_marker_shadows_valid_token(
+        self,
+        wifi_token_api: SettingsAPI,
+        access_token_factory: Callable[[str], MintedAccessToken],
+        marker: str,
+        expected_status: int,
+    ):
+        with allure.step("Create a valid API token"):
+            token = access_token_factory(f"wifi-js-marker-{uuid4().hex[:10]}")
+
+        with allure.step(f"Request protected API with marker {marker!r}"):
+            response = wifi_token_api.get_raw(
+                "/api/account/status",
+                headers={
+                    _TOKEN_HEADER: token.token,
+                    _JS_FETCH_HEADER: marker,
+                },
+            )
+
+        with allure.step("Verify the expected token authorization result"):
+            assert response.status_code == expected_status, (
+                f"Expected valid token with external marker {marker!r} to return "
+                f"HTTP {expected_status}, got {response.status_code}: "
+                f"{response.text!r}"
+            )
+
     @allure.title("Key mode requires credentials and accepts generated token")
     def test_key_mode_authentication_flow(
         self,

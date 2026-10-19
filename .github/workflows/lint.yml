@@ -27,12 +27,12 @@ jobs:
         run: |
           # Configure Git LFS
           git lfs install --skip-smudge
-          
+
           # Auth via per-job RUNNER_TEMP creds (self-hosted runners persist $HOME).
           rm -f "$HOME/.git-credentials"
           echo "https://x-access-token:${GH_TOKEN}@github.com" > "${RUNNER_TEMP}/git-credentials"
           git config credential.helper "store --file ${RUNNER_TEMP}/git-credentials"
-          
+
           # Configure LFS settings
           git config lfs.transfer.maxretries 3
 

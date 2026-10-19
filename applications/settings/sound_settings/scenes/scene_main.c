@@ -69,8 +69,6 @@ static void scene_main_on_enter(void* context) {
     SoundSettings* instance = context;
     SettingsSceneSound* data = scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
 
-    audio_enable(instance->audio);
-
     uint8_t volume = volume_model_get(instance->model);
 
     with_gui(instance->gui, {
@@ -122,8 +120,6 @@ static void scene_main_on_exit(void* context) {
         slider_view_free(data->front_slider);
         slider_view_free(data->back_slider);
     });
-
-    audio_disable(instance->audio);
 }
 
 static void update_gui(const SettingsSceneSound* data, SliderView* slider) {

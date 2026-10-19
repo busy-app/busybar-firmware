@@ -334,20 +334,32 @@ bool http_api_status_ws_callback(
 
     StatusStreaming* instance = ctx;
 
-    Client* client = client_alloc(instance, conn);
+    do {
+        if(!instance->state_publisher) {
+            instance->state_publisher = furi_record_open_ex(RECORD_STATE_PUBLISHER, 0);
+            if(!instance->state_publisher) {
+                FURI_LOG_W(TAG, "State publisher is unavailable");
+                ConnectionContext* conn_ctx = (void*)conn->data;
+                conn_ctx->ws.on_open = client_connection_on_open_rejected;
+                break;
+            }
+        }
 
-    if(!client) {
-        FURI_LOG_W(TAG, "No available websockets");
-        ConnectionContext* conn_ctx = (void*)conn->data;
-        conn_ctx->ws.on_open = client_connection_on_open_rejected;
-    } else {
+        Client* client = client_alloc(instance, conn);
+
+        if(!client) {
+            FURI_LOG_W(TAG, "No available websockets");
+            ConnectionContext* conn_ctx = (void*)conn->data;
+            conn_ctx->ws.on_open = client_connection_on_open_rejected;
+            break;
+        }
         ConnectionContext* conn_ctx = (void*)conn->data;
         conn_ctx->ws.on_open = client_connection_open;
         conn_ctx->on_close = client_connection_close;
         conn_ctx->ws.on_message = client_on_message;
         conn_ctx->on_wakeup = client_send_frame;
         conn_ctx->context = client;
-    }
+    } while(false);
 
     mg_ws_upgrade(conn, msg, HEADER_CORS_ORIGIN);
 
@@ -361,7 +373,7 @@ void* http_api_status_ws_alloc(void) {
         instance->clients[i].valid = false;
     }
 
-    instance->state_publisher = furi_record_open(RECORD_STATE_PUBLISHER);
+    instance->state_publisher = NULL;
 
     return instance;
 }
@@ -375,7 +387,9 @@ void http_api_status_ws_free(void* ctx) {
         client_free(client, instance);
     }
     furi_mutex_release(instance->client_alloc_mutex);
-    furi_record_close(RECORD_STATE_PUBLISHER);
+    if(instance->state_publisher) {
+        furi_record_close(RECORD_STATE_PUBLISHER);
+    }
 
     furi_mutex_free(instance->client_alloc_mutex);
     free(instance);

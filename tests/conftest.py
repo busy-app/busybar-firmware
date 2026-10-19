@@ -37,6 +37,7 @@ from clients.api import (
     UpdateAPI,
     BusyAPI,
     SmartHomeAPI,
+    AppsAPI,
 )
 from clients.cli import SimpleCLIConnection
 from config.config import Config
@@ -69,6 +70,24 @@ _PYTEST_MARKERS = (
     "long_running: long-running hardware regression tests",
     "regression: Heavy regression tests; excluded from PR/dev runs, only fire on -rc tags",
 )
+
+
+def pytest_addoption(parser):
+    """Register JavaScript test debugging modes."""
+    group = parser.getgroup("javascript")
+    group.addoption(
+        "--keep-js-scripts",
+        action="store_true",
+        help="Keep generated JavaScript test scripts on the device.",
+    )
+    group.addoption(
+        "--export-js-only",
+        metavar="DIR",
+        help=(
+            "Export generated JavaScript test scripts to DIR without "
+            "connecting to a device."
+        ),
+    )
 
 
 def _api_503_incidents_path() -> str:
@@ -235,13 +254,19 @@ def pytest_configure(config):
     """Pytest configuration"""
     logger.info("Configuring pytest")
 
-    # Validate required file paths exist before running tests
-    try:
-        Config.validate_paths()
-        logger.info("All required paths validated successfully")
-    except FileNotFoundError as e:
-        logger.error(f"Path validation failed: {e}")
-        raise pytest.UsageError(str(e))
+    if config.getoption("export_js_only") and config.getoption("keep_js_scripts"):
+        raise pytest.UsageError(
+            "--export-js-only and --keep-js-scripts cannot be used together"
+        )
+
+    if not config.getoption("export_js_only"):
+        # Validate required device-test paths before running tests.
+        try:
+            Config.validate_paths()
+            logger.info("All required paths validated successfully")
+        except FileNotFoundError as e:
+            logger.error(f"Path validation failed: {e}")
+            raise pytest.UsageError(str(e))
 
     # Allure TestOps integration
     allure_testops_url = os.getenv("ALLURE_TESTOPS_URL")
@@ -336,13 +361,17 @@ def device_flasher():
 
 
 @pytest.fixture(scope="session", autouse=True)
-def skip_hello_screen(web_base_url):
+def skip_hello_screen(request):
     """Send 'start' key to dismiss the Hello/Start screen after boot.
 
     The device shows a welcome screen after flashing that blocks all
     display draw operations.  Pressing 'start' advances the app to its
     normal state so that tests can interact with the display.
     """
+    if request.config.getoption("export_js_only"):
+        return
+
+    web_base_url = request.getfixturevalue("web_base_url")
     url = f"{web_base_url}/api/input"
     try:
         with requests.Session() as session:
@@ -534,7 +563,7 @@ def _reset_after_test(
 
 
 @pytest.fixture(autouse=True)
-def device_health_monitor(request, device_flasher, web_base_url, web_session):
+def device_health_monitor(request):
     """
     Auto-use fixture that monitors device health and recovers from failures.
 
@@ -549,6 +578,14 @@ def device_health_monitor(request, device_flasher, web_base_url, web_session):
     - HTTP API stopped serving (GET /api/version non-200 / exception)
     - TCP port 80 closed (checked only after API failure)
     """
+    if request.config.getoption("export_js_only"):
+        yield None
+        return
+
+    device_flasher = request.getfixturevalue("device_flasher")
+    web_base_url = request.getfixturevalue("web_base_url")
+    web_session = request.getfixturevalue("web_session")
+
     pre_reason = _pre_test_reset_reason(device_flasher, web_base_url, web_session)
     if pre_reason:
         _reset_before_test(request, device_flasher, pre_reason)
@@ -689,6 +726,11 @@ def storage_api(api_factory):
 @pytest.fixture
 def assets_api(api_factory):
     return api_factory(AssetsAPI)
+
+
+@pytest.fixture
+def apps_api(api_factory):
+    return api_factory(AppsAPI)
 
 
 @pytest.fixture

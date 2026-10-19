@@ -80,10 +80,12 @@ class TestCLIStorageMutating:
     """Reversible mutating operations on /ext (everything is cleaned up)."""
 
     @allure.title("CLI. storage. File round-trip (copy/md5/stat/rename/remove).")
-    def test_storage_file_roundtrip(self, persistent_cli_connection, storage_dir):
+    def test_storage_file_roundtrip(
+        self, persistent_cli_connection, storage_dir, tar_seed_dir
+    ):
         cli, d = persistent_cli_connection, storage_dir
-        # self-contained source file: archive a standard directory
-        tar = cli.execute_command(f"tar c {d}/seed.tar /ext/user_assets", timeout=10)
+        # self-contained source file: archive the small seed tree
+        tar = cli.execute_command(f"tar c {d}/seed.tar {tar_seed_dir}", timeout=10)
         assert "RET: 0" in tar, tar
         cp = cli.execute_command(f"storage copy {d}/seed.tar {d}/copy.bin")
         assert "error" not in cp.lower(), cp
@@ -98,18 +100,22 @@ class TestCLIStorageMutating:
         assert "error" not in rm.lower(), rm
 
     @allure.title("CLI. storage. Command extract (tar archive).")
-    def test_storage_extract(self, persistent_cli_connection, storage_dir):
+    def test_storage_extract(
+        self, persistent_cli_connection, storage_dir, tar_seed_dir
+    ):
         cli, d = persistent_cli_connection, storage_dir
-        c = cli.execute_command(f"tar c {d}/seed.tar /ext/user_assets", timeout=10)
+        c = cli.execute_command(f"tar c {d}/seed.tar {tar_seed_dir}", timeout=10)
         assert "RET: 0" in c, c
         ex = cli.execute_command(f"storage extract {d}/seed.tar {d}/out", timeout=10)
         assert "success" in ex.lower(), ex
         assert "Storage error" not in ex, ex
 
     @allure.title("CLI. Command tar (compress + extract).")
-    def test_tar_compress_extract(self, persistent_cli_connection, storage_dir):
+    def test_tar_compress_extract(
+        self, persistent_cli_connection, storage_dir, tar_seed_dir
+    ):
         cli, d = persistent_cli_connection, storage_dir
-        c = cli.execute_command(f"tar c {d}/seed.tar /ext/user_assets", timeout=10)
+        c = cli.execute_command(f"tar c {d}/seed.tar {tar_seed_dir}", timeout=10)
         assert "RET: 0" in c and "success" in c.lower(), c
         x = cli.execute_command(f"tar x {d}/seed.tar {d}/out", timeout=10)
         assert "RET: 0" in x and "success" in x.lower(), x

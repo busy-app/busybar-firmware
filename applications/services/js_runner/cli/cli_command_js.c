@@ -15,7 +15,7 @@ typedef struct JsCliParams {
 } JsCliParams;
 
 #define CLI_APP_ID        "app.busy.cli"
-#define CLI_APP_HEAP_SIZE 64 * 1024
+#define CLI_APP_HEAP_SIZE 96 * 1024
 
 #define MAX_REPL_LINE_LENGTH 200
 
@@ -54,6 +54,19 @@ static void js_console_cb(
     }
 }
 
+static void pipe_send_cstr(PipeSide* pipe, const char* str) {
+    pipe_send(pipe, str, strlen(str));
+}
+
+static void run_event_callback(const JsRunnerEvent* event, void* context) {
+    if(event->type == JsRunnerEventTypeScriptFinished && event->error != JsRunnerErrorNone) {
+        PipeSide* pipe = context;
+        pipe_send_cstr(pipe, "Error running script: ");
+        pipe_send_cstr(pipe, js_runner_get_error_message(event->error));
+        pipe_send_cstr(pipe, "\r\n");
+    }
+}
+
 static void run_script(const FuriString* path, const FuriString* app_id, PipeSide* pipe) {
     JsRunner* runner = furi_record_open(RECORD_JS_RUNNER);
     const char* id = app_id ? furi_string_get_cstr(app_id) : CLI_APP_ID;
@@ -66,7 +79,7 @@ static void run_script(const FuriString* path, const FuriString* app_id, PipeSid
     } else {
         JsRunnerContextHandle* handle = context_init_result.handle;
         JsRunnerRunResult run_result =
-            js_runner_run(handle, furi_string_get_cstr(path), NULL, NULL);
+            js_runner_run(handle, furi_string_get_cstr(path), run_event_callback, pipe);
         if(run_result.error != JsRunnerErrorNone) {
             printf("Error running script: %s\r\n", js_runner_get_error_message(run_result.error));
         } else {

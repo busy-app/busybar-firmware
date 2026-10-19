@@ -67,7 +67,10 @@
             </div>
           </div>
 
-          <div v-if="showReloadPrompt" class="rounded-xl flex items-center justify-between gap-2">
+          <div
+            v-if="showReloadPrompt"
+            class="rounded-xl flex items-center justify-between gap-2"
+          >
             <div class="text-sm pl-3">
               Changes saved. Reload the page to apply
             </div>

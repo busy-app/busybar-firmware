@@ -16,6 +16,30 @@ void js_check_and_free(jerry_value_t val) {
     jerry_value_free(val);
 }
 
+void js_set_constructor_prototype(jerry_value_t constructor, jerry_value_t prototype) {
+    furi_check(jerry_value_is_function(constructor));
+    furi_check(jerry_value_is_object(prototype));
+    js_set_property(constructor, "prototype", prototype);
+}
+
+jerry_value_t js_object_construct(
+    const char* name,
+    const jerry_value_t args[],
+    const jerry_length_t args_count) {
+    furi_check(name);
+    jerry_value_t global_obj = jerry_current_realm();
+
+    jerry_value_t constructor = jerry_object_get_sz(global_obj, name);
+    furi_check(jerry_value_is_function(constructor));
+
+    jerry_value_t result = jerry_construct(constructor, args, args_count);
+
+    jerry_value_free(constructor);
+    jerry_value_free(global_obj);
+
+    return result;
+}
+
 void js_set_property(jerry_value_t object, const char* name, jerry_value_t property) {
     js_check_and_free(jerry_object_set_sz(object, name, property));
     jerry_value_free(property);
@@ -94,6 +118,13 @@ char* js_string_to_c_string(jerry_value_t value) {
     return buffer;
 }
 
+char* js_value_to_c_string(jerry_value_t value) {
+    jerry_value_t value_string = jerry_value_to_string(value);
+    char* buffer = js_string_to_c_string(value_string);
+    jerry_value_free(value_string);
+    return buffer;
+}
+
 FuriString* js_string_to_furi_string(jerry_value_t value) {
     char* buffer = js_string_to_c_string(value);
     if(!buffer) {
@@ -104,12 +135,20 @@ FuriString* js_string_to_furi_string(jerry_value_t value) {
     return result;
 }
 
+bool js_exception_is_null(jerry_value_t exception) {
+    furi_check(jerry_value_is_exception(exception));
+    jerry_value_t val = jerry_exception_value(exception, false);
+    const bool is_null = jerry_value_is_null(val);
+    jerry_value_free(val);
+    return is_null;
+}
+
 FuriString* js_get_exception_string(jerry_value_t exception) {
     furi_check(jerry_value_is_exception(exception));
     jerry_value_t val = jerry_exception_value(exception, false);
     jerry_value_t str = jerry_value_to_string(val);
     FuriString* result = js_string_to_furi_string(str);
-    furi_assert(result);
+    furi_check(result);
     jerry_value_free(str);
     jerry_value_free(val);
     return result;
@@ -223,14 +262,29 @@ bool js_value_to_integer(jerry_value_t value, int* result) {
     return ok;
 }
 
+static void js_runner_array_buffer_heap_destructor(void* data) {
+    furi_assert(data);
+    free(data);
+}
+
+static void js_runner_array_buffer_byte_array_destructor(void* data) {
+    furi_assert(data);
+    ByteArray_t* byte_array = data;
+    ByteArray_clear(*byte_array);
+    free(byte_array);
+}
+
 jerry_value_t js_arraybuffer_from_byte_array(ByteArray_t* array) {
-    size_t size = ByteArray_size(*array);
-    JsRunnerByteArrayDestructor* destructor = malloc(sizeof(JsRunnerByteArrayDestructor));
-    destructor->destructor = js_runner_byte_array_destructor;
-    destructor->byte_array = array;
-    return jerry_arraybuffer_external(ByteArray_get(*array, 0), size, destructor);
+    const size_t size = ByteArray_size(*array);
+    JsRunnerArrayBufferInfo* info = malloc(sizeof(JsRunnerArrayBufferInfo));
+    info->data = array;
+    info->destructor = js_runner_array_buffer_byte_array_destructor;
+    return jerry_arraybuffer_external(ByteArray_get(*array, 0), size, info);
 }
 
 jerry_value_t js_arraybuffer_from_sized_buffer(SizedBuffer buffer) {
-    return jerry_arraybuffer_external(buffer.buffer, buffer.size, js_runner_heap_destructor);
+    JsRunnerArrayBufferInfo* info = malloc(sizeof(JsRunnerArrayBufferInfo));
+    info->data = buffer.buffer;
+    info->destructor = js_runner_array_buffer_heap_destructor;
+    return jerry_arraybuffer_external(buffer.buffer, buffer.size, info);
 }

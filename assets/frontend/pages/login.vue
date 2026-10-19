@@ -4,11 +4,11 @@
     class="w-full min-h-[calc(100vh-2rem)] flex flex-col items-center justify-center gap-6"
   >
     <template v-if="deviceStore.httpAPIAccess?.mode === 'disabled'">
-        <LockedLayoutApiDisabled />
-      </template>
-      <template v-else>
-        <LockedLayoutLoginForm />
-      </template>
+      <LockedLayoutApiDisabled />
+    </template>
+    <template v-else>
+      <LockedLayoutLoginForm />
+    </template>
   </div>
 </template>
 

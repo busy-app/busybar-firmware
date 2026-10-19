@@ -145,7 +145,7 @@
   }
 
   .rounded-group > * {
-    border-radius: 6px;
+    border-radius: 9px;
   }
   
   .rounded-group > *:first-child {

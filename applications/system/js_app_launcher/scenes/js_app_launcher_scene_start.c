@@ -30,18 +30,19 @@ static void js_app_launcher_scene_start_menu_callback(uint8_t index, void* conte
 
 static void js_app_launcher_scene_start_on_enter(void* context) {
     furi_assert(context);
+
     JsAppLauncher* instance = context;
+    furi_check(instance->js_app);
 
     JsAppLauncherSceneStart* data =
         scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdStart);
 
-    JsAppInfo info;
-    furi_check(js_app_get_info(instance->js_app, &info));
+    const JsAppInfo* info = &instance->js_app_info;
 
     with_gui(instance->gui, {
         data->front_dialog = dialog_alloc(instance->front_window);
-        dialog_set_icon(data->front_dialog, info.path.icon.front);
-        dialog_set_text(data->front_dialog, info.manifest.name);
+        dialog_set_icon(data->front_dialog, info->path.icon.front);
+        dialog_set_text(data->front_dialog, info->manifest.name);
         dialog_set_options(data->front_dialog, "Start", "Setup");
         dialog_set_option_colors(data->front_dialog, COLOR_START, COLOR_SETUP);
         dialog_set_callback(
@@ -80,6 +81,7 @@ static bool js_app_launcher_scene_start_on_event(const SceneManagerEvent* event,
         if(event->event == JsAppLauncherSceneStartMenuIdxStart) {
             scene_manager_next_scene(instance->scene_manager, JsAppLauncherSceneIdRun);
         } else if(event->event == JsAppLauncherSceneStartMenuIdxSetup) {
+            with_gui(instance->gui, { nav_bar_push_location(instance->nav_bar, "SETUP"); });
             scene_manager_next_scene(instance->scene_manager, JsAppLauncherSceneIdSetup);
         }
 

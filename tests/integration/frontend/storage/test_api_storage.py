@@ -1,9 +1,25 @@
 import time
+from uuid import uuid4
 
 import allure
 import pytest
 
 from clients.api import StorageAPI
+
+
+@pytest.fixture
+def storage_path_test_dir(storage_api: StorageAPI):
+    """Keep boundary-test files in a unique directory with a short cleanup path."""
+    path = f"/ext/storage_path_{uuid4().hex[:16]}"
+    storage_api.mkdir(path)
+    try:
+        yield path
+    finally:
+        response = storage_api.remove_raw(path)
+        assert response.status_code == 200, (
+            f"Failed to clean up {path}: HTTP {response.status_code}, "
+            f"{response.text[:200]!r}"
+        )
 
 
 @allure.feature("5. Web Frontend")
@@ -82,6 +98,104 @@ class TestStorageAPI:
         with allure.step(f"Remove test file: {test_file}"):
             remove_response = storage_api.remove_raw(test_file)
             assert remove_response.status_code == 200
+
+    @allure.title("Storage API accepts paths across the old and new length boundaries")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    @pytest.mark.parametrize("path_length", [63, 64, 255])
+    def test_api_storage_path_length_roundtrip(
+        self, storage_api: StorageAPI, storage_path_test_dir: str, path_length: int
+    ):
+        # ASCII keeps characters and bytes equal. The space exercises URL decoding:
+        # the encoded query is longer than the decoded path at the 255-byte limit.
+        prefix = f"{storage_path_test_dir}/long name_"
+        path = prefix + "a" * (path_length - len(prefix) - len(".bin")) + ".bin"
+        filename = path.rsplit("/", 1)[1]
+        content = b"Storage path boundary payload\x00\xff"
+
+        with allure.step(f"Write a file at a {path_length}-byte decoded path"):
+            assert len(path.encode("utf-8")) == path_length, f"Invalid path: {path!r}"
+            response = storage_api.write(path, content)
+            assert response.status_code == 200, (
+                f"Write failed for {path_length} bytes: HTTP {response.status_code}, "
+                f"{response.text[:200]!r}"
+            )
+
+        with allure.step("Read back the exact file content"):
+            response = storage_api.read(path)
+            assert response.status_code == 200, (
+                f"Read failed: HTTP {response.status_code}, {response.text[:200]!r}"
+            )
+            assert response.content == content, f"Unexpected content: {response.content!r}"
+
+        with allure.step("List the complete filename without truncation"):
+            entries = storage_api.list(storage_path_test_dir).list
+            assert len(entries) == 1, f"Unexpected directory entries: {entries!r}"
+            entry = entries[0]
+            assert entry.name == filename, f"Expected {filename!r}, got {entry.name!r}"
+            assert entry.type == "file", f"Unexpected entry type: {entry.type!r}"
+            assert entry.size == len(content), f"Unexpected file size: {entry.size!r}"
+
+        with allure.step("Remove the long path and verify the directory is empty"):
+            response = storage_api.remove_raw(path)
+            assert response.status_code == 200, (
+                f"Remove failed: HTTP {response.status_code}, {response.text[:200]!r}"
+            )
+            entries = storage_api.list(storage_path_test_dir).list
+            assert entries == [], f"File remains after removal: {entries!r}"
+
+    @allure.title("Storage API rejects a 256-byte path without truncation or side effects")
+    @pytest.mark.api
+    @pytest.mark.frontend
+    def test_api_storage_overlong_path_rejected(
+        self, storage_api: StorageAPI, storage_path_test_dir: str
+    ):
+        prefix = f"{storage_path_test_dir}/"
+        valid_path = prefix + "a" * (255 - len(prefix))
+        overlong_path = valid_path + "b"
+        content = b"Existing file must survive a rejected write"
+
+        with allure.step("Create a sentinel at the 255-byte prefix of the rejected path"):
+            assert len(overlong_path.encode("utf-8")) == 256, (
+                f"Invalid overlong path: {overlong_path!r}"
+            )
+            response = storage_api.write(valid_path, content)
+            assert response.status_code == 200, (
+                f"Sentinel write failed: HTTP {response.status_code}, "
+                f"{response.text[:200]!r}"
+            )
+
+        with allure.step("Reject the overlong write and preserve the sentinel"):
+            response = storage_api.write(overlong_path, b"Must not overwrite the prefix")
+            assert response.status_code == 400, (
+                f"Expected 400 for 256 bytes, got {response.status_code}: "
+                f"{response.text[:200]!r}"
+            )
+            response = storage_api.read(valid_path)
+            assert response.status_code == 200, (
+                f"Sentinel read failed: HTTP {response.status_code}, "
+                f"{response.text[:200]!r}"
+            )
+            assert response.content == content, f"Sentinel changed: {response.content!r}"
+            entries = storage_api.list(storage_path_test_dir).list
+            names = [entry.name for entry in entries]
+            assert names == [valid_path.rsplit("/", 1)[1]], (
+                f"Rejected write created an unexpected file: {names!r}"
+            )
+
+        with allure.step("Reject the same path in an empty directory without creating a file"):
+            response = storage_api.remove_raw(valid_path)
+            assert response.status_code == 200, (
+                f"Sentinel removal failed: HTTP {response.status_code}, "
+                f"{response.text[:200]!r}"
+            )
+            response = storage_api.write(overlong_path, b"Must not create a truncated file")
+            assert response.status_code == 400, (
+                f"Expected 400 for 256 bytes, got {response.status_code}: "
+                f"{response.text[:200]!r}"
+            )
+            entries = storage_api.list(storage_path_test_dir).list
+            assert entries == [], f"Rejected write created files: {entries!r}"
 
     @allure.title("POST /api/storage/write (append=1 creates the file)")
     @pytest.mark.api

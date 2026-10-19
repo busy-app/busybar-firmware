@@ -229,6 +229,7 @@
         data-id="modal-storage-upload"
         title="Upload files"
         wide
+        :dismissible="!loading.write"
         :primary-action-props="{
           class: allFilesUploaded ? 'hidden' : '',
           label: 'Upload',

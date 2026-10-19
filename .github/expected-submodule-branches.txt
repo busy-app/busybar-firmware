@@ -17,7 +17,7 @@ lib/nanopb            origin/maintenance_0.4
 lib/simplicity_sdk    origin/bsb
 # lib/stb/stb_repo      origin/master  # upstream vendor pin, not on branch tip
 # lib/thorvg            origin/main  # upstream vendor pin, not on branch tip
-lib/tinyusb           origin/ncm_packet_filter
+lib/tinyusb           origin/flipper-tweaks
 lib/wiseconnect       origin/bsb
 # lib/zlib              origin/master  # upstream vendor pin, not on branch tip
 scripts/toolchain     origin/dev

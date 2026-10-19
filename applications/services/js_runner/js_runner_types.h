@@ -6,6 +6,7 @@
 #include <stdatomic.h>
 #include <furi/furi.h>
 #include <toolbox/api_lock.h>
+#include <gui/gui.h>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wattributes"
@@ -38,6 +39,13 @@ typedef struct JsRunnerAppInterval {
     IntervalDict_t intervals;
     uint32_t last_id;
 } JsRunnerAppInterval;
+
+typedef struct JsRunnerAppInput {
+    Gui* gui;
+    bool subscribed;
+    jerry_value_t listen_handler;
+    FuriMessageQueue* input_queue;
+} JsRunnerAppInput;
 
 typedef struct JsFetch JsFetch;
 ARRAY_DEF(FetchArray, JsFetch*, M_PTR_OPLIST);
@@ -99,11 +107,13 @@ typedef struct JsRunnerApp {
     JsRunnerAppConsole console;
     JsRunnerAppInterval interval;
     JsRunnerAppFetch fetch;
+    JsRunnerAppInput input;
 } JsRunnerApp;
 
 typedef struct JsRunner {
     FuriEventLoop* event_loop;
     FuriMessageQueue* message_queue;
+    FuriPubSub* fatal_pubsub;
 } JsRunner;
 
 typedef struct JsRunnerContextHandle {
@@ -116,8 +126,8 @@ typedef struct JsRunnerContextHandle {
 typedef struct JsRunnerExecutionHandle {
     JsRunnerContextHandle* context_handle;
     JsRunnerApp* app;
-    JsRunnerTerminationCallback termination_callback;
-    void* termination_callback_context;
+    JsRunnerEventCallback event_callback;
+    void* event_callback_context;
 } JsRunnerExecutionHandle;
 
 typedef struct JsRunnerStaticContext {
@@ -127,7 +137,9 @@ typedef struct JsRunnerStaticContext {
 
 typedef void (*JsRunnerExternalDataDestructor)(void* object, void* user_p);
 
-typedef struct JsRunnerByteArrayDestructor {
-    JsRunnerExternalDataDestructor destructor;
-    ByteArray_t* byte_array;
-} JsRunnerByteArrayDestructor;
+typedef void (*JsRunnerArrayBufferDestructor)(void* data);
+
+typedef struct {
+    void* data;
+    JsRunnerArrayBufferDestructor destructor;
+} JsRunnerArrayBufferInfo;

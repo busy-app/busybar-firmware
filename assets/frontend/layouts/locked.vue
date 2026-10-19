@@ -4,7 +4,10 @@
     class="min-h-screen px-4 sm:px-6 py-4"
   >
     <UContainer>
-      <div v-if="!initialLoading" class="w-full max-w-[328px] mx-auto">
+      <div
+        v-if="!initialLoading"
+        class="w-full max-w-[328px] mx-auto"
+      >
         <slot />
       </div>
       <template v-else>

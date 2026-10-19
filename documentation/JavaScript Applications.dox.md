@@ -42,7 +42,7 @@ The firmware will look for these hardcoded file names when looking for applicati
 
 Required. The name must be at most 32 characters long and contain only ASCII alphanumeric characters.
 
-The only allowed special characters are: `_` (underscore), `-` (minus) and `.` (period).
+The only allowed special characters are: `_` (underscore), `-` (minus) and `.` (period). The name cannot start with a period.
 
 To improve the name uniqueness, a reverse domain name scheme is recommended, but is not required.
 
@@ -95,7 +95,7 @@ Application manifest file is a JSON file that matches the following schema:
             "type": "string",
             "minLength": 1,
             "maxLength": 32,
-            "pattern": "^[a-zA-Z0-9._-]+$",
+            "pattern": "^[a-zA-Z0-9_\\-][a-zA-Z0-9_\\-.]{0,31}$",
             "description": "Unique application ID (must match the root directory name)"
         },
         "name": {
@@ -106,6 +106,11 @@ Application manifest file is a JSON file that matches the following schema:
             "type": "string",
             "pattern": "^[0-9]+\.[0-9]+\.[0-9]+$",
             "description": "Application version"
+        },
+        "api_version": {
+            "type": "string",
+            "pattern": "^[0-9]+\.[0-9]+\.[0-9]+$",
+            "description": "Minimum required HTTP API version"
         },
         "description": {
             "type": "string",
@@ -120,8 +125,8 @@ Application manifest file is a JSON file that matches the following schema:
         "heap_size_kib": {
             "type": "number",
             "minimum": 1,
-            "maximum": 256,
-            "default": 32,
+            "maximum": 512,
+            "default": 128,
             "description": "The amount of memory reserved for application heap, in KiB"
         },
         "debug": {
@@ -134,7 +139,8 @@ Application manifest file is a JSON file that matches the following schema:
         "format_version",
         "id",
         "name",
-        "version"
+        "version",
+        "api_version"
     ]
 }
 ```

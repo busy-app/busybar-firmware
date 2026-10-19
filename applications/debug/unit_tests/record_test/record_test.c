@@ -16,10 +16,29 @@ static int32_t record_consumer_thread(void* arg) {
     const uint64_t* data_ptr = furi_record_open_ex(RECORD_TEST, 0);
     api_lock_unlock(lock);
 
-    int32_t success = (*data_ptr == SECRET_VALUE);
+    const bool success = (*data_ptr == SECRET_VALUE);
 
     furi_record_close(RECORD_TEST);
     return success;
+}
+
+static int32_t record_racing_consumer_thread(void* arg) {
+    furi_assert(arg);
+    FuriApiLock lock = arg;
+
+    bool success = true;
+    uint32_t open_count = 0;
+
+    while(api_lock_is_locked(lock) && success) {
+        const uint64_t* data_ptr = furi_record_open_ex(RECORD_TEST, 1);
+        if(data_ptr != NULL) {
+            ++open_count;
+            success = (*data_ptr == SECRET_VALUE);
+            furi_record_close(RECORD_TEST);
+        }
+    }
+
+    return success && open_count;
 }
 
 MU_TEST(record_basic_test) {
@@ -81,10 +100,35 @@ MU_TEST(record_multithread_test) {
     furi_thread_free(consumer_thread);
 }
 
+MU_TEST(record_multithread_race_test) {
+    uint64_t data = SECRET_VALUE;
+
+    FuriApiLock lock = api_lock_alloc_locked();
+    FuriThread* consumer_thread =
+        furi_thread_alloc_ex(NULL, 1024, record_racing_consumer_thread, lock);
+
+    furi_thread_start(consumer_thread);
+
+    for(uint32_t i = 0; i < NUM_ITERATIONS; ++i) {
+        furi_record_create(RECORD_TEST, &data);
+        furi_thread_yield();
+        furi_record_destroy(RECORD_TEST);
+        furi_thread_yield();
+    }
+
+    api_lock_unlock(lock);
+    furi_thread_join(consumer_thread);
+    api_lock_free(lock);
+
+    mu_check(furi_thread_get_return_code(consumer_thread));
+    furi_thread_free(consumer_thread);
+}
+
 MU_TEST_SUITE(record_test_suite) {
     MU_RUN_TEST(record_basic_test);
     MU_RUN_TEST(record_ref_count_test);
     MU_RUN_TEST(record_multithread_test);
+    MU_RUN_TEST(record_multithread_race_test);
 }
 
 int run_minunit_record_test(void) {
