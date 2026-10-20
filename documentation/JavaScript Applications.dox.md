@@ -9,6 +9,11 @@ and a set of standard and custom interfaces to be used by these scripts.
 Additionally, the firmware is able to enumerate and list currently installed applications and display them
 in the [APPS menu](https://docs.busy.app/bar/apps-and-integrations) for easy access.
 
+# Quick start
+
+To facilitate application development, [dedicated tooling](https://github.com/busy-app/busy-tools) is available.
+New developers are advised to try it first, then return to this page for more information as needed.
+
 # Application structure
 
 ## Applications directory
