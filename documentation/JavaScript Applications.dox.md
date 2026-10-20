@@ -128,6 +128,63 @@ While running, the application only has the ability to read its settings via the
 
 See @subpage javascript-applications-settings-schema for the complete file format description.
 
+## HTTP Requests
+
+Requests to the [HTTP API](https://docs.busy.app/bar/dev/http-api) are performed via the built-in `fetch` function.
+
+It supports the same syntax as its regular counterpart from browsers with several limitations.
+See [MDN](https://developer.mozilla.org/en-US/docs/Web/API/Window/fetch) for more info on the usage.
+
+Applications must make requests to `http://localhost/api/...` in order to interact with the on-device web server.
+
+Example snippet that outputs "Hello world!" on the front display:
+
+```js
+fetch("http://localhost/api/display/draw", {
+    method: "POST",
+    body: JSON.stringify({
+        application_name: "app.hello.world",
+        elements: [
+            {
+                id: "0",
+                type: "text",
+                x: 72 / 2,
+                y: 16 / 2,
+                align: "center",
+                text: "Hello World!",
+                font: "small"
+            }
+        ]
+    })
+});
+```
+
+For application isolation purposes, only the following API endpoints are accessible from within the applications:
+
+| Endpoint             | Allowed method(s) |
+| -------------------- | :---------------: |
+| `apps/settings`      | `GET` [1]         |
+| `display/brightness` | `GET`, `POST`     |
+| `display/draw`       | `POST`, `DELETE`  |
+| `audio/play`         | `POST`, `DELETE`  |
+| `busy`               | `GET`, `PUT`      |
+| `name`               | `GET`             |
+| `audio/volume`       | `GET`, `POST`     |
+| `time`               | `GET`             |
+| `wifi/status`        | `GET`             |
+| `version`            | `GET`             |
+| `access`             | `GET`             |
+| `transport`          | `GET`             |
+| `status`             | `GET`             |
+| `status/device`      | `GET`             |
+| `status/firmware`    | `GET`             |
+| `status/system`      | `GET`             |
+| `status/power`       | `GET`             |
+
+- [1] The request is only allowed if the `app_id` request parameter matches the running application ID.
+
+The `fetch` function can also be used to access remote HTTP(S) resources in the same manner, provided there is a working Wi-Fi connection.
+
 ## Input handling
 
 Applications that need to react to user input must use the built-in `listen` function:
