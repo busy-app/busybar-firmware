@@ -163,7 +163,7 @@ static void
     items[item_id++] = var_item_list_add_switch(container->list, "Autostart", NULL, NULL);
 
     items[item_id++] =
-        var_item_list_add_switch(container->list, "Show work\nphase only", NULL, NULL);
+        var_item_list_add_switch(container->list, "Show work phase only", NULL, NULL);
 
     items[item_id++] = var_item_list_add_switch(container->list, "Demo mode", NULL, NULL);
 }
