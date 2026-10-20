@@ -194,7 +194,7 @@ void furi_hal_gpio_init_ex(
 void furi_hal_gpio_set_sleep_pull(const GpioPin* gpio, const GpioPull pull) {
     furi_check(gpio);
     furi_check(pull < GpioPullMAX);
-    
+
     const uint32_t pwr_port = GET_PWR_PORT(gpio->port);
     const uint32_t pwr_pin = GET_PWR_PIN(gpio->pin);
 

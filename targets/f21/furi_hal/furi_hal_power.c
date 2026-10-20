@@ -5,28 +5,18 @@
 
 typedef struct {
     volatile uint8_t insomnia;
-    volatile FuriHalPowerResetSource reset_source;
 } FuriHalPower;
 
 static volatile FuriHalPower furi_hal_power = {
     .insomnia = 0,
-    .reset_source = FuriHalPowerResetSourceUnknown,
 };
 
 void furi_hal_power_init_super_early(void) {
     volatile uint32_t* const status_register = &PWR->WUSR;
-    // FURI_LOG_D("sleep", "WUSR %032lb", *status_register);
-    if(*status_register) {
-        furi_hal_power.reset_source = FuriHalPowerResetSourceWakeup;
-    } else {
-        // no way to differentiate between POR and non-power-on reset on STM
-        furi_hal_power.reset_source = FuriHalPowerResetSourceResetLine;
-    }
-
     volatile uint32_t* const status_clear_register = &PWR->WUSCR;
     *status_clear_register |= *status_register;
 
-    // disable all pulls during sleep
+    // Disable all pulls during sleep
     const size_t port_count = 10;
     const size_t registers_per_port = 2;
     const size_t register_count = port_count * registers_per_port;
@@ -121,10 +111,6 @@ void furi_hal_power_sleep_wakeup_gpio(const GpioPin* wakeup_pin, GpioMode condit
 
     *enable_register |= enable_mask;
 
-    FURI_LOG_D("sleep", "WUCR1 %032lb", PWR->WUCR1);
-    FURI_LOG_D("sleep", "WUCR2 %032lb", PWR->WUCR2);
-    FURI_LOG_D("sleep", "WUCR3 %032lb", PWR->WUCR3);
-
     NVIC_SetPriority(PWR_S3WU_IRQn, 0);
     NVIC_EnableIRQ(PWR_S3WU_IRQn);
     NVIC_SetPriority(RCC_IRQn, 0);
@@ -134,11 +120,6 @@ void furi_hal_power_sleep_wakeup_gpio(const GpioPin* wakeup_pin, GpioMode condit
 }
 
 void furi_hal_power_deep_sleep(void) {
-    for(size_t i = 0; i < 10; i++) {
-        char p = 'A' + i;
-        FURI_LOG_D("sleep", "PUCR%c=%016lb  PDCR%c=%016lb", p, (&PWR->PUCRA)[i * 2], p, (&PWR->PDCRA)[i * 2]);
-    }
-
     furi_delay_ms(10);
 
     FURI_CRITICAL_ENTER();
@@ -156,9 +137,21 @@ void furi_hal_power_deep_sleep(void) {
 
     __disable_irq();
 
-    // disable usart dma
-    LL_USART_DisableDMAReq_RX(USART1);
-    LL_USART_DisableDMAReq_TX(USART1);
+    // Hardware bug workaround
+    // https://github.com/zephyrproject-rtos/zephyr/issues/63236
+    static USART_TypeDef* const usarts[] = {
+        USART1,
+        USART2,
+        USART3,
+        UART4,
+        UART5,
+        USART6,
+    };
+    for(size_t i = 0; i < COUNT_OF(usarts); i++) {
+        USART_TypeDef* usart = usarts[i];
+        LL_USART_DisableDMAReq_RX(usart);
+        LL_USART_DisableDMAReq_TX(usart);
+    }
 
     SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
     __asm__ volatile("wfi\n"
@@ -170,5 +163,6 @@ void furi_hal_power_deep_sleep(void) {
 }
 
 FuriHalPowerResetSource furi_hal_power_get_reset_source(void) {
-    return furi_hal_power.reset_source;
+    // Datasheet says WUSR is not set correctly after exiting Standby
+    return FuriHalPowerResetSourceUnknown;
 }

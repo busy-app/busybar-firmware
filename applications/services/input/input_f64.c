@@ -4,7 +4,6 @@
 #include <furi_hal_qei.h>
 #include <furi_hal_resources.h>
 #include <toolbox/api_lock.h>
-#include <furi_hal_power.h>
 
 #ifdef SRV_INTERCOM
 #include <intercom/intercom.h>

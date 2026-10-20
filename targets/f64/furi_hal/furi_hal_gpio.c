@@ -75,7 +75,7 @@ static void
     UULP_GPIO->NPSS_GPIO_CNTRL[gpio->pin].NPSS_GPIO_CTRLS_b.NPSS_GPIO_MODE = alt_fn;
 
     if(mode == GpioModeInput) {
-        UULP_GPIO->NPSS_GPIO_CNTRL[gpio->pin].NPSS_GPIO_CTRLS_b.NPSS_GPIO_REN = 1; // ????
+        UULP_GPIO->NPSS_GPIO_CNTRL[gpio->pin].NPSS_GPIO_CTRLS_b.NPSS_GPIO_REN = 1;
         UULP_GPIO->NPSS_GPIO_CNTRL[gpio->pin].NPSS_GPIO_CTRLS_b.NPSS_GPIO_OEN = 1;
 
     } else if(mode == GpioModeOutputPushPull) {

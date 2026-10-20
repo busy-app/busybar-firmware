@@ -26,7 +26,6 @@ struct LowPower {
     Power* power;
 
     uint32_t lock_count;
-    bool in_low_power;
 };
 
 static void low_power_send_api_message(LowPower* instance, LowPowerApiMessage message) {
@@ -62,7 +61,6 @@ static LowPower* low_power_alloc(void) {
     LowPower* instance = malloc(sizeof(LowPower));
     instance->api_queue = furi_message_queue_alloc(API_QUEUE_SIZE, sizeof(LowPowerApiMessage));
     instance->lock_count = 1; // Locked by default
-    instance->in_low_power = false;
 
     instance->back_display = furi_record_open(RECORD_BACK_DISPLAY);
     instance->front_display = furi_record_open(RECORD_FRONT_DISPLAY);
@@ -89,19 +87,13 @@ int32_t low_power_srv(void* arg) {
         if(message == LowPowerApiMessageLock) {
             instance->lock_count++;
 
-            if((instance->lock_count > 0) && (instance->in_low_power)) {
-                low_power_exit(instance);
-                instance->in_low_power = false;
-            }
-
         } else if(message == LowPowerApiMessageUnlock) {
             if(instance->lock_count > 0) {
                 instance->lock_count--;
             }
 
-            if((instance->lock_count == 0) && (!instance->in_low_power)) {
+            if(instance->lock_count == 0) {
                 low_power_enter(instance);
-                instance->in_low_power = true;
             }
 
         } else {
