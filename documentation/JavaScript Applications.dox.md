@@ -236,11 +236,16 @@ The `action` property may take one of the following values:
 - [1] Only for buttons
 - [2] Only for encoder wheel
 
-Additionally, if the `key` is equal to `encoder`, then an additional `delta` propery will be present,
-which represents the number of clicks that occurred (currenly, only 1). The sign denotes rotation direction (negative is counterclockwise).
+Additionally, if the `key` is equal to `encoder`, then an additional `delta` property will be present,
+which represents the number of clicks that occurred (currently, only 1). The sign denotes rotation direction (negative is counterclockwise).
 
 It is recommended that applications react to the `short` action as a normal button press and to `long` action as the long button press.
 Raw `press` and `release` actions may be useful in games or other applications that need to track explicit press and release events.
+
+See @subpage javascript-applications-input-event-schema for the complete event format description.
+
+### Back button behaviour
+A long press of the Back button is handled outside of the application and is used to force-quit from an application.
 
 @page javascript-applications-manifest-schema Appendix 1: Manifest File Schema
 
@@ -554,6 +559,67 @@ Raw `press` and `release` actions may be useful in games or other applications t
                 }
             },
             "required": ["fields"]
+        }
+    }
+}
+```
+
+@page javascript-applications-input-event-schema Appendix 3: Input Event Schema
+
+```json
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+        "key": {
+            "type": "string",
+            "enum": ["encoder", "ok", "start", "back"],
+            "description": "Name of the control that produced the event"
+        },
+        "action": {
+            "type": "string",
+            "enum": ["press", "release", "short", "long", "repeat", "clockwise", "counterclockwise"],
+            "description": "Type of the event that occurred"
+        },
+        "delta": {
+            "type": "integer",
+            "description": "For the encoder wheel only: number of clicks (negative is counterclockwise)"
+        }
+    },
+    "required": ["key", "action"],
+    "oneOf": [
+        { "$ref": "#/$defs/button" },
+        { "$ref": "#/$defs/encoder" }
+    ],
+    "$defs": {
+        "button": {
+            "properties": {
+                "key": { "enum": ["ok", "start", "back"] },
+                "action": { "enum": ["press", "release", "short", "long", "repeat"] }
+            },
+            "not": { "required": ["delta"] },
+            "if": {
+                "properties": { "key": { "const": "back" } }
+            },
+            "then": {
+                "properties": { "action": { "not": { "const": "long" } } }
+            }
+        },
+        "encoder": {
+            "properties": {
+                "key": { "const": "encoder" },
+                "action": { "enum": ["clockwise", "counterclockwise"] }
+            },
+            "required": ["delta"],
+            "if": {
+                "properties": { "action": { "const": "clockwise" } }
+            },
+            "then": {
+                "properties": { "delta": { "const": 1 } }
+            },
+            "else": {
+                "properties": { "delta": { "const": -1 } }
+            }
         }
     }
 }
