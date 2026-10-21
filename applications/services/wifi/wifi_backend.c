@@ -19,8 +19,7 @@
 #define BEACON_MISSED_COUNT     40
 
 #define STATE_CODE_UPPER_MASK 0xF0
-#define REASON_CODE_MSB_MASK  0x80
-#define REASON_CODE_RAW_MASK  0x7F
+#define REASON_CODE_MSB_MASK  0x7F
 
 #define STATE_CODE_UNSPECIFIED  0x00
 #define STATE_CODE_ASSOCIATED   0x80
@@ -353,11 +352,16 @@ static void wifi_stop_info_polling(Wifi* instance) {
     furi_event_loop_pend_callback(instance->event_loop, wifi_backend_info_callback, instance);
 }
 
-static void wifi_handle_connection_loss(Wifi* instance) {
+static bool wifi_handle_connection_loss(Wifi* instance) {
+    bool is_handled = false;
+
     if(instance->state == WifiBackendStateConnected) {
         wifi_set_state(instance, WifiBackendStateReconnecting);
         wifi_net_tcpip_netif_down(instance);
+        is_handled = true;
     }
+
+    return is_handled;
 }
 
 static void wifi_log_unhandled_reason_code(uint8_t state_code, uint8_t reason_code) {
@@ -367,7 +371,7 @@ static void wifi_log_unhandled_reason_code(uint8_t state_code, uint8_t reason_co
 
 static void wifi_module_stats_event_handler(Wifi* instance, const WifiModuleStatsEvent* event) {
     const uint8_t state_code = event->state_code & STATE_CODE_UPPER_MASK;
-    const uint8_t reason_code = event->reason_code;
+    const uint8_t reason_code = event->reason_code & REASON_CODE_MSB_MASK;
 
     if(state_code == STATE_CODE_ASSOCIATED) {
         if(instance->state == WifiBackendStateReconnecting) {
@@ -381,13 +385,7 @@ static void wifi_module_stats_event_handler(Wifi* instance, const WifiModuleStat
         wifi_start_info_polling(instance);
 
     } else if(state_code == STATE_CODE_DEASSOCIATED) {
-        if(reason_code & REASON_CODE_MSB_MASK) {
-            wifi_handle_connection_loss(instance);
-
-            FURI_LOG_D(
-                TAG, "Deauthenticated by AP, reason: 0x%hhX", reason_code & REASON_CODE_RAW_MASK);
-
-        } else if(reason_code == REASON_CODE_DEAUTH_USER) {
+        if(reason_code == REASON_CODE_DEAUTH_USER) {
             if(instance->state != WifiBackendStateDisconnected) {
                 FURI_LOG_W(TAG, "Deassociation by user request while disconnected");
             }
@@ -434,8 +432,9 @@ static void wifi_module_stats_event_handler(Wifi* instance, const WifiModuleStat
             }
 
         } else if(reason_code == REASON_CODE_ASSOC_DENIAL) {
-            wifi_handle_connection_loss(instance);
-            wifi_stop_info_polling(instance);
+            if(wifi_handle_connection_loss(instance)) {
+                wifi_stop_info_polling(instance);
+            }
 
             FURI_LOG_W(TAG, "Forcefully disconnected from AP");
 
@@ -445,8 +444,9 @@ static void wifi_module_stats_event_handler(Wifi* instance, const WifiModuleStat
             }
 
         } else {
-            wifi_handle_connection_loss(instance);
-            wifi_stop_info_polling(instance);
+            if(wifi_handle_connection_loss(instance)) {
+                wifi_stop_info_polling(instance);
+            }
 
             wifi_log_unhandled_reason_code(state_code, reason_code);
         }
@@ -563,7 +563,7 @@ static sl_status_t
 
     } else if(event == SL_WIFI_STATS_MODULE_STATE_EVENT) {
         furi_assert(data);
-        furi_assert(data_length = sizeof(sl_wifi_module_state_stats_response_t));
+        furi_assert(data_length == sizeof(sl_wifi_module_state_stats_response_t));
 
         const sl_wifi_module_state_stats_response_t* response = data;
 
