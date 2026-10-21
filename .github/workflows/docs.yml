@@ -1,4 +1,4 @@
-name: "Generate documentation with Doxygen"
+name: 'Generate documentation with Doxygen'
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - dev
       - release
     tags:
-      - "*"
+      - '*'
   pull_request:
 
 concurrency:
@@ -22,14 +22,14 @@ jobs:
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - name: "Checkout code"
+      - name: 'Checkout code'
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 2
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: "Update submodules"
+      - name: 'Update submodules'
         run: |
           git submodule update --init --recursive --jobs=$(nproc) \
             fbt_layers/* \
@@ -41,7 +41,7 @@ jobs:
         with:
           version: "1.12.0"
 
-      - name: "Generate documentation"
+      - name: 'Generate documentation'
         id: doxygen_build
         if: always()
         run: |
@@ -66,13 +66,13 @@ jobs:
             exit 1;
           fi
 
-      - name: "Report Doxygen errors"
+      - name: 'Report Doxygen errors'
         if: (steps.doxygen_build.outputs.errors) && github.event.pull_request
         run: |
           echo "Doxygen errors found";
           exit 1;
 
-      - name: "Upload documentation"
+      - name: 'Upload documentation'
         if: github.event_name == 'push' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/release')
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.DOCS_S3_ACCESS_KEY_ID }}
