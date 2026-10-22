@@ -82,3 +82,9 @@ void js_runner_del_fetch_thread(JsRunnerApp* app, JsFetch* fetch);
 const char* js_runner_app_get_id(const JsRunnerApp* app);
 
 void js_runner_heap_destructor(void* object, void* user_p);
+
+/** @brief Defer execution of a callback until before jerry_cleanup. */
+void js_runner_defer(JsRunnerApp* app, js_runner_deferred_function_t cb, void* context);
+
+/** @brief Cancel a deferred callback execution */
+void js_runner_cancel_defer(JsRunnerApp* app, js_runner_deferred_function_t cb, void* context);

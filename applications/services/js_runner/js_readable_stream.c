@@ -82,6 +82,15 @@ static void resolve_everything_with_done(JsReadableStream* instance, jerry_value
     jerry_value_free(value);
 }
 
+static void free_closed_promise(void* context) {
+    JS_TRACE("free_closed_promise");
+    JsReadableStream* instance = context;
+    if(instance->has_closed_promise) {
+        jerry_value_free(instance->closed_promise);
+        instance->has_closed_promise = false;
+    }
+}
+
 static void resolve_closed_promise(JsReadableStream* instance, const char* error_msg) {
     if(instance->has_closed_promise) {
         if(error_msg) {
@@ -96,6 +105,7 @@ static void resolve_closed_promise(JsReadableStream* instance, const char* error
         }
         jerry_value_free(instance->closed_promise);
         instance->has_closed_promise = false;
+        WITH_JS_RUNNER_APP(app, { js_runner_cancel_defer(app, free_closed_promise, instance); });
         js_run_jobs();
     }
 }
@@ -161,6 +171,10 @@ static jerry_value_t iterator_return(
     jerry_value_t value = JS_ARG_OR_UNDEFINED(0);
 
     detach_sink(instance);
+
+    if(instance->has_closed_promise) {
+        resolve_closed_promise(instance, NULL);
+    }
 
     jerry_value_t result = js_iterator_result(true, value);
     js_check_and_free(jerry_promise_resolve(promise, result));
@@ -251,7 +265,6 @@ static bool data_sink_callback(JsFetch* fetch, JsFetchDataEvent* event, void* ca
 }
 
 static void async_iterator_free_cb(void* native_p, jerry_object_native_info_t* info_p) {
-    UNUSED(native_p);
     UNUSED(info_p);
     JsReadableStream* instance = native_p;
 
@@ -292,6 +305,35 @@ static jerry_value_t async_iterator(
     return iter;
 }
 
+static jerry_value_t reader_closed(
+    const jerry_call_info_t* call_info,
+    const jerry_value_t args[],
+    const jerry_length_t args_count) {
+
+    UNUSED(args);
+    UNUSED(args_count);
+
+    JsReadableStream* instance =
+        jerry_object_get_native_ptr(call_info->this_value, &async_iterator_native_info);
+    JS_CHECK_INSTANCE();
+
+    if(instance->data_expected) {
+        if(!instance->has_closed_promise) {
+            instance->has_closed_promise = true;
+            instance->closed_promise = jerry_promise();
+            WITH_JS_RUNNER_APP(app, { js_runner_defer(app, free_closed_promise, instance); });
+        }
+
+        return jerry_value_copy(instance->closed_promise);
+    } else {
+        jerry_value_t promise = jerry_promise();
+        jerry_value_t result = jerry_undefined();
+        jerry_promise_resolve(promise, result);
+        jerry_value_free(result);
+        return promise;
+    }
+}
+
 static jerry_value_t get_reader(
     const jerry_call_info_t* call_info,
     const jerry_value_t args[],
@@ -319,12 +361,8 @@ static jerry_value_t get_reader(
     // .cancel() is the same as iterator's .return()
     js_set_method(reader, "cancel", iterator_return);
 
-    {
-        // .closed promise
-        instance->has_closed_promise = true;
-        instance->closed_promise = jerry_promise();
-        js_check_and_free(jerry_object_set_sz(reader, "closed", instance->closed_promise));
-    }
+    // .closed promise
+    js_set_property_getset(reader, "closed", reader_closed, NULL);
 
     instance->async_iterator_status = ChildStatusRunning;
 

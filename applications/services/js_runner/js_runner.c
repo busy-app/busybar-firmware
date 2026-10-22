@@ -144,7 +144,7 @@ void js_run_jobs(void) {
         if(!should_continue) {
             break;
         }
-    };
+    }
 }
 
 static void fetch_event_queue_callback(FuriEventLoopObject* object, void* context) {
@@ -174,6 +174,7 @@ static const CommandQueueHandler command_handlers[] = {
 static_assert(COUNT_OF(command_handlers) == JsRunnerAppCommandTypeMax);
 
 static void app_terminate_from_app_thread(JsRunnerApp* app);
+static void js_runner_run_deferred(JsRunnerApp* app);
 
 static void command_queue_callback(FuriEventLoopObject* object, void* context) {
     UNUSED(object);
@@ -284,6 +285,8 @@ static void js_runner_app_init(JsRunnerApp* app, const AppThreadParams* params) 
 
     furi_event_loop_subscribe_message_queue(
         app->event_loop, app->command_queue, FuriEventLoopEventIn, command_queue_callback, app);
+
+    DeferredList_init(app->deferred);
 }
 
 static void js_runner_app_deinit(JsRunnerApp* app) {
@@ -299,6 +302,9 @@ static void js_runner_app_deinit(JsRunnerApp* app) {
     js_runner_app_interval_deinit(&app->interval);
     js_runner_app_fetch_deinit(&app->fetch);
     furi_event_flag_free(app->is_idle);
+
+    furi_assert(DeferredList_empty_p(app->deferred));
+    DeferredList_clear(app->deferred);
 }
 
 static void js_runner_app_set_root_path(JsRunnerApp* app, const char* script_path) {
@@ -436,6 +442,8 @@ static int32_t app_thread_callback(void* context) {
     api_lock_unlock(params->out_handle_lock);
 
     furi_event_loop_run(app.event_loop);
+
+    js_runner_run_deferred(&app);
 
     jerry_cleanup();
     js_runner_app_deinit(&app);
@@ -941,4 +949,36 @@ const char* js_runner_get_error_message(JsRunnerError error) {
         return "Unknown";
     }
     return error_messages[error];
+}
+
+void js_runner_defer(JsRunnerApp* app, js_runner_deferred_function_t cb, void* context) {
+    DeferredList_push_back(
+        app->deferred, (JsRunnerDeferred){.callback = cb, .context = context});
+}
+
+void js_runner_cancel_defer(JsRunnerApp* app, js_runner_deferred_function_t cb, void* context) {
+    bool found = false;
+    DeferredList_it_t it;
+    DeferredList_it(it, app->deferred);
+    while(!DeferredList_end_p(it)) {
+        const JsRunnerDeferred* item = DeferredList_cref(it);
+        if(item->callback == cb && item->context == context) {
+            DeferredList_remove(app->deferred, it);
+            found = true;
+            break;
+        }
+        DeferredList_next(it);
+    }
+    furi_assert(found);
+}
+
+static void js_runner_run_deferred(JsRunnerApp* app) {
+    DeferredList_it_t it;
+    DeferredList_it(it, app->deferred);
+    while(!DeferredList_end_p(it)) {
+        const JsRunnerDeferred* item = DeferredList_cref(it);
+        item->callback(item->context);
+        DeferredList_next(it);
+    }
+    DeferredList_reset(app->deferred);
 }
