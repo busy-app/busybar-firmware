@@ -5,6 +5,7 @@ static const AboutLibInfo about_libs_info[] = {
     {.name = "FatFS", .license = "Custom, BSD-like", .url = "https://elm-chan.org/fsw/ff"},
     {.name = "FreeRTOS", .license = "MIT", .url = "https://www.freertos.org/"},
     {.name = "Heatshrink", .license = "ISC", .url = "https://github.com/atomicobject/heatshrink"},
+    {.name = "JerryScript", .license = "Apache 2.0", .url = "https://jerryscript.net/"},
     {.name = "LVGL", .license = "MIT", .url = "https://lvgl.io/"},
     {.name = "lwIP", .license = "BSD", .url = "https://www.nongnu.org/lwip/"},
     {.name = "Mbed TLS",

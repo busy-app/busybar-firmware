@@ -124,6 +124,24 @@ static inline void wifi_set_state(Wifi* instance, WifiBackendState state) {
     }
 }
 
+static sl_status_t wifi_disconnect(Wifi* instance) {
+    sl_status_t status;
+
+    do {
+        status = sl_net_down(SL_NET_WIFI_CLIENT_INTERFACE);
+
+        if(status != SL_STATUS_OK) {
+            FURI_LOG_E(TAG, "Failed to bring Wifi interface DOWN: %lX", status);
+            break;
+        }
+
+        wifi_set_state(instance, WifiBackendStateDisconnected);
+
+    } while(false);
+
+    return status;
+}
+
 static sl_status_t
     wifi_init_request_handler(Wifi* instance, const WifiRequest* request, WifiResponse* response) {
     UNUSED(instance);
@@ -246,22 +264,7 @@ static sl_status_t wifi_disconnect_request_handler(
     UNUSED(response);
 
     FURI_LOG_D(TAG, "Disconnect");
-
-    sl_status_t status;
-
-    do {
-        status = sl_net_down(SL_NET_WIFI_CLIENT_INTERFACE);
-
-        if(status != SL_STATUS_OK) {
-            FURI_LOG_E(TAG, "Failed to bring Wifi interface DOWN: %lX", status);
-            break;
-        }
-
-        wifi_set_state(instance, WifiBackendStateDisconnected);
-
-    } while(false);
-
-    return status;
+    return wifi_disconnect(instance);
 }
 
 static void wifi_intercom_rx_callback(const void* data, size_t data_size, void* context) {
@@ -352,6 +355,18 @@ static void wifi_stop_info_polling(Wifi* instance) {
     furi_event_loop_pend_callback(instance->event_loop, wifi_backend_info_callback, instance);
 }
 
+static bool wifi_start_reconnecting(Wifi* instance) {
+    bool is_handled = false;
+
+    if(instance->state == WifiBackendStateConnected) {
+        wifi_set_state(instance, WifiBackendStateReconnecting);
+        wifi_net_tcpip_netif_down(instance);
+        is_handled = true;
+    }
+
+    return is_handled;
+}
+
 static void wifi_log_unhandled_reason_code(uint8_t state_code, uint8_t reason_code) {
     FURI_LOG_E(
         TAG, "BUG: Unhandled module state 0x%hhX | 0x%hhX, please report", state_code, reason_code);
@@ -379,10 +394,7 @@ static void wifi_module_stats_event_handler(Wifi* instance, const WifiModuleStat
             }
 
         } else if(reason_code == REASON_CODE_NO_RESPONSE || reason_code == REASON_CODE_BEACON_LOSS) {
-            if(instance->state == WifiBackendStateConnected) {
-                wifi_set_state(instance, WifiBackendStateReconnecting);
-                wifi_net_tcpip_netif_down(instance);
-            }
+            wifi_start_reconnecting(instance);
 
             FURI_LOG_D(TAG, "No response from AP, current state: %d", instance->state);
 
@@ -395,8 +407,9 @@ static void wifi_module_stats_event_handler(Wifi* instance, const WifiModuleStat
 
         } else if(reason_code == REASON_CODE_ASSOC_DENIAL || reason_code == REASON_CODE_KEY_FAILURE) {
             if(instance->state == WifiBackendStateReconnecting) {
+                wifi_disconnect(instance);
+
                 FURI_LOG_W(TAG, "AP credentials were changed, disconnecting");
-                wifi_set_state(instance, WifiBackendStateDisconnected);
 
             } else {
                 FURI_LOG_T(TAG, "Authentication error");
@@ -408,6 +421,8 @@ static void wifi_module_stats_event_handler(Wifi* instance, const WifiModuleStat
             }
 
         } else {
+            wifi_start_reconnecting(instance);
+
             wifi_log_unhandled_reason_code(state_code, reason_code);
         }
 
@@ -422,14 +437,11 @@ static void wifi_module_stats_event_handler(Wifi* instance, const WifiModuleStat
             }
 
         } else if(reason_code == REASON_CODE_ASSOC_DENIAL) {
-            FURI_LOG_W(TAG, "Forcefully disconnected from AP");
-
-            if(instance->state == WifiBackendStateConnected) {
-                wifi_set_state(instance, WifiBackendStateReconnecting);
-                wifi_net_tcpip_netif_down(instance);
-
+            if(wifi_start_reconnecting(instance)) {
                 wifi_stop_info_polling(instance);
             }
+
+            FURI_LOG_W(TAG, "Forcefully disconnected from AP");
 
         } else if(reason_code == REASON_CODE_AP_NOT_FOUND) {
             if(instance->state != WifiBackendStateReconnecting) {
@@ -437,6 +449,10 @@ static void wifi_module_stats_event_handler(Wifi* instance, const WifiModuleStat
             }
 
         } else {
+            if(wifi_start_reconnecting(instance)) {
+                wifi_stop_info_polling(instance);
+            }
+
             wifi_log_unhandled_reason_code(state_code, reason_code);
         }
 
@@ -552,7 +568,7 @@ static sl_status_t
 
     } else if(event == SL_WIFI_STATS_MODULE_STATE_EVENT) {
         furi_assert(data);
-        furi_assert(data_length = sizeof(sl_wifi_module_state_stats_response_t));
+        furi_assert(data_length == sizeof(sl_wifi_module_state_stats_response_t));
 
         const sl_wifi_module_state_stats_response_t* response = data;
 

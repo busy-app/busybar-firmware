@@ -8,6 +8,8 @@
 
 # BUSY Bar Firmware
 
+This repository contains the BUSY Bar firmware. For application development, [see here](applications_js).
+
 ## Cloning
 
 Ensure there is enough free disk space and clone the source code:
@@ -71,6 +73,7 @@ while the device is connected via USB and its virtual ethernet interface is init
 ## Project structure
 
 - `applications`        - Applications and services used in firmware
+- `applications_js`     - Default JavaScript applications
 - `assets`              - Assets used by applications and services
 - `documentation`       - Documentation generation system configs and input files
 - `fbt_layers`          - Build system layers

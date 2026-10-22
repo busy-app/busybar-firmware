@@ -8,6 +8,8 @@ This documentation is intended for developers interested in modifying the @bsb f
 
 If you are looking for the user manual, please visit the [User Documentation](https://docs.busy.app/) instead.
 
+If your goal is developing applications, take a look at @ref javascript-applications. No firmware modification is required.
+
 The documentation is divided into several sections. All of them are accessible from the sidebar on the left:
 
 - @ref quick-start -- Getting things started
