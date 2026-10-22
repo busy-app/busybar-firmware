@@ -1,12 +1,7 @@
 <template>
   <SectionCard
     data-id="files-section-primary"
-    class="overflow-visible"
-    :class="isDragging ? 'border-dashed border-1 border-muted' : ''"
-    @dragenter.prevent="onDragEnter"
-    @dragleave.prevent="onDragLeave"
-    @dragover.prevent
-    @drop.prevent="onDrop"
+    class="relative overflow-visible"
     @mouseup="stopSelection"
   >
     <div class="w-full grid grid-cols-[32px_1fr_auto] gap-2 items-center pr-1">
@@ -129,7 +124,7 @@
             color="neutral"
             square
             :loading="loading.list"
-            @click="filesModel = null; filesToUpload = []; showUploadModal = true;"
+            @click="filesModel = null; filesToUpload = []; uploadDirectory = null; showUploadModal = true;"
           />
         </UTooltip>
 
@@ -164,6 +159,7 @@
             item.type === 'dir' ? 'cursor-pointer' : '',
             getItemClass(item, index)
           ]"
+          :data-drop-dir="item.type === 'dir' ? item.name : undefined"
           @click="onClickItem(item, $event)"
           @mousedown="onMouseDown(item, index, $event)"
           @mouseenter="onMouseEnter(index)"
@@ -184,6 +180,18 @@
               <span class="text-sm text-muted">{{ bytesToSize((item as StorageFileElement).size) }}</span>
             </template>
           </div>
+
+          <div
+            v-if="dropTargetDir === item.name && item.type === 'dir'"
+            class="absolute inset-0 z-10 flex items-center justify-center gap-2 px-2
+              rounded-md border-2 border-dashed border-accented bg-elevated text-sm pointer-events-none"
+          >
+            <UIcon
+              class="size-4 shrink-0"
+              name="i-bi-upload"
+            />
+            <span class="truncate">Drop to upload to {{ item.name }}</span>
+          </div>
         </div>
       </UContextMenu>
 
@@ -192,6 +200,20 @@
         class="text-sm text-muted"
       >
         Empty directory
+      </div>
+
+      <div
+        v-if="isDragging && isDragOverCard && !showUploadModal && !dropTargetDir"
+        data-id="files-drop-overlay"
+        class="absolute inset-0 z-40 flex flex-col items-center justify-center gap-3
+          rounded-3xl border-2 border-dashed border-accented bg-default/75 pointer-events-none"
+      >
+        <UIcon
+          class="size-10"
+          name="i-bi-upload"
+        />
+        <p class="text-xl">Drop files to upload</p>
+        <p class="text-muted break-all px-4 text-center">to {{ currentPath }}</p>
       </div>
 
       <ModalGeneric
@@ -228,7 +250,7 @@
       <ModalGeneric
         v-model:open="showUploadModal"
         data-id="modal-storage-upload"
-        title="Upload files"
+        :title="uploadDirectory ? `Upload files to ${uploadDirectory.slice(uploadDirectory.lastIndexOf('/') + 1)}` : 'Upload files'"
         wide
         :dismissible="!isAnythingLoading"
         :primary-action-props="{
@@ -256,7 +278,7 @@
             :dropzone="false"
             :disabled="loading.write"
             :ui="{
-              base: ['cursor-pointer border-dashed', isUploaderDragging ? 'bg-elevated/25' : ''],
+              base: ['cursor-pointer border-dashed focus-visible:-outline-offset-2', isDragging ? 'bg-elevated/25' : ''],
               icon: 'size-6',
               label: 'text-lg',
               description: 'text-sm',
@@ -416,9 +438,6 @@ const currentPath = ref('/ext');
 
 const currentDir = ref<StorageListElement[]>([]);
 
-const isUploaderDragging = ref(false);
-const uploaderDragCounter = ref(0);
-
 const inputMenuModel = ref('');
 const inputMenuItems = ref<InputMenuItem[]>([]);
 const highlightedItemIndex = ref(0);
@@ -436,6 +455,9 @@ const mkdirNameModel = ref('');
 
 const isDragging = ref(false);
 const dragCounter = ref(0);
+const isDragOverCard = ref(false);
+const dropTargetDir = ref<string | null>(null);
+const uploadDirectory = ref<string | null>(null);
 
 const fileListContainer = ref<HTMLElement | null>(null);
 
@@ -960,7 +982,7 @@ async function uploadFiles () {
   loading.value.write = true;
 
   prepareFiles();
-  const _currentPath = currentPath.value;
+  const _currentPath = uploadDirectory.value ?? currentPath.value;
   await createUploadDirectories(_currentPath);
 
   for (const file of filesToUpload.value) {
@@ -982,24 +1004,86 @@ async function uploadFiles () {
   loading.value.write = false;
 }
 
-function onDragEnter () {
+function isFileDrag (e: DragEvent) {
+  return !!e.dataTransfer?.types.includes('Files');
+}
+
+function resetDragState () {
+  isDragging.value = false;
+  dragCounter.value = 0;
+  isDragOverCard.value = false;
+  dropTargetDir.value = null;
+}
+
+function isOverCard (e: DragEvent) {
+  const target = e.target as HTMLElement | null;
+  return !!target?.closest('[data-id="files-section-primary"]');
+}
+
+function getDropTargetDir (e: DragEvent) {
+  const target = e.target as HTMLElement | null;
+  return target?.closest<HTMLElement>('[data-drop-dir]')?.dataset.dropDir ?? null;
+}
+
+function onWindowDragEnter (e: DragEvent) {
+  if (!isFileDrag(e)) {
+    return;
+  }
+
   dragCounter.value++;
   isDragging.value = true;
 }
 
-function onDragLeave () {
+function onWindowDragLeave (e: DragEvent) {
+  if (!isFileDrag(e)) {
+    return;
+  }
+
   dragCounter.value--;
   if (dragCounter.value <= 0) {
-    isDragging.value = false;
-    dragCounter.value = 0;
+    resetDragState();
   }
 }
 
-async function onDrop (e: DragEvent) {
-  isDragging.value = false;
-  dragCounter.value = 0;
+function onWindowDragOver (e: DragEvent) {
+  if (!isFileDrag(e)) {
+    return;
+  }
 
-  if (!e.dataTransfer || showUploadModal.value) {
+  e.preventDefault();
+  isDragOverCard.value = isOverCard(e);
+  dropTargetDir.value = showUploadModal.value ? null : getDropTargetDir(e);
+}
+
+async function onWindowDrop (e: DragEvent) {
+  if (!isFileDrag(e)) {
+    return;
+  }
+
+  e.preventDefault();
+  const isDropOnCard = isOverCard(e);
+  const targetDir = getDropTargetDir(e);
+  resetDragState();
+
+  if (!e.dataTransfer) {
+    return;
+  }
+
+  if (showUploadModal.value) {
+    if (loading.value.write) {
+      return;
+    }
+
+    const files = await getDroppedUploadFiles(e.dataTransfer);
+    if (files.length) {
+      filesModel.value = [...(filesModel.value || []), ...files];
+      removeUpdatedFiles();
+    }
+
+    return;
+  }
+
+  if (!isDropOnCard) {
     return;
   }
 
@@ -1007,44 +1091,8 @@ async function onDrop (e: DragEvent) {
   if (files.length) {
     filesModel.value = files;
     filesToUpload.value = [];
+    uploadDirectory.value = targetDir ? `${currentPath.value}/${targetDir}` : null;
     showUploadModal.value = true;
-  }
-}
-
-function onUploaderDragEnter () {
-  uploaderDragCounter.value++;
-  isUploaderDragging.value = true;
-}
-
-function onUploaderDragLeave () {
-  uploaderDragCounter.value--;
-  if (uploaderDragCounter.value <= 0) {
-    isUploaderDragging.value = false;
-    uploaderDragCounter.value = 0;
-  }
-}
-
-function onUploaderDragOver (e: DragEvent) {
-  if (showUploadModal.value) {
-    e.preventDefault();
-  }
-}
-
-async function onUploaderDrop (e: DragEvent) {
-  isUploaderDragging.value = false;
-  uploaderDragCounter.value = 0;
-  if (!showUploadModal.value) {
-    return;
-  }
-  e.preventDefault();
-  if (!e.dataTransfer || loading.value.write) {
-    return;
-  }
-
-  const files = await getDroppedUploadFiles(e.dataTransfer);
-  if (files.length) {
-    filesModel.value = [...(filesModel.value || []), ...files];
-    removeUpdatedFiles();
   }
 }
 
@@ -1130,19 +1178,19 @@ watch(() => route.query.path, async queryPath => {
 onMounted(async () => {
   window.addEventListener('device-reconnected', refreshCurrentPath);
   window.addEventListener('click', onGlobalClick);
-  window.addEventListener('dragenter', onUploaderDragEnter);
-  window.addEventListener('dragleave', onUploaderDragLeave);
-  window.addEventListener('dragover', onUploaderDragOver);
-  window.addEventListener('drop', onUploaderDrop);
+  window.addEventListener('dragenter', onWindowDragEnter);
+  window.addEventListener('dragleave', onWindowDragLeave);
+  window.addEventListener('dragover', onWindowDragOver);
+  window.addEventListener('drop', onWindowDrop);
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener('device-reconnected', refreshCurrentPath);
   window.removeEventListener('click', onGlobalClick);
-  window.removeEventListener('dragenter', onUploaderDragEnter);
-  window.removeEventListener('dragleave', onUploaderDragLeave);
-  window.removeEventListener('dragover', onUploaderDragOver);
-  window.removeEventListener('drop', onUploaderDrop);
+  window.removeEventListener('dragenter', onWindowDragEnter);
+  window.removeEventListener('dragleave', onWindowDragLeave);
+  window.removeEventListener('dragover', onWindowDragOver);
+  window.removeEventListener('drop', onWindowDrop);
 
   router.replace({ query: { ...route.query, path: undefined } });
 });
