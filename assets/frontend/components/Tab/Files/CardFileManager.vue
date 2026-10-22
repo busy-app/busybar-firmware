@@ -253,9 +253,10 @@
             layout="list"
             class="w-full rounded-xl"
             description="Drag and drop to upload"
+            :dropzone="false"
             :disabled="loading.write"
             :ui="{
-              base: 'cursor-pointer',
+              base: ['cursor-pointer border-dashed', isUploaderDragging ? 'bg-elevated/25' : ''],
               icon: 'size-6',
               label: 'text-lg',
               description: 'text-sm',
@@ -303,12 +304,12 @@
                       class="size-5 mx-1"
                       name="i-bi-file"
                     />
-                    <div>{{ file.name }}</div>
+                    <div>{{ getUploadPath(file) }}</div>
                   </div>
 
                   <div class="flex items-center gap-2">
                     <div
-                      v-if="filesToUpload.find(f => f.blob.name === file.name)?.status === 'uploading'"
+                      v-if="filesToUpload.find(f => f.blob === file)?.status === 'uploading'"
                       class="flex items-center gap-2 text-sm"
                     >
                       <UIcon
@@ -318,7 +319,7 @@
                       Uploading
                     </div>
                     <div
-                      v-if="filesToUpload.find(f => f.blob.name === file.name)?.status === 'success'"
+                      v-if="filesToUpload.find(f => f.blob === file)?.status === 'success'"
                       class="flex items-center gap-2 text-sm text-green-500"
                     >
                       <UIcon
@@ -328,7 +329,7 @@
                       Uploaded
                     </div>
                     <div
-                      v-if="filesToUpload.find(f => f.blob.name === file.name)?.status === 'error'"
+                      v-if="filesToUpload.find(f => f.blob === file)?.status === 'error'"
                       class="flex items-center gap-2 text-sm text-red-500"
                     >
                       <UIcon
@@ -383,9 +384,25 @@ import type { StorageListElement, StorageFileElement } from '@busy-app/busy-lib'
 import type { ContextMenuItem } from '@nuxt/ui';
 import type { LocationQueryValue } from 'vue-router';
 
+interface InputMenuItem {
+  path: string;
+  name: string;
+  icon?: string;
+}
+
+interface ListOptions {
+  syncUrl?: boolean;
+  replaceUrl?: boolean;
+  errorNotificationTimeout?: number;
+}
+
 const deviceStore = useDeviceStore();
 const route = useRoute();
 const router = useRouter();
+
+const fileRelativePaths = new WeakMap<File, string>();
+
+const filesInputMenu = useTemplateRef('filesInputMenu');
 
 const loading = ref({
   list: false,
@@ -395,25 +412,46 @@ const loading = ref({
   mkdir: false,
   suggestions: false
 });
-const isAnythingLoading = computed(() => !!Object.values(loading.value).some(e => !!e));
-
 const currentPath = ref('/ext');
+
 const currentDir = ref<StorageListElement[]>([]);
 
-const filesInputMenu = useTemplateRef('filesInputMenu');
-defineShortcuts({
-  '/': () => {
-    filesInputMenu.value?.inputRef?.focus();
-  }
-});
+const isUploaderDragging = ref(false);
+const uploaderDragCounter = ref(0);
+
 const inputMenuModel = ref('');
-interface InputMenuItem {
-  path: string;
-  name: string;
-  icon?: string;
-}
 const inputMenuItems = ref<InputMenuItem[]>([]);
 const highlightedItemIndex = ref(0);
+
+const selectedItems = ref<Set<string>>(new Set());
+const isSelecting = ref(false);
+const selectStartIndex = ref(-1);
+
+const wasDraggingSelection = ref(false);
+const selectionMode = ref<'replace' | 'add'>('replace');
+const initialSelection = ref<Set<string>>(new Set());
+
+const showMkdirModal = ref(false);
+const mkdirNameModel = ref('');
+
+const isDragging = ref(false);
+const dragCounter = ref(0);
+
+const fileListContainer = ref<HTMLElement | null>(null);
+
+const showUploadModal = ref(false);
+const filesModel = ref<File[] | null>(null);
+const filesToUpload = ref<{ blob: File; status: 'idle' | 'uploading' | 'success' | 'error' }[]>([]);
+
+const showDeleteModal = ref(false);
+const itemToDelete = ref<StorageListElement & { fullPath: string } | null>(null);
+
+const isAnythingLoading = computed(() => !!Object.values(loading.value).some(e => !!e));
+
+const allFilesUploaded = computed(() => filesModel.value
+  && filesModel.value.length > 0
+  && filesToUpload.value.length === filesModel.value.length
+  && filesToUpload.value.filter(f => f.status !== 'success').length === 0);
 
 function getQueryPath (queryPath: LocationQueryValue | LocationQueryValue[] | undefined): string | null {
   if (Array.isArray(queryPath)) {
@@ -474,15 +512,19 @@ async function onInputMenuModelUpdate (newValue: string) {
 
   inputMenuItems.value = options;
 }
+
 async function inputMenuList (model: InputMenuItem | null) {
   await list(`/ext${normalizePath(model?.path || inputMenuModel.value)}`);
 }
+
 function onArrowUp () {
   highlightedItemIndex.value = (highlightedItemIndex.value - 1 + inputMenuItems.value.length) % inputMenuItems.value.length;
 }
+
 function onArrowDown () {
   highlightedItemIndex.value = (highlightedItemIndex.value + 1) % inputMenuItems.value.length;
 }
+
 async function onTab () {
   if (inputMenuItems.value.length === 0) {
     return;
@@ -491,6 +533,7 @@ async function onTab () {
   }
   return onArrowDown();
 }
+
 async function onEnter () {
   if (inputMenuItems.value.length === 0) {
     return;
@@ -501,16 +544,6 @@ async function onEnter () {
       await inputMenuList(null);
     }
   }
-}
-
-const selectedItems = ref<Set<string>>(new Set());
-const isSelecting = ref(false);
-const selectStartIndex = ref(-1);
-
-interface ListOptions {
-  syncUrl?: boolean;
-  replaceUrl?: boolean;
-  errorNotificationTimeout?: number;
 }
 
 async function list (path: string, options: ListOptions = {}) {
@@ -590,10 +623,6 @@ async function read (fileName: string) {
 function createObjectUrl (file: File | Blob): string {
   return URL.createObjectURL(file);
 }
-
-const wasDraggingSelection = ref(false);
-const selectionMode = ref<'replace' | 'add'>('replace');
-const initialSelection = ref<Set<string>>(new Set());
 
 function onMouseDown (item: StorageListElement, index: number, event: MouseEvent) {
   if (event.button === 0) {
@@ -819,8 +848,6 @@ function confirmBatchDelete () {
   showDeleteModal.value = true;
 }
 
-const showDeleteModal = ref(false);
-const itemToDelete = ref<StorageListElement & { fullPath: string } | null>(null);
 async function remove () {
   if (selectedItems.value.size > 0 && !itemToDelete.value) {
     loading.value.remove = true;
@@ -868,13 +895,6 @@ async function remove () {
   return list(currentPath.value, { syncUrl: false });
 }
 
-const showUploadModal = ref(false);
-const filesModel = ref<File[] | null>(null);
-const filesToUpload = ref<{ blob: File; status: 'idle' | 'uploading' | 'success' | 'error' }[]>([]);
-const allFilesUploaded = computed(() => filesModel.value
-  && filesModel.value.length > 0
-  && filesToUpload.value.length === filesModel.value.length
-  && filesToUpload.value.filter(f => f.status !== 'success').length === 0);
 function prepareFiles () {
   if (!filesModel.value) {
     return;
@@ -886,8 +906,39 @@ function prepareFiles () {
 }
 function removeUpdatedFiles () {
   if (filesModel.value && filesModel.value.length) {
-    filesModel.value = filesModel.value.filter(f => !(filesToUpload.value.find(fu => fu.blob.name === f.name)?.status === 'success'));
+    filesModel.value = filesModel.value.filter(f => !(filesToUpload.value.find(fu => fu.blob === f)?.status === 'success'));
     filesToUpload.value = filesToUpload.value.filter(fu => fu.status !== 'success');
+  }
+}
+
+function getUploadPath (file: File) {
+  return fileRelativePaths.get(file) ?? file.name;
+}
+
+async function getDroppedUploadFiles (dataTransfer: DataTransfer) {
+  const droppedFiles = await getDroppedFiles(dataTransfer);
+
+  for (const { file, relativePath } of droppedFiles) {
+    fileRelativePaths.set(file, relativePath);
+  }
+
+  return droppedFiles.map(({ file }) => file);
+}
+
+async function createUploadDirectories (basePath: string) {
+  const directories = new Set(filesToUpload.value
+    .map(file => getUploadPath(file.blob))
+    .filter(path => path.includes('/'))
+    .map(path => path.slice(0, path.lastIndexOf('/'))));
+
+  for (const directory of directories) {
+    const path = `${basePath}/${directory}`;
+
+    try {
+      await deviceStore.busyBar.StorageMkdir({ path });
+    } catch (error) {
+      await handleHTTPError(error, `Couldn't create ${path}`, false, 0);
+    }
   }
 }
 
@@ -910,18 +961,19 @@ async function uploadFiles () {
 
   prepareFiles();
   const _currentPath = currentPath.value;
+  await createUploadDirectories(_currentPath);
 
   for (const file of filesToUpload.value) {
     try {
       file.status = 'uploading';
       await deviceStore.busyBar.StorageWrite({
-        path: `${_currentPath}/${file.blob.name}`,
+        path: `${_currentPath}/${getUploadPath(file.blob)}`,
         file: file.blob
       }, { timeout: 0 });
       file.status = 'success';
     } catch (error) {
       file.status = 'error';
-      await handleHTTPError(error, `Couldn't upload ${file.blob.name}`, false, 0);
+      await handleHTTPError(error, `Couldn't upload ${getUploadPath(file.blob)}`, false, 0);
     }
   }
 
@@ -929,12 +981,6 @@ async function uploadFiles () {
 
   loading.value.write = false;
 }
-
-const showMkdirModal = ref(false);
-const mkdirNameModel = ref('');
-
-const isDragging = ref(false);
-const dragCounter = ref(0);
 
 function onDragEnter () {
   dragCounter.value++;
@@ -949,16 +995,56 @@ function onDragLeave () {
   }
 }
 
-function onDrop (e: DragEvent) {
+async function onDrop (e: DragEvent) {
   isDragging.value = false;
   dragCounter.value = 0;
-  if (e.dataTransfer?.files) {
-    const files = Array.from(e.dataTransfer.files);
-    if (files.length) {
-      filesModel.value = files;
-      filesToUpload.value = [];
-      showUploadModal.value = true;
-    }
+
+  if (!e.dataTransfer || showUploadModal.value) {
+    return;
+  }
+
+  const files = await getDroppedUploadFiles(e.dataTransfer);
+  if (files.length) {
+    filesModel.value = files;
+    filesToUpload.value = [];
+    showUploadModal.value = true;
+  }
+}
+
+function onUploaderDragEnter () {
+  uploaderDragCounter.value++;
+  isUploaderDragging.value = true;
+}
+
+function onUploaderDragLeave () {
+  uploaderDragCounter.value--;
+  if (uploaderDragCounter.value <= 0) {
+    isUploaderDragging.value = false;
+    uploaderDragCounter.value = 0;
+  }
+}
+
+function onUploaderDragOver (e: DragEvent) {
+  if (showUploadModal.value) {
+    e.preventDefault();
+  }
+}
+
+async function onUploaderDrop (e: DragEvent) {
+  isUploaderDragging.value = false;
+  uploaderDragCounter.value = 0;
+  if (!showUploadModal.value) {
+    return;
+  }
+  e.preventDefault();
+  if (!e.dataTransfer || loading.value.write) {
+    return;
+  }
+
+  const files = await getDroppedUploadFiles(e.dataTransfer);
+  if (files.length) {
+    filesModel.value = [...(filesModel.value || []), ...files];
+    removeUpdatedFiles();
   }
 }
 
@@ -991,8 +1077,6 @@ async function mkdir () {
   await list(currentPath.value, { syncUrl: false });
 }
 
-const fileListContainer = ref<HTMLElement | null>(null);
-
 async function refreshCurrentPath () {
   await list(currentPath.value, { syncUrl: false });
 }
@@ -1019,15 +1103,6 @@ function onGlobalClick (event: MouseEvent) {
   selectedItems.value.clear();
 }
 
-onMounted(async () => {
-  window.addEventListener('device-reconnected', refreshCurrentPath);
-  window.addEventListener('click', onGlobalClick);
-});
-onBeforeUnmount(() => {
-  window.removeEventListener('device-reconnected', refreshCurrentPath);
-  window.removeEventListener('click', onGlobalClick);
-});
-
 watch(() => route.query.path, async queryPath => {
   const rawPath = getQueryPath(queryPath);
 
@@ -1052,8 +1127,30 @@ watch(() => route.query.path, async queryPath => {
   }
 }, { immediate: true });
 
+onMounted(async () => {
+  window.addEventListener('device-reconnected', refreshCurrentPath);
+  window.addEventListener('click', onGlobalClick);
+  window.addEventListener('dragenter', onUploaderDragEnter);
+  window.addEventListener('dragleave', onUploaderDragLeave);
+  window.addEventListener('dragover', onUploaderDragOver);
+  window.addEventListener('drop', onUploaderDrop);
+});
+
 onBeforeUnmount(() => {
+  window.removeEventListener('device-reconnected', refreshCurrentPath);
+  window.removeEventListener('click', onGlobalClick);
+  window.removeEventListener('dragenter', onUploaderDragEnter);
+  window.removeEventListener('dragleave', onUploaderDragLeave);
+  window.removeEventListener('dragover', onUploaderDragOver);
+  window.removeEventListener('drop', onUploaderDrop);
+
   router.replace({ query: { ...route.query, path: undefined } });
+});
+
+defineShortcuts({
+  '/': () => {
+    filesInputMenu.value?.inputRef?.focus();
+  }
 });
 </script>
 
