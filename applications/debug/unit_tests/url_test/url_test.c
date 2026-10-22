@@ -180,6 +180,9 @@ MU_TEST(url_encode_port_test) {
     mu_check(!url_parse(url, URL_TEST_REQUIRED ":-80/"));
     mu_check(!url_parse(url, URL_TEST_REQUIRED ":8%30/"));
     mu_check(!url_parse(url, URL_TEST_REQUIRED ":8\xd9\xa0/"));
+    mu_check(!url_parse(url, URL_TEST_REQUIRED ":"));
+    mu_check(!url_parse(url, URL_TEST_REQUIRED ":/"));
+    mu_check(!url_parse(url, URL_TEST_REQUIRED ":" URL_TEST_SEARCH));
 
     mu_check(url_parse(url, URL_TEST_REQUIRED ":" URL_TEST_PORT "/"));
     URL_CHECK_PART(url, UrlPartIdPort, URL_TEST_PORT);
