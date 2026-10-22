@@ -36,6 +36,11 @@ typedef struct {
     const UrlParseStepIdx* subparts;
 } UrlCompoundPart;
 
+typedef struct {
+    size_t offset;
+    size_t length;
+} UrlSpan;
+
 static bool url_encode_protocol(const StringSlice* part, FuriString* out_str);
 static bool url_encode_hostname(const StringSlice* part, FuriString* out_str);
 static bool url_encode_port(const StringSlice* part, FuriString* out_str);
@@ -393,8 +398,27 @@ static bool url_encode_percent(const StringSlice* part, FuriString* out_str) {
     return true;
 }
 
-static bool url_encode_parts(const StringSlice* parts, FuriString* out_str) {
+static void url_calc_parts_from_spans(Url* instance, const UrlSpan* spans) {
+    const char* source_str = furi_string_get_cstr(instance->source);
+
+    for(UrlParseStepIdx step_idx = UrlParseStepIdxProtocol; step_idx < UrlParseStepIdxMax;
+        ++step_idx) {
+        const UrlParseStep* step = &url_parse_steps[step_idx];
+        StringSlice* part = &instance->parts[step->part_id];
+
+        const UrlSpan* span = &spans[step_idx];
+        if(span->length > 0) {
+            part->first_char = source_str + span->offset;
+            part->length = span->length;
+        }
+    }
+}
+
+static bool url_encode_from_parts(Url* instance, const StringSlice* parts) {
     bool success = true;
+
+    FuriString* source = instance->source;
+    UrlSpan spans[UrlParseStepIdxMax] = {0};
 
     for(UrlParseStepIdx step_idx = UrlParseStepIdxProtocol; step_idx < UrlParseStepIdxMax;
         ++step_idx) {
@@ -411,13 +435,23 @@ static bool url_encode_parts(const StringSlice* parts, FuriString* out_str) {
         }
 
         if(!step->is_include_delim) {
-            furi_string_cat(out_str, step->delim);
+            furi_string_cat(source, step->delim);
         }
 
-        if(!step->encode_callback(part, out_str)) {
+        const size_t offset = furi_string_size(source);
+
+        if(!step->encode_callback(part, source)) {
             success = false;
             break;
         }
+
+        UrlSpan* span = &spans[step_idx];
+        span->offset = offset;
+        span->length = furi_string_size(source) - offset;
+    }
+
+    if(success) {
+        url_calc_parts_from_spans(instance, spans);
     }
 
     return success;
@@ -442,14 +476,7 @@ bool url_parse(Url* instance, const char* source_str) {
 
         furi_string_reserve(instance->source, source_len);
 
-        if(!url_encode_parts(tmp_parts, instance->source)) {
-            break;
-        }
-
-        const char* encoded_str = furi_string_get_cstr(instance->source);
-        const size_t encoded_len = furi_string_size(instance->source);
-
-        if(!url_parse_parts(instance->parts, encoded_str, encoded_len)) {
+        if(!url_encode_from_parts(instance, tmp_parts)) {
             break;
         }
 
