@@ -1,4 +1,4 @@
-# BUSY Status Bar firmware license information
+# BUSY Bar firmware license information
 
 Source code in this repository is covered by one of several different licenses.
 

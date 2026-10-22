@@ -18,3 +18,8 @@ jobs:
         run: |
           curl --fail -L -H "Token: ${{ secrets.INDEXER_TOKEN }}" \
               "${{ secrets.INDEXER_URL }}"/busybar-firmware/reindex;
+
+      - name: "Trigger reindex (update-indexer-dev)"
+        run: |
+          curl --fail -L -H "Token: ${{ secrets.UPDATE_INDEXER_DEV_TOKEN }}" \
+              "${{ secrets.UPDATE_INDEXER_DEV_URL }}"/busybar-firmware/reindex;
