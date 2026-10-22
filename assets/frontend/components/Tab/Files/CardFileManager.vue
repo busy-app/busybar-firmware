@@ -198,6 +198,7 @@
         v-model:open="showMkdirModal"
         data-id="modal-storage-mkdir"
         title="Create directory"
+        :dismissible="!isAnythingLoading"
         :primary-action-props="{
           label: 'Create',
           loading: loading.mkdir,
@@ -229,7 +230,7 @@
         data-id="modal-storage-upload"
         title="Upload files"
         wide
-        :dismissible="!loading.write"
+        :dismissible="!isAnythingLoading"
         :primary-action-props="{
           class: allFilesUploaded ? 'hidden' : '',
           label: 'Upload',
@@ -357,6 +358,7 @@
         v-model:open="showDeleteModal"
         data-id="modal-storage-delete"
         :title="itemToDelete ? `Delete ${itemToDelete.name}?` : `Delete ${selectedItems.size} items?`"
+        :dismissible="!isAnythingLoading"
         description="This action is irreversible"
         :primary-action-props="{
           label: 'Delete',
