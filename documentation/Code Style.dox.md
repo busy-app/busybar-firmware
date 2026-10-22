@@ -95,7 +95,7 @@ float prism_volume(float w, float l, float h) {
 
 ```
 
-If a function parameter not an input parameter, mark it as `const`, unless it is of a primitive type.
+If a function parameter is not an input parameter, mark it as `const`, unless it is of a primitive type.
 
 ```C
 uint32_t my_container_get_count(const MyContainer* instance) {

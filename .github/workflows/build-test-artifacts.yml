@@ -107,6 +107,17 @@ jobs:
                       -F "files=@${ZIP_PATH}" \
                       "${{ secrets.INDEXER_URL }}"/busybar-firmware/uploadfiles
 
+            - name: "Upload bundle to build artifacts server (update-indexer-dev)"
+              if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success' }}
+              run: |
+                  ZIP_PATH="${{ steps.zip.outputs.zip_path }}"
+                  curl --fail -L -H "Token: ${{ secrets.UPDATE_INDEXER_DEV_TOKEN }}" \
+                      -F "branch=${BRANCH_NAME}" \
+                      -F "version_token=${COMMIT_SHA}" \
+                      -F "files=@${ZIP_PATH}" \
+                      "${{ secrets.UPDATE_INDEXER_DEV_URL }}"/busybar-firmware/uploadfiles
+              continue-on-error: true
+
             - name: "Set update URL output"
               id: set-url
               if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success' }}
