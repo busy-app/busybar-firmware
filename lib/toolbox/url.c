@@ -190,7 +190,7 @@ static bool url_find_delim(const char* str, const char* delim) {
     return (delim_len != 0) && (strncmp(str, delim, delim_len) == 0);
 }
 
-static bool url_is_any_step_required(const UrlParseStepIdx* step_idxs) {
+static bool url_has_required_step(const UrlParseStepIdx* step_idxs) {
     bool is_required = false;
 
     for(uint32_t i = 0;; ++i) {
@@ -208,11 +208,6 @@ static bool url_is_any_step_required(const UrlParseStepIdx* step_idxs) {
 
     return is_required;
 }
-
-typedef struct {
-    UrlParseStepIdx idx;
-    size_t part_offset;
-} UrlParseStepInfo;
 
 static UrlParseStepIdx
     url_find_step_idx(const char* source_str, const UrlParseStepIdx* step_idxs) {
@@ -233,11 +228,16 @@ static UrlParseStepIdx
     return step_idx;
 }
 
+typedef struct {
+    UrlParseStepIdx step_idx;
+    size_t part_offset;
+} UrlFindNextStepResult;
+
 static void url_find_next_step(
     const char* source_str,
     size_t offset,
     const UrlParseStepIdx* step_idxs,
-    UrlParseStepInfo* step_info) {
+    UrlFindNextStepResult* result) {
     UrlParseStepIdx step_idx = UrlParseStepIdxMax;
 
     const char* p;
@@ -248,57 +248,56 @@ static void url_find_next_step(
         }
     }
 
-    step_info->idx = step_idx;
-    step_info->part_offset = p - source_str;
+    result->step_idx = step_idx;
+    result->part_offset = p - source_str;
 }
 
-static bool url_parse_parts(StringSlice* parts, const char* source_str, size_t source_len) {
+static bool url_split_to_parts(StringSlice* parts, const char* source_str, size_t source_len) {
     bool success = true;
 
-    size_t offset = 0;
+    size_t source_offset = 0;
 
     for(UrlParseStepIdx step_idx = UrlParseStepIdxProtocol; step_idx < UrlParseStepIdxMax;) {
         const UrlParseStep* step = &url_parse_steps[step_idx];
 
-        UrlParseStepInfo next_step_info;
-        url_find_next_step(source_str, offset, step->next_step_idxs, &next_step_info);
+        UrlFindNextStepResult find_result;
+        url_find_next_step(source_str, source_offset, step->next_step_idxs, &find_result);
 
-        UrlParseStepIdx next_step_idx = next_step_info.idx;
-        const size_t part_offset = next_step_info.part_offset;
+        UrlParseStepIdx next_step_idx = find_result.step_idx;
+        const size_t part_offset = find_result.part_offset;
 
-        if(step->is_required && (part_offset == offset)) {
+        if(step->is_required && (part_offset == source_offset)) {
             success = false;
             break;
         }
 
-        size_t new_offset = part_offset;
+        size_t new_source_offset = part_offset;
 
         if(next_step_idx != UrlParseStepIdxMax) {
             const UrlParseStep* next_step = &url_parse_steps[next_step_idx];
-            new_offset += strlen(next_step->delim);
+            new_source_offset += strlen(next_step->delim);
 
-            if(next_step->is_required && (new_offset == source_len)) {
+            if(next_step->is_required && (new_source_offset == source_len)) {
                 success = false;
                 break;
             }
 
-        } else if(url_is_any_step_required(step->next_step_idxs)) {
+        } else if(url_has_required_step(step->next_step_idxs)) {
             success = false;
             break;
         }
 
+        const bool is_include_delim = step->is_include_delim;
+
+        const StringSliceOffset slice_offset = {
+            .start = source_offset - (is_include_delim ? strlen(step->delim) : 0),
+            .end = part_offset,
+        };
+
         StringSlice* part = &parts[step->part_id];
+        string_slice_from_offset(part, &slice_offset, source_str);
 
-        part->first_char = source_str + offset;
-        part->length = part_offset - offset;
-
-        if(step->is_include_delim) {
-            const size_t delim_len = strlen(step->delim);
-            part->first_char -= delim_len;
-            part->length += delim_len;
-        }
-
-        offset = new_offset;
+        source_offset = new_source_offset;
         step_idx = next_step_idx;
     }
 
@@ -461,7 +460,7 @@ bool url_parse(Url* instance, const char* source_str) {
         StringSlice tmp_parts[UrlPartIdMax] = {0};
         const size_t source_len = strlen(source_str);
 
-        if(!url_parse_parts(tmp_parts, source_str, source_len)) {
+        if(!url_split_to_parts(tmp_parts, source_str, source_len)) {
             break;
         }
 
