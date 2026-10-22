@@ -64,9 +64,10 @@
           </div>
           <div
             v-else
+            data-id="modal-uploader-app-error-reason"
             class="min-w-0 flex-1"
           >
-            Unable to upload this file. Try these steps until the issue is resolved:
+            {{ errorReason }}
           </div>
         </div>
 
@@ -75,9 +76,12 @@
           class="rounded-xl bg-accented/25 p-4"
         >
           <ul class="list-disc space-y-5 ps-5 text-sm text-highlighted/90">
-            <li>Check the file format — only .tgz files are supported</li>
-            <li>Check the API version — the app must use a supported version</li>
-            <li>Try again later — the server may be unavailable right now</li>
+            <li
+              v-for="step in errorSteps"
+              :key="step"
+            >
+              {{ step }}
+            </li>
           </ul>
         </div>
       </div>
@@ -234,6 +238,24 @@ const emit = defineEmits<{
 
 const open = defineModel<boolean>('open', { default: false });
 
+const STEP_FORMAT = 'Check the file format — only .tgz files are supported';
+const STEP_API_VERSION = 'Check the API version — the app must use a supported version';
+const STEP_RETRY = 'Try again later — the server may be unavailable right now';
+
+const DEFAULT_ERROR_REASON = 'Unable to upload this file.';
+const DEFAULT_ERROR_STEPS = [STEP_FORMAT, STEP_API_VERSION, STEP_RETRY];
+
+const ERROR_REASONS: Record<string, string> = {
+  unpack_error: 'Unable to unpack the app file.',
+  manifest_error: 'Invalid app manifest.',
+  api_mismatch: 'App API version isn\'t supported by this BUSY Bar.',
+  installation_failed: 'Unable to install app.'
+};
+
+const ERROR_STEPS: Record<string, string[]> = {
+  api_mismatch: [STEP_API_VERSION, STEP_RETRY]
+};
+
 const APP_FILE_EXTENSION = '.tgz';
 const APP_FILE_MAX_SIZE = 100 * 1024 * 1024; // 100MB
 
@@ -251,11 +273,24 @@ const progress = ref(0);
 const installing = ref(false);
 const failed = ref(false);
 const appMismatch = ref(false);
+const errorCode = ref<string>();
+
+const errorReason = computed(() => {
+  const reason = errorCode.value ? ERROR_REASONS[errorCode.value] : undefined;
+
+  return `${reason ?? DEFAULT_ERROR_REASON} Try these steps until the issue is resolved:`;
+});
+
+const errorSteps = computed(() => (errorCode.value ? ERROR_STEPS[errorCode.value] : undefined) ?? DEFAULT_ERROR_STEPS);
 
 const confirming = computed(() => !!stageResult.value && !uploading.value && !failed.value);
 const uploaded = computed(() => progress.value >= 100);
 
 const title = computed(() => {
+  if (failed.value) {
+    return 'Upload failed';
+  }
+
   if (!uploading.value) {
     return 'Upload app file';
   }
@@ -287,6 +322,7 @@ function resetToStart () {
   progress.value = 0;
   failed.value = false;
   appMismatch.value = false;
+  errorCode.value = undefined;
 }
 
 async function stageFile () {
@@ -298,6 +334,7 @@ async function stageFile () {
   uploading.value = true;
   progress.value = 0;
   failed.value = false;
+  errorCode.value = undefined;
 
   try {
     const result = await appsStore.stageApp(file.value, uploadController.signal, value => {
@@ -315,6 +352,7 @@ async function stageFile () {
   } catch (error) {
     if (!uploadController.signal.aborted) {
       console.error('App staging failed', error);
+      errorCode.value = httpErrorCode(error);
       failed.value = true;
     }
   } finally {
@@ -337,6 +375,7 @@ async function installFile () {
     open.value = false;
   } catch (error) {
     console.error('App installation failed', error);
+    errorCode.value = httpErrorCode(error) ?? 'installation_failed';
     failed.value = true;
   } finally {
     installing.value = false;

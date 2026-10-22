@@ -36,6 +36,12 @@ export function httpErrorStatus (error: any) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function httpErrorCode (error: any) {
+  const code = error?.body?.error_code ?? error?.data?.error_code;
+  return typeof code === 'string' ? code : undefined;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isDisplayPriorityConflict (error: any) {
   return error?.status === 409;
 }
