@@ -41,3 +41,14 @@ void string_slice_from_offset(
     instance->first_char = source + start_offset;
     instance->length = end_offset - start_offset;
 }
+
+char* string_slice_to_owned_cstr(const StringSlice* instance) {
+    furi_check(instance);
+    furi_check(instance->first_char);
+
+    char* cstr = malloc(instance->length + 1);
+    memcpy(cstr, instance->first_char, instance->length);
+    cstr[instance->length] = '\0';
+
+    return cstr;
+}

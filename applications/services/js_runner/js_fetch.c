@@ -7,6 +7,7 @@
 #include "js_fetch_ext_header.h"
 
 #include <fetch/fetch.h>
+#include <toolbox/url.h>
 #include <http/http_response.h>
 
 #define TAG                       "JsFetch"
@@ -69,19 +70,6 @@ static bool parse_request_header_is_valid(const char* header, bool check_colon) 
     return true;
 }
 
-static bool parse_request_url_is_valid(const char* url) {
-    static const char* const allowed_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                                             "abcdefghijklmnopqrstuvwxyz"
-                                             "0123456789"
-                                             "-._~"
-                                             ":/?#[]@"
-                                             "!$&'()*+,;="
-                                             "%";
-
-    size_t valid_len = strspn(url, allowed_chars);
-    return url[valid_len] == '\0';
-}
-
 static bool parse_request_method_is_valid(const char* method) {
     static const char* const allowed_methods[] = {
         "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS", "CONNECT", "TRACE"};
@@ -94,6 +82,47 @@ static bool parse_request_method_is_valid(const char* method) {
     return false;
 }
 
+static char* js_fetch_parse_url(jerry_value_t request, RequestParseResult* result) {
+    char* encoded_str = NULL;
+
+    const jerry_value_t source = jerry_object_get_sz(request, "url");
+    Url* parser = url_alloc();
+
+    do {
+        if(jerry_value_is_exception(source)) {
+            result->tag = RequestParseResultTypeError;
+            result->error = js_get_exception_string(source);
+            break;
+        }
+
+        char* source_str = js_string_to_c_string(source);
+
+        if(source_str == NULL) {
+            result->tag = RequestParseResultTypeError;
+            result->error = furi_string_alloc_set("URL is not a string");
+            break;
+        }
+
+        const bool can_parse = url_parse(parser, source_str);
+        free(source_str);
+
+        if(!can_parse) {
+            result->tag = RequestParseResultTypeError;
+            result->error = furi_string_alloc_set("Invalid URL");
+            break;
+        }
+
+        const StringSlice* href = url_get_part(parser, UrlPartIdHref);
+        encoded_str = string_slice_to_owned_cstr(href);
+
+    } while(false);
+
+    url_free(parser);
+    jerry_value_free(source);
+
+    return encoded_str;
+}
+
 static RequestParseResult parse_request(jerry_value_t obj) {
     furi_assert(js_is_instance_of(obj, "Request"));
 
@@ -101,32 +130,11 @@ static RequestParseResult parse_request(jerry_value_t obj) {
     RequestParseResult result;
 
     do {
-        jerry_value_t url_val = jerry_object_get_sz(obj, "url");
-        if(jerry_value_is_exception(url_val)) {
-            result = (RequestParseResult){
-                .tag = RequestParseResultTypeError,
-                .error = js_get_exception_string(url_val),
-            };
-            jerry_value_free(url_val);
-            break;
-        }
-        request.url = js_string_to_c_string(url_val);
-        jerry_value_free(url_val);
-        if(!request.url) {
-            result = (RequestParseResult){
-                .tag = RequestParseResultTypeError,
-                .error = furi_string_alloc_set("URL is not a string"),
-            };
+        request.url = js_fetch_parse_url(obj, &result);
+        if(request.url == NULL) {
             break;
         }
 
-        if(!parse_request_url_is_valid(request.url)) {
-            result = (RequestParseResult){
-                .tag = RequestParseResultTypeError,
-                .error = furi_string_alloc_set("Invalid URL"),
-            };
-            break;
-        }
         JS_TRACE("Fetch %s", request.url);
 
         if(js_object_has_property(obj, "method")) {
