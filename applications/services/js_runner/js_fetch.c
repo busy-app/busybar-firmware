@@ -70,18 +70,6 @@ static bool parse_request_header_is_valid(const char* header, bool check_colon) 
     return true;
 }
 
-static bool parse_request_method_is_valid(const char* method) {
-    static const char* const allowed_methods[] = {
-        "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS", "CONNECT", "TRACE"};
-
-    for(uint8_t i = 0; i < COUNT_OF(allowed_methods); i++) {
-        if(strcasecmp(method, allowed_methods[i]) == 0) {
-            return true;
-        }
-    }
-    return false;
-}
-
 static char* js_fetch_parse_url(jerry_value_t request, RequestParseResult* result) {
     char* encoded_str = NULL;
 
@@ -123,6 +111,68 @@ static char* js_fetch_parse_url(jerry_value_t request, RequestParseResult* resul
     return encoded_str;
 }
 
+// TODO: Move the below 2 functions to HTTP tools
+static bool js_fetch_method_is_valid(const char* method_str) {
+    bool is_valid = true;
+
+    for(const char* p = method_str; *p != '\0'; ++p) {
+        const unsigned char c = *p;
+        if(c > 0x7F || !isalnum(c)) {
+            is_valid = false;
+            break;
+        }
+    }
+
+    return is_valid;
+}
+
+/* https://fetch.spec.whatwg.org/#concept-method-normalize */
+static void js_fetch_method_normalize(char* method_str) {
+    static const char* const normalized_methods[] = {
+        "GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"};
+
+    for(uint8_t i = 0; i < COUNT_OF(normalized_methods); i++) {
+        const char* reference = normalized_methods[i];
+        if(strcasecmp(method_str, reference) == 0) {
+            strcpy(method_str, reference);
+            break;
+        }
+    }
+}
+
+static char* js_fetch_parse_method(jerry_value_t request, RequestParseResult* result) {
+    if(!js_object_has_property(request, "method")) {
+        return strdup("GET");
+    }
+
+    char* result_str = NULL;
+    const jerry_value_t method_val = jerry_object_get_sz(request, "method");
+
+    do {
+        char* method_str = js_string_to_c_string(method_val);
+        if(method_str == NULL) {
+            result->tag = RequestParseResultTypeError;
+            result->error = furi_string_alloc_set("Method is not a string");
+            break;
+        }
+
+        if(!js_fetch_method_is_valid(method_str)) {
+            result->tag = RequestParseResultTypeError;
+            result->error = furi_string_alloc_set("Invalid method");
+            free(method_str);
+            break;
+        }
+
+        js_fetch_method_normalize(method_str);
+        result_str = method_str;
+
+    } while(false);
+
+    jerry_value_free(method_val);
+
+    return result_str;
+}
+
 static RequestParseResult parse_request(jerry_value_t obj) {
     furi_assert(js_is_instance_of(obj, "Request"));
 
@@ -137,25 +187,9 @@ static RequestParseResult parse_request(jerry_value_t obj) {
 
         JS_TRACE("Fetch %s", request.url);
 
-        if(js_object_has_property(obj, "method")) {
-            jerry_value_t method_val = jerry_object_get_sz(obj, "method");
-            request.method = js_string_to_c_string(method_val);
-            jerry_value_free(method_val);
-            if(!request.method) {
-                result = (RequestParseResult){
-                    .tag = RequestParseResultTypeError,
-                    .error = furi_string_alloc_set("Method is not a string"),
-                };
-                break;
-            }
-
-            if(!parse_request_method_is_valid(request.method)) {
-                result = (RequestParseResult){
-                    .tag = RequestParseResultTypeError,
-                    .error = furi_string_alloc_set("Invalid method"),
-                };
-                break;
-            }
+        request.method = js_fetch_parse_method(obj, &result);
+        if(request.method == NULL) {
+            break;
         }
 
         {
