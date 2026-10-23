@@ -173,6 +173,28 @@ static char* js_fetch_parse_method(jerry_value_t request, RequestParseResult* re
     return result_str;
 }
 
+static TlsClientCertType js_fetch_parse_dispatcher(jerry_value_t obj, RequestParseResult* result) {
+    TlsClientCertType cert_type = TlsClientCertTypeInvalid;
+
+    static const char* const keys[] = {"dispatcher", "connect", "useDeviceKey"};
+    jerry_value_t value = js_object_get_nested_property(obj, keys, COUNT_OF(keys));
+
+    do {
+        if(jerry_value_is_exception(value)) {
+            result->tag = RequestParseResultTypeError;
+            result->error = js_get_exception_string(value);
+            break;
+        }
+
+        const bool is_device_cert = jerry_value_to_boolean(value);
+        cert_type = is_device_cert ? TlsClientCertTypeDevice : TlsClientCertTypeNone;
+
+    } while(false);
+
+    jerry_value_free(value);
+    return cert_type;
+}
+
 static RequestParseResult parse_request(jerry_value_t obj) {
     furi_assert(js_is_instance_of(obj, "Request"));
 
@@ -192,23 +214,11 @@ static RequestParseResult parse_request(jerry_value_t obj) {
             break;
         }
 
-        {
-            const char* const use_device_key_keys[] = {"dispatcher", "connect", "useDeviceKey"};
-            jerry_value_t use_device_key_val = js_object_get_nested_property(
-                obj, use_device_key_keys, COUNT_OF(use_device_key_keys));
-            if(jerry_value_is_exception(use_device_key_val)) {
-                result = (RequestParseResult){
-                    .tag = RequestParseResultTypeError,
-                    .error = js_get_exception_string(use_device_key_val),
-                };
-                jerry_value_free(use_device_key_val);
-                break;
-            }
-            if(jerry_value_to_boolean(use_device_key_val)) {
-                request.tls_config.client_cert_info.type = TlsClientCertTypeDevice;
-            }
-            jerry_value_free(use_device_key_val);
+        const TlsClientCertType cert_type = js_fetch_parse_dispatcher(obj, &result);
+        if(cert_type == TlsClientCertTypeInvalid) {
+            break;
         }
+        request.tls_config.client_cert_info.type = cert_type;
 
         if(js_object_has_property(obj, "headers")) {
             jerry_value_t headers_val = jerry_object_get_sz(obj, "headers");
