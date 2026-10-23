@@ -218,17 +218,17 @@ static void handle_data(JsReadableStream* instance, SizedBuffer data) {
 }
 
 static void handle_done(JsReadableStream* instance) {
-    resolve_closed_promise(instance, false);
     detach_sink(instance);
+    resolve_closed_promise(instance, false);
 
     resolve_everything_with_done(instance, jerry_undefined());
     js_run_jobs();
 }
 
 static void handle_error(JsReadableStream* instance, FuriString* error) {
-    resolve_closed_promise(instance, true);
     instance->is_error = true;
     detach_sink(instance);
+    resolve_closed_promise(instance, true);
 
     // resolve_everything_with_done(instance, jerry_throw_sz(JERRY_ERROR_TYPE, furi_string_get_cstr(event->error)));
     resolve_everything_with_done(instance, jerry_string_sz(furi_string_get_cstr(error)));
