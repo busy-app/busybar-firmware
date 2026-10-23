@@ -230,7 +230,6 @@ static void handle_error(JsReadableStream* instance, FuriString* error) {
     detach_sink(instance);
     resolve_closed_promise(instance, true);
 
-    // resolve_everything_with_done(instance, jerry_throw_sz(JERRY_ERROR_TYPE, furi_string_get_cstr(event->error)));
     resolve_everything_with_done(instance, jerry_string_sz(furi_string_get_cstr(error)));
 
     furi_string_free(error);
@@ -326,9 +325,9 @@ static jerry_value_t reader_closed(
         jerry_value_t promise = jerry_promise();
         jerry_value_t result = jerry_undefined();
         if(!instance->is_error) {
-            jerry_promise_resolve(promise, result);
+            js_check_and_free(jerry_promise_resolve(promise, result));
         } else {
-            jerry_promise_reject(promise, result);
+            js_check_and_free(jerry_promise_reject(promise, result));
         }
         jerry_value_free(result);
         return promise;

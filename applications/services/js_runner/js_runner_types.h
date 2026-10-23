@@ -87,10 +87,10 @@ typedef struct JsRunnerAppCommand {
     };
 } JsRunnerAppCommand;
 
-typedef void (*js_runner_deferred_function_t)(void* context);
+typedef void (*JsRunnerDeferredCallback)(void* context);
 
 typedef struct JsRunnerDeferred {
-    js_runner_deferred_function_t callback;
+    JsRunnerDeferredCallback callback;
     void* context;
 } JsRunnerDeferred;
 
