@@ -817,6 +817,14 @@ static const HttpHandler handlers_api_root[] = {
         .on_request = http_api_apps_callback,
         .on_headers = http_api_apps_hdr_callback_root,
     },
+    {
+        .uri = "power",
+        .method = HttpMethodAny,
+        .type = HttpHandlerCustom,
+        .ctx_alloc = http_api_power_alloc,
+        .ctx_free = http_api_power_free,
+        .on_request = http_api_power_callback,
+    },
 };
 
 void* http_api_root_alloc(void) {

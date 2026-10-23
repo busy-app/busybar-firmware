@@ -289,6 +289,44 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /api/power/sleep:
+    get:
+      tags:
+        - Settings
+      summary: Get sleep settings
+      operationId: getSleepSettings
+      responses:
+        "200":
+          description: Information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SleepSettings"
+    post:
+      tags:
+        - Settings
+      summary: Set sleep settings
+      operationId: setSleepSettings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SleepSettings"
+      responses:
+        "200":
+          description: Sleep settings set successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 schemas:
   HttpAccessInfo:
     type: object
@@ -384,3 +422,17 @@ schemas:
         type: number
         description: Audio volume value (0-100)
         example: 50
+
+  SleepSettings:
+    type: object
+    properties:
+      sleep:
+        type: string
+        enum: ["never", "after_holdoff"]
+        description: Sleep mode
+        example: "after_holdoff"
+      sleep_holdoff:
+        type: number
+        description: "Sleep holdoff duration (in milliseconds). The number of milliseconds that passes in between the mode switch being moved to the OFF position, and the sleep mode actually activating. Only relevant if `mode` is `after_holdoff`."
+        example: 30000
+        default: 10000

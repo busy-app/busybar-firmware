@@ -56,6 +56,7 @@ typedef struct {
     VarItemChangeCallback callback;
     void* context;
     VarItemType type;
+    VarItemTimeboxBase timebox_base;
 } VarItemEditor;
 
 struct VarItem {
@@ -266,6 +267,11 @@ static void var_item_editor_set_range_and_step(
     instance->value = min;
 }
 
+static void var_item_editor_set_timebox_base(VarItemEditor* instance, VarItemTimeboxBase base) {
+    furi_assert(instance);
+    instance->timebox_base = base;
+}
+
 static void var_item_editor_set_type(VarItemEditor* instance, VarItemType type) {
     instance->type = type;
 }
@@ -358,15 +364,24 @@ static void var_item_editor_update(VarItemEditor* instance) {
         }
 
     } else if(instance->type == VarItemTypeTimebox) {
-        const int32_t hh = instance->value / 60;
-        const int32_t mm = instance->value % 60;
+        const int32_t coarse = instance->value / 60;
+        const int32_t fine = instance->value % 60;
 
-        if(hh == 0) {
-            lv_label_set_text_fmt(label, "%ld m", mm);
-        } else if(mm == 0) {
-            lv_label_set_text_fmt(label, "%ld h", hh);
+        static const char* const coarse_name[VarItemTimeboxBaseMAX] = {
+            [VarItemTimeboxBaseSeconds] = "m",
+            [VarItemTimeboxBaseMinutes] = "h",
+        };
+        static const char* const fine_name[VarItemTimeboxBaseMAX] = {
+            [VarItemTimeboxBaseSeconds] = "s",
+            [VarItemTimeboxBaseMinutes] = "m",
+        };
+
+        if(coarse == 0) {
+            lv_label_set_text_fmt(label, "%ld %s", fine, fine_name[instance->timebox_base]);
+        } else if(fine == 0) {
+            lv_label_set_text_fmt(label, "%ld %s", coarse, coarse_name[instance->timebox_base]);
         } else {
-            lv_label_set_text_fmt(label, "%ld:%02ld", hh, mm);
+            lv_label_set_text_fmt(label, "%ld:%02ld", coarse, fine);
         }
 
     } else if(instance->type == VarItemTypeSelector) {
@@ -555,14 +570,28 @@ VarItem* var_item_list_add_timebox(
     uint32_t step_mn,
     VarItemChangeCallback callback,
     void* context) {
+    return var_item_list_add_timebox_ex(
+        instance, label, VarItemTimeboxBaseMinutes, min_mn, max_mn, step_mn, callback, context);
+}
+
+VarItem* var_item_list_add_timebox_ex(
+    VarItemList* instance,
+    const char* label,
+    VarItemTimeboxBase base,
+    int32_t min_val,
+    int32_t max_val,
+    uint32_t val_step,
+    VarItemChangeCallback callback,
+    void* context) {
     furi_check(instance);
     furi_check(label);
-    CHECK_RANGE_AND_STEP(min_mn, max_mn, step_mn);
+    CHECK_RANGE_AND_STEP(min_val, max_val, val_step);
 
     VarItem* item = var_item_alloc(instance, label, callback, context);
 
     var_item_editor_set_type(item->editor, VarItemTypeTimebox);
-    var_item_editor_set_range_and_step(item->editor, min_mn, max_mn, step_mn);
+    var_item_editor_set_range_and_step(item->editor, min_val, max_val, val_step);
+    var_item_editor_set_timebox_base(item->editor, base);
     var_item_editor_update(item->editor);
 
     return item;
