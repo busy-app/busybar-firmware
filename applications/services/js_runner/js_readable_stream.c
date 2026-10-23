@@ -321,6 +321,7 @@ static jerry_value_t reader_closed(
         if(!instance->has_closed_promise) {
             instance->has_closed_promise = true;
             instance->closed_promise = jerry_promise();
+            // Workaround for a rare case when reader (and closed_promise) is not destroyed by GC
             WITH_JS_RUNNER_APP(app, { js_runner_defer(app, free_closed_promise, instance); });
         }
 
