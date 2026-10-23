@@ -259,25 +259,22 @@ static bool url_split_to_parts(StringSlice* parts, const char* source_str, size_
 
     for(UrlParseStepIdx step_idx = UrlParseStepIdxProtocol; step_idx < UrlParseStepIdxMax;) {
         const UrlParseStep* step = &url_parse_steps[step_idx];
-        const bool is_include_delim = step->is_include_delim;
 
         UrlFindNextStepResult find_result;
         url_find_next_step(source_str, source_offset, step->next_step_idxs, &find_result);
 
-        UrlParseStepIdx next_step_idx = find_result.step_idx;
-        const size_t part_offset = find_result.part_offset;
-
-        const StringSliceOffset slice_offset = {
-            .start = source_offset - (is_include_delim ? strlen(step->delim) : 0),
-            .end = part_offset,
+        const StringSliceOffset part_offset = {
+            .start = source_offset - (step->is_include_delim ? strlen(step->delim) : 0),
+            .end = find_result.part_offset,
         };
 
-        if(slice_offset.start == slice_offset.end) {
+        if(part_offset.start == part_offset.end) {
             success = false;
             break;
         }
 
-        size_t new_source_offset = part_offset;
+        UrlParseStepIdx next_step_idx = find_result.step_idx;
+        size_t new_source_offset = part_offset.end;
 
         if(next_step_idx != UrlParseStepIdxMax) {
             const UrlParseStep* next_step = &url_parse_steps[next_step_idx];
@@ -294,7 +291,7 @@ static bool url_split_to_parts(StringSlice* parts, const char* source_str, size_
         }
 
         StringSlice* part = &parts[step->part_id];
-        string_slice_from_offset(part, &slice_offset, source_str);
+        string_slice_from_offset(part, &part_offset, source_str);
 
         source_offset = new_source_offset;
         step_idx = next_step_idx;
