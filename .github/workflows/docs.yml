@@ -5,7 +5,6 @@ on:
     branches:
       - dev
       - release
-      - asdx/doxygen-rclone-sync
     tags:
       - '*'
   pull_request:
@@ -79,7 +78,7 @@ jobs:
           exit 1;
 
       - name: 'Upload documentation'
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/release' || github.ref == 'refs/heads/asdx/doxygen-rclone-sync')
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/release')
         env:
           RCLONE_CONFIG: /dev/null
           RCLONE_CONFIG_R2_TYPE: s3
