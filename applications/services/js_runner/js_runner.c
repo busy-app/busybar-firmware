@@ -952,8 +952,7 @@ const char* js_runner_get_error_message(JsRunnerError error) {
 }
 
 void js_runner_defer(JsRunnerApp* app, js_runner_deferred_function_t cb, void* context) {
-    DeferredList_push_back(
-        app->deferred, (JsRunnerDeferred){.callback = cb, .context = context});
+    DeferredList_push_back(app->deferred, (JsRunnerDeferred){.callback = cb, .context = context});
 }
 
 void js_runner_cancel_defer(JsRunnerApp* app, js_runner_deferred_function_t cb, void* context) {

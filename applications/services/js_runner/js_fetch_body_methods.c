@@ -96,8 +96,6 @@ jerry_value_t js_fetch_text(
     return run_js_method(instance, text_body_collected);
 }
 
-jerry_object_native_info_t promise_native_info = {0};
-
 static jerry_value_t run_js_method(JsFetch* parent, BodyCollectedCallback on_body_collected) {
     BodyMethod* instance = malloc(sizeof(BodyMethod));
     instance->parent = parent;
@@ -105,16 +103,19 @@ static jerry_value_t run_js_method(JsFetch* parent, BodyCollectedCallback on_bod
     instance->body = malloc(sizeof(*instance->body));
     ByteArray_init(*instance->body);
     instance->on_body_collected = on_body_collected;
+
+    jerry_value_t promise = jerry_value_copy(instance->promise);
+
     if(!js_fetch_set_data_sink(parent, data_sink_callback, instance)) {
+        jerry_value_free(promise);
         jerry_value_free(instance->promise);
         ByteArray_clear(*instance->body);
         free(instance->body);
         free(instance);
         return js_rejected_promise("Body is already in use");
     } else {
-        jerry_object_set_native_ptr(instance->promise, &promise_native_info, instance);
         js_fetch_data_sink_ready(parent);
-        return jerry_value_copy(instance->promise);
+        return promise;
     }
 }
 

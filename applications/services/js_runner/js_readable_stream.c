@@ -309,7 +309,6 @@ static jerry_value_t reader_closed(
     const jerry_call_info_t* call_info,
     const jerry_value_t args[],
     const jerry_length_t args_count) {
-
     UNUSED(args);
     UNUSED(args_count);
 
