@@ -14,6 +14,7 @@ typedef struct JsReadableStream {
 
     bool has_closed_promise;
     jerry_value_t closed_promise;
+    bool is_error;
 
     ChildStatus readable_stream_status;
     ChildStatus async_iterator_status;
@@ -46,6 +47,7 @@ jerry_value_t js_readable_stream_alloc(JsFetch* parent) {
     JsReadableStream* instance = malloc(sizeof(JsReadableStream));
     instance->parent = parent;
     instance->data_expected = true;
+    instance->is_error = false;
     instance->readable_stream_status = ChildStatusRunning;
     instance->async_iterator_status = ChildStatusNotYet;
     instance->has_closed_promise = false;
@@ -91,11 +93,10 @@ static void free_closed_promise(void* context) {
     }
 }
 
-static void resolve_closed_promise(JsReadableStream* instance, const char* error_msg) {
+static void resolve_closed_promise(JsReadableStream* instance, bool is_error) {
     if(instance->has_closed_promise) {
-        if(error_msg) {
-            // jerry_value_t error = jerry_throw_sz(JERRY_ERROR_TYPE, error_msg);
-            jerry_value_t error = jerry_string_sz(error_msg);
+        if(is_error) {
+            jerry_value_t error = jerry_undefined();
             jerry_value_free(jerry_promise_reject(instance->closed_promise, error));
             jerry_value_free(error);
         } else {
@@ -113,7 +114,7 @@ static void resolve_closed_promise(JsReadableStream* instance, const char* error
 static void free_if_can(JsReadableStream* instance) {
     if(instance->async_iterator_status != ChildStatusRunning &&
        instance->readable_stream_status != ChildStatusRunning) {
-        resolve_closed_promise(instance, NULL);
+        resolve_closed_promise(instance, false);
         furi_check(PromiseQueue_empty_p(instance->promise_queue));
         PromiseQueue_clear(instance->promise_queue);
 
@@ -172,7 +173,7 @@ static jerry_value_t iterator_return(
 
     detach_sink(instance);
 
-    resolve_closed_promise(instance, NULL);
+    resolve_closed_promise(instance, false);
 
     jerry_value_t result = js_iterator_result(true, value);
     js_check_and_free(jerry_promise_resolve(promise, result));
@@ -217,7 +218,7 @@ static void handle_data(JsReadableStream* instance, SizedBuffer data) {
 }
 
 static void handle_done(JsReadableStream* instance) {
-    resolve_closed_promise(instance, NULL);
+    resolve_closed_promise(instance, false);
     detach_sink(instance);
 
     resolve_everything_with_done(instance, jerry_undefined());
@@ -225,7 +226,8 @@ static void handle_done(JsReadableStream* instance) {
 }
 
 static void handle_error(JsReadableStream* instance, FuriString* error) {
-    resolve_closed_promise(instance, "cancelled");
+    resolve_closed_promise(instance, true);
+    instance->is_error = true;
     detach_sink(instance);
 
     // resolve_everything_with_done(instance, jerry_throw_sz(JERRY_ERROR_TYPE, furi_string_get_cstr(event->error)));
@@ -323,7 +325,11 @@ static jerry_value_t reader_closed(
     } else {
         jerry_value_t promise = jerry_promise();
         jerry_value_t result = jerry_undefined();
-        jerry_promise_resolve(promise, result);
+        if(!instance->is_error) {
+            jerry_promise_resolve(promise, result);
+        } else {
+            jerry_promise_reject(promise, result);
+        }
         jerry_value_free(result);
         return promise;
     }
