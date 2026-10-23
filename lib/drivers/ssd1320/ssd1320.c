@@ -158,6 +158,7 @@ void ssd1320_init(void) {
     furi_hal_gpio_init(
         &gpio_back_display_vcc_en, GpioModeOutputPushPull, GpioPullNo, GpioSpeedMedium);
     furi_hal_gpio_write(&gpio_back_display_vcc_en, false);
+    furi_hal_gpio_set_sleep_pull(&gpio_back_display_vcc_en, GpioPullDown);
 
     furi_hal_gpio_write(&gpio_back_display_dc, true);
     furi_hal_gpio_init(&gpio_back_display_dc, GpioModeOutputPushPull, GpioPullUp, GpioSpeedMedium);

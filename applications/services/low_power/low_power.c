@@ -5,6 +5,7 @@
 #include <back_display/back_display.h>
 #include <front_display/front_display.h>
 #include <light_sensor/light_sensor.h>
+#include <power/power_service/power.h>
 
 #define TAG "LowPower"
 
@@ -22,8 +23,9 @@ struct LowPower {
     BackDisplaySrv* back_display;
     FrontDisplaySrv* front_display;
 
+    Power* power;
+
     uint32_t lock_count;
-    bool in_low_power;
 };
 
 static void low_power_send_api_message(LowPower* instance, LowPowerApiMessage message) {
@@ -37,12 +39,19 @@ static void low_power_send_api_message(LowPower* instance, LowPowerApiMessage me
 }
 
 static void low_power_enter(LowPower* instance) {
+    FURI_LOG_D(TAG, "enter");
     front_display_sleep_mode(instance->front_display, true);
     back_display_sleep_mode(instance->back_display, true);
     light_sensor_sleep(instance->light_sensor, true);
+
+    // TODO: make it so that calls to the above services are synchronous
+    furi_delay_ms(500);
+
+    power_deep_sleep(instance->power);
 }
 
 static void low_power_exit(LowPower* instance) {
+    FURI_LOG_D(TAG, "exit");
     front_display_sleep_mode(instance->front_display, false);
     back_display_sleep_mode(instance->back_display, false);
     light_sensor_sleep(instance->light_sensor, false);
@@ -52,11 +61,14 @@ static LowPower* low_power_alloc(void) {
     LowPower* instance = malloc(sizeof(LowPower));
     instance->api_queue = furi_message_queue_alloc(API_QUEUE_SIZE, sizeof(LowPowerApiMessage));
     instance->lock_count = 1; // Locked by default
-    instance->in_low_power = false;
 
     instance->back_display = furi_record_open(RECORD_BACK_DISPLAY);
     instance->front_display = furi_record_open(RECORD_FRONT_DISPLAY);
     instance->light_sensor = furi_record_open(RECORD_LIGHT_SENSOR);
+
+    instance->power = furi_record_open(RECORD_POWER);
+
+    low_power_exit(instance);
 
     return instance;
 }
@@ -75,19 +87,13 @@ int32_t low_power_srv(void* arg) {
         if(message == LowPowerApiMessageLock) {
             instance->lock_count++;
 
-            if((instance->lock_count > 0) && (instance->in_low_power)) {
-                low_power_exit(instance);
-                instance->in_low_power = false;
-            }
-
         } else if(message == LowPowerApiMessageUnlock) {
             if(instance->lock_count > 0) {
                 instance->lock_count--;
             }
 
-            if((instance->lock_count == 0) && (!instance->in_low_power)) {
+            if(instance->lock_count == 0) {
                 low_power_enter(instance);
-                instance->in_low_power = true;
             }
 
         } else {

@@ -56,6 +56,7 @@ typedef enum {
     GpioAltFn2USART0_TX = 2, /**< USART0_TX on GPIO_54 */
     GpioAltFn2USART0_RX = 2, /**< USART0_RX on GPIO_55 */
     GpioAltFn2USART0_CTS = 2, /** USART0_CTS on GPIO_56 */
+    GpioAltFn2UulpWakeup = 2,
 
     GpioAltFn3ULP_UART_RX = 3, /**< ULP_UART_RX on ULP_GPIO_2 */
     GpioAltFn3ULP_UART_TX = 3, /**< ULP_UART_TX on ULP_GPIO_3 (via mux only) */

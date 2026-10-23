@@ -13,7 +13,7 @@ extern "C" {
 typedef struct LowPower LowPower;
 
 /**
- * @brief Lock low power mode entry. If low power mode is already active, exit it.
+ * @brief Lock low power mode entry.
  *
  * @param[in] instance LowPower service instance
  *

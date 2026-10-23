@@ -490,6 +490,13 @@ static void furi_hal_sdmmc_periph_init(void) {
         FURI_SDMMC_GPIO_SPEED,
         FURI_SDMMC_PIN_ALTFN);
 
+    furi_hal_gpio_set_sleep_pull(&gpio_sd_card_d0, GpioPullDown);
+    furi_hal_gpio_set_sleep_pull(&gpio_sd_card_d1, GpioPullDown);
+    furi_hal_gpio_set_sleep_pull(&gpio_sd_card_d2, GpioPullDown);
+    furi_hal_gpio_set_sleep_pull(&gpio_sd_card_d3, GpioPullDown);
+    furi_hal_gpio_set_sleep_pull(&gpio_sd_card_ck, GpioPullDown);
+    furi_hal_gpio_set_sleep_pull(&gpio_sd_card_cmd, GpioPullDown);
+
     LL_RCC_SetSDMMCKernelClockSource(LL_RCC_SDMMC12_KERNELCLKSOURCE_PLL1);
 
     furi_hal_bus_enable(FURI_SDMMC_BUS);
