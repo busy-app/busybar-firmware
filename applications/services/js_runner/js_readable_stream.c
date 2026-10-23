@@ -172,9 +172,7 @@ static jerry_value_t iterator_return(
 
     detach_sink(instance);
 
-    if(instance->has_closed_promise) {
-        resolve_closed_promise(instance, NULL);
-    }
+    resolve_closed_promise(instance, NULL);
 
     jerry_value_t result = js_iterator_result(true, value);
     js_check_and_free(jerry_promise_resolve(promise, result));
@@ -219,7 +217,6 @@ static void handle_data(JsReadableStream* instance, SizedBuffer data) {
 }
 
 static void handle_done(JsReadableStream* instance) {
-    instance->data_expected = false;
     resolve_closed_promise(instance, NULL);
     detach_sink(instance);
 
@@ -228,8 +225,6 @@ static void handle_done(JsReadableStream* instance) {
 }
 
 static void handle_error(JsReadableStream* instance, FuriString* error) {
-    instance->data_expected = false;
-
     resolve_closed_promise(instance, "cancelled");
     detach_sink(instance);
 
@@ -374,4 +369,5 @@ static void detach_sink(JsReadableStream* instance) {
         js_fetch_set_data_sink(instance->parent, NULL, NULL);
     }
     instance->parent = NULL;
+    instance->data_expected = false;
 }

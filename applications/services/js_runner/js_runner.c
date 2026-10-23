@@ -975,6 +975,7 @@ static void js_runner_run_deferred(JsRunnerApp* app) {
     DeferredList_it_t it;
     DeferredList_it(it, app->deferred);
     while(!DeferredList_end_p(it)) {
+        JS_TRACE("run deferred");
         const JsRunnerDeferred* item = DeferredList_cref(it);
         item->callback(item->context);
         DeferredList_next(it);
