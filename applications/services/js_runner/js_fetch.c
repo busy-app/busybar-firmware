@@ -45,13 +45,19 @@ static void fetch_request_clear(FetchRequest* request) {
 }
 
 static void
-    parse_request_append_extra_header(FetchRequest* const request, const uint8_t header_index) {
-    const size_t extra_header_size =
-        sizeof(JS_FETCH_EXTRA_HEADER) + sizeof(JS_FETCH_EXTRA_VALUE) + 1;
+    fetch_request_headers_append(FetchRequestHeaders* headers, const char* key, const char* value) {
+    const size_t buf_size = strlen(key) + strlen(value) + sizeof(": ");
 
-    char* extra_header = malloc(extra_header_size);
-    sprintf(extra_header, "%s: %s", JS_FETCH_EXTRA_HEADER, JS_FETCH_EXTRA_VALUE);
-    request->headers.data[header_index] = extra_header;
+    char* header = malloc(buf_size);
+    sprintf(header, "%s: %s", key, value);
+
+    const uint32_t headers_count = headers->count;
+    headers->data[headers_count] = header;
+    headers->count = headers_count + 1;
+}
+
+static void fetch_request_headers_append_extra(FetchRequestHeaders* headers) {
+    fetch_request_headers_append(headers, JS_FETCH_EXTRA_HEADER, JS_FETCH_EXTRA_VALUE);
 }
 
 static inline bool parse_request_extra_header_present(const char* input) {
@@ -207,9 +213,10 @@ static bool js_fetch_parse_dispatcher(
 
 static bool
     js_fetch_parse_headers(jerry_value_t obj, FetchRequest* request, RequestParseResult* result) {
+    FetchRequestHeaders* headers = &request->headers;
+
     if(!js_object_has_property(obj, "headers")) {
-        parse_request_append_extra_header(request, 0);
-        request->headers.count = 1;
+        fetch_request_headers_append_extra(headers);
         return true;
     }
 
@@ -217,21 +224,20 @@ static bool
     const jerry_value_t headers_val = jerry_object_get_sz(obj, "headers");
 
     do {
-        // TODO: instance of Headers
+        // TODO: Instance of Headers
         if(!jerry_value_is_object(headers_val)) {
             result->tag = RequestParseResultTypeError;
             result->error = furi_string_alloc_set("Headers is not an object");
             break;
         }
 
-        bool app_header_appended = false;
         bool is_error = false;
+        bool has_extra_header = false;
 
         const jerry_value_t keys = jerry_object_keys(headers_val);
         const size_t num_keys = jerry_array_length(keys);
-        size_t header_idx = 0;
 
-        for(size_t i = 0; i < num_keys && header_idx < JS_FETCH_HEADER_COUNT_MAX && !is_error;
+        for(size_t i = 0; i < num_keys && headers->count < JS_FETCH_HEADER_COUNT_MAX && !is_error;
             ++i) {
             const jerry_value_t key = jerry_object_get_index(keys, i);
             const jerry_value_t value = jerry_object_get(headers_val, key);
@@ -248,21 +254,16 @@ static bool
                     is_error = true;
 
                 } else if(parse_request_extra_header_present(key_string)) {
-                    if(!app_header_appended) {
+                    if(!has_extra_header) {
                         FURI_LOG_W(TAG, "%s header override", JS_FETCH_EXTRA_HEADER);
-                        parse_request_append_extra_header(request, header_idx);
-                        app_header_appended = true;
-                        header_idx += 1;
+                        fetch_request_headers_append_extra(headers);
+                        has_extra_header = true;
                     } else {
                         FURI_LOG_W(TAG, "%s header duplication", JS_FETCH_EXTRA_HEADER);
                     }
 
                 } else {
-                    char* header_string =
-                        malloc(strlen(key_string) + 2 + strlen(value_string) + 1);
-                    sprintf(header_string, "%s: %s", key_string, value_string);
-                    request->headers.data[header_idx] = header_string;
-                    header_idx += 1;
+                    fetch_request_headers_append(headers, key_string, value_string);
                 }
 
                 free(key_string);
@@ -276,17 +277,12 @@ static bool
 
         jerry_value_free(keys);
 
-        if(!app_header_appended) {
-            parse_request_append_extra_header(request, header_idx);
-            header_idx += 1;
-        }
-
-        // IMPORTANT: headers.count must be set to the correct
-        // number of headers in order to be freed
-        request->headers.count = header_idx;
-
         if(is_error) {
             break;
+        }
+
+        if(!has_extra_header) {
+            fetch_request_headers_append_extra(headers);
         }
 
         success = true;
