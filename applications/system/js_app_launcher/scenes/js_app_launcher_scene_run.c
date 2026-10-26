@@ -24,6 +24,12 @@ typedef struct {
     JsRunnerError js_error;
 } JsAppLauncherSceneRun;
 
+static void set_canvas_back_handling(bool is_clear_on_back) {
+    CanvasSrv* canvas = furi_record_open(RECORD_CANVAS);
+    canvas_set_clear_on_back(canvas, is_clear_on_back);
+    furi_record_close(RECORD_CANVAS);
+}
+
 static void js_app_launcher_scene_run_console_out_callback(
     JsRunnerConsoleSeverity severity,
     const char* buf,
@@ -70,22 +76,17 @@ static void js_app_launcher_scene_run_event_callback(const JsRunnerEvent* event,
 
     JsAppLauncher* instance = context;
 
-    CanvasSrv* canvas = furi_record_open(RECORD_CANVAS);
-
     if(event->type == JsRunnerEventTypeScriptStarted) {
-        canvas_set_clear_on_back(canvas, false);
         js_app_launcher_send_custom_event(instance, JsAppLauncherCustomEventScriptStarted);
     } else if(event->type == JsRunnerEventTypeScriptFinished) {
         if(event->error == JsRunnerErrorNone) {
             js_app_launcher_send_custom_event(instance, JsAppLauncherCustomEventScriptFinished);
         } else {
-            canvas_set_clear_on_back(canvas, true);
             FURI_LOG_E(TAG, "Error running JS app: %s", js_runner_get_error_message(event->error));
             js_app_launcher_send_custom_event(
                 instance, JsAppLauncherCustomEventScriptErrorBase | event->error);
         }
     }
-    furi_record_close(RECORD_CANVAS);
 }
 
 static void js_app_launcher_scene_run_init_widgets(JsAppLauncher* instance) {
@@ -237,6 +238,8 @@ static void js_app_launcher_scene_run_on_enter(void* context) {
 
     if(!js_app_launcher_scene_run_start_app(instance)) {
         scene_manager_next_scene(instance->scene_manager, JsAppLauncherSceneIdError);
+    } else {
+        set_canvas_back_handling(false);
     }
 }
 
@@ -254,11 +257,7 @@ static void js_app_launcher_scene_run_on_exit(void* context) {
         data->js_runner_exec_handle = NULL;
     }
 
-    {
-        CanvasSrv* canvas = furi_record_open(RECORD_CANVAS);
-        canvas_set_clear_on_back(canvas, true);
-        furi_record_close(RECORD_CANVAS);
-    }
+    set_canvas_back_handling(true);
 
     JsRunnerContextHandle* context_handle = data->js_runner_handle;
     if(context_handle != NULL) {
