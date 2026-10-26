@@ -61,7 +61,7 @@ void string_slice_from_offset(
  * The caller is responsible to free the return value
  * when it is not needed anymore.
  *
- * @param[out] instance pointer to the slice to be copied
+ * @param[in] instance pointer to the slice to be copied
  * @returns pointer to the created string (may be empty, but never @c NULL)
  */
 char* string_slice_to_owned_cstr(const StringSlice* instance);
