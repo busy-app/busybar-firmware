@@ -109,7 +109,7 @@ jobs:
         run: |
           ARTIFACT_DIR="${{ steps.build-fw.outputs.artifact_path }}"
           while IFS= read -r -d '' ARTIFACT; do
-            curl --fail -L -H "Token: ${{ secrets.UPDATE_INDEXER_DEV_TOKEN }}" \
+            curl --fail-with-body -L -H "Token: ${{ secrets.UPDATE_INDEXER_DEV_TOKEN }}" \
                 -F "branch=${BRANCH_NAME}" \
                 -F "version_token=${COMMIT_SHA}" \
                 -F "files=@${ARTIFACT}" \
