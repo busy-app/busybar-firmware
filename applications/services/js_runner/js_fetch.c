@@ -60,6 +60,16 @@ static void fetch_request_headers_append_extra(FetchRequestHeaders* headers) {
     fetch_request_headers_append(headers, JS_FETCH_EXTRA_HEADER, JS_FETCH_EXTRA_VALUE);
 }
 
+static void parse_request_result_set_error(RequestParseResult* result, const char* message) {
+    result->tag = RequestParseResultTypeError;
+    result->error = furi_string_alloc_set(message);
+}
+
+static void parse_request_result_set_error_owned(RequestParseResult* result, FuriString* message) {
+    result->tag = RequestParseResultTypeError;
+    result->error = message;
+}
+
 static inline bool parse_request_extra_header_present(const char* input) {
     return strcasestr(input, JS_FETCH_EXTRA_HEADER) != NULL;
 }
@@ -85,16 +95,15 @@ static bool
 
     do {
         if(jerry_value_is_exception(source)) {
-            result->tag = RequestParseResultTypeError;
-            result->error = js_get_exception_string(source);
+            FuriString* message = js_get_exception_string(source);
+            parse_request_result_set_error_owned(result, message);
             break;
         }
 
         char* source_str = js_string_to_c_string(source);
 
         if(source_str == NULL) {
-            result->tag = RequestParseResultTypeError;
-            result->error = furi_string_alloc_set("URL is not a string");
+            parse_request_result_set_error(result, "URL is not a string");
             break;
         }
 
@@ -102,8 +111,7 @@ static bool
         free(source_str);
 
         if(!can_parse) {
-            result->tag = RequestParseResultTypeError;
-            result->error = furi_string_alloc_set("Invalid URL");
+            parse_request_result_set_error(result, "Invalid URL");
             break;
         }
 
@@ -160,14 +168,12 @@ static bool
     do {
         char* method_str = js_string_to_c_string(method_val);
         if(method_str == NULL) {
-            result->tag = RequestParseResultTypeError;
-            result->error = furi_string_alloc_set("Method is not a string");
+            parse_request_result_set_error(result, "Method is not a string");
             break;
         }
 
         if(!method_is_valid(method_str)) {
-            result->tag = RequestParseResultTypeError;
-            result->error = furi_string_alloc_set("Invalid method");
+            parse_request_result_set_error(result, "Invalid method");
             free(method_str);
             break;
         }
@@ -188,12 +194,12 @@ static bool
     bool success = false;
 
     static const char* const keys[] = {"dispatcher", "connect", "useDeviceKey"};
-    jerry_value_t value = js_object_get_nested_property(obj, keys, COUNT_OF(keys));
+    const jerry_value_t value = js_object_get_nested_property(obj, keys, COUNT_OF(keys));
 
     do {
         if(jerry_value_is_exception(value)) {
-            result->tag = RequestParseResultTypeError;
-            result->error = js_get_exception_string(value);
+            FuriString* message = js_get_exception_string(value);
+            parse_request_result_set_error_owned(result, message);
             break;
         }
 
@@ -282,8 +288,7 @@ static bool
     do {
         // TODO: Instance of Headers
         if(!jerry_value_is_object(headers_val)) {
-            result->tag = RequestParseResultTypeError;
-            result->error = furi_string_alloc_set("Headers is not an object");
+            parse_request_result_set_error(result, "Headers is not an object");
             break;
         }
 
@@ -295,8 +300,7 @@ static bool
 
         for(size_t i = 0; i < num_keys; ++i) {
             if(!parse_request_header(headers, headers_val, keys, i, &has_extra_header)) {
-                result->tag = RequestParseResultTypeError;
-                result->error = furi_string_alloc_set("Invalid header");
+                parse_request_result_set_error(result, "Invalid header");
                 is_error = true;
                 break;
             }
@@ -332,8 +336,7 @@ static bool
 
     do {
         if(!jerry_value_is_string(body_str_val)) {
-            result->tag = RequestParseResultTypeError;
-            result->error = furi_string_alloc_set("Body is not a string");
+            parse_request_result_set_error(result, "Body is not a string");
             break;
         }
 
@@ -366,19 +369,15 @@ static RequestParseResult parse_request(jerry_value_t obj) {
         if(!parse_request_url(obj, &request, &result)) {
             break;
         }
-
         if(!parse_request_method(obj, &request, &result)) {
             break;
         }
-
         if(!parse_request_dispatcher(obj, &request, &result)) {
             break;
         }
-
         if(!parse_request_headers(obj, &request, &result)) {
             break;
         }
-
         if(!parse_request_body(obj, &request, &result)) {
             break;
         }
