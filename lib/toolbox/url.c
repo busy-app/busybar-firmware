@@ -362,19 +362,26 @@ static bool url_encode_hostname(const StringSlice* part, FuriString* out_str) {
 static bool url_encode_port(const StringSlice* part, FuriString* out_str) {
     bool success = true;
 
-    const char* part_str = part->first_char;
-    const size_t part_len = part->length;
+    do {
+        const char* part_str = part->first_char;
+        const size_t part_len = part->length;
 
-    for(size_t i = 0; i < part_len; ++i) {
-        const unsigned char c = part_str[i];
-
-        if((c > 0x7F) || !isdigit(c)) {
+        if(part_len > (sizeof("65535") - 1)) {
             success = false;
             break;
         }
 
-        furi_string_push_back(out_str, c);
-    }
+        for(size_t i = 0; i < part_len; ++i) {
+            const unsigned char c = part_str[i];
+
+            if((c > 0x7F) || !isdigit(c)) {
+                success = false;
+                break;
+            }
+
+            furi_string_push_back(out_str, c);
+        }
+    } while(false);
 
     return success;
 }
