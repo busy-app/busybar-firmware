@@ -70,10 +70,11 @@ static bool parse_request_header_is_valid(const char* header, bool check_colon) 
     return true;
 }
 
-static char* js_fetch_parse_url(jerry_value_t request, RequestParseResult* result) {
-    char* encoded_str = NULL;
+static bool
+    js_fetch_parse_url(jerry_value_t obj, FetchRequest* request, RequestParseResult* result) {
+    bool success = false;
 
-    const jerry_value_t source = jerry_object_get_sz(request, "url");
+    const jerry_value_t source = jerry_object_get_sz(obj, "url");
     Url* parser = url_alloc();
 
     do {
@@ -101,14 +102,15 @@ static char* js_fetch_parse_url(jerry_value_t request, RequestParseResult* resul
         }
 
         const StringSlice* href = url_get_part(parser, UrlPartIdHref);
-        encoded_str = string_slice_to_owned_cstr(href);
+        request->url = string_slice_to_owned_cstr(href);
 
+        success = true;
     } while(false);
 
     url_free(parser);
     jerry_value_free(source);
 
-    return encoded_str;
+    return success;
 }
 
 // TODO: Move the below 2 functions to HTTP tools
@@ -140,13 +142,14 @@ static void js_fetch_method_normalize(char* method_str) {
     }
 }
 
-static char* js_fetch_parse_method(jerry_value_t request, RequestParseResult* result) {
-    if(!js_object_has_property(request, "method")) {
-        return strdup("GET");
+static bool
+    js_fetch_parse_method(jerry_value_t obj, FetchRequest* request, RequestParseResult* result) {
+    if(!js_object_has_property(obj, "method")) {
+        return true;
     }
 
-    char* result_str = NULL;
-    const jerry_value_t method_val = jerry_object_get_sz(request, "method");
+    bool success = false;
+    const jerry_value_t method_val = jerry_object_get_sz(obj, "method");
 
     do {
         char* method_str = js_string_to_c_string(method_val);
@@ -164,17 +167,21 @@ static char* js_fetch_parse_method(jerry_value_t request, RequestParseResult* re
         }
 
         js_fetch_method_normalize(method_str);
-        result_str = method_str;
+        request->method = method_str;
 
+        success = true;
     } while(false);
 
     jerry_value_free(method_val);
 
-    return result_str;
+    return success;
 }
 
-static TlsClientCertType js_fetch_parse_dispatcher(jerry_value_t obj, RequestParseResult* result) {
-    TlsClientCertType cert_type = TlsClientCertTypeInvalid;
+static bool js_fetch_parse_dispatcher(
+    jerry_value_t obj,
+    FetchRequest* request,
+    RequestParseResult* result) {
+    bool success = false;
 
     static const char* const keys[] = {"dispatcher", "connect", "useDeviceKey"};
     jerry_value_t value = js_object_get_nested_property(obj, keys, COUNT_OF(keys));
@@ -187,12 +194,15 @@ static TlsClientCertType js_fetch_parse_dispatcher(jerry_value_t obj, RequestPar
         }
 
         const bool is_device_cert = jerry_value_to_boolean(value);
-        cert_type = is_device_cert ? TlsClientCertTypeDevice : TlsClientCertTypeNone;
 
+        TlsClientCertInfo* cert_info = &request->tls_config.client_cert_info;
+        cert_info->type = is_device_cert ? TlsClientCertTypeDevice : TlsClientCertTypeNone;
+
+        success = true;
     } while(false);
 
     jerry_value_free(value);
-    return cert_type;
+    return success;
 }
 
 static RequestParseResult parse_request(jerry_value_t obj) {
@@ -202,23 +212,19 @@ static RequestParseResult parse_request(jerry_value_t obj) {
     RequestParseResult result;
 
     do {
-        request.url = js_fetch_parse_url(obj, &result);
-        if(request.url == NULL) {
+        if(!js_fetch_parse_url(obj, &request, &result)) {
             break;
         }
 
         JS_TRACE("Fetch %s", request.url);
 
-        request.method = js_fetch_parse_method(obj, &result);
-        if(request.method == NULL) {
+        if(!js_fetch_parse_method(obj, &request, &result)) {
             break;
         }
 
-        const TlsClientCertType cert_type = js_fetch_parse_dispatcher(obj, &result);
-        if(cert_type == TlsClientCertTypeInvalid) {
+        if(!js_fetch_parse_dispatcher(obj, &request, &result)) {
             break;
         }
-        request.tls_config.client_cert_info.type = cert_type;
 
         if(js_object_has_property(obj, "headers")) {
             jerry_value_t headers_val = jerry_object_get_sz(obj, "headers");
