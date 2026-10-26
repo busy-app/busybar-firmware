@@ -6,7 +6,7 @@
 #define S_TO_MS(s)  ((s) * 1000)
 #define MS_TO_S(ms) ((ms) / 1000)
 
-#define DELAY_MIN_SECONDS  5
+#define DELAY_MIN_SECONDS  0
 #define DELAY_MAX_SECONDS  (24 * 60 * 60)
 #define DELAY_STEP_SECONDS 5
 
