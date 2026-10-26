@@ -5,13 +5,21 @@
 bool http_method_is_valid(const char* method_str) {
     bool is_valid = true;
 
-    for(const char* p = method_str; *p != '\0'; ++p) {
-        const unsigned char c = *p;
-        if(c > 0x7F || !isalnum(c)) {
+    do {
+        const size_t method_len = strlen(method_str);
+        if(method_len == 0) {
             is_valid = false;
             break;
         }
-    }
+
+        for(size_t i = 0; i < method_len; ++i) {
+            const unsigned char c = method_str[i];
+            if(c > 0x7F || !isalnum(c)) {
+                is_valid = false;
+                break;
+            }
+        }
+    } while(false);
 
     return is_valid;
 }
