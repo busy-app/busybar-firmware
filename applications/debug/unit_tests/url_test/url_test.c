@@ -49,7 +49,7 @@ MU_TEST(url_required_test) {
     URL_CHECK_PART(url, UrlPartIdHost, URL_TEST_HOSTNAME);
     URL_CHECK_PART(url, UrlPartIdHostname, URL_TEST_HOSTNAME);
     URL_CHECK_PART(url, UrlPartIdOrigin, URL_TEST_REQUIRED);
-    URL_CHECK_PART(url, UrlPartIdHref, URL_TEST_REQUIRED);
+    URL_CHECK_PART(url, UrlPartIdHref, URL_TEST_REQUIRED "/");
 
     url_free(url);
 }
@@ -144,7 +144,7 @@ MU_TEST(url_encode_protocol_test) {
 
     mu_check(url_parse(url, "HtTpS://" URL_TEST_HOSTNAME));
     URL_CHECK_PART(url, UrlPartIdProtocol, "https:");
-    URL_CHECK_PART(url, UrlPartIdHref, "https://" URL_TEST_HOSTNAME);
+    URL_CHECK_PART(url, UrlPartIdHref, "https://" URL_TEST_HOSTNAME "/");
 
     url_free(url);
 }
@@ -190,7 +190,7 @@ MU_TEST(url_encode_port_test) {
     mu_check(url_parse(url, URL_TEST_REQUIRED ":" URL_TEST_PORT URL_TEST_SEARCH));
     URL_CHECK_PART(url, UrlPartIdHostname, URL_TEST_HOSTNAME);
     URL_CHECK_PART(url, UrlPartIdPort, URL_TEST_PORT);
-    URL_CHECK_PART(url, UrlPartIdPathname, "");
+    URL_CHECK_PART(url, UrlPartIdPathname, "/");
     URL_CHECK_PART(url, UrlPartIdSearch, URL_TEST_SEARCH);
 
     url_free(url);
@@ -233,7 +233,7 @@ MU_TEST(url_encode_search_test) {
     mu_check(url_parse(url, URL_TEST_REQUIRED URL_TEST_SEARCH));
     URL_CHECK_PART(url, UrlPartIdHostname, URL_TEST_HOSTNAME);
     URL_CHECK_PART(url, UrlPartIdPort, "");
-    URL_CHECK_PART(url, UrlPartIdPathname, "");
+    URL_CHECK_PART(url, UrlPartIdPathname, "/");
     URL_CHECK_PART(url, UrlPartIdSearch, URL_TEST_SEARCH);
 
     url_free(url);

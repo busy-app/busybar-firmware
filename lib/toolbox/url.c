@@ -26,6 +26,7 @@ typedef struct {
     UrlPartId part_id;
     bool is_required;
     bool is_include_delim;
+    bool is_default_delim;
     const char* delim;
     const UrlParseStepIdx* next_step_idxs;
     UrlEncodeCallback encode_callback;
@@ -79,6 +80,7 @@ static const UrlParseStep url_parse_steps[] = {
     [UrlParseStepIdxPathname] = {
         .part_id = UrlPartIdPathname,
         .is_include_delim = true,
+        .is_default_delim = true,
         .delim = "/",
         .next_step_idxs = (const UrlParseStepIdx[]) {
             UrlParseStepIdxSearch,
@@ -411,6 +413,7 @@ static bool url_encode_from_parts(Url* instance, const StringSlice* parts) {
         ++step_idx) {
         const UrlParseStep* step = &url_parse_steps[step_idx];
         const StringSlice* part = &parts[step->part_id];
+        bool is_step_default_value = false;
 
         if(part->first_char == NULL) {
             if(step->is_required) {
@@ -418,7 +421,11 @@ static bool url_encode_from_parts(Url* instance, const StringSlice* parts) {
                 break;
             }
 
-            continue;
+            if(!step->is_default_delim) {
+                continue;
+            }
+
+            is_step_default_value = true;
         }
 
         if(!step->is_include_delim) {
@@ -427,6 +434,11 @@ static bool url_encode_from_parts(Url* instance, const StringSlice* parts) {
 
         StringSliceOffset* offset = &offsets[step_idx];
         offset->start = furi_string_size(source);
+
+        if(is_step_default_value) {
+            furi_assert(step->is_include_delim);
+            furi_string_cat(source, step->delim);
+        }
 
         if(!step->encode_callback(part, source)) {
             success = false;
