@@ -29,7 +29,7 @@ typedef struct RequestParseResult {
     };
 } RequestParseResult;
 
-static void fetch_request_free(FetchRequest* request) {
+static void fetch_request_clear(FetchRequest* request) {
     if(request->url) {
         free((void*)request->url);
     }
@@ -206,6 +206,98 @@ static bool js_fetch_parse_dispatcher(
 }
 
 static bool
+    js_fetch_parse_headers(jerry_value_t obj, FetchRequest* request, RequestParseResult* result) {
+    if(!js_object_has_property(obj, "headers")) {
+        parse_request_append_extra_header(request, 0);
+        request->headers.count = 1;
+        return true;
+    }
+
+    bool success = false;
+    const jerry_value_t headers_val = jerry_object_get_sz(obj, "headers");
+
+    do {
+        // TODO: instance of Headers
+        if(!jerry_value_is_object(headers_val)) {
+            result->tag = RequestParseResultTypeError;
+            result->error = furi_string_alloc_set("Headers is not an object");
+            break;
+        }
+
+        bool app_header_appended = false;
+        bool is_error = false;
+
+        const jerry_value_t keys = jerry_object_keys(headers_val);
+        const size_t num_keys = jerry_array_length(keys);
+        size_t header_idx = 0;
+
+        for(size_t i = 0; i < num_keys && header_idx < JS_FETCH_HEADER_COUNT_MAX && !is_error;
+            ++i) {
+            const jerry_value_t key = jerry_object_get_index(keys, i);
+            const jerry_value_t value = jerry_object_get(headers_val, key);
+            const jerry_value_t value_conv = jerry_value_to_string(value);
+
+            if(jerry_value_is_string(key) && jerry_value_is_string(value_conv)) {
+                char* key_string = js_string_to_c_string(key);
+                char* value_string = js_string_to_c_string(value_conv);
+
+                if(!parse_request_header_is_valid(key_string, true) ||
+                   !parse_request_header_is_valid(value_string, false)) {
+                    result->tag = RequestParseResultTypeError;
+                    result->error = furi_string_alloc_set("Invalid header");
+                    is_error = true;
+
+                } else if(parse_request_extra_header_present(key_string)) {
+                    if(!app_header_appended) {
+                        FURI_LOG_W(TAG, "%s header override", JS_FETCH_EXTRA_HEADER);
+                        parse_request_append_extra_header(request, header_idx);
+                        app_header_appended = true;
+                        header_idx += 1;
+                    } else {
+                        FURI_LOG_W(TAG, "%s header duplication", JS_FETCH_EXTRA_HEADER);
+                    }
+
+                } else {
+                    char* header_string =
+                        malloc(strlen(key_string) + 2 + strlen(value_string) + 1);
+                    sprintf(header_string, "%s: %s", key_string, value_string);
+                    request->headers.data[header_idx] = header_string;
+                    header_idx += 1;
+                }
+
+                free(key_string);
+                free(value_string);
+            }
+
+            jerry_value_free(key);
+            jerry_value_free(value);
+            jerry_value_free(value_conv);
+        }
+
+        jerry_value_free(keys);
+
+        if(!app_header_appended) {
+            parse_request_append_extra_header(request, header_idx);
+            header_idx += 1;
+        }
+
+        // IMPORTANT: headers.count must be set to the correct
+        // number of headers in order to be freed
+        request->headers.count = header_idx;
+
+        if(is_error) {
+            break;
+        }
+
+        success = true;
+    } while(false);
+
+    jerry_value_free(headers_val);
+
+    return success;
+}
+
+static bool
     js_fetch_parse_body(jerry_value_t obj, FetchRequest* request, RequestParseResult* result) {
     if(!js_object_has_property(obj, "body")) {
         return true;
@@ -252,8 +344,6 @@ static RequestParseResult parse_request(jerry_value_t obj) {
             break;
         }
 
-        JS_TRACE("Fetch %s", request.url);
-
         if(!js_fetch_parse_method(obj, &request, &result)) {
             break;
         }
@@ -262,96 +352,25 @@ static RequestParseResult parse_request(jerry_value_t obj) {
             break;
         }
 
-        if(js_object_has_property(obj, "headers")) {
-            jerry_value_t headers_val = jerry_object_get_sz(obj, "headers");
-            // TODO instance of Headers
-            if(jerry_value_is_object(headers_val)) {
-                bool app_header_appended = false;
-                bool parse_error = false;
-                jerry_value_t keys = jerry_object_keys(headers_val);
-                size_t num_keys = jerry_array_length(keys);
-                size_t header_idx = 0;
-                for(size_t i = 0;
-                    i != num_keys && header_idx != JS_FETCH_HEADER_COUNT_MAX && !parse_error;
-                    ++i) {
-                    jerry_value_t key = jerry_object_get_index(keys, i);
-                    jerry_value_t value = jerry_object_get(headers_val, key);
-                    jerry_value_t value_conv = jerry_value_to_string(value);
-                    if(jerry_value_is_string(key) && jerry_value_is_string(value_conv)) {
-                        char* key_string = js_string_to_c_string(key);
-                        char* value_string = js_string_to_c_string(value_conv);
-                        if(!parse_request_header_is_valid(key_string, true) ||
-                           !parse_request_header_is_valid(value_string, false)) {
-                            result = (RequestParseResult){
-                                .tag = RequestParseResultTypeError,
-                                .error = furi_string_alloc_set("Invalid header"),
-                            };
-                            parse_error = true;
-                        } else if(parse_request_extra_header_present(key_string)) {
-                            if(!app_header_appended) {
-                                FURI_LOG_W(TAG, "%s header override", JS_FETCH_EXTRA_HEADER);
-                                parse_request_append_extra_header(&request, header_idx);
-                                app_header_appended = true;
-                                header_idx += 1;
-                            } else {
-                                FURI_LOG_W(TAG, "%s header duplication", JS_FETCH_EXTRA_HEADER);
-                            }
-                        } else {
-                            char* header_string =
-                                malloc(strlen(key_string) + 2 + strlen(value_string) + 1);
-                            sprintf(header_string, "%s: %s", key_string, value_string);
-                            request.headers.data[header_idx] = header_string;
-                            header_idx += 1;
-                        }
-
-                        free(key_string);
-                        free(value_string);
-                    }
-                    jerry_value_free(key);
-                    jerry_value_free(value);
-                    jerry_value_free(value_conv);
-                }
-                jerry_value_free(keys);
-
-                if(!app_header_appended && !parse_error) {
-                    parse_request_append_extra_header(&request, header_idx);
-                    header_idx += 1;
-                }
-
-                request.headers.count = header_idx;
-
-                if(parse_error) {
-                    jerry_value_free(headers_val);
-                    break;
-                }
-
-            } else {
-                result = (RequestParseResult){
-                    .tag = RequestParseResultTypeError,
-                    .error = furi_string_alloc_set("Headers is not an object"),
-                };
-                jerry_value_free(headers_val);
-                break;
-            }
-            jerry_value_free(headers_val);
-        } else {
-            parse_request_append_extra_header(&request, 0);
-            request.headers.count = 1;
+        if(!js_fetch_parse_headers(obj, &request, &result)) {
+            break;
         }
 
         if(!js_fetch_parse_body(obj, &request, &result)) {
             break;
         }
 
-        result = (const RequestParseResult){
-            .tag = RequestParseResultTypeOk,
-            .request = request,
-        };
+        JS_TRACE("Fetch %s", request.url);
+
+        result.tag = RequestParseResultTypeOk;
+        result.request = request;
+
     } while(false);
 
     if(result.tag == RequestParseResultTypeError) {
-        fetch_request_free(&request);
+        fetch_request_clear(&request);
     }
+
     return result;
 }
 
@@ -452,7 +471,7 @@ static bool free_if_not_running(JsFetch* instance) {
         JS_TRACE("free");
         empty_event_queue(instance);
         DataEventQueue_clear(instance->chunk_queue);
-        fetch_request_free(&instance->request);
+        fetch_request_clear(&instance->request);
         free(instance);
 
         return true;
