@@ -119,3 +119,20 @@ void power_load_bat_cal(Power* power, const char* path);
 void power_on_usb_pd_update(Power* power, uint32_t voltage, uint32_t current);
 
 float power_get_temperature_battery_celsius(float temperature_battery);
+
+/**
+ * @brief Dynamic power state info structure accessed via @c power_get_state.
+ */
+typedef struct {
+    bool is_usb_connected; //<! Whether the device is currently receiving power via USB
+    // TODO: the future refactoring of the Power service should fully migrate `PowerInfo` and `PowerEvent` to this structure.
+} PowerState;
+
+/**
+ * @brief Gets the @c FuriState object containing @c PowerState.
+ * 
+ * @param[in] power Power service instance
+ * 
+ * @returns Dynamic @c FuriState object containing @c PowerState structure.
+ */
+FuriState* power_get_state(Power* power);

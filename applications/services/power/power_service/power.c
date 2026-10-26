@@ -478,7 +478,13 @@ static void power_update_info(Power* power) {
         FURI_LOG_I(TAG, "Battery is not present");
     }
 
-    power->state.usb_connected = status.vbus_present;
+    bool new_usb_connected = status.vbus_present;
+    with_furi_state(power->state_object, PowerState * state, {
+        if(new_usb_connected != state->is_usb_connected) {
+            state->is_usb_connected = new_usb_connected;
+        }
+    });
+    power->state.usb_connected = new_usb_connected;
 
     if(power->info.voltage_battery < 2500.0f) {
         power->info.voltage_battery = adc_val.bat_v;
@@ -592,6 +598,8 @@ static Power* power_alloc(void) {
     furi_event_loop_subscribe_message_queue(
         power->event_loop, pd_queue, FuriEventLoopEventIn, power_usb_pd_msg_handler, power->usb_pd);
 
+    power->state_object = furi_state_alloc(sizeof(PowerState));
+
     furi_event_loop_tick_set(power->event_loop, 1000, power_tick_callback, power);
 
     power_load_bat_cal(power, POWER_FACTORY_BAT_CAL); // schedule API call
@@ -630,6 +638,9 @@ void power_run(Power* power) {
     Bq25798ChargerStatus status = {0};
     bq25798_get_charger_status(POWER_I2C, &status);
     power->state.usb_connected = !!status.vbus_present;
+    with_furi_state(power->state_object, PowerState * state, {
+        state->is_usb_connected = power->state.usb_connected;
+    });
     if(status.vbat_present_stat) {
         power->state.battery_ready = true;
         power_pubsub_publish(power, PowerEventBatteryPresent);
@@ -692,4 +703,9 @@ int32_t power_srv_app(void* p) {
 FuriPubSub* power_get_pubsub(Power* power) {
     furi_check(power);
     return power->event_pubsub;
+}
+
+FuriState* power_get_state(Power* power) {
+    furi_check(power);
+    return power->state_object;
 }

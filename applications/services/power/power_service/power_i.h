@@ -142,6 +142,8 @@ struct Power {
     bool settings_first_loaded;
     PowerSettings settings;
 
+    FuriState* state_object;
+
 #if defined(SRV_INTERCOM)
     Intercom* intercom;
     IntercomChannel* intercom_power;
