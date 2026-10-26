@@ -77,7 +77,7 @@ static bool parse_request_header_is_valid(const char* header, bool check_colon) 
 }
 
 static bool
-    js_fetch_parse_url(jerry_value_t obj, FetchRequest* request, RequestParseResult* result) {
+    parse_request_url(jerry_value_t obj, FetchRequest* request, RequestParseResult* result) {
     bool success = false;
 
     const jerry_value_t source = jerry_object_get_sz(obj, "url");
@@ -120,7 +120,7 @@ static bool
 }
 
 // TODO: Move the below 2 functions to HTTP tools
-static bool js_fetch_method_is_valid(const char* method_str) {
+static bool method_is_valid(const char* method_str) {
     bool is_valid = true;
 
     for(const char* p = method_str; *p != '\0'; ++p) {
@@ -135,7 +135,7 @@ static bool js_fetch_method_is_valid(const char* method_str) {
 }
 
 /* https://fetch.spec.whatwg.org/#concept-method-normalize */
-static void js_fetch_method_normalize(char* method_str) {
+static void method_normalize(char* method_str) {
     static const char* const normalized_methods[] = {
         "GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"};
 
@@ -149,7 +149,7 @@ static void js_fetch_method_normalize(char* method_str) {
 }
 
 static bool
-    js_fetch_parse_method(jerry_value_t obj, FetchRequest* request, RequestParseResult* result) {
+    parse_request_method(jerry_value_t obj, FetchRequest* request, RequestParseResult* result) {
     if(!js_object_has_property(obj, "method")) {
         return true;
     }
@@ -165,14 +165,14 @@ static bool
             break;
         }
 
-        if(!js_fetch_method_is_valid(method_str)) {
+        if(!method_is_valid(method_str)) {
             result->tag = RequestParseResultTypeError;
             result->error = furi_string_alloc_set("Invalid method");
             free(method_str);
             break;
         }
 
-        js_fetch_method_normalize(method_str);
+        method_normalize(method_str);
         request->method = method_str;
 
         success = true;
@@ -183,10 +183,8 @@ static bool
     return success;
 }
 
-static bool js_fetch_parse_dispatcher(
-    jerry_value_t obj,
-    FetchRequest* request,
-    RequestParseResult* result) {
+static bool
+    parse_request_dispatcher(jerry_value_t obj, FetchRequest* request, RequestParseResult* result) {
     bool success = false;
 
     static const char* const keys[] = {"dispatcher", "connect", "useDeviceKey"};
@@ -212,7 +210,7 @@ static bool js_fetch_parse_dispatcher(
 }
 
 static bool
-    js_fetch_parse_headers(jerry_value_t obj, FetchRequest* request, RequestParseResult* result) {
+    parse_request_headers(jerry_value_t obj, FetchRequest* request, RequestParseResult* result) {
     FetchRequestHeaders* headers = &request->headers;
 
     if(!js_object_has_property(obj, "headers")) {
@@ -294,7 +292,7 @@ static bool
 }
 
 static bool
-    js_fetch_parse_body(jerry_value_t obj, FetchRequest* request, RequestParseResult* result) {
+    parse_request_body(jerry_value_t obj, FetchRequest* request, RequestParseResult* result) {
     if(!js_object_has_property(obj, "body")) {
         return true;
     }
@@ -336,23 +334,23 @@ static RequestParseResult parse_request(jerry_value_t obj) {
     RequestParseResult result;
 
     do {
-        if(!js_fetch_parse_url(obj, &request, &result)) {
+        if(!parse_request_url(obj, &request, &result)) {
             break;
         }
 
-        if(!js_fetch_parse_method(obj, &request, &result)) {
+        if(!parse_request_method(obj, &request, &result)) {
             break;
         }
 
-        if(!js_fetch_parse_dispatcher(obj, &request, &result)) {
+        if(!parse_request_dispatcher(obj, &request, &result)) {
             break;
         }
 
-        if(!js_fetch_parse_headers(obj, &request, &result)) {
+        if(!parse_request_headers(obj, &request, &result)) {
             break;
         }
 
-        if(!js_fetch_parse_body(obj, &request, &result)) {
+        if(!parse_request_body(obj, &request, &result)) {
             break;
         }
 
