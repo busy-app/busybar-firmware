@@ -28,7 +28,7 @@ static bool busy_scene_finish_input_callback(const InputEvent* event, void* cont
     }
 
     if(consumed) {
-        busy_send_custom_event(instance, custom_event);
+        busy_send_custom_event_nonblocking(instance, custom_event);
     }
 
     return consumed;

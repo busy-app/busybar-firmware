@@ -1,9 +1,8 @@
 name: Flash device
 description: >-
-  Reboot the BusyBar and make sure it is back online, falling back to an SWD
-  reset when the CLI reboot does not take, then wipe /ext and optionally install
-  a firmware bundle. Shared by the updater, unit, integration and brick test
-  workflows.
+  Reboot the BusyBar and wait for it to come back online, then wipe /ext and
+  optionally install a firmware bundle. Shared by the updater, unit, integration
+  and brick test workflows.
 author: qa
 
 inputs:
@@ -16,7 +15,7 @@ inputs:
   reboot-timeout:
     description: Seconds to wait for the device to come back after a reboot
     required: false
-    default: '20'
+    default: '45'
   install-timeout:
     description: Seconds to wait for the device to come back after installing the bundle
     required: false
@@ -38,15 +37,7 @@ runs:
         # A hung device serves no telnet, so the CLI reboot itself fails; keep
         # going and let the wait below decide whether the device is actually up.
         python3 scripts/testops.py power reboot || echo "CLI reboot failed"
-
-        # The device boots in a few seconds, so a timeout here means the CLI
-        # reboot never took effect or the firmware hung — SWD is the only way
-        # left to restart it. bsb-device ships in the runner image.
-        if ! python3 scripts/testops.py wait -t "${REBOOT_TIMEOUT}"; then
-          echo "Device did not come online after the CLI reboot; resetting over SWD"
-          bsb-device reboot
-          python3 scripts/testops.py wait -t "${REBOOT_TIMEOUT}"
-        fi
+        python3 scripts/testops.py wait -t "${REBOOT_TIMEOUT}"
 
         python3 scripts/testops.py debug 1
         python3 scripts/testops.py format --no-confirm

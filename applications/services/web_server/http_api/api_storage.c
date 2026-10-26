@@ -7,7 +7,7 @@
 
 #define TAG "HttpStorage"
 
-#define FILE_PATH_LEN_MAX 64
+#define FILE_PATH_LEN_MAX 256
 
 static bool api_storage_parse_path_parameter(
     struct mg_str* params_str,

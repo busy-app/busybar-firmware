@@ -25,4 +25,4 @@ typedef struct FURI_PACKED {
 } BatteryStatusInfo;
 
 bool ble_service_battery_init(void* object);
-bool ble_service_battery_run(void* object);
+bool ble_service_battery_run(void* object, size_t data_size, const void* data);

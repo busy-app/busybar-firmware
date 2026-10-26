@@ -14,14 +14,13 @@
 
 struct BleServiceObject {
     bool ready;
-    const BleServiceDescriptor* config;
+    const BleServiceConfig* config;
     BleCharacteristicObject** chars;
 
     FuriMessageQueue* message_queue;
     FuriMutex* service_lock;
     IntercomChannel* intercom_ch;
 
-    BleServiceFrame* input_frame;
     BleServiceFrame* output_frame;
 
     FuriString* error;
@@ -34,7 +33,15 @@ struct BleServiceObject {
 #endif
 };
 
-void ble_service_enqueue_message(BleServiceObject* instance);
+typedef struct {
+    BleServiceObject* service;
+    size_t data_size;
+} BleServiceObjectMessageHeader;
+
+struct BleServiceObjectMessage {
+    BleServiceObjectMessageHeader header;
+    uint8_t data[];
+};
 
 void ble_service_set_error(BleServiceObject* instance, const char* foramt, ...);
 
@@ -61,3 +68,8 @@ bool ble_service_send_data(
     BleServiceCommandEnum command,
     BleIntercomFrameType frame_type,
     bool modified_only);
+
+void ble_service_enqueue_run_with_data(
+    BleServiceObject* instance,
+    size_t data_size,
+    const void* data);

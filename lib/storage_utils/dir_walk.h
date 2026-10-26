@@ -78,6 +78,13 @@ DirWalkResult dir_walk_read(DirWalk* dir_walk, FuriString* return_path, FileInfo
  */
 void dir_walk_close(DirWalk* dir_walk);
 
+/**
+ * @brief Filter callback to be used with dir_walk_set_filter_cb.
+ *
+ * Accepts directories only.
+ */
+bool dir_walk_is_dir_callback(const char* path, FileInfo* file_info, void* context);
+
 #ifdef __cplusplus
 }
 #endif

@@ -91,7 +91,6 @@ bool updater_get_active_security_flags(uint32_t* flags_out) {
 
 #define MESSAGE_QUEUE_ITEMS_COUNT 8
 
-#define UPDATE_START_MIN_BATTERY_CHARGE        40
 #define UPDATE_INSTALLATION_APPLY_REBOOT_DELAY 100
 
 typedef struct {
@@ -288,17 +287,6 @@ FuriState* updater_get_update_state(Updater* instance) {
     furi_check(instance);
 
     return instance->update_state;
-}
-
-UpdaterStatus updater_get_allowance_status(Updater* instance) {
-    PowerInfo power_info;
-    power_get_info(instance->power, &power_info);
-
-    return (power_info.charge >= UPDATE_START_MIN_BATTERY_CHARGE ||
-            (furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug) &&
-             power_is_usb_connected(instance->power))) ?
-               UpdaterStatusOk :
-               UpdaterStatusBatteryLow;
 }
 
 UpdaterStatus updater_session_start(Updater* instance) {

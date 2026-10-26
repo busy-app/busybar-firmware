@@ -2,13 +2,14 @@ Import("FW_ENV")
 fwenv = FW_ENV
 
 import os
+import SCons.Node.FS
 from SCons.Util import splitext
 from fbt.version import get_git_commit_unix_timestamp
 
 fwenv.SetDefault(RESOURCES_ROOT=fwenv.Dir("${BUILD_DIR}/resources"))
 fwenv.SetDefault(CACERT_FILENAME="cacert.pem")
 
-fw_assets_env = fwenv.Clone(tools=["bsb_assets","bsb_certs"])
+fw_assets_env = fwenv.Clone(tools=["bsb_apps", "bsb_assets", "bsb_certs"])
 
 
 def convert_sounds(src_dir, dst_dir):
@@ -76,6 +77,7 @@ def convert_fonts(src_dir, dst_dir):
 
     return converted
 
+
 def compresses(src_file):
     import gzip as gz_module
     import io
@@ -128,9 +130,25 @@ def openapi_merge(src_dir, dst_file):
     src_files = fwenv.GlobRecursive("*.yaml", src_dir)
     return fw_assets_env.OpenapiMerge(dst_file, src_files)
 
+
+def convert_js_apps(src_dir, dst_dir):
+    src_dirs = (
+        n for n in Dir(src_dir).glob("*")
+        if isinstance(n, SCons.Node.FS.Dir)
+    )
+    converted = []
+
+    for d in src_dirs:
+        dir_node = dst_dir.Dir(d.name)
+        converted.append(fw_assets_env.JsAppBuilder(dir_node, d))
+
+    return converted
+
+
 if fwenv.get("IS_BASE_FIRMWARE", False):
     app_assets_dir = fwenv.Dir("${BUILD_DIR}/apps_assets")
     shared_assets_dir = fwenv.Dir("${BUILD_DIR}/apps_assets/shared")
+    user_assets_dir = fwenv.Dir("${BUILD_DIR}/user_assets")
 
     resources_dist = []
     converters_app = [
@@ -172,11 +190,14 @@ if fwenv.get("IS_BASE_FIRMWARE", False):
 
     resources_dist.append(convert_web_assets("#assets/frontend-build/public", fwenv.Dir("${BUILD_DIR}/apps_assets/web_server/www")))
 
+    resources_dist.append(convert_js_apps("#applications_js", user_assets_dir))
+
     # Resources & manifest for SD card
     resources_env = fwenv.Clone(tools=["fbt_resources"])
     resources_dist_nodes = resources_env.ResourcesDistBuilder(
         _EXTRA_DIST=[
             app_assets_dir,
+            user_assets_dir,
         ]
     )
     manifest = resources_env.ManifestBuilder(

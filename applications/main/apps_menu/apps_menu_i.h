@@ -1,0 +1,57 @@
+#pragma once
+
+#include <furi.h>
+
+#include <desktop/desktop.h>
+#include <gui/gui.h>
+
+#include <gui/modules/nav_bar.h>
+#include <gui/modules/flex_layout.h>
+#include <gui/scene_manager.h>
+
+#include "settings/settings.h"
+
+#define RECORD_APPS_MENU_CONTROL "apps_menu_control"
+
+typedef enum {
+    AppsMenuControlFlagResetCurrentApp = (1UL << 0),
+} AppsMenuControlFlag;
+
+typedef struct {
+    FuriEventFlag* flags;
+} AppsMenuControl;
+
+typedef enum {
+    AppsMenuModeShowMenu,
+    AppsMenuModeResume,
+    AppsMenuModeMax,
+} AppsMenuMode;
+
+typedef struct {
+    FuriEventLoop* event_loop;
+    FuriMessageQueue* input_queue;
+    FuriMessageQueue* event_queue;
+    Desktop* desktop;
+    Gui* gui;
+
+    SceneManager* scene_manager;
+    Widget* front_scene_window;
+
+    FlexLayout* back_container;
+    NavBar* back_nav_bar;
+    Widget* back_scene_window;
+
+    AppsMenuSettings settings;
+} AppsMenu;
+
+typedef enum {
+    AppsMenuCustomEventIndexMax = 0xFF,
+    AppsMenuCustomEventLaunchMain,
+    AppsMenuCustomEventAboutToExit,
+} AppsMenuCustomEvent;
+
+void apps_menu_send_custom_event(AppsMenu* app, uint32_t event);
+
+bool apps_menu_start_application(const char* app_id, AppsMenuMode mode);
+
+void apps_menu_set_active_application(AppsMenuSettings* settings, const char* app_id);

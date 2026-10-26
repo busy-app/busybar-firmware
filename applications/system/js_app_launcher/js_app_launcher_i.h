@@ -1,5 +1,7 @@
 #pragma once
 
+#include "js_app_launcher.h"
+
 #include <furi.h>
 
 #include <gui/gui.h>
@@ -10,12 +12,31 @@
 #include <js_runner/js_runner.h>
 
 #include <js_app/js_app.h>
+#include <js_app/js_app_settings_storage.h>
+
+#include <toolbox/api_lock.h>
 
 #define TAG "JsAppLauncher"
+
+#define JS_APP_LAUNCHER_APP_ID "js_app_launcher"
+#define RECORD_JS_APP_LAUNCHER JS_APP_LAUNCHER_APP_ID
+
+/*
+ * Special suffix to be added to the JS application ID
+ * to force JsAppLauncher to resume it (i.e. to skip the menu).
+ *
+ * Example: "app.busy.js_example" -> "app.busy.js_example+".
+ */
+#define JS_APP_LAUNCHER_ARG_RESUME "+"
 
 typedef enum {
     JsAppLauncherErrorNone,
     JsAppLauncherErrorLoadFailed,
+    JsAppLauncherErrorApiVersionMismatch,
+    JsAppLauncherErrorSettingsSchemaMissing,
+    JsAppLauncherErrorSettingsSchemaInvalid,
+    JsAppLauncherErrorSettingsStorageFailure,
+    JsAppLauncherErrorSettingsLoadFailed,
     JsAppLauncherErrorSyntaxError,
     JsAppLauncherErrorProgramCrashed,
     JsAppLauncherErrorMax,
@@ -31,11 +52,38 @@ typedef struct {
     } auxiliary;
 } JsAppLauncherErrorDesc;
 
+typedef enum {
+    JsAppLauncherApiMessageTypeInvalid,
+    JsAppLauncherApiMessageTypeStop,
+    JsAppLauncherApiMessageTypeGetAppId,
+    JsAppLauncherApiMessageTypeMax,
+} JsAppLauncherApiMessageType;
+
+typedef struct {
+    JsAppLauncherStopMode mode;
+} JsAppLauncherApiMessageStop;
+
+typedef struct {
+    FuriString* app_id;
+} JsAppLauncherApiMessageGetAppId;
+
+typedef struct {
+    JsAppLauncherApiMessageType type;
+    JsAppLauncherStatus* status;
+    FuriApiLock lock;
+    union {
+        JsAppLauncherApiMessageStop stop;
+        JsAppLauncherApiMessageGetAppId get_app_id;
+    };
+} JsAppLauncherApiMessage;
+
 typedef struct {
     FuriEventLoop* event_loop;
     FuriMessageQueue* input_queue;
     FuriMessageQueue* event_queue;
+    FuriMessageQueue* api_queue;
     SceneManager* scene_manager;
+    uint32_t input_sequence_num;
     Gui* gui;
 
     Widget* front_window;
@@ -44,16 +92,32 @@ typedef struct {
     NavBar* nav_bar;
 
     JsApp* js_app;
+    JsAppInfo js_app_info;
+    JsAppSettingsStorage* settings_storage;
     JsAppLauncherError error;
+    JsAppLauncherStartMode start_mode;
 } JsAppLauncher;
 
 typedef enum {
     JsAppLauncherCustomEventIndexMax = 0x7F,
+    JsAppLauncherCustomEventScriptStarted,
     JsAppLauncherCustomEventScriptFinished,
+    JsAppLauncherCustomEventSettingsChanged,
+    JsAppLauncherCustomEventLongBackPressed,
+    JsAppLauncherCustomEventScriptErrorBase = 0x100,
+    JsAppLauncherCustomEventScriptErrorMask = 0x0ff,
 } JsAppLauncherCustomEvent;
+
+static_assert(JsRunnerErrorMax <= JsAppLauncherCustomEventScriptErrorMask + 1);
 
 void js_app_launcher_send_custom_event(JsAppLauncher* instance, uint32_t event);
 
 const JsAppLauncherErrorDesc* js_app_launcher_get_error_desc(const JsAppLauncher* instance);
 
 JsAppLauncherError js_app_launcher_translate_from_js_runner_error(JsRunnerError js_runner_error);
+
+void js_app_launcher_api_unlock_message(
+    JsAppLauncherApiMessage* api_message,
+    JsAppLauncherStatus status);
+
+void js_app_launcher_api_abort_pending_messages(JsAppLauncher* instance);

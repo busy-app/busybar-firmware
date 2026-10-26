@@ -1,24 +1,29 @@
 #include "lv_label_ext.h"
 
-void lv_label_ext_set_anim_speed(lv_obj_t* object, uint32_t speed) {
-    furi_check(speed > 0);
+void lv_label_ext_set_anim_speed(lv_obj_t* label, uint32_t px_per_min) {
+    furi_check(px_per_min > 0);
 
-    LV_ASSERT_OBJ(object, &lv_label_class);
+    LV_ASSERT_OBJ(label, &lv_label_class);
 
-    lv_obj_update_layout(object);
+    const lv_font_t* font = lv_obj_get_style_text_font(label, LV_PART_MAIN);
+    int32_t wait_char_width = LV_LABEL_WAIT_CHAR_COUNT * lv_font_get_glyph_width(font, ' ', ' ');
+    uint64_t distance = lv_obj_get_self_width(label) + wait_char_width;
+    uint32_t duration = (distance * 60 * 1000) / px_per_min;
 
-    const lv_font_t* font = lv_obj_get_style_text_font(object, LV_PART_MAIN);
-    int32_t letter_space = lv_obj_get_style_text_letter_space(object, LV_PART_MAIN);
-    int32_t line_space = lv_obj_get_style_text_line_space(object, LV_PART_MAIN);
+    if(duration != lv_obj_get_style_anim_duration(label, LV_PART_MAIN)) {
+        lv_obj_set_style_anim_duration(label, duration, LV_PART_MAIN);
+        lv_obj_send_event(label, LV_EVENT_STYLE_CHANGED, NULL);
+    }
+}
 
-    lv_point_t size;
-    const char* text = lv_label_get_text(object);
-    lv_text_flag_t flags = lv_label_get_recolor(object) ? LV_TEXT_FLAG_RECOLOR : LV_TEXT_FLAG_NONE;
-    lv_text_get_size(&size, text, font, letter_space, line_space, LV_COORD_MAX, flags);
+void lv_label_ext_set_max_lines(lv_obj_t* label, uint32_t max_lines) {
+    furi_check(max_lines > 0);
 
-    int32_t wait_char_gap = lv_font_get_glyph_width(font, ' ', ' ') * LV_LABEL_WAIT_CHAR_COUNT;
-    uint64_t total_distance = size.x + wait_char_gap;
+    LV_ASSERT_OBJ(label, &lv_label_class);
 
-    uint32_t duration = (total_distance * 60 * 1000) / speed;
-    lv_obj_set_style_anim_duration(object, duration, LV_PART_MAIN);
+    const lv_font_t* font = lv_obj_get_style_text_font(label, LV_PART_MAIN);
+    int32_t line_space = lv_obj_get_style_text_line_space(label, LV_PART_MAIN);
+    int32_t max_height = lv_font_get_line_height(font) * max_lines + line_space * (max_lines - 1);
+
+    lv_obj_set_style_max_height(label, max_height, LV_PART_MAIN);
 }

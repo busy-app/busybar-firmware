@@ -7,6 +7,8 @@
 #define EVENT_QUEUE_SIZE 8
 #define API_QUEUE_SIZE   4
 
+#define EVENT_QUEUE_TIMEOUT_TICKS 2
+
 static void busy_input_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
 
@@ -186,8 +188,6 @@ static BusyApp* busy_alloc(const char* arg) {
         busy_api_queue_callback,
         instance);
 
-    audio_enable(instance->audio);
-
     furi_record_create(RECORD_BUSY_APP, instance);
 
     if(instance->run_mode == BusyAppRunModeNormal) {
@@ -201,8 +201,6 @@ static void busy_free(BusyApp* instance) {
     busy_api_abort_pending_messages(instance);
 
     furi_record_destroy(RECORD_BUSY_APP);
-
-    audio_disable(instance->audio);
 
     busy_timer_stop(instance->busy_timer);
 
@@ -253,6 +251,18 @@ void busy_send_custom_event(BusyApp* instance, uint32_t custom_event) {
     furi_check(
         furi_message_queue_put(instance->event_queue, &custom_event, FuriWaitForever) ==
         FuriStatusOk);
+}
+
+void busy_send_custom_event_nonblocking(BusyApp* instance, uint32_t custom_event) {
+    furi_assert(instance);
+
+    const FuriStatus status =
+        furi_message_queue_put(instance->event_queue, &custom_event, EVENT_QUEUE_TIMEOUT_TICKS);
+
+    if(status != FuriStatusOk) {
+        furi_check(status == FuriStatusErrorTimeout);
+        FURI_LOG_W(TAG, "Failed to deliver custom event 0x%lX", custom_event);
+    }
 }
 
 void busy_prepare_transition(BusyApp* instance, BusyTransitionType type) {

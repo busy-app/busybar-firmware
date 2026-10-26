@@ -25,7 +25,7 @@
 
 #define BACK_STATUS_BAR_WIDTH (12)
 
-#define TICK_PERIOD_MS (8)
+#define GUI_TICK_PERIOD_MS (8)
 
 typedef struct {
     lv_display_t* lv_display;

@@ -74,7 +74,7 @@ VarItem* var_item_list_add_timebox(
     const char* label,
     int32_t min_mn,
     int32_t max_mn,
-    int32_t step_mn,
+    uint32_t step_mn,
     VarItemChangeCallback callback,
     void* context);
 
@@ -97,7 +97,7 @@ VarItem* var_item_list_add_spinbox(
     const char* suffix,
     int32_t min,
     int32_t max,
-    int32_t step,
+    uint32_t step,
     VarItemChangeCallback callback,
     void* context);
 

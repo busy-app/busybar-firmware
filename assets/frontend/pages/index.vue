@@ -7,6 +7,7 @@
     <TabFirmware v-if="tabStore.currentTab === 'firmware'" />
     <TabSettings v-if="tabStore.currentTab === 'settings'" />
     <TabDrawTool v-if="tabStore.currentTab === 'draw-tool'" />
+    <TabApps v-if="tabStore.currentTab === 'apps'" />
 
     <template v-if="tabStore.showHiddenTabs">
       <TabFiles v-if="tabStore.currentTab === 'files'" />
