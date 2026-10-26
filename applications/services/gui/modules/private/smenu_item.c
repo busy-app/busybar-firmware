@@ -1,6 +1,7 @@
 #include "smenu_item_i.h"
 
-#define SMENU_ITEM_FADER_WIDTH (10)
+#define SMENU_ITEM_FADER_WIDTH         (10)
+#define SMENU_ITEM_RIGHT_MAX_WIDTH_PCT (45)
 
 static const lv_obj_class_t smenu_item_right_container_lvgl_class;
 
@@ -89,9 +90,17 @@ static void
                 }
             }
 
-            int32_t width_cap = lv_obj_get_content_width(container) - fixed_width;
-            if(target && width_cap > 0 && lv_obj_get_width(target) > width_cap) {
-                lv_obj_set_style_max_width(target, width_cap, LV_PART_MAIN);
+            if(target) {
+                int32_t row_width = lv_obj_get_content_width(lv_obj_get_parent(container));
+                int32_t active_width_cap = lv_obj_get_style_max_width(target, LV_PART_MAIN);
+                int32_t next_width_cap = row_width * SMENU_ITEM_RIGHT_MAX_WIDTH_PCT / 100 -
+                                         fixed_width -
+                                         lv_obj_get_style_space_left(container, LV_PART_MAIN) -
+                                         lv_obj_get_style_space_right(container, LV_PART_MAIN);
+
+                if(next_width_cap > 0 && active_width_cap != next_width_cap) {
+                    lv_obj_set_style_max_width(target, next_width_cap, LV_PART_MAIN);
+                }
             }
         }
     }
@@ -165,7 +174,6 @@ static void smenu_item_lvgl_constructor(const lv_obj_class_t* class, lv_obj_t* o
     lv_obj_set_flex_flow(instance->right_container, LV_FLEX_FLOW_ROW);
     lv_obj_set_style_flex_cross_place(
         instance->right_container, LV_FLEX_ALIGN_CENTER, LV_PART_MAIN);
-    lv_obj_set_style_max_width(instance->right_container, LV_PCT(45), LV_PART_MAIN);
     lv_obj_remove_flag(instance->right_container, LV_OBJ_FLAG_SCROLLABLE);
 }
 

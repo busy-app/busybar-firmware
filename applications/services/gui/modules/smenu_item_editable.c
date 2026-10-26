@@ -103,7 +103,7 @@ static void smenu_item_timebox_ui_update(SMenuItemEditable* instance) {
     } else if(minutes == 0) {
         lv_label_set_text_fmt(instance->value_label, "%" PRIi32 " h", hours);
     } else {
-        lv_label_set_text_fmt(instance->value_label, "%" PRIi32 ":%" PRIi32, hours, minutes);
+        lv_label_set_text_fmt(instance->value_label, "%" PRIi32 ":%02" PRIi32, hours, minutes);
     }
 }
 
@@ -205,6 +205,8 @@ static void smenu_item_editable_on_lvgl_event(const lv_obj_class_t* class, lv_ev
                 instance->primary_label, SMENU_ITEM_LONG_TEXT_ANIM_SPEED_PX_PER_M);
         } else if(event_code == LV_EVENT_DEFOCUSED) {
             lv_label_set_long_mode(instance->primary_label, instance->standby_long_mode);
+            lv_obj_remove_state(instance->base.right_container, LV_STATE_EDITED);
+            lv_label_set_long_mode(instance->value_label, LV_LABEL_LONG_MODE_DOTS);
         }
     }
 }

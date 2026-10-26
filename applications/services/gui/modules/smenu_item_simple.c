@@ -87,6 +87,7 @@ static void smenu_item_simple_lvgl_constructor(const lv_obj_class_t* class, lv_o
     lv_obj_set_style_text_align(instance->auxiliary_label, LV_TEXT_ALIGN_RIGHT, LV_PART_MAIN);
     lv_label_set_long_mode(instance->auxiliary_label, LV_LABEL_LONG_MODE_DOTS);
     lv_obj_add_flag(instance->auxiliary_label, SMENU_ITEM_RIGHT_FLEX_GROW_FLAG);
+    lv_obj_add_flag(instance->auxiliary_label, LV_OBJ_FLAG_HIDDEN);
 
     instance->arrow_label = lv_label_create(instance->base.right_container);
     lv_label_set_text_static(instance->arrow_label, ">");
