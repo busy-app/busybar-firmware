@@ -41,6 +41,11 @@ jobs:
         with:
           version: "1.12.0"
 
+      - name: install-rclone
+        uses: AnimMouse/setup-rclone@26ef2133e09fd383329a1d4c1fbe6a71db1976c9 # v1
+        with:
+          version: v1.75.2
+
       - name: 'Generate documentation'
         id: doxygen_build
         if: always()
@@ -75,14 +80,14 @@ jobs:
       - name: 'Upload documentation'
         if: github.event_name == 'push' && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/release')
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.DOCS_S3_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.DOCS_S3_SECRET_ACCESS_KEY }}
-          AWS_ENDPOINT_URL: ${{ secrets.DOCS_S3_ENDPOINT_URL }}
-          AWS_DEFAULT_REGION: auto
-          # R2 compatibility with default checksums of newer aws-cli
-          AWS_REQUEST_CHECKSUM_CALCULATION: when_required
-          AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+          RCLONE_CONFIG: /dev/null
+          RCLONE_CONFIG_R2_TYPE: s3
+          RCLONE_CONFIG_R2_PROVIDER: Cloudflare
+          RCLONE_CONFIG_R2_ACCESS_KEY_ID: ${{ secrets.DOCS_S3_ACCESS_KEY_ID }}
+          RCLONE_CONFIG_R2_SECRET_ACCESS_KEY: ${{ secrets.DOCS_S3_SECRET_ACCESS_KEY }}
+          RCLONE_CONFIG_R2_ENDPOINT: ${{ secrets.DOCS_S3_ENDPOINT_URL }}
+          RCLONE_CONFIG_R2_REGION: auto
           S3_BUCKET: ${{ github.ref == 'refs/heads/release' && secrets.DOCS_S3_PROD_BUCKET || secrets.DOCS_S3_DEV_BUCKET }}
         run: |
-          aws s3 sync documentation/doxygen/build/html "s3://${S3_BUCKET}/" \
-            --delete --no-progress;
+          rclone sync documentation/doxygen/build/html/ "r2:${S3_BUCKET}" \
+            --checksum --fast-list --transfers 64 --checkers 64 --stats 10s --stats-one-line --log-level INFO

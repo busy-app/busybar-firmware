@@ -1,6 +1,6 @@
 # Applications
 
-BUSY Status Bar applications are divided into several categories:
+BUSY Bar applications are divided into several categories:
 
 - `main` - The applications that are available via the mode switch or the "Applications" menu.
 - `services` - Background services that provide base functionality to the applications.

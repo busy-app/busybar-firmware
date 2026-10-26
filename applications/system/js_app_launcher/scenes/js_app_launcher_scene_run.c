@@ -42,6 +42,8 @@ static void js_app_launcher_scene_run_console_out_callback(
         FURI_LOG_D(app_id, "%.*s", size, buf);
     } else if(severity == JsRunnerConsoleSeverityInfo) {
         FURI_LOG_I(app_id, "%.*s", size, buf);
+    } else if(severity == JsRunnerConsoleSeverityWarn) {
+        FURI_LOG_W(app_id, "%.*s", size, buf);
     } else if(severity == JsRunnerConsoleSeverityError) {
         FURI_LOG_E(app_id, "%.*s", size, buf);
     }
@@ -97,7 +99,7 @@ static void js_app_launcher_scene_run_init_widgets(JsAppLauncher* instance) {
         flex_box_set_align(back_flex, FlexBoxAlignCenter, FlexBoxAlignCenter);
         flex_box_set_spacing(back_flex, 9);
 
-        widget_set_align(flex_box_get_base(front_flex), AlignCenter);
+        widget_set_align(flex_box_get_base(front_flex), AlignLeftMid);
         widget_set_align(flex_box_get_base(back_flex), AlignCenter);
 
         AnimPlayer* front_spinner = anim_player_alloc(flex_box_get_base(front_flex));
