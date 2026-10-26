@@ -306,8 +306,14 @@ static bool url_encode_protocol(const StringSlice* part, FuriString* out_str) {
     bool success = true;
 
     do {
+        const size_t part_len = part->length;
+        if(part_len < 2) {
+            success = false;
+            break;
+        }
+
         const char* part_str = part->first_char;
-        const size_t part_len_minus_one = part->length - 1;
+        const size_t part_len_minus_one = part_len - 1;
 
         if(part_str[part_len_minus_one] != ':') {
             success = false;
