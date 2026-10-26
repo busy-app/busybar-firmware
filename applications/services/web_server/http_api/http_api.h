@@ -1,11 +1,14 @@
 #pragma once
 #include "../web_server_i.h"
 
-#define API_VERSION {27, 11, 0}
+#define API_VERSION {27, 14, 0}
 
 // Access logging (also used by web_server.c for static-file requests)
 int http_api_extract_status(const struct mg_connection* conn);
 void http_api_log_access(struct mg_connection* conn, struct mg_http_message* msg, int status_code);
+
+// Check for JS applications accessing the API
+bool http_api_is_request_from_js(struct mg_http_message* msg);
 
 // Root API handlers
 void* http_api_root_alloc(void);

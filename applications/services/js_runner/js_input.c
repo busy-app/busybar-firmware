@@ -5,6 +5,8 @@
 
 #define TAG "JsInput"
 
+#define JS_INPUT_QUEUE_SIZE 32
+
 typedef enum JsInputControl {
     JsInputControlEncoder,
     JsInputControlStart,
@@ -23,6 +25,9 @@ static const char* control_names[JsInputControlMax] = {
 static const char* button_actions[InputTypeMAX] = {
     [InputTypePress] = "press",
     [InputTypeRelease] = "release",
+    [InputTypeShort] = "short",
+    [InputTypeLong] = "long",
+    [InputTypeRepeat] = "repeat",
 };
 
 static bool js_input_control_from_event(const InputEvent* event, JsInputControl* control) {
@@ -33,15 +38,13 @@ static bool js_input_control_from_event(const InputEvent* event, JsInputControl*
         *control = JsInputControlEncoder;
         return true;
     case InputKeyBack:
-        if((event->type != InputTypePress) && (event->type != InputTypeRelease)) return false;
+        if(event->type == InputTypeLong) return false;
         *control = JsInputControlBack;
         return true;
     case InputKeyStart:
-        if((event->type != InputTypePress) && (event->type != InputTypeRelease)) return false;
         *control = JsInputControlStart;
         return true;
     case InputKeyOk:
-        if((event->type != InputTypePress) && (event->type != InputTypeRelease)) return false;
         *control = JsInputControlOk;
         return true;
     default:
@@ -53,15 +56,19 @@ static inline bool js_input_listener_attached(JsRunnerAppInput* input) {
     return input->listen_handler != 0;
 }
 
-static void input_event_handler(const void* message, void* context) {
-    const InputEvent* event = message;
-    JsRunnerApp* app = context;
+bool input_callback(const InputEvent* event, void* context) {
+    JsRunnerAppInput* instance = context;
 
     JsInputControl control = JsInputControlMax;
-    if(!js_input_control_from_event(event, &control)) return;
+    if(!js_input_control_from_event(event, &control)) return false;
 
-    furi_check(
-        furi_message_queue_put(app->input.input_queue, event, FuriWaitForever) == FuriStatusOk);
+    FuriStatus status = furi_message_queue_put(instance->input_queue, event, 0);
+    if(status == FuriStatusErrorResource) {
+        FURI_LOG_W(TAG, "Input event dropped");
+    } else {
+        furi_check(status == FuriStatusOk);
+    }
+    return true;
 }
 
 static jerry_value_t js_input_create_event(const InputEvent* event, JsInputControl control) {
@@ -108,13 +115,16 @@ static void js_input_queue_handler(FuriEventLoopObject* object, void* context) {
 }
 
 static void js_input_listen(JsRunnerApp* app) {
-    if(app->input.pubsub_subscription) {
+    JsRunnerAppInput* instance = &app->input;
+    if(instance->subscribed) {
         return;
     }
 
-    FuriPubSub* input_events = furi_record_open(RECORD_INPUT_EVENTS);
-    app->input.pubsub_subscription = furi_pubsub_subscribe(input_events, input_event_handler, app);
-    furi_record_close(RECORD_INPUT_EVENTS);
+    with_gui(instance->gui, {
+        GuiLayer* main_layer = gui_get_layer(instance->gui, GuiLayerIdSystem);
+        gui_layer_add_input_callback(main_layer, input_callback, instance);
+        instance->subscribed = true;
+    });
 
     furi_event_loop_subscribe_message_queue(
         app->event_loop, app->input.input_queue, FuriEventLoopEventIn, js_input_queue_handler, app);
@@ -130,10 +140,12 @@ static void js_input_unbind(JsRunnerApp* app) {
     app->input.listen_handler = 0;
 
     furi_event_loop_unsubscribe(app->event_loop, app->input.input_queue);
-    FuriPubSub* input_events = furi_record_open(RECORD_INPUT_EVENTS);
-    furi_pubsub_unsubscribe(input_events, app->input.pubsub_subscription);
-    furi_record_close(RECORD_INPUT_EVENTS);
-    app->input.pubsub_subscription = NULL;
+
+    with_gui(app->input.gui, {
+        GuiLayer* main_layer = gui_get_layer(app->input.gui, GuiLayerIdSystem);
+        gui_layer_remove_input_callback(main_layer, input_callback);
+        app->input.subscribed = false;
+    });
 }
 
 static jerry_value_t unbind(
@@ -193,12 +205,13 @@ void js_setup_input_methods(void) {
 void js_runner_app_input_init(JsRunnerAppInput* instance) {
     furi_assert(instance);
     memset(instance, 0, sizeof(JsRunnerAppInput));
-    instance->input_queue = furi_message_queue_alloc(10, sizeof(InputEvent));
+    instance->input_queue = furi_message_queue_alloc(JS_INPUT_QUEUE_SIZE, sizeof(InputEvent));
+    instance->gui = furi_record_open(RECORD_GUI);
 }
 
 void js_runner_app_input_abort(JsRunnerAppInput* instance) {
     furi_assert(instance);
-    if(instance->pubsub_subscription == NULL) return;
+    if(!instance->subscribed) return;
 
     WITH_JS_RUNNER_APP(app, { js_input_unbind(app); });
 }
@@ -207,4 +220,5 @@ void js_runner_app_input_deinit(JsRunnerAppInput* instance) {
     furi_assert(instance);
 
     furi_message_queue_free(instance->input_queue);
+    furi_record_close(RECORD_GUI);
 }

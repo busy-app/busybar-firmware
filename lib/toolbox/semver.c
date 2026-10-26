@@ -1,0 +1,222 @@
+#include "semver.h"
+
+#include <core/check.h>
+
+#include "slice.h"
+
+#define SEMVER_PART_LEN_MAX (10) // Enough to fit UINT32_MAX decimal representation
+
+typedef enum {
+    SemVerPartIdxMajor,
+    SemVerPartIdxMinor,
+    SemVerPartIdxPatch,
+    SemVerPartIdxMax,
+} SemVerPartIdx;
+
+static void semver_set_part_value(SemVer* instance, SemVerPartIdx part_idx, uint32_t value) {
+    furi_assert(part_idx < SemVerPartIdxMax);
+
+    if(instance != NULL) {
+        if(part_idx == SemVerPartIdxMajor) {
+            instance->major = value;
+        } else if(part_idx == SemVerPartIdxMinor) {
+            instance->minor = value;
+        } else if(part_idx == SemVerPartIdxPatch) {
+            instance->patch = value;
+        }
+    }
+}
+
+static uint32_t semver_get_part_value(const SemVer* instance, SemVerPartIdx part_idx) {
+    furi_assert(part_idx < SemVerPartIdxMax);
+
+    uint32_t value = 0;
+
+    if(part_idx == SemVerPartIdxMajor) {
+        value = instance->major;
+    } else if(part_idx == SemVerPartIdxMinor) {
+        value = instance->minor;
+    } else if(part_idx == SemVerPartIdxPatch) {
+        value = instance->patch;
+    }
+
+    return value;
+}
+
+static bool semver_split_parts(
+    const char* source,
+    size_t source_len,
+    StringSlice* parts,
+    size_t parts_count) {
+    StringSlice* part = parts;
+    part->first_char = source;
+    part->length = 0;
+
+    size_t i, part_idx;
+    for(i = 0, part_idx = 0; i < source_len; ++i) {
+        if(source[i] == '.') {
+            ++part_idx;
+            if(part_idx >= parts_count) {
+                break;
+            }
+
+            part = &parts[part_idx];
+            part->first_char = source + i + 1;
+            part->length = 0;
+
+        } else {
+            ++part->length;
+        }
+    }
+
+    bool can_split = false;
+
+    if((i == source_len) && (part_idx == (parts_count - 1))) {
+        can_split = true;
+    }
+
+    return can_split;
+}
+
+static bool semver_is_part_valid(const StringSlice* part) {
+    const size_t part_length = part->length;
+
+    if((part_length == 0) || (part_length > SEMVER_PART_LEN_MAX)) {
+        return false;
+    }
+
+    bool is_valid = true;
+    const char* part_source = part->first_char;
+
+    for(size_t i = 0; i < part_length; ++i) {
+        const int c = part_source[i];
+        if(c < 0 || c > 0x7f || !isdigit(c)) {
+            is_valid = false;
+            break;
+        }
+    }
+
+    return is_valid;
+}
+
+static bool semver_validate_parts(const StringSlice* parts, size_t parts_count) {
+    bool is_valid = true;
+
+    for(size_t i = 0; i < parts_count; ++i) {
+        if(!semver_is_part_valid(&parts[i])) {
+            is_valid = false;
+            break;
+        }
+    }
+
+    return is_valid;
+}
+
+static bool semver_parse_part(const StringSlice* part, uint32_t* value) {
+    bool can_parse = false;
+
+    char tmp[SEMVER_PART_LEN_MAX + 1];
+    strncpy(tmp, part->first_char, part->length);
+    tmp[part->length] = '\0';
+
+    const long long parsed_val = atoll(tmp);
+
+    if(parsed_val <= UINT32_MAX) {
+        *value = parsed_val;
+        can_parse = true;
+    }
+
+    return can_parse;
+}
+
+static bool semver_parse_parts(SemVer* instance, const StringSlice* parts, size_t parts_count) {
+    bool can_parse = true;
+
+    for(size_t i = 0; i < parts_count; ++i) {
+        uint32_t value;
+        if(!semver_parse_part(&parts[i], &value)) {
+            can_parse = false;
+            break;
+        }
+
+        semver_set_part_value(instance, i, value);
+    }
+
+    return can_parse;
+}
+
+static bool semver_parse_with_length(SemVer* instance, const char* source, size_t source_len) {
+    bool can_parse = false;
+
+    do {
+        if(source_len == 0) {
+            break;
+        }
+
+        StringSlice parts[SemVerPartIdxMax];
+
+        if(!semver_split_parts(source, source_len, parts, COUNT_OF(parts))) {
+            break;
+        }
+
+        if(!semver_validate_parts(parts, COUNT_OF(parts))) {
+            break;
+        }
+
+        if(!semver_parse_parts(instance, parts, COUNT_OF(parts))) {
+            break;
+        }
+
+        can_parse = true;
+    } while(false);
+
+    return can_parse;
+}
+
+bool semver_parse(SemVer* instance, const char* source) {
+    furi_check(source);
+
+    const size_t str_len = strlen(source);
+    return semver_parse_with_length(instance, source, str_len);
+}
+
+static SemVerOrdering semver_compare_part(uint32_t value, uint32_t other_value) {
+    SemVerOrdering ordering;
+
+    if(value > other_value) {
+        ordering = SemVerOrderingNewer;
+    } else if(value < other_value) {
+        ordering = SemVerOrderingOlder;
+    } else {
+        ordering = SemVerOrderingEqual;
+    }
+
+    return ordering;
+}
+
+SemVerOrdering semver_compare(const SemVer* instance, const SemVer* other) {
+    furi_check(instance);
+    furi_check(other);
+
+    SemVerOrdering ordering;
+
+    for(size_t i = 0; i < SemVerPartIdxMax; ++i) {
+        const uint32_t value = semver_get_part_value(instance, i);
+        const uint32_t other_value = semver_get_part_value(other, i);
+
+        ordering = semver_compare_part(value, other_value);
+        if(ordering != SemVerOrderingEqual) {
+            break;
+        }
+    }
+
+    return ordering;
+}
+
+void semver_to_string(const SemVer* instance, FuriString* out_string) {
+    furi_check(instance);
+    furi_check(out_string);
+
+    furi_string_printf(
+        out_string, "%lu.%lu.%lu", instance->major, instance->minor, instance->patch);
+}

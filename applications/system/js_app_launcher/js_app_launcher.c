@@ -2,6 +2,7 @@
 
 #include <apps_menu/apps_menu.h>
 #include <storage/storage.h>
+#include <web_server/web_server.h>
 
 #include <js_app/js_app_common.h>
 #include <js_app/js_app_registry.h>
@@ -107,11 +108,9 @@ static JsAppLauncherStatus js_app_launcher_handle_get_app_id(
 
     const JsApp* js_app = instance->js_app;
     if(js_app != NULL) {
-        JsAppInfo info;
-        if(js_app_get_info(js_app, &info)) {
-            furi_string_set(app_id, info.manifest.id);
-            status = JsAppLauncherStatusOk;
-        }
+        const JsAppInfo* info = &instance->js_app_info;
+        furi_string_set(app_id, info->manifest.id);
+        status = JsAppLauncherStatusOk;
 
     } else {
         status = JsAppLauncherStatusNotRunning;
@@ -147,35 +146,43 @@ static void js_app_launcher_api_queue_callback(FuriEventLoopObject* object, void
     }
 }
 
-static void js_app_launcher_init_current_app(JsAppLauncher* instance, const char* app_id) {
-    JsApp* js_app = NULL;
-    JsAppLauncherStartMode start_mode = JsAppLauncherStartModeShowMenu;
+static JsAppLauncherStartMode
+    js_app_launcher_parse_app_id(const char* arg, char* out_buf, size_t out_buf_size) {
+    JsAppLauncherStartMode start_mode = JsAppLauncherStartModeMax;
 
     do {
-        const size_t app_id_len = strlen(app_id);
-        if((app_id_len == 0) ||
-           (app_id_len > (JS_APP_ID_LEN_MAX + strlen(JS_APP_LAUNCHER_ARG_RESUME)))) {
+        const size_t arg_len = strlen(arg);
+        const size_t resume_flag_len = strlen(JS_APP_LAUNCHER_ARG_RESUME);
+
+        if((arg_len == 0) || (arg_len > JS_APP_ID_LEN_MAX + resume_flag_len)) {
             break;
         }
 
-        char app_id_tmp[app_id_len + 1];
-        strcpy(app_id_tmp, app_id);
+        size_t app_id_len = arg_len;
 
-        const size_t resume_flag_len = strlen(JS_APP_LAUNCHER_ARG_RESUME);
-        if(app_id_len > resume_flag_len) {
-            char* flag_p = &app_id_tmp[app_id_len - resume_flag_len];
+        if(arg_len > resume_flag_len) {
+            const char* flag_p = &arg[arg_len - resume_flag_len];
             if(strcmp(flag_p, JS_APP_LAUNCHER_ARG_RESUME) == 0) {
-                strcpy(flag_p, "");
-                start_mode = JsAppLauncherStartModeResume;
+                app_id_len -= resume_flag_len;
             }
         }
 
-        js_app = js_app_registry_get_app(app_id_tmp);
+        if(app_id_len >= out_buf_size) {
+            break;
+        }
+
+        if(app_id_len != arg_len) {
+            start_mode = JsAppLauncherStartModeResume;
+        } else {
+            start_mode = JsAppLauncherStartModeShowMenu;
+        }
+
+        memcpy(out_buf, arg, app_id_len);
+        out_buf[app_id_len] = '\0';
 
     } while(false);
 
-    instance->js_app = js_app;
-    instance->start_mode = start_mode;
+    return start_mode;
 }
 
 static JsAppLauncherError
@@ -193,46 +200,71 @@ static JsAppLauncherError
     return status_map[status];
 }
 
-static void js_app_launcher_init_settings_storage(JsAppLauncher* instance) {
-    JsAppLauncherError error;
+static void js_app_launcher_init_current_app(JsAppLauncher* instance, const char* arg) {
+    JsApp* js_app = NULL;
+    JsAppSettingsStorage* settings_storage = NULL;
+
+    JsAppLauncherStartMode start_mode;
+    JsAppLauncherError error = JsAppLauncherErrorLoadFailed;
 
     do {
-        if(instance->js_app == NULL) {
-            error = JsAppLauncherErrorLoadFailed;
+        char app_id[JS_APP_ID_LEN_MAX + 1];
+        start_mode = js_app_launcher_parse_app_id(arg, app_id, sizeof(app_id));
+        if(start_mode == JsAppLauncherStartModeMax) {
             break;
         }
 
-        JsAppInfo app_info;
-        if(!js_app_get_info(instance->js_app, &app_info)) {
-            error = JsAppLauncherErrorLoadFailed;
+        js_app = js_app_registry_get_app(app_id);
+        if(js_app == NULL) {
             break;
         }
 
-        JsAppSettingsStorageStatus status;
-        instance->settings_storage = js_app_settings_storage_alloc(app_info.manifest.id, &status);
+        if(!js_app_get_info(js_app, &instance->js_app_info)) {
+            break;
+        }
 
-        if((instance->settings_storage == NULL) &&
-           (status != JsAppSettingsStorageStatusSchemaMissing)) {
-            error = js_app_launcher_translate_from_settings_storage_status(status);
+        const JsAppInfo* info = &instance->js_app_info;
+
+        if(!web_server_is_api_version_compatible(&info->manifest.api_version)) {
+            error = JsAppLauncherErrorApiVersionMismatch;
+            break;
+        }
+
+        JsAppSettingsStorageStatus storage_status;
+        settings_storage = js_app_settings_storage_alloc(info->manifest.id, &storage_status);
+
+        if((settings_storage == NULL) &&
+           (storage_status != JsAppSettingsStorageStatusSchemaMissing)) {
+            error = js_app_launcher_translate_from_settings_storage_status(storage_status);
             break;
         }
 
         error = JsAppLauncherErrorNone;
+
     } while(false);
 
+    if(error != JsAppLauncherErrorNone) {
+        if(js_app != NULL) {
+            js_app_free(js_app);
+            js_app = NULL;
+        }
+
+        apps_menu_forget_current_app();
+    }
+
+    instance->js_app = js_app;
+    instance->settings_storage = settings_storage;
+    instance->start_mode = start_mode;
     instance->error = error;
 }
 
 static void js_app_launcher_set_navbar_text(const JsAppLauncher* instance) {
-    JsAppInfo info;
+    const JsAppInfo* info = &instance->js_app_info;
+    FuriString* tmp = furi_string_alloc_set(info->manifest.name);
+    furi_string_to_upper_in_place(tmp);
 
-    if(js_app_get_info(instance->js_app, &info)) {
-        FuriString* tmp = furi_string_alloc_set(info.manifest.name);
-        furi_string_to_upper_in_place(tmp);
-
-        nav_bar_push_location(instance->nav_bar, furi_string_get_cstr(tmp));
-        furi_string_free(tmp);
-    }
+    nav_bar_push_location(instance->nav_bar, furi_string_get_cstr(tmp));
+    furi_string_free(tmp);
 }
 
 static void js_app_launcher_init_gui(JsAppLauncher* instance) {
@@ -281,7 +313,7 @@ static void js_app_launcher_go_to_next_scene(const JsAppLauncher* instance) {
     scene_manager_next_scenes(instance->scene_manager, scene_ids, scene_ids_count);
 }
 
-static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
+static JsAppLauncher* js_app_launcher_alloc(const char* arg) {
     JsAppLauncher* instance = malloc(sizeof(JsAppLauncher));
 
     instance->event_loop = furi_event_loop_alloc();
@@ -296,8 +328,7 @@ static JsAppLauncher* js_app_launcher_alloc(const char* app_id) {
 
     furi_record_create(RECORD_JS_APP_LAUNCHER, instance);
 
-    js_app_launcher_init_current_app(instance, app_id);
-    js_app_launcher_init_settings_storage(instance);
+    js_app_launcher_init_current_app(instance, arg);
     js_app_launcher_init_gui(instance);
 
     furi_event_loop_subscribe_message_queue(

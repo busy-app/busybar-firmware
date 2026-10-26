@@ -35,6 +35,7 @@ def build_app_package(
     *,
     manifest_id: str | None = None,
     version: str = "1.0.0",
+    api_version: str = "0.0.0",
     include_main: bool = True,
     include_optional_manifest_fields: bool = True,
     extra_files: dict[str, bytes] | None = None,
@@ -49,6 +50,7 @@ def build_app_package(
         "id": manifest_id if manifest_id is not None else root_id,
         "name": APP_NAME,
         "version": version,
+        "api_version": api_version,
     }
     if include_optional_manifest_fields:
         manifest.update(

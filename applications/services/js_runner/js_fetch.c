@@ -4,12 +4,14 @@
 #include "js_headers.h"
 #include "js_request.h"
 #include "js_response.h"
+#include "js_fetch_ext_header.h"
 
 #include <fetch/fetch.h>
 #include <http/http_response.h>
 
-#define TAG                     "JsFetch"
-#define FETCH_THREAD_STACK_SIZE (10 * 1024)
+#define TAG                       "JsFetch"
+#define FETCH_THREAD_STACK_SIZE   (10 * 1024)
+#define JS_FETCH_HEADER_COUNT_MAX (FETCH_HEADERS_COUNT_MAX - 1)
 
 #define IS_RUNNING(child) (instance->child.status == ChildStatusRunning)
 
@@ -41,6 +43,57 @@ static void fetch_request_free(FetchRequest* request) {
     }
 }
 
+static void
+    parse_request_append_extra_header(FetchRequest* const request, const uint8_t header_index) {
+    const size_t extra_header_size =
+        sizeof(JS_FETCH_EXTRA_HEADER) + sizeof(JS_FETCH_EXTRA_VALUE) + 1;
+
+    char* extra_header = malloc(extra_header_size);
+    sprintf(extra_header, "%s: %s", JS_FETCH_EXTRA_HEADER, JS_FETCH_EXTRA_VALUE);
+    request->headers.data[header_index] = extra_header;
+}
+
+static inline bool parse_request_extra_header_present(const char* input) {
+    return strcasestr(input, JS_FETCH_EXTRA_HEADER) != NULL;
+}
+
+static bool parse_request_header_is_valid(const char* header, bool check_colon) {
+    if(header == NULL) return false;
+    while(*header) {
+        if(*header == '\r' || *header == '\n' || (check_colon && *header == ':')) {
+            return false;
+        }
+
+        header++;
+    }
+    return true;
+}
+
+static bool parse_request_url_is_valid(const char* url) {
+    static const char* const allowed_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                             "abcdefghijklmnopqrstuvwxyz"
+                                             "0123456789"
+                                             "-._~"
+                                             ":/?#[]@"
+                                             "!$&'()*+,;="
+                                             "%";
+
+    size_t valid_len = strspn(url, allowed_chars);
+    return url[valid_len] == '\0';
+}
+
+static bool parse_request_method_is_valid(const char* method) {
+    static const char* const allowed_methods[] = {
+        "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS", "CONNECT", "TRACE"};
+
+    for(uint8_t i = 0; i < COUNT_OF(allowed_methods); i++) {
+        if(strcasecmp(method, allowed_methods[i]) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
 static RequestParseResult parse_request(jerry_value_t obj) {
     furi_assert(js_is_instance_of(obj, "Request"));
 
@@ -66,6 +119,14 @@ static RequestParseResult parse_request(jerry_value_t obj) {
             };
             break;
         }
+
+        if(!parse_request_url_is_valid(request.url)) {
+            result = (RequestParseResult){
+                .tag = RequestParseResultTypeError,
+                .error = furi_string_alloc_set("Invalid URL"),
+            };
+            break;
+        }
         JS_TRACE("Fetch %s", request.url);
 
         if(js_object_has_property(obj, "method")) {
@@ -76,6 +137,14 @@ static RequestParseResult parse_request(jerry_value_t obj) {
                 result = (RequestParseResult){
                     .tag = RequestParseResultTypeError,
                     .error = furi_string_alloc_set("Method is not a string"),
+                };
+                break;
+            }
+
+            if(!parse_request_method_is_valid(request.method)) {
+                result = (RequestParseResult){
+                    .tag = RequestParseResultTypeError,
+                    .error = furi_string_alloc_set("Invalid method"),
                 };
                 break;
             }
@@ -103,33 +172,65 @@ static RequestParseResult parse_request(jerry_value_t obj) {
             jerry_value_t headers_val = jerry_object_get_sz(obj, "headers");
             // TODO instance of Headers
             if(jerry_value_is_object(headers_val)) {
+                bool app_header_appended = false;
+                bool parse_error = false;
                 jerry_value_t keys = jerry_object_keys(headers_val);
                 size_t num_keys = jerry_array_length(keys);
                 size_t header_idx = 0;
-                for(size_t i = 0; i != num_keys && header_idx != FETCH_HEADERS_COUNT_MAX; ++i) {
+                for(size_t i = 0;
+                    i != num_keys && header_idx != JS_FETCH_HEADER_COUNT_MAX && !parse_error;
+                    ++i) {
                     jerry_value_t key = jerry_object_get_index(keys, i);
                     jerry_value_t value = jerry_object_get(headers_val, key);
                     jerry_value_t value_conv = jerry_value_to_string(value);
                     if(jerry_value_is_string(key) && jerry_value_is_string(value_conv)) {
                         char* key_string = js_string_to_c_string(key);
                         char* value_string = js_string_to_c_string(value_conv);
+                        if(!parse_request_header_is_valid(key_string, true) ||
+                           !parse_request_header_is_valid(value_string, false)) {
+                            result = (RequestParseResult){
+                                .tag = RequestParseResultTypeError,
+                                .error = furi_string_alloc_set("Invalid header"),
+                            };
+                            parse_error = true;
+                        } else if(parse_request_extra_header_present(key_string)) {
+                            if(!app_header_appended) {
+                                FURI_LOG_W(TAG, "%s header override", JS_FETCH_EXTRA_HEADER);
+                                parse_request_append_extra_header(&request, header_idx);
+                                app_header_appended = true;
+                                header_idx += 1;
+                            } else {
+                                FURI_LOG_W(TAG, "%s header duplication", JS_FETCH_EXTRA_HEADER);
+                            }
+                        } else {
+                            char* header_string =
+                                malloc(strlen(key_string) + 2 + strlen(value_string) + 1);
+                            sprintf(header_string, "%s: %s", key_string, value_string);
+                            request.headers.data[header_idx] = header_string;
+                            header_idx += 1;
+                        }
 
-                        char* header_string =
-                            malloc(strlen(key_string) + 2 + strlen(value_string) + 1);
-                        sprintf(header_string, "%s: %s", key_string, value_string);
                         free(key_string);
                         free(value_string);
-
-                        request.headers.data[header_idx] = header_string;
-
-                        header_idx += 1;
                     }
                     jerry_value_free(key);
                     jerry_value_free(value);
                     jerry_value_free(value_conv);
                 }
                 jerry_value_free(keys);
+
+                if(!app_header_appended && !parse_error) {
+                    parse_request_append_extra_header(&request, header_idx);
+                    header_idx += 1;
+                }
+
                 request.headers.count = header_idx;
+
+                if(parse_error) {
+                    jerry_value_free(headers_val);
+                    break;
+                }
+
             } else {
                 result = (RequestParseResult){
                     .tag = RequestParseResultTypeError,
@@ -139,6 +240,9 @@ static RequestParseResult parse_request(jerry_value_t obj) {
                 break;
             }
             jerry_value_free(headers_val);
+        } else {
+            parse_request_append_extra_header(&request, 0);
+            request.headers.count = 1;
         }
 
         if(js_object_has_property(obj, "body")) {
@@ -573,6 +677,11 @@ bool js_fetch_set_data_sink(
         JS_TRACE("data sink expired");
         instance->sink.on_event = NULL;
         instance->sink.context = NULL;
+        instance->sink.status = ChildStatusDone;
+        free_if_not_running(instance);
+        return true;
+    } else if(instance->sink.status == ChildStatusNotYet && !callback) {
+        JS_TRACE("no interest in data");
         instance->sink.status = ChildStatusDone;
         free_if_not_running(instance);
         return true;

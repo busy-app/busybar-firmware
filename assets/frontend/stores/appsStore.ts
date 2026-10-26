@@ -53,7 +53,7 @@ export interface AppSettingsSchema {
 const APPS_PATH = '/ext/user_assets';
 const SETTINGS_SCHEMA_PATH = 'appmeta/settings.json';
 const ICON_EXTENSION = '.png';
-const STORAGE_READ_PATH_MAX_LENGTH = 63;
+const STORAGE_READ_PATH_MAX_LENGTH = 255;
 
 function toDataUrl (blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -70,6 +70,8 @@ export const useAppsStore = defineStore('apps', () => {
   const apps = ref<AppInfo[]>([]);
   const icons = ref<Record<string, string>>({});
   const loading = ref(false);
+  // An empty list only means "no apps" once the device has actually answered.
+  const loaded = ref(false);
   // Only what this session started itself; the device has no way to report a running app.
   const runningAppId = ref<string>();
   // Keep the saved notice when an app's settings screen is reopened.
@@ -91,6 +93,7 @@ export const useAppsStore = defineStore('apps', () => {
 
       apps.value = result.apps;
       icons.value = loadedIcons;
+      loaded.value = true;
     } catch (error) {
       await handleHTTPError(error, 'Couldn\'t load apps', true);
     } finally {
@@ -226,6 +229,7 @@ export const useAppsStore = defineStore('apps', () => {
     apps,
     icons,
     loading,
+    loaded,
     runningAppId,
     settingsSavedByApp,
     fetchApps,

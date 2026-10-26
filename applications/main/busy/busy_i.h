@@ -106,7 +106,13 @@ struct BusyApp {
     bool show_timer_requested;
 };
 
+// Guaranteed to deliver an event, but might deadlock.
+// Use for events that will break the logic if ignored.
 void busy_send_custom_event(BusyApp* instance, uint32_t custom_event);
+
+// Might drop and event, but will never deadlock.
+// Prefer for events that are safe to ignore (e.g. input or tick events).
+void busy_send_custom_event_nonblocking(BusyApp* instance, uint32_t custom_event);
 
 void busy_prepare_transition(BusyApp* instance, BusyTransitionType type);
 

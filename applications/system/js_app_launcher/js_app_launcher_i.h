@@ -32,6 +32,7 @@
 typedef enum {
     JsAppLauncherErrorNone,
     JsAppLauncherErrorLoadFailed,
+    JsAppLauncherErrorApiVersionMismatch,
     JsAppLauncherErrorSettingsSchemaMissing,
     JsAppLauncherErrorSettingsSchemaInvalid,
     JsAppLauncherErrorSettingsStorageFailure,
@@ -91,6 +92,7 @@ typedef struct {
     NavBar* nav_bar;
 
     JsApp* js_app;
+    JsAppInfo js_app_info;
     JsAppSettingsStorage* settings_storage;
     JsAppLauncherError error;
     JsAppLauncherStartMode start_mode;
@@ -102,7 +104,11 @@ typedef enum {
     JsAppLauncherCustomEventScriptFinished,
     JsAppLauncherCustomEventSettingsChanged,
     JsAppLauncherCustomEventLongBackPressed,
+    JsAppLauncherCustomEventScriptErrorBase = 0x100,
+    JsAppLauncherCustomEventScriptErrorMask = 0x0ff,
 } JsAppLauncherCustomEvent;
+
+static_assert(JsRunnerErrorMax <= JsAppLauncherCustomEventScriptErrorMask + 1);
 
 void js_app_launcher_send_custom_event(JsAppLauncher* instance, uint32_t event);
 

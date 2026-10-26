@@ -295,8 +295,14 @@ static bool api_display_draw_parse_image_path(
 
 static bool
     api_display_validate_image(const char* file_path, GuiDisplayId display, FuriString* error) {
+    lv_result_t result;
     lv_image_header_t header;
-    if(lv_image_decoder_get_info(file_path, &header) != LV_RESULT_OK) {
+
+    lv_lock();
+    result = lv_image_decoder_get_info(file_path, &header);
+    lv_unlock();
+
+    if(result != LV_RESULT_OK) {
         furi_string_cat_printf(error, ": failed to decode image %s", file_path);
         return false;
     }

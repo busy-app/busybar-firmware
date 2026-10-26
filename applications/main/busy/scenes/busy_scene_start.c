@@ -27,7 +27,7 @@ static void busy_scene_start_menu_callback(uint32_t index, void* context) {
     furi_assert(context);
 
     BusyApp* instance = context;
-    busy_send_custom_event(instance, index);
+    busy_send_custom_event_nonblocking(instance, index);
 }
 
 static void busy_scene_start_handle_start(BusyApp* instance) {

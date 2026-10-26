@@ -5,6 +5,7 @@
     :title="isEditing ? 'Edit video' : 'Add video'"
     wide
     show-close-button
+    :dismissible="!isDecoding"
     :primary-action-props="{
       label: isEditing ? 'Apply changes' : 'Insert video',
       disabled: !handle || isDecoding || !!fileError,

@@ -35,6 +35,7 @@ typedef enum JsRunnerFatal {
 typedef enum JsRunnerConsoleSeverity {
     JsRunnerConsoleSeverityLog,
     JsRunnerConsoleSeverityInfo,
+    JsRunnerConsoleSeverityWarn,
     JsRunnerConsoleSeverityError,
 } JsRunnerConsoleSeverity;
 
@@ -72,6 +73,7 @@ typedef enum {
 
 typedef struct {
     JsRunnerEventType type;
+    JsRunnerError error;
 } JsRunnerEvent;
 
 typedef void (*JsRunnerEventCallback)(const JsRunnerEvent* event, void* context);
