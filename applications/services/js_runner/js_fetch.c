@@ -268,9 +268,9 @@ static bool
         bool has_extra_header = false;
 
         const jerry_value_t keys = jerry_object_keys(headers_val);
-        const size_t num_keys = MIN(jerry_array_length(keys), JS_FETCH_HEADER_COUNT_MAX);
+        const size_t num_keys = jerry_array_length(keys);
 
-        for(size_t i = 0; i < num_keys; ++i) {
+        for(size_t i = 0; (i < num_keys) && (headers->count < JS_FETCH_HEADER_COUNT_MAX); ++i) {
             if(!parse_request_header(headers, headers_val, keys, i, &has_extra_header)) {
                 parse_request_result_set_error(result, "Invalid header");
                 is_error = true;
