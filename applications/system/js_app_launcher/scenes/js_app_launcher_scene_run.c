@@ -70,17 +70,22 @@ static void js_app_launcher_scene_run_event_callback(const JsRunnerEvent* event,
 
     JsAppLauncher* instance = context;
 
+    CanvasSrv* canvas = furi_record_open(RECORD_CANVAS);
+
     if(event->type == JsRunnerEventTypeScriptStarted) {
+        canvas_set_clear_on_back(canvas, false);
         js_app_launcher_send_custom_event(instance, JsAppLauncherCustomEventScriptStarted);
     } else if(event->type == JsRunnerEventTypeScriptFinished) {
         if(event->error == JsRunnerErrorNone) {
             js_app_launcher_send_custom_event(instance, JsAppLauncherCustomEventScriptFinished);
         } else {
+            canvas_set_clear_on_back(canvas, true);
             FURI_LOG_E(TAG, "Error running JS app: %s", js_runner_get_error_message(event->error));
             js_app_launcher_send_custom_event(
                 instance, JsAppLauncherCustomEventScriptErrorBase | event->error);
         }
     }
+    furi_record_close(RECORD_CANVAS);
 }
 
 static void js_app_launcher_scene_run_init_widgets(JsAppLauncher* instance) {
@@ -247,6 +252,12 @@ static void js_app_launcher_scene_run_on_exit(void* context) {
         js_runner_abort(exec_handle);
         furi_check(js_runner_join(exec_handle, FuriWaitForever) == JsRunnerErrorNone);
         data->js_runner_exec_handle = NULL;
+    }
+
+    {
+        CanvasSrv* canvas = furi_record_open(RECORD_CANVAS);
+        canvas_set_clear_on_back(canvas, true);
+        furi_record_close(RECORD_CANVAS);
     }
 
     JsRunnerContextHandle* context_handle = data->js_runner_handle;
