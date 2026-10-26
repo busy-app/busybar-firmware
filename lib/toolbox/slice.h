@@ -6,6 +6,10 @@
 
 #include <stddef.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @brief Slice of a character string.
  */
@@ -65,3 +69,7 @@ void string_slice_from_offset(
  * @returns pointer to the created string (may be empty, but never @c NULL)
  */
 char* string_slice_to_owned_cstr(const StringSlice* instance);
+
+#ifdef __cplusplus
+}
+#endif

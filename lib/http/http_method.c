@@ -3,6 +3,8 @@
 #include <core/check.h>
 
 bool http_method_is_valid(const char* method_str) {
+    furi_check(method_str);
+
     bool is_valid = true;
 
     do {
