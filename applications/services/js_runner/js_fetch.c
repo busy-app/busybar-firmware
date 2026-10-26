@@ -8,6 +8,7 @@
 
 #include <fetch/fetch.h>
 #include <toolbox/url.h>
+#include <http/http_method.h>
 #include <http/http_response.h>
 
 #define TAG                       "JsFetch"
@@ -127,35 +128,6 @@ static bool
     return success;
 }
 
-// TODO: Move the below 2 functions to HTTP tools
-static bool method_is_valid(const char* method_str) {
-    bool is_valid = true;
-
-    for(const char* p = method_str; *p != '\0'; ++p) {
-        const unsigned char c = *p;
-        if(c > 0x7F || !isalnum(c)) {
-            is_valid = false;
-            break;
-        }
-    }
-
-    return is_valid;
-}
-
-/* https://fetch.spec.whatwg.org/#concept-method-normalize */
-static void method_normalize(char* method_str) {
-    static const char* const normalized_methods[] = {
-        "GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"};
-
-    for(uint8_t i = 0; i < COUNT_OF(normalized_methods); i++) {
-        const char* reference = normalized_methods[i];
-        if(strcasecmp(method_str, reference) == 0) {
-            strcpy(method_str, reference);
-            break;
-        }
-    }
-}
-
 static bool
     parse_request_method(jerry_value_t obj, FetchRequest* request, RequestParseResult* result) {
     if(!js_object_has_property(obj, "method")) {
@@ -172,13 +144,13 @@ static bool
             break;
         }
 
-        if(!method_is_valid(method_str)) {
+        if(!http_method_is_valid(method_str)) {
             parse_request_result_set_error(result, "Invalid method");
             free(method_str);
             break;
         }
 
-        method_normalize(method_str);
+        http_method_normalize(method_str);
         request->method = method_str;
 
         success = true;
