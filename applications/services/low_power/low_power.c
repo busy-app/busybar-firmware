@@ -43,6 +43,7 @@ struct LowPower {
     FuriEventLoopTimer* sleep_holdoff_timer;
     FuriEventLoopTimer* setting_save_timer;
 
+    bool settings_dirty;
     LowPowerSettings settings;
     uint32_t lock_count;
 };
@@ -50,6 +51,17 @@ struct LowPower {
 // =================
 // Service internals
 // =================
+
+static void low_power_setting_flush(LowPower* instance) {
+    furi_assert(instance);
+    if(!instance->settings_dirty) return;
+    if(!low_power_settings_save(&instance->settings)) {
+        FURI_LOG_E(TAG, "Failed to save settings");
+    } else {
+        FURI_LOG_D(TAG, "Settings saved");
+        instance->settings_dirty = false;
+    }
+}
 
 static void low_power_enter(LowPower* instance) {
     FURI_LOG_D(TAG, "Enter");
@@ -59,6 +71,8 @@ static void low_power_enter(LowPower* instance) {
 
     // TODO: make it so that calls to the above services are synchronous
     furi_delay_ms(500);
+
+    low_power_setting_flush(instance);
 
     power_deep_sleep(instance->power);
 }
@@ -79,11 +93,7 @@ static void low_power_sleep_holdoff_timer_expired(void* context) {
 static void low_power_setting_save_timer_expired(void* context) {
     LowPower* instance = context;
     furi_assert(instance);
-    if(!low_power_settings_save(&instance->settings)) {
-        FURI_LOG_E(TAG, "Failed to save settings");
-    } else {
-        FURI_LOG_D(TAG, "Settings saved");
-    }
+    low_power_setting_flush(instance);
 }
 
 typedef enum {
@@ -161,6 +171,7 @@ static void low_power_sleep_api_message_received(FuriEventLoopObject* object, vo
 
     } else if(message->type == LowPowerApiMessageTypeSetSleepSettings) {
         instance->settings.sleep = *message->sleep_settings;
+        instance->settings_dirty = true;
         low_power_update_sleep_timer(instance, LowPowerConditionSettingsUpdated);
         furi_event_loop_timer_start(instance->setting_save_timer, SETTINGS_SAVE_DELAY_MS);
 
