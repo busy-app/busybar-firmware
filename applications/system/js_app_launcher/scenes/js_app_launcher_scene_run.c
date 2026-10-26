@@ -24,7 +24,7 @@ typedef struct {
     JsRunnerError js_error;
 } JsAppLauncherSceneRun;
 
-static void set_canvas_back_handling(bool is_clear_on_back) {
+static void js_app_launcher_scene_run_set_canvas_clear_on_back(bool is_clear_on_back) {
     CanvasSrv* canvas = furi_record_open(RECORD_CANVAS);
     canvas_set_clear_on_back(canvas, is_clear_on_back);
     furi_record_close(RECORD_CANVAS);
@@ -239,7 +239,7 @@ static void js_app_launcher_scene_run_on_enter(void* context) {
     if(!js_app_launcher_scene_run_start_app(instance)) {
         scene_manager_next_scene(instance->scene_manager, JsAppLauncherSceneIdError);
     } else {
-        set_canvas_back_handling(false);
+        js_app_launcher_scene_run_set_canvas_clear_on_back(false);
     }
 }
 
@@ -257,7 +257,7 @@ static void js_app_launcher_scene_run_on_exit(void* context) {
         data->js_runner_exec_handle = NULL;
     }
 
-    set_canvas_back_handling(true);
+    js_app_launcher_scene_run_set_canvas_clear_on_back(true);
 
     JsRunnerContextHandle* context_handle = data->js_runner_handle;
     if(context_handle != NULL) {
