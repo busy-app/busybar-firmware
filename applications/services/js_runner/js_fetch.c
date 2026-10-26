@@ -209,6 +209,64 @@ static bool
     return success;
 }
 
+static bool parse_request_header(
+    FetchRequestHeaders* headers,
+    jerry_value_t values,
+    jerry_value_t keys,
+    size_t index,
+    bool* has_extra_header) {
+    bool success = false;
+
+    const jerry_value_t key = jerry_object_get_index(keys, index);
+    const jerry_value_t value = jerry_object_get(values, key);
+    const jerry_value_t value_conv = jerry_value_to_string(value);
+
+    char* key_string = NULL;
+    char* value_string = NULL;
+
+    do {
+        key_string = js_string_to_c_string(key);
+        value_string = js_string_to_c_string(value_conv);
+
+        if((key_string == NULL) || (value_string == NULL)) {
+            break;
+        }
+
+        if(!parse_request_header_is_valid(key_string, true) ||
+           !parse_request_header_is_valid(value_string, false)) {
+            break;
+        }
+
+        if(parse_request_extra_header_present(key_string)) {
+            if(!(*has_extra_header)) {
+                FURI_LOG_W(TAG, "%s header override", JS_FETCH_EXTRA_HEADER);
+                fetch_request_headers_append_extra(headers);
+                *has_extra_header = true;
+            } else {
+                FURI_LOG_W(TAG, "%s header duplication", JS_FETCH_EXTRA_HEADER);
+            }
+
+        } else {
+            fetch_request_headers_append(headers, key_string, value_string);
+        }
+
+        success = true;
+    } while(false);
+
+    if(key_string != NULL) {
+        free(key_string);
+    }
+    if(value_string != NULL) {
+        free(value_string);
+    }
+
+    jerry_value_free(key);
+    jerry_value_free(value);
+    jerry_value_free(value_conv);
+
+    return success;
+}
+
 static bool
     parse_request_headers(jerry_value_t obj, FetchRequest* request, RequestParseResult* result) {
     FetchRequestHeaders* headers = &request->headers;
@@ -233,44 +291,15 @@ static bool
         bool has_extra_header = false;
 
         const jerry_value_t keys = jerry_object_keys(headers_val);
-        const size_t num_keys = jerry_array_length(keys);
+        const size_t num_keys = MIN(jerry_array_length(keys), JS_FETCH_HEADER_COUNT_MAX);
 
-        for(size_t i = 0; i < num_keys && headers->count < JS_FETCH_HEADER_COUNT_MAX && !is_error;
-            ++i) {
-            const jerry_value_t key = jerry_object_get_index(keys, i);
-            const jerry_value_t value = jerry_object_get(headers_val, key);
-            const jerry_value_t value_conv = jerry_value_to_string(value);
-
-            if(jerry_value_is_string(key) && jerry_value_is_string(value_conv)) {
-                char* key_string = js_string_to_c_string(key);
-                char* value_string = js_string_to_c_string(value_conv);
-
-                if(!parse_request_header_is_valid(key_string, true) ||
-                   !parse_request_header_is_valid(value_string, false)) {
-                    result->tag = RequestParseResultTypeError;
-                    result->error = furi_string_alloc_set("Invalid header");
-                    is_error = true;
-
-                } else if(parse_request_extra_header_present(key_string)) {
-                    if(!has_extra_header) {
-                        FURI_LOG_W(TAG, "%s header override", JS_FETCH_EXTRA_HEADER);
-                        fetch_request_headers_append_extra(headers);
-                        has_extra_header = true;
-                    } else {
-                        FURI_LOG_W(TAG, "%s header duplication", JS_FETCH_EXTRA_HEADER);
-                    }
-
-                } else {
-                    fetch_request_headers_append(headers, key_string, value_string);
-                }
-
-                free(key_string);
-                free(value_string);
+        for(size_t i = 0; i < num_keys; ++i) {
+            if(!parse_request_header(headers, headers_val, keys, i, &has_extra_header)) {
+                result->tag = RequestParseResultTypeError;
+                result->error = furi_string_alloc_set("Invalid header");
+                is_error = true;
+                break;
             }
-
-            jerry_value_free(key);
-            jerry_value_free(value);
-            jerry_value_free(value_conv);
         }
 
         jerry_value_free(keys);
