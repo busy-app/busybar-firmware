@@ -307,8 +307,9 @@ static bool
     const jerry_value_t body_str_val = jerry_value_to_string(body_val);
 
     do {
-        if(!jerry_value_is_string(body_str_val)) {
-            parse_request_result_set_error(result, "Body is not a string");
+        if(jerry_value_is_exception(body_str_val)) {
+            FuriString* message = js_get_exception_string(body_str_val);
+            parse_request_result_set_error_owned(result, message);
             break;
         }
 
