@@ -205,6 +205,42 @@ static bool js_fetch_parse_dispatcher(
     return success;
 }
 
+static bool
+    js_fetch_parse_body(jerry_value_t obj, FetchRequest* request, RequestParseResult* result) {
+    if(!js_object_has_property(obj, "body")) {
+        return true;
+    }
+
+    bool success = false;
+    const jerry_value_t body_val = jerry_object_get_sz(obj, "body");
+    const jerry_value_t body_str_val = jerry_value_to_string(body_val);
+
+    do {
+        if(!jerry_value_is_string(body_str_val)) {
+            result->tag = RequestParseResultTypeError;
+            result->error = furi_string_alloc_set("Body is not a string");
+            break;
+        }
+
+        const size_t body_len = jerry_string_size(body_str_val, JERRY_ENCODING_UTF8);
+        unsigned char* body_data = malloc(body_len + 1);
+
+        jerry_string_to_buffer(body_str_val, JERRY_ENCODING_UTF8, body_data, body_len);
+        body_data[body_len] = '\0';
+
+        FetchRequestBody* request_body = &request->body;
+        request_body->data = body_data;
+        request_body->length = body_len;
+
+        success = true;
+    } while(false);
+
+    jerry_value_free(body_val);
+    jerry_value_free(body_str_val);
+
+    return success;
+}
+
 static RequestParseResult parse_request(jerry_value_t obj) {
     furi_assert(js_is_instance_of(obj, "Request"));
 
@@ -303,24 +339,11 @@ static RequestParseResult parse_request(jerry_value_t obj) {
             request.headers.count = 1;
         }
 
-        if(js_object_has_property(obj, "body")) {
-            jerry_value_t body_val = jerry_object_get_sz(obj, "body");
-            // TODO handle many different cases
-            jerry_value_t body_str = jerry_value_to_string(body_val);
-            request.body.data = js_string_to_c_string(body_str);
-            furi_check(request.body.data); // okay to crash - body handling TODO
-            request.body.length = strlen(request.body.data);
-            jerry_value_free(body_str);
-            jerry_value_free(body_val);
-            if(!request.body.data) {
-                result = (RequestParseResult){
-                    .tag = RequestParseResultTypeError,
-                    .error = furi_string_alloc_set("Body is not a string"),
-                };
-                break;
-            }
+        if(!js_fetch_parse_body(obj, &request, &result)) {
+            break;
         }
-        result = (RequestParseResult){
+
+        result = (const RequestParseResult){
             .tag = RequestParseResultTypeOk,
             .request = request,
         };
