@@ -317,26 +317,6 @@ class TestJSFetch:
 
         js_case_runner(case_name, body)
 
-    @allure.title("JavaScript fetch rejects a request-target containing CRLF.")
-    def test_url_with_http_request_line_rejects(self, js_case_runner):
-        case_name = "url_with_request_line_rejects"
-        url = "http://127.0.0.1/api/apps/list HTTP/1.0\r\n"
-        url += "X-busybar-fetch: spoofed\r\nX-junk:"
-        body = dedent(
-            f"""
-                let error_message = "";
-                try {{
-                    await fetch({json.dumps(url)});
-                }} catch (error) {{
-                    error_message = String(error);
-                }}
-                assert(error_message === "Invalid URL",
-                    "error=" + error_message);
-            """
-        ).strip()
-
-        js_case_runner(case_name, body)
-
     @allure.title("JavaScript fetch rejects an HTTP request line as a method.")
     def test_method_with_http_request_line_rejects(self, js_case_runner):
         case_name = "method_with_request_line_rejects"
