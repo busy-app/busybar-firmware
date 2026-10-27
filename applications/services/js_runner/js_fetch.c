@@ -262,7 +262,6 @@ static jerry_value_t parse_request_headers(jerry_value_t obj, FetchRequest* requ
 
         for(size_t i = 0; (i < num_keys) && (headers->count < JS_FETCH_HEADER_COUNT_MAX); ++i) {
             if(!parse_request_header(headers, headers_val, keys, i, &has_extra_header)) {
-                result = parse_request_throw_error("Invalid header");
                 is_error = true;
                 break;
             }
@@ -271,7 +270,8 @@ static jerry_value_t parse_request_headers(jerry_value_t obj, FetchRequest* requ
         jerry_value_free(headers_val);
         jerry_value_free(keys);
 
-        if(!is_error) {
+        if(is_error) {
+            result = parse_request_throw_error("Invalid header");
             break;
         }
 
