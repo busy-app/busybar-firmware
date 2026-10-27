@@ -6,6 +6,9 @@
 #define URL_HOSTNAME_CHARS "-._"
 #define URL_SPECIAL_CHARS  URL_HOSTNAME_CHARS "~:/?#[]@!$&'()*+,;=%"
 
+#define URL_PORT_LEN_MAX (sizeof("65535") - 1)
+#define URL_PORT_VAL_MAX (UINT16_MAX)
+
 struct Url {
     FuriString* source;
     StringSlice parts[UrlPartIdMax];
@@ -366,7 +369,7 @@ static bool url_encode_port(const StringSlice* part, FuriString* out_str) {
         const char* part_str = part->first_char;
         const size_t part_len = part->length;
 
-        if(part_len > (sizeof("65535") - 1)) {
+        if(part_len > URL_PORT_LEN_MAX) {
             success = false;
             break;
         }
@@ -381,6 +384,19 @@ static bool url_encode_port(const StringSlice* part, FuriString* out_str) {
 
             furi_string_push_back(out_str, c);
         }
+
+        if(!success) {
+            break;
+        }
+
+        char tmp[part_len + 1];
+        memcpy(tmp, part_str, part_len);
+        tmp[part_len] = '\0';
+
+        if(atoi(tmp) > URL_PORT_VAL_MAX) {
+            success = false;
+        }
+
     } while(false);
 
     return success;
