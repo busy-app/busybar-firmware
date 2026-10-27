@@ -324,7 +324,6 @@ jerry_value_t js_fetch_request_parse(jerry_value_t obj, FetchRequest* request) {
 
     if(jerry_value_is_exception(result)) {
         js_fetch_request_clear(request);
-    } else {
     }
 
     return result;
