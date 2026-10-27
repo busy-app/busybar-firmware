@@ -17,18 +17,7 @@
 
 #define IS_RUNNING(child) (instance->child.status == ChildStatusRunning)
 
-typedef enum RequestParseResultType {
-    RequestParseResultTypeOk,
-    RequestParseResultTypeError,
-} RequestParseResultType;
-
-typedef struct RequestParseResult {
-    RequestParseResultType tag;
-    union {
-        FetchRequest request;
-        FuriString* error;
-    };
-} RequestParseResult;
+typedef jerry_value_t (*ParseRequestStep)(jerry_value_t obj, FetchRequest* request);
 
 static void fetch_request_clear(FetchRequest* request) {
     if(request->url) {
@@ -63,14 +52,8 @@ static void fetch_request_headers_append_extra(FetchRequestHeaders* headers) {
     fetch_request_headers_append(headers, JS_FETCH_EXTRA_HEADER, JS_FETCH_EXTRA_VALUE);
 }
 
-static void parse_request_result_set_error(RequestParseResult* result, const char* message) {
-    result->tag = RequestParseResultTypeError;
-    result->error = furi_string_alloc_set(message);
-}
-
-static void parse_request_result_set_error_owned(RequestParseResult* result, FuriString* message) {
-    result->tag = RequestParseResultTypeError;
-    result->error = message;
+static jerry_value_t parse_request_throw_error(const char* message) {
+    return jerry_throw_value(jerry_string_sz(message), true);
 }
 
 static inline bool parse_request_extra_header_present(const char* input) {
@@ -89,24 +72,22 @@ static bool parse_request_header_is_valid(const char* header, bool check_colon) 
     return true;
 }
 
-static bool
-    parse_request_url(jerry_value_t obj, FetchRequest* request, RequestParseResult* result) {
-    bool success = false;
-
-    const jerry_value_t source = jerry_object_get_sz(obj, "url");
+static jerry_value_t parse_request_url(jerry_value_t obj, FetchRequest* request) {
+    jerry_value_t result;
     Url* parser = url_alloc();
 
     do {
-        if(jerry_value_is_exception(source)) {
-            FuriString* message = js_get_exception_string(source);
-            parse_request_result_set_error_owned(result, message);
+        const jerry_value_t url_val = jerry_object_get_sz(obj, "url");
+        if(jerry_value_is_exception(url_val)) {
+            result = url_val;
             break;
         }
 
-        char* source_str = js_string_to_c_string(source);
+        char* source_str = js_string_to_c_string(url_val);
+        jerry_value_free(url_val);
 
         if(source_str == NULL) {
-            parse_request_result_set_error(result, "URL is not a string");
+            result = parse_request_throw_error("URL is not a string");
             break;
         }
 
@@ -114,40 +95,45 @@ static bool
         free(source_str);
 
         if(!can_parse) {
-            parse_request_result_set_error(result, "Invalid URL");
+            result = parse_request_throw_error("Invalid URL");
             break;
         }
 
         const StringSlice* href = url_get_part(parser, UrlPartIdHref);
         request->url = string_slice_to_owned_cstr(href);
 
-        success = true;
+        result = jerry_undefined();
     } while(false);
 
     url_free(parser);
-    jerry_value_free(source);
-
-    return success;
+    return result;
 }
 
-static bool
-    parse_request_method(jerry_value_t obj, FetchRequest* request, RequestParseResult* result) {
-    if(!js_object_has_property(obj, "method")) {
-        return true;
-    }
-
-    bool success = false;
-    const jerry_value_t method_val = jerry_object_get_sz(obj, "method");
+static jerry_value_t parse_request_method(jerry_value_t obj, FetchRequest* request) {
+    jerry_value_t result;
 
     do {
+        if(!js_object_has_property(obj, "method")) {
+            result = jerry_undefined();
+            break;
+        }
+
+        const jerry_value_t method_val = jerry_object_get_sz(obj, "method");
+        if(jerry_value_is_exception(method_val)) {
+            result = method_val;
+            break;
+        }
+
         char* method_str = js_string_to_c_string(method_val);
+        jerry_value_free(method_val);
+
         if(method_str == NULL) {
-            parse_request_result_set_error(result, "Method is not a string");
+            result = parse_request_throw_error("Method is not a string");
             break;
         }
 
         if(!http_method_is_valid(method_str)) {
-            parse_request_result_set_error(result, "Invalid method");
+            result = parse_request_throw_error("Invalid method");
             free(method_str);
             break;
         }
@@ -155,38 +141,34 @@ static bool
         http_method_normalize(method_str);
         request->method = method_str;
 
-        success = true;
+        result = jerry_undefined();
     } while(false);
 
-    jerry_value_free(method_val);
-
-    return success;
+    return result;
 }
 
-static bool
-    parse_request_dispatcher(jerry_value_t obj, FetchRequest* request, RequestParseResult* result) {
-    bool success = false;
-
-    static const char* const keys[] = {"dispatcher", "connect", "useDeviceKey"};
-    const jerry_value_t value = js_object_get_nested_property(obj, keys, COUNT_OF(keys));
+static jerry_value_t parse_request_dispatcher(jerry_value_t obj, FetchRequest* request) {
+    jerry_value_t result;
 
     do {
-        if(jerry_value_is_exception(value)) {
-            FuriString* message = js_get_exception_string(value);
-            parse_request_result_set_error_owned(result, message);
+        static const char* const keys[] = {"dispatcher", "connect", "useDeviceKey"};
+        const jerry_value_t prop_val = js_object_get_nested_property(obj, keys, COUNT_OF(keys));
+
+        if(jerry_value_is_exception(prop_val)) {
+            result = prop_val;
             break;
         }
 
-        const bool is_device_cert = jerry_value_to_boolean(value);
+        const bool is_device_cert = jerry_value_to_boolean(prop_val);
+        jerry_value_free(prop_val);
 
         TlsClientCertInfo* cert_info = &request->tls_config.client_cert_info;
         cert_info->type = is_device_cert ? TlsClientCertTypeDevice : TlsClientCertTypeNone;
 
-        success = true;
+        result = jerry_undefined();
     } while(false);
 
-    jerry_value_free(value);
-    return success;
+    return result;
 }
 
 static bool parse_request_header(
@@ -247,22 +229,28 @@ static bool parse_request_header(
     return success;
 }
 
-static bool
-    parse_request_headers(jerry_value_t obj, FetchRequest* request, RequestParseResult* result) {
-    FetchRequestHeaders* headers = &request->headers;
-
-    if(!js_object_has_property(obj, "headers")) {
-        fetch_request_headers_append_extra(headers);
-        return true;
-    }
-
-    bool success = false;
-    const jerry_value_t headers_val = jerry_object_get_sz(obj, "headers");
+static jerry_value_t parse_request_headers(jerry_value_t obj, FetchRequest* request) {
+    jerry_value_t result;
 
     do {
+        FetchRequestHeaders* headers = &request->headers;
+
+        if(!js_object_has_property(obj, "headers")) {
+            fetch_request_headers_append_extra(headers);
+            result = jerry_undefined();
+            break;
+        }
+
+        const jerry_value_t headers_val = jerry_object_get_sz(obj, "headers");
+        if(jerry_value_is_exception(headers_val)) {
+            result = headers_val;
+            break;
+        }
+
         // TODO: Instance of Headers
         if(!jerry_value_is_object(headers_val)) {
-            parse_request_result_set_error(result, "Headers is not an object");
+            jerry_value_free(headers_val);
+            result = parse_request_throw_error("Headers is not an object");
             break;
         }
 
@@ -274,15 +262,16 @@ static bool
 
         for(size_t i = 0; (i < num_keys) && (headers->count < JS_FETCH_HEADER_COUNT_MAX); ++i) {
             if(!parse_request_header(headers, headers_val, keys, i, &has_extra_header)) {
-                parse_request_result_set_error(result, "Invalid header");
+                result = parse_request_throw_error("Invalid header");
                 is_error = true;
                 break;
             }
         }
 
+        jerry_value_free(headers_val);
         jerry_value_free(keys);
 
-        if(is_error) {
+        if(!is_error) {
             break;
         }
 
@@ -290,82 +279,73 @@ static bool
             fetch_request_headers_append_extra(headers);
         }
 
-        success = true;
+        result = jerry_undefined();
     } while(false);
 
-    jerry_value_free(headers_val);
-
-    return success;
+    return result;
 }
 
-static bool
-    parse_request_body(jerry_value_t obj, FetchRequest* request, RequestParseResult* result) {
-    if(!js_object_has_property(obj, "body")) {
-        return true;
-    }
-
-    bool success = false;
-    const jerry_value_t body_val = jerry_object_get_sz(obj, "body");
-    const jerry_value_t body_str_val = jerry_value_to_string(body_val);
+static jerry_value_t parse_request_body(jerry_value_t obj, FetchRequest* request) {
+    jerry_value_t result;
 
     do {
-        if(jerry_value_is_exception(body_str_val)) {
-            FuriString* message = js_get_exception_string(body_str_val);
-            parse_request_result_set_error_owned(result, message);
+        if(!js_object_has_property(obj, "body")) {
+            result = jerry_undefined();
             break;
         }
 
-        const size_t body_len = jerry_string_size(body_str_val, JERRY_ENCODING_UTF8);
+        const jerry_value_t body_val = jerry_object_get_sz(obj, "body");
+        const jerry_value_t body_val_str = jerry_value_to_string(body_val);
+        jerry_value_free(body_val);
+
+        if(jerry_value_is_exception(body_val_str)) {
+            result = body_val_str;
+            break;
+        }
+
+        const size_t body_len = jerry_string_size(body_val_str, JERRY_ENCODING_UTF8);
         unsigned char* body_data = malloc(body_len + 1);
 
-        jerry_string_to_buffer(body_str_val, JERRY_ENCODING_UTF8, body_data, body_len);
+        jerry_string_to_buffer(body_val_str, JERRY_ENCODING_UTF8, body_data, body_len);
+        jerry_value_free(body_val_str);
+
         body_data[body_len] = '\0';
 
         FetchRequestBody* request_body = &request->body;
         request_body->data = body_data;
         request_body->length = body_len;
 
-        success = true;
+        result = jerry_undefined();
     } while(false);
 
-    jerry_value_free(body_val);
-    jerry_value_free(body_str_val);
-
-    return success;
+    return result;
 }
 
-static RequestParseResult parse_request(jerry_value_t obj) {
+static const ParseRequestStep parse_request_steps[] = {
+    parse_request_url,
+    parse_request_method,
+    parse_request_dispatcher,
+    parse_request_headers,
+    parse_request_body,
+};
+
+static jerry_value_t parse_request(jerry_value_t obj, FetchRequest* request) {
     furi_assert(js_is_instance_of(obj, "Request"));
+    jerry_value_t result = jerry_undefined();
 
-    FetchRequest request = {0};
-    RequestParseResult result;
-
-    do {
-        if(!parse_request_url(obj, &request, &result)) {
-            break;
-        }
-        if(!parse_request_method(obj, &request, &result)) {
-            break;
-        }
-        if(!parse_request_dispatcher(obj, &request, &result)) {
-            break;
-        }
-        if(!parse_request_headers(obj, &request, &result)) {
-            break;
-        }
-        if(!parse_request_body(obj, &request, &result)) {
+    for(size_t i = 0; i < COUNT_OF(parse_request_steps); ++i) {
+        result = parse_request_steps[i](obj, request);
+        if(jerry_value_is_exception(result)) {
             break;
         }
 
-        JS_TRACE("Fetch %s", request.url);
+        furi_check(jerry_value_is_undefined(result));
+    }
 
-        result.tag = RequestParseResultTypeOk;
-        result.request = request;
-
-    } while(false);
-
-    if(result.tag == RequestParseResultTypeError) {
-        fetch_request_clear(&request);
+    if(jerry_value_is_exception(result)) {
+        fetch_request_clear(request);
+    } else {
+        JS_TRACE("Fetch %s", request->url);
     }
 
     return result;
@@ -515,17 +495,16 @@ static jerry_value_t fetch(
         return js_rejected_promise_from_exception(request);
     }
 
-    RequestParseResult request_res = parse_request(request);
+    FetchRequest fetch_request = {0};
+    const jerry_value_t parse_result = parse_request(request, &fetch_request);
     jerry_value_free(request);
 
-    if(request_res.tag == RequestParseResultTypeError) {
-        jerry_value_t ret = js_rejected_promise(furi_string_get_cstr(request_res.error));
-        furi_string_free(request_res.error);
-        return ret;
+    if(jerry_value_is_exception(parse_result)) {
+        return js_rejected_promise_from_exception(parse_result);
     }
 
     JsFetch* instance = malloc(sizeof(JsFetch));
-    instance->request = request_res.request;
+    instance->request = fetch_request;
 
     instance->promise.promise = jerry_promise();
     instance->promise.status = ChildStatusRunning;
