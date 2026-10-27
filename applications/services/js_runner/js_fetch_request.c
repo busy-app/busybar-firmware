@@ -301,21 +301,6 @@ static jerry_value_t parse_request_body(jerry_value_t obj, FetchRequest* request
     return result;
 }
 
-void js_fetch_request_clear(FetchRequest* request) {
-    if(request->url) {
-        free((void*)request->url);
-    }
-    if(request->method) {
-        free((void*)request->method);
-    }
-    for(size_t i = 0; i != request->headers.count; ++i) {
-        free((void*)request->headers.data[i]);
-    }
-    if(request->body.data) {
-        free((void*)request->body.data);
-    }
-}
-
 static const ParseRequestStep parse_request_steps[] = {
     parse_request_url,
     parse_request_method,
@@ -343,4 +328,19 @@ jerry_value_t js_fetch_request_parse(jerry_value_t obj, FetchRequest* request) {
     }
 
     return result;
+}
+
+void js_fetch_request_clear(FetchRequest* request) {
+    if(request->url) {
+        free((void*)request->url);
+    }
+    if(request->method) {
+        free((void*)request->method);
+    }
+    for(size_t i = 0; i != request->headers.count; ++i) {
+        free((void*)request->headers.data[i]);
+    }
+    if(request->body.data) {
+        free((void*)request->body.data);
+    }
 }
