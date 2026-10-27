@@ -317,6 +317,44 @@ class TestJSFetch:
 
         js_case_runner(case_name, body)
 
+    @allure.title("JavaScript fetch encodes CRLF in a URL without injecting headers.")
+    @pytest.mark.parametrize(
+        "request_target, encoded_target",
+        [
+            (
+                "/api/apps/list HTTP/1.0\r\n" "X-busybar-fetch: spoofed\r\nX-junk:",
+                "/api/apps/list%20HTTP/1.0%0D%0A"
+                "X-busybar-fetch:%20spoofed%0D%0AX-junk:",
+            ),
+            (
+                "/query?value=HTTP/1.0\r\n" "X-busybar-fetch: spoofed\r\nX-junk:",
+                "/query?value=HTTP/1.0%0D%0A" "X-busybar-fetch:%20spoofed%0D%0AX-junk:",
+            ),
+        ],
+        ids=["path", "query"],
+    )
+    def test_url_with_http_request_line_is_encoded(
+        self, js_case_runner, http_server, request_target, encoded_target
+    ):
+        case_name = "url_with_request_line_is_encoded"
+        url = json.dumps(http_server.url(request_target))
+        body = dedent(
+            f"""
+                const response = await fetch({url});
+                await response.text();
+            """
+        ).strip()
+
+        output = js_case_runner(case_name, body)
+
+        with allure.step("Verify the encoded target and trusted headers on the wire"):
+            captured = captured_request(http_server, output, "encoded URL request")
+            assert captured["method"] == "GET", f"captured={captured!r}"
+            assert captured["path"] == encoded_target, f"captured={captured!r}"
+            assert captured["body"] == b"", f"captured={captured!r}"
+            assert_js_fetch_header(captured)
+            assert "x-junk" not in captured["headers"], f"captured={captured!r}"
+
     @allure.title("JavaScript fetch rejects an HTTP request line as a method.")
     def test_method_with_http_request_line_rejects(self, js_case_runner):
         case_name = "method_with_request_line_rejects"
