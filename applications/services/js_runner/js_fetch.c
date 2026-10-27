@@ -47,12 +47,14 @@ static void fetch_request_clear(FetchRequest* request) {
 
 static void
     fetch_request_headers_append(FetchRequestHeaders* headers, const char* key, const char* value) {
+    const uint32_t headers_count = headers->count;
+    furi_check(headers_count < FETCH_HEADERS_COUNT_MAX);
+
     const size_t buf_size = strlen(key) + strlen(value) + sizeof(": ");
 
     char* header = malloc(buf_size);
     sprintf(header, "%s: %s", key, value);
 
-    const uint32_t headers_count = headers->count;
     headers->data[headers_count] = header;
     headers->count = headers_count + 1;
 }
