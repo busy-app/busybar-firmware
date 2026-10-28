@@ -228,6 +228,12 @@ SMenu* smenu_get_from_item(SMenuItem* item) {
     return lv_obj_check_type(parent, &smenu_lvgl_class) ? (SMenu*)parent : NULL;
 }
 
+void smenu_reset(SMenu* instance) {
+    furi_check(instance);
+
+    lv_obj_clean(TO_LV_OBJ(instance));
+}
+
 /* LVGL Class Descriptor */
 
 const lv_obj_class_t smenu_lvgl_class = {

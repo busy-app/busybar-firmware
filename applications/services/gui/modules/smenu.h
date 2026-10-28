@@ -68,6 +68,15 @@ size_t smenu_get_selected_item_index(SMenu* instance);
  */
 SMenu* smenu_get_from_item(SMenuItem* item);
 
+/**
+ * @brief Remove all items from an SMenu instance.
+ *
+ * The menu instance itself, along with its settings, remains valid.
+ *
+ * @param[in,out] instance pointer to the SMenu instance to be modified
+ */
+void smenu_reset(SMenu* instance);
+
 #ifdef __cplusplus
 }
 #endif
