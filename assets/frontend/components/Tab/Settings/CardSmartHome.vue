@@ -168,29 +168,34 @@
     </template>
   </ModalGeneric>
 
-  <UModal
+  <ModalGeneric
     v-model:open="showRebootingModal"
     data-id="modal-rebooting"
-    title="Restarting BUSY Bar..."
-    description="Restarting BUSY Bar..."
-    :ui="{
-      content: 'max-w-90',
-      description: 'hidden',
-      header: 'hidden',
-      body: 'p-5 sm:p-5',
-      close: 'hidden'
-    }"
+    title="Restarting BUSY Bar"
+    wide
+    no-actions
+    :dismissible="false"
   >
     <template #body>
-      <div class="flex items-center gap-4 py-4">
-        <UIcon
-          name="i-busy-loader"
-          class="size-6 text-muted animate-spin"
-        />
-        <span>Restarting BUSY Bar...</span>
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-2.5">
+          <UIcon
+            name="i-bi-smart-home"
+            class="size-6 shrink-0"
+          />
+          <span>Removing smart home pairings</span>
+        </div>
+
+        <p class="text-muted">This may take a minute</p>
       </div>
+
+      <UProgress
+        :model-value="null"
+        size="lg"
+        color="success"
+      />
     </template>
-  </UModal>
+  </ModalGeneric>
 </template>
 
 <script setup lang="ts">
