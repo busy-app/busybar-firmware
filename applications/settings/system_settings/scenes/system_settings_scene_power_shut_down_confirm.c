@@ -61,6 +61,9 @@ static void system_settings_scene_shut_down_confirm_on_enter(void* context) {
         dialog_set_options(data->front_dialog, "Yes", "Cancel");
         dialog_set_options(data->back_dialog, "Yes", "Cancel");
 
+        dialog_select_option(data->front_dialog, 1);
+        dialog_select_option(data->back_dialog, 1);
+
         dialog_set_callback(
             data->front_dialog, system_settings_scene_power_shut_down_confirm_callback, instance);
     });
