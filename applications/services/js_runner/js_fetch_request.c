@@ -115,7 +115,7 @@ static jerry_value_t parse_request_url(jerry_value_t obj, FetchRequest* request)
             break;
         }
 
-        char* source_str = js_string_to_c_string(url_val);
+        char* source_str = js_value_to_c_string(url_val);
         jerry_value_free(url_val);
 
         if(source_str == NULL) {
@@ -156,7 +156,7 @@ static jerry_value_t parse_request_method(jerry_value_t obj, FetchRequest* reque
             break;
         }
 
-        char* method_str = js_string_to_c_string(method_val);
+        char* method_str = js_value_to_c_string(method_val);
         jerry_value_free(method_val);
 
         if(method_str == NULL) {
@@ -213,14 +213,13 @@ static bool parse_request_header(
 
     const jerry_value_t key = jerry_object_get_index(keys, index);
     const jerry_value_t value = jerry_object_get(values, key);
-    const jerry_value_t value_conv = jerry_value_to_string(value);
 
     char* key_string = NULL;
     char* value_string = NULL;
 
     do {
-        key_string = js_string_to_c_string(key);
-        value_string = js_string_to_c_string(value_conv);
+        key_string = js_value_to_c_string(key);
+        value_string = js_value_to_c_string(value);
 
         if((key_string == NULL) || (value_string == NULL)) {
             break;
@@ -259,7 +258,6 @@ static bool parse_request_header(
 
     jerry_value_free(key);
     jerry_value_free(value);
-    jerry_value_free(value_conv);
 
     return success;
 }
