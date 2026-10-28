@@ -78,7 +78,7 @@ static bool parse_request_header_value_is_valid(const char* value) {
     do {
         const size_t value_len = strlen(value);
         if(value_len == 0) {
-            is_valid = false;
+            // Empty values are valid
             break;
         }
 
