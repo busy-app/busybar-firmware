@@ -1,278 +1,18 @@
 #include "js_fetch.h"
 #include "js_readable_stream.h"
 #include "js_fetch_body_methods.h"
+#include "js_fetch_request.h"
 #include "js_headers.h"
 #include "js_request.h"
 #include "js_response.h"
-#include "js_fetch_ext_header.h"
 
 #include <fetch/fetch.h>
 #include <http/http_response.h>
 
-#define TAG                       "JsFetch"
-#define FETCH_THREAD_STACK_SIZE   (10 * 1024)
-#define JS_FETCH_HEADER_COUNT_MAX (FETCH_HEADERS_COUNT_MAX - 1)
+#define TAG                     "JsFetch"
+#define FETCH_THREAD_STACK_SIZE (10 * 1024)
 
 #define IS_RUNNING(child) (instance->child.status == ChildStatusRunning)
-
-typedef enum RequestParseResultType {
-    RequestParseResultTypeOk,
-    RequestParseResultTypeError,
-} RequestParseResultType;
-
-typedef struct RequestParseResult {
-    RequestParseResultType tag;
-    union {
-        FetchRequest request;
-        FuriString* error;
-    };
-} RequestParseResult;
-
-static void fetch_request_free(FetchRequest* request) {
-    if(request->url) {
-        free((void*)request->url);
-    }
-    if(request->method) {
-        free((void*)request->method);
-    }
-    for(size_t i = 0; i != request->headers.count; ++i) {
-        free((void*)request->headers.data[i]);
-    }
-    if(request->body.data) {
-        free((void*)request->body.data);
-    }
-}
-
-static void
-    parse_request_append_extra_header(FetchRequest* const request, const uint8_t header_index) {
-    const size_t extra_header_size =
-        sizeof(JS_FETCH_EXTRA_HEADER) + sizeof(JS_FETCH_EXTRA_VALUE) + 1;
-
-    char* extra_header = malloc(extra_header_size);
-    sprintf(extra_header, "%s: %s", JS_FETCH_EXTRA_HEADER, JS_FETCH_EXTRA_VALUE);
-    request->headers.data[header_index] = extra_header;
-}
-
-static inline bool parse_request_extra_header_present(const char* input) {
-    return strcasestr(input, JS_FETCH_EXTRA_HEADER) != NULL;
-}
-
-static bool parse_request_header_is_valid(const char* header, bool check_colon) {
-    if(header == NULL) return false;
-    while(*header) {
-        if(*header == '\r' || *header == '\n' || (check_colon && *header == ':')) {
-            return false;
-        }
-
-        header++;
-    }
-    return true;
-}
-
-static bool parse_request_url_is_valid(const char* url) {
-    static const char* const allowed_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                                             "abcdefghijklmnopqrstuvwxyz"
-                                             "0123456789"
-                                             "-._~"
-                                             ":/?#[]@"
-                                             "!$&'()*+,;="
-                                             "%";
-
-    size_t valid_len = strspn(url, allowed_chars);
-    return url[valid_len] == '\0';
-}
-
-static bool parse_request_method_is_valid(const char* method) {
-    static const char* const allowed_methods[] = {
-        "GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS", "CONNECT", "TRACE"};
-
-    for(uint8_t i = 0; i < COUNT_OF(allowed_methods); i++) {
-        if(strcasecmp(method, allowed_methods[i]) == 0) {
-            return true;
-        }
-    }
-    return false;
-}
-
-static RequestParseResult parse_request(jerry_value_t obj) {
-    furi_assert(js_is_instance_of(obj, "Request"));
-
-    FetchRequest request = {0};
-    RequestParseResult result;
-
-    do {
-        jerry_value_t url_val = jerry_object_get_sz(obj, "url");
-        if(jerry_value_is_exception(url_val)) {
-            result = (RequestParseResult){
-                .tag = RequestParseResultTypeError,
-                .error = js_get_exception_string(url_val),
-            };
-            jerry_value_free(url_val);
-            break;
-        }
-        request.url = js_string_to_c_string(url_val);
-        jerry_value_free(url_val);
-        if(!request.url) {
-            result = (RequestParseResult){
-                .tag = RequestParseResultTypeError,
-                .error = furi_string_alloc_set("URL is not a string"),
-            };
-            break;
-        }
-
-        if(!parse_request_url_is_valid(request.url)) {
-            result = (RequestParseResult){
-                .tag = RequestParseResultTypeError,
-                .error = furi_string_alloc_set("Invalid URL"),
-            };
-            break;
-        }
-        JS_TRACE("Fetch %s", request.url);
-
-        if(js_object_has_property(obj, "method")) {
-            jerry_value_t method_val = jerry_object_get_sz(obj, "method");
-            request.method = js_string_to_c_string(method_val);
-            jerry_value_free(method_val);
-            if(!request.method) {
-                result = (RequestParseResult){
-                    .tag = RequestParseResultTypeError,
-                    .error = furi_string_alloc_set("Method is not a string"),
-                };
-                break;
-            }
-
-            if(!parse_request_method_is_valid(request.method)) {
-                result = (RequestParseResult){
-                    .tag = RequestParseResultTypeError,
-                    .error = furi_string_alloc_set("Invalid method"),
-                };
-                break;
-            }
-        }
-
-        {
-            const char* const use_device_key_keys[] = {"dispatcher", "connect", "useDeviceKey"};
-            jerry_value_t use_device_key_val = js_object_get_nested_property(
-                obj, use_device_key_keys, COUNT_OF(use_device_key_keys));
-            if(jerry_value_is_exception(use_device_key_val)) {
-                result = (RequestParseResult){
-                    .tag = RequestParseResultTypeError,
-                    .error = js_get_exception_string(use_device_key_val),
-                };
-                jerry_value_free(use_device_key_val);
-                break;
-            }
-            if(jerry_value_to_boolean(use_device_key_val)) {
-                request.tls_config.client_cert_info.type = TlsClientCertTypeDevice;
-            }
-            jerry_value_free(use_device_key_val);
-        }
-
-        if(js_object_has_property(obj, "headers")) {
-            jerry_value_t headers_val = jerry_object_get_sz(obj, "headers");
-            // TODO instance of Headers
-            if(jerry_value_is_object(headers_val)) {
-                bool app_header_appended = false;
-                bool parse_error = false;
-                jerry_value_t keys = jerry_object_keys(headers_val);
-                size_t num_keys = jerry_array_length(keys);
-                size_t header_idx = 0;
-                for(size_t i = 0;
-                    i != num_keys && header_idx != JS_FETCH_HEADER_COUNT_MAX && !parse_error;
-                    ++i) {
-                    jerry_value_t key = jerry_object_get_index(keys, i);
-                    jerry_value_t value = jerry_object_get(headers_val, key);
-                    jerry_value_t value_conv = jerry_value_to_string(value);
-                    if(jerry_value_is_string(key) && jerry_value_is_string(value_conv)) {
-                        char* key_string = js_string_to_c_string(key);
-                        char* value_string = js_string_to_c_string(value_conv);
-                        if(!parse_request_header_is_valid(key_string, true) ||
-                           !parse_request_header_is_valid(value_string, false)) {
-                            result = (RequestParseResult){
-                                .tag = RequestParseResultTypeError,
-                                .error = furi_string_alloc_set("Invalid header"),
-                            };
-                            parse_error = true;
-                        } else if(parse_request_extra_header_present(key_string)) {
-                            if(!app_header_appended) {
-                                FURI_LOG_W(TAG, "%s header override", JS_FETCH_EXTRA_HEADER);
-                                parse_request_append_extra_header(&request, header_idx);
-                                app_header_appended = true;
-                                header_idx += 1;
-                            } else {
-                                FURI_LOG_W(TAG, "%s header duplication", JS_FETCH_EXTRA_HEADER);
-                            }
-                        } else {
-                            char* header_string =
-                                malloc(strlen(key_string) + 2 + strlen(value_string) + 1);
-                            sprintf(header_string, "%s: %s", key_string, value_string);
-                            request.headers.data[header_idx] = header_string;
-                            header_idx += 1;
-                        }
-
-                        free(key_string);
-                        free(value_string);
-                    }
-                    jerry_value_free(key);
-                    jerry_value_free(value);
-                    jerry_value_free(value_conv);
-                }
-                jerry_value_free(keys);
-
-                if(!app_header_appended && !parse_error) {
-                    parse_request_append_extra_header(&request, header_idx);
-                    header_idx += 1;
-                }
-
-                request.headers.count = header_idx;
-
-                if(parse_error) {
-                    jerry_value_free(headers_val);
-                    break;
-                }
-
-            } else {
-                result = (RequestParseResult){
-                    .tag = RequestParseResultTypeError,
-                    .error = furi_string_alloc_set("Headers is not an object"),
-                };
-                jerry_value_free(headers_val);
-                break;
-            }
-            jerry_value_free(headers_val);
-        } else {
-            parse_request_append_extra_header(&request, 0);
-            request.headers.count = 1;
-        }
-
-        if(js_object_has_property(obj, "body")) {
-            jerry_value_t body_val = jerry_object_get_sz(obj, "body");
-            // TODO handle many different cases
-            jerry_value_t body_str = jerry_value_to_string(body_val);
-            request.body.data = js_string_to_c_string(body_str);
-            furi_check(request.body.data); // okay to crash - body handling TODO
-            request.body.length = strlen(request.body.data);
-            jerry_value_free(body_str);
-            jerry_value_free(body_val);
-            if(!request.body.data) {
-                result = (RequestParseResult){
-                    .tag = RequestParseResultTypeError,
-                    .error = furi_string_alloc_set("Body is not a string"),
-                };
-                break;
-            }
-        }
-        result = (RequestParseResult){
-            .tag = RequestParseResultTypeOk,
-            .request = request,
-        };
-    } while(false);
-
-    if(result.tag == RequestParseResultTypeError) {
-        fetch_request_free(&request);
-    }
-    return result;
-}
 
 static void enqueue_fetch_event_data(
     JsFetch* instance,
@@ -371,7 +111,7 @@ static bool free_if_not_running(JsFetch* instance) {
         JS_TRACE("free");
         empty_event_queue(instance);
         DataEventQueue_clear(instance->chunk_queue);
-        fetch_request_free(&instance->request);
+        js_fetch_request_clear(&instance->request);
         free(instance);
 
         return true;
@@ -418,17 +158,18 @@ static jerry_value_t fetch(
         return js_rejected_promise_from_exception(request);
     }
 
-    RequestParseResult request_res = parse_request(request);
+    FetchRequest fetch_request = {0};
+    const jerry_value_t parse_result = js_fetch_request_parse(request, &fetch_request);
     jerry_value_free(request);
 
-    if(request_res.tag == RequestParseResultTypeError) {
-        jerry_value_t ret = js_rejected_promise(furi_string_get_cstr(request_res.error));
-        furi_string_free(request_res.error);
-        return ret;
+    if(jerry_value_is_exception(parse_result)) {
+        return js_rejected_promise_from_exception(parse_result);
     }
 
+    JS_TRACE("Fetch %s", fetch_request.url);
+
     JsFetch* instance = malloc(sizeof(JsFetch));
-    instance->request = request_res.request;
+    instance->request = fetch_request;
 
     instance->promise.promise = jerry_promise();
     instance->promise.status = ChildStatusRunning;

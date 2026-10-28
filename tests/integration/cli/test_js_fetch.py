@@ -249,8 +249,13 @@ class TestJSFetch:
 
     @allure.title("JavaScript cannot override the reserved fetch marker header.")
     @pytest.mark.parametrize(
-        "header_name",
-        ["X-busybar-fetch", "x-busybar-fetch", "X-BUSYBAR-FETCH", "  X-busybar-fetch"],
+        "header_name, expected_error",
+        [
+            ("X-busybar-fetch", ""),
+            ("x-busybar-fetch", ""),
+            ("X-BUSYBAR-FETCH", ""),
+            ("  X-busybar-fetch", "Invalid header"),
+        ],
         ids=["canonical", "lowercase", "uppercase", "lead_spaces"],
     )
     def test_reserved_marker_cannot_be_overridden(
@@ -258,23 +263,38 @@ class TestJSFetch:
         js_case_runner,
         http_server,
         header_name,
+        expected_error,
     ):
         case_name = f"reserved_marker_override_{header_name.strip(" ")}"
         url = json.dumps(http_server.url("/request"))
         headers = json.dumps({header_name: "untrusted"})
         body = dedent(
             f"""
-                const response = await fetch({url}, {{headers: {headers}}});
-                assert(response.status === 200, "status=" + response.status);
-                await response.text();
+                let error_message = "";
+                try {{
+                    const response = await fetch({url}, {{headers: {headers}}});
+                    assert(response.status === 200, "status=" + response.status);
+                    await response.text();
+                }} catch (error) {{
+                    error_message = String(error);
+                }}
+                assert(error_message === {json.dumps(expected_error)},
+                    "error=" + error_message);
             """
         ).strip()
 
         output = js_case_runner(case_name, body)
 
-        with allure.step("Verify the user value was replaced, not duplicated"):
-            captured = captured_request(http_server, output, "override request")
-            assert_js_fetch_header(captured)
+        if expected_error:
+            with allure.step("Verify an invalid header name sends no HTTP request"):
+                assert http_server.requests.empty(), (
+                    "host received a request with an invalid header name; "
+                    f"queue size={http_server.requests.qsize()}, output={output!r}"
+                )
+        else:
+            with allure.step("Verify the user value was replaced, not duplicated"):
+                captured = captured_request(http_server, output, "override request")
+                assert_js_fetch_header(captured)
 
     @allure.title("JavaScript fetch permits a colon in a header value.")
     def test_reserved_marker_value_allows_colon(self, js_case_runner, http_server):
@@ -317,25 +337,43 @@ class TestJSFetch:
 
         js_case_runner(case_name, body)
 
-    @allure.title("JavaScript fetch rejects a request-target containing CRLF.")
-    def test_url_with_http_request_line_rejects(self, js_case_runner):
-        case_name = "url_with_request_line_rejects"
-        url = "http://127.0.0.1/api/apps/list HTTP/1.0\r\n"
-        url += "X-busybar-fetch: spoofed\r\nX-junk:"
+    @allure.title("JavaScript fetch encodes CRLF in a URL without injecting headers.")
+    @pytest.mark.parametrize(
+        "request_target, encoded_target",
+        [
+            (
+                "/api/apps/list HTTP/1.0\r\n" "X-busybar-fetch: spoofed\r\nX-junk:",
+                "/api/apps/list%20HTTP/1.0%0D%0A"
+                "X-busybar-fetch:%20spoofed%0D%0AX-junk:",
+            ),
+            (
+                "/query?value=HTTP/1.0\r\n" "X-busybar-fetch: spoofed\r\nX-junk:",
+                "/query?value=HTTP/1.0%0D%0A" "X-busybar-fetch:%20spoofed%0D%0AX-junk:",
+            ),
+        ],
+        ids=["path", "query"],
+    )
+    def test_url_with_http_request_line_is_encoded(
+        self, js_case_runner, http_server, request_target, encoded_target
+    ):
+        case_name = "url_with_request_line_is_encoded"
+        url = json.dumps(http_server.url(request_target))
         body = dedent(
             f"""
-                let error_message = "";
-                try {{
-                    await fetch({json.dumps(url)});
-                }} catch (error) {{
-                    error_message = String(error);
-                }}
-                assert(error_message === "Invalid URL",
-                    "error=" + error_message);
+                const response = await fetch({url});
+                await response.text();
             """
         ).strip()
 
-        js_case_runner(case_name, body)
+        output = js_case_runner(case_name, body)
+
+        with allure.step("Verify the encoded target and trusted headers on the wire"):
+            captured = captured_request(http_server, output, "encoded URL request")
+            assert captured["method"] == "GET", f"captured={captured!r}"
+            assert captured["path"] == encoded_target, f"captured={captured!r}"
+            assert captured["body"] == b"", f"captured={captured!r}"
+            assert_js_fetch_header(captured)
+            assert "x-junk" not in captured["headers"], f"captured={captured!r}"
 
     @allure.title("JavaScript fetch rejects an HTTP request line as a method.")
     def test_method_with_http_request_line_rejects(self, js_case_runner):
@@ -360,23 +398,35 @@ class TestJSFetch:
 
     @allure.title("A spoofed JavaScript marker cannot authorize a local API request.")
     @pytest.mark.parametrize(
-        "header_name",
-        ["X-busybar-fetch", "x-busybar-fetch", "X-BUSYBAR-FETCH", "  X-busybar-fetch"],
+        "header_name, expected_error",
+        [
+            ("X-busybar-fetch", ""),
+            ("x-busybar-fetch", ""),
+            ("X-BUSYBAR-FETCH", ""),
+            ("  X-busybar-fetch", "Invalid header"),
+        ],
         ids=["canonical", "lowercase", "uppercase", "lead_spaces"],
     )
     def test_reserved_marker_does_not_authorize_local_api(
-        self, js_case_runner, header_name
+        self, js_case_runner, header_name, expected_error
     ):
         case_name = f"reserved_marker_local_api_{header_name.strip(' ')}"
         headers = json.dumps({header_name: "spoofed"})
         body = dedent(
             f"""
-                const response = await fetch(
-                    {json.dumps(LOCAL_API_URL + "/apps/list")},
-                    {{headers: {headers}}}
-                );
-                assert(response.status === 403, "status=" + response.status);
-                await response.text();
+                let error_message = "";
+                try {{
+                    const response = await fetch(
+                        {json.dumps(LOCAL_API_URL + "/apps/list")},
+                        {{headers: {headers}}}
+                    );
+                    assert(response.status === 403, "status=" + response.status);
+                    await response.text();
+                }} catch (error) {{
+                    error_message = String(error);
+                }}
+                assert(error_message === {json.dumps(expected_error)},
+                    "error=" + error_message);
             """
         ).strip()
 
