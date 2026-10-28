@@ -334,6 +334,11 @@ static jerry_value_t parse_request_body(jerry_value_t obj, FetchRequest* request
         }
 
         const jerry_value_t body_val = jerry_object_get_sz(obj, "body");
+        if(jerry_value_is_exception(body_val)) {
+            result = body_val;
+            break;
+        }
+
         const jerry_value_t body_val_str = jerry_value_to_string(body_val);
         jerry_value_free(body_val);
 
