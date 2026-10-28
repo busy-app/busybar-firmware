@@ -326,6 +326,8 @@ static JsAppLauncher* js_app_launcher_alloc(const char* arg) {
     instance->gui = furi_record_open(RECORD_GUI);
     instance->input_sequence_num = UINT32_MAX;
 
+    JsAppLauncherSceneSetupLevels_init(instance->setup_levels);
+
     furi_record_create(RECORD_JS_APP_LAUNCHER, instance);
 
     js_app_launcher_init_current_app(instance, arg);
@@ -363,6 +365,8 @@ static void js_app_launcher_free(JsAppLauncher* instance) {
     // TODO [FW-602]: scene_manager_free() MUST be called before
     //      all other free()s to avoid use-after-free.
     scene_manager_free(instance->scene_manager);
+
+    JsAppLauncherSceneSetupLevels_clear(instance->setup_levels);
 
     furi_event_loop_unsubscribe(instance->event_loop, instance->input_queue);
     furi_event_loop_unsubscribe(instance->event_loop, instance->event_queue);

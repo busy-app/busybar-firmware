@@ -1,84 +1,57 @@
 #include "../js_app_launcher_i.h"
 #include "js_app_launcher_scenes.h"
 
-#include <gui/modules/var_item_list.h>
+#include <gui/modules/smenu.h>
+#include <gui/modules/smenu_item_editable.h>
+#include <gui/modules/smenu_item_simple.h>
 
 typedef struct {
-    JsAppLauncher* instance;
-    const SettingProviderSetting* setting;
-    const JsAppSettingsNode* node;
-} JsAppLauncherSceneSetupItemContext;
+    SMenu* front_menu;
+    SMenu* back_menu;
 
-typedef struct {
-    VarItemList* front_list;
-    VarItemList* back_list;
-    JsAppLauncherSceneSetupItemContext* contexts;
+    _Atomic size_t pending_idx;
+
     FuriMutex* settings_mutex;
 } JsAppLauncherSceneSetup;
 
 typedef struct {
-    VarItem* (*build)(
-        VarItemList* list,
-        JsAppLauncherSceneSetupItemContext* context,
-        VarItemChangeCallback callback);
+    SMenuItem* (*build)(SMenu* menu, const SettingProviderSetting* setting);
     void (*store)(void* value, int32_t item_value);
-} JsAppLauncherSceneSetupItemEntry;
+} JsAppLauncherSceneSetupItemTypeApi;
 
-static const JsAppLauncherSceneSetupItemEntry js_app_launcher_scene_setup_items[];
+static const JsAppLauncherSceneSetupItemTypeApi js_app_launcher_scene_setup_item_type_apis[];
 
-static VarItem* js_app_launcher_scene_setup_build_bool(
-    VarItemList* list,
-    JsAppLauncherSceneSetupItemContext* context,
-    VarItemChangeCallback callback) {
-    const JsAppSettingsNode* node = context->node;
-    const bool* value = js_app_settings_storage_get_value(context->setting);
+static SMenuItem*
+    js_app_launcher_scene_setup_build_bool(SMenu* menu, const SettingProviderSetting* setting) {
+    const JsAppSettingsNode* node = js_app_settings_storage_get_node(setting);
 
-    VarItem* item = var_item_list_add_switch(list, node->label, callback, context);
-    var_item_set_value(item, *value);
+    SMenuItemEditable* item = smenu_item_editable_switch_alloc(smenu_get_base(menu));
+    smenu_item_editable_set_primary_text(item, node->label);
+    smenu_item_editable_set_value(item, *(bool*)js_app_settings_storage_get_value(setting));
 
-    return item;
+    return smenu_item_editable_get_base(item);
 }
 
-static VarItem* js_app_launcher_scene_setup_build_integer(
-    VarItemList* list,
-    JsAppLauncherSceneSetupItemContext* context,
-    VarItemChangeCallback callback) {
-    const JsAppSettingsNode* node = context->node;
+static SMenuItem*
+    js_app_launcher_scene_setup_build_integer(SMenu* menu, const SettingProviderSetting* setting) {
+    const JsAppSettingsNode* node = js_app_settings_storage_get_node(setting);
     const JsAppSettingsIntData* node_data = node->data;
-    const int* value = js_app_settings_storage_get_value(context->setting);
 
-    VarItem* item = var_item_list_add_spinbox(
-        list,
-        node->label,
+    SMenuItemEditable* item = smenu_item_editable_spinbox_alloc(
+        smenu_get_base(menu),
         NULL,
         node_data->min_value,
         node_data->max_value,
-        node_data->value_step,
-        callback,
-        context);
-    var_item_set_value(item, *value);
+        node_data->value_step);
+    smenu_item_editable_set_primary_text(item, node->label);
+    smenu_item_editable_set_value(item, *(int*)js_app_settings_storage_get_value(setting));
 
-    return item;
+    return smenu_item_editable_get_base(item);
 }
 
-static VarItem* js_app_launcher_scene_setup_build_string(
-    VarItemList* list,
-    JsAppLauncherSceneSetupItemContext* context,
-    VarItemChangeCallback callback) {
-    const JsAppSettingsNode* node = context->node;
-    const JsAppSettingsStringData* node_data = node->data;
-    const char* value =
-        node_data->is_sensitive ? "***" : js_app_settings_storage_get_value(context->setting);
-
-    return var_item_list_add_selector(
-        list, node->label, NULL, (const char*[]){value}, 1, callback, context);
-}
-
-static VarItem* js_app_launcher_scene_setup_build_enum(
-    VarItemList* list,
-    JsAppLauncherSceneSetupItemContext* context,
-    VarItemChangeCallback callback) {
-    const JsAppSettingsNode* node = context->node;
+static SMenuItem*
+    js_app_launcher_scene_setup_build_enum(SMenu* menu, const SettingProviderSetting* setting) {
+    const JsAppSettingsNode* node = js_app_settings_storage_get_node(setting);
     const JsAppSettingsEnumData* node_data = node->data;
 
     const char** labels = calloc(node_data->options_count, sizeof(*labels));
@@ -86,73 +59,85 @@ static VarItem* js_app_launcher_scene_setup_build_enum(
         labels[i] = node_data->options[i].label;
     }
 
-    VarItem* item = var_item_list_add_selector(
-        list, node->label, NULL, labels, node_data->options_count, callback, context);
+    SMenuItemEditable* item =
+        smenu_item_editable_selector_alloc(smenu_get_base(menu), labels, node_data->options_count);
 
     free(labels);
 
-    const int* index_value = js_app_settings_storage_get_value(context->setting);
-    var_item_set_value(item, *index_value);
+    smenu_item_editable_set_primary_text(item, node->label);
+    smenu_item_editable_set_value(item, *(int*)js_app_settings_storage_get_value(setting));
 
-    return item;
+    return smenu_item_editable_get_base(item);
 }
 
-static VarItem* js_app_launcher_scene_setup_build_color(
-    VarItemList* list,
-    JsAppLauncherSceneSetupItemContext* context,
-    VarItemChangeCallback callback) {
-    const JsAppSettingsNode* node = context->node;
-    FuriString* string = furi_string_alloc();
+static SMenuItem*
+    js_app_launcher_scene_setup_build_string(SMenu* menu, const SettingProviderSetting* setting) {
+    const JsAppSettingsNode* node = js_app_settings_storage_get_node(setting);
+    const JsAppSettingsStringData* node_data = node->data;
 
-    js_app_settings_color_format(js_app_settings_storage_get_value(context->setting), string);
-    VarItem* item = var_item_list_add_selector(
-        list,
-        node->label,
-        NULL,
-        (const char*[]){furi_string_get_cstr(string)},
-        1,
-        callback,
-        context);
+    SMenuItemSimple* item = smenu_item_simple_alloc(smenu_get_base(menu));
+    smenu_item_simple_set_primary_text(item, node->label);
+    smenu_item_simple_set_auxiliary_text(
+        item, node_data->is_sensitive ? "***" : js_app_settings_storage_get_value(setting));
+
+    return smenu_item_simple_get_base(item);
+}
+
+static SMenuItem*
+    js_app_launcher_scene_setup_build_color(SMenu* menu, const SettingProviderSetting* setting) {
+    const JsAppSettingsNode* node = js_app_settings_storage_get_node(setting);
+
+    FuriString* aux_text = furi_string_alloc();
+    js_app_settings_color_format(js_app_settings_storage_get_value(setting), aux_text);
+
+    SMenuItemSimple* item = smenu_item_simple_alloc(smenu_get_base(menu));
+    smenu_item_simple_set_primary_text(item, node->label);
+    smenu_item_simple_set_auxiliary_text(item, furi_string_get_cstr(aux_text));
+
+    furi_string_free(aux_text);
+
+    return smenu_item_simple_get_base(item);
+}
+
+static SMenuItem*
+    js_app_launcher_scene_setup_build_time(SMenu* menu, const SettingProviderSetting* setting) {
+    const JsAppSettingsNode* node = js_app_settings_storage_get_node(setting);
+
+    FuriString* string = furi_string_alloc();
+    js_app_settings_time_format(js_app_settings_storage_get_value(setting), string);
+
+    SMenuItemSimple* item = smenu_item_simple_alloc(smenu_get_base(menu));
+    smenu_item_simple_set_primary_text(item, node->label);
+    smenu_item_simple_set_auxiliary_text(item, furi_string_get_cstr(string));
 
     furi_string_free(string);
 
-    return item;
+    return smenu_item_simple_get_base(item);
 }
 
-static VarItem* js_app_launcher_scene_setup_build_time(
-    VarItemList* list,
-    JsAppLauncherSceneSetupItemContext* context,
-    VarItemChangeCallback callback) {
-    const JsAppSettingsNode* node = context->node;
-    FuriString* string = furi_string_alloc();
+static SMenuItem*
+    js_app_launcher_scene_setup_build_geo(SMenu* menu, const SettingProviderSetting* setting) {
+    const JsAppSettingsNode* node = js_app_settings_storage_get_node(setting);
 
-    js_app_settings_time_format(js_app_settings_storage_get_value(context->setting), string);
-    VarItem* item = var_item_list_add_selector(
-        list,
-        node->label,
-        NULL,
-        (const char*[]){furi_string_get_cstr(string)},
-        1,
-        callback,
-        context);
+    const JsAppSettingsGeoValue* value = js_app_settings_storage_get_value(setting);
+    const char* aux_text = (*value->name != '\0') ? value->name :
+                                                    js_app_settings_geo_mode_format(value->mode);
 
-    furi_string_free(string);
+    SMenuItemSimple* item = smenu_item_simple_alloc(smenu_get_base(menu));
+    smenu_item_simple_set_primary_text(item, node->label);
+    smenu_item_simple_set_auxiliary_text(item, aux_text);
 
-    return item;
+    return smenu_item_simple_get_base(item);
 }
 
-static VarItem* js_app_launcher_scene_setup_build_geo(
-    VarItemList* list,
-    JsAppLauncherSceneSetupItemContext* context,
-    VarItemChangeCallback callback) {
-    const JsAppSettingsNode* node = context->node;
+static SMenuItem*
+    js_app_launcher_scene_setup_build_group(SMenu* menu, const SettingProviderSetting* setting) {
+    const JsAppSettingsNode* node = js_app_settings_storage_get_node(setting);
 
-    const JsAppSettingsGeoValue* geo = js_app_settings_storage_get_value(context->setting);
-    const char* value = (*geo->name != '\0') ? geo->name :
-                                               js_app_settings_geo_mode_format(geo->mode);
+    SMenuItemSimple* item = smenu_item_simple_alloc(smenu_get_base(menu));
+    smenu_item_simple_set_primary_text(item, node->label);
 
-    return var_item_list_add_selector(
-        list, node->label, NULL, (const char*[]){value}, 1, callback, context);
+    return smenu_item_simple_get_base(item);
 }
 
 static void js_app_launcher_scene_setup_store_bool(void* value, int32_t item_value) {
@@ -163,187 +148,231 @@ static void js_app_launcher_scene_setup_store_integer(void* value, int32_t item_
     *(int*)value = item_value;
 }
 
-static void js_app_launcher_scene_setup_store_enum(void* value, int32_t item_value) {
-    *(int*)value = item_value;
-}
-
-static size_t js_app_launcher_scene_setup_count_items(
-    const SettingProviderSetting* settings,
-    size_t settings_count) {
-    size_t items_count = 0;
-
-    for(size_t i = 0; i < settings_count; i++) {
-        const SettingProviderSetting* setting = &settings[i];
-
-        if(setting->type == SettingProviderSettingTypeStruct) {
-            const SettingProviderStructInterface* interface = setting->interface;
-            items_count += js_app_launcher_scene_setup_count_items(
-                interface->inner_settings, interface->inner_settings_count);
-        } else {
-            items_count++;
-        }
-    }
-
-    return items_count;
-}
-
-static void js_app_launcher_scene_setup_add_items(
-    JsAppLauncher* instance,
-    VarItemList* list,
-    const SettingProviderSetting* settings,
-    size_t settings_count,
-    JsAppLauncherSceneSetupItemContext** contexts,
-    VarItemChangeCallback callback) {
-    for(size_t i = 0; i < settings_count; i++) {
-        const SettingProviderSetting* setting = &settings[i];
-
-        if(setting->type == SettingProviderSettingTypeStruct) {
-            const SettingProviderStructInterface* interface = setting->interface;
-            js_app_launcher_scene_setup_add_items(
-                instance,
-                list,
-                interface->inner_settings,
-                interface->inner_settings_count,
-                contexts,
-                callback);
-        } else {
-            const JsAppSettingsNode* node = js_app_settings_storage_get_node(setting);
-            const JsAppLauncherSceneSetupItemEntry* entry =
-                &js_app_launcher_scene_setup_items[node->type];
-
-            JsAppLauncherSceneSetupItemContext* item_context = (*contexts)++;
-            item_context->instance = instance;
-            item_context->setting = setting;
-            item_context->node = node;
-
-            entry->build(list, item_context, entry->store ? callback : NULL);
-        }
-    }
-}
-
-static void js_app_launcher_scene_setup_value_changed(VarItem* item, void* context) {
-    const JsAppLauncherSceneSetupItemContext* item_context = context;
-
-    JsAppLauncher* instance = item_context->instance;
+static void js_app_launcher_scene_setup_value_changed_callback(SMenuItem* item) {
+    JsAppLauncher* instance = widget_get_context(smenu_get_base(smenu_get_from_item(item)));
     JsAppLauncherSceneSetup* data =
         scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdSetup);
 
+    const SettingProviderSetting* setting = widget_get_context(smenu_item_get_base(item));
+    const JsAppSettingsNode* node = js_app_settings_storage_get_node(setting);
+
+    int32_t value = smenu_item_editable_get_value((SMenuItemEditable*)item);
+
     furi_mutex_acquire(data->settings_mutex, FuriWaitForever);
-    js_app_launcher_scene_setup_items[item_context->node->type].store(
-        js_app_settings_storage_get_value(item_context->setting), var_item_get_value(item));
+    js_app_launcher_scene_setup_item_type_apis[node->type].store(
+        js_app_settings_storage_get_value(setting), value);
     furi_mutex_release(data->settings_mutex);
 
     js_app_launcher_send_custom_event(instance, JsAppLauncherCustomEventSettingsChanged);
 }
 
-static void js_app_launcher_scene_setup_on_enter(void* context) {
-    furi_assert(context);
-    JsAppLauncher* instance = context;
-
+static void js_app_launcher_scene_setup_item_selected_callback(SMenuItem* item) {
+    JsAppLauncher* instance = widget_get_context(smenu_get_base(smenu_get_from_item(item)));
     JsAppLauncherSceneSetup* data =
         scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdSetup);
 
-    data->front_list = NULL;
-    data->back_list = NULL;
-    data->contexts = NULL;
+    data->pending_idx = smenu_get_selected_item_index(data->front_menu);
+
+    js_app_launcher_send_custom_event(instance, JsAppLauncherCustomEventSettingsItemSelected);
+}
+
+static void js_app_launcher_scene_setup_build_items(
+    SMenu* menu,
+    const SettingProviderSetting* settings,
+    size_t settings_count,
+    bool is_interactive) {
+    for(size_t i = 0; i < settings_count; i++) {
+        const SettingProviderSetting* setting = &settings[i];
+        const JsAppSettingsNode* node = js_app_settings_storage_get_node(setting);
+        const JsAppLauncherSceneSetupItemTypeApi* type_api =
+            &js_app_launcher_scene_setup_item_type_apis[node->type];
+
+        SMenuItem* item = type_api->build(menu, setting);
+
+        if(is_interactive) {
+            smenu_item_set_callback(
+                item,
+                type_api->store ? js_app_launcher_scene_setup_value_changed_callback :
+                                  js_app_launcher_scene_setup_item_selected_callback);
+            widget_set_context(smenu_item_get_base(item), (void*)setting);
+        }
+    }
+}
+
+static void js_app_launcher_scene_setup_rebuild_level(JsAppLauncher* instance) {
+    JsAppLauncherSceneSetup* data =
+        scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdSetup);
+
+    const JsAppLauncherSceneSetupLevel* level =
+        JsAppLauncherSceneSetupLevels_back(instance->setup_levels);
+
+    data->pending_idx = 0;
+
+    smenu_reset(data->front_menu);
+    smenu_reset(data->back_menu);
+
+    js_app_launcher_scene_setup_build_items(
+        data->front_menu, level->settings, level->settings_count, true);
+    js_app_launcher_scene_setup_build_items(
+        data->back_menu, level->settings, level->settings_count, false);
+
+    smenu_set_selected_item_index(data->front_menu, level->selected_idx);
+    smenu_set_selected_item_index(data->back_menu, level->selected_idx);
+}
+
+static void
+    js_app_launcher_scene_setup_raise_error(JsAppLauncher* instance, JsAppLauncherError error) {
+    instance->error = error;
+    JsAppLauncherSceneSetupLevels_reset(instance->setup_levels);
+    with_gui(instance->gui, { nav_bar_pop_location(instance->nav_bar); });
+    scene_manager_replace_current_scene(instance->scene_manager, JsAppLauncherSceneIdError);
+}
+
+static void js_app_launcher_scene_setup_on_enter(void* context) {
+    furi_assert(context);
+
+    JsAppLauncher* instance = context;
+    JsAppLauncherSceneSetup* data =
+        scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdSetup);
+
+    data->front_menu = NULL;
+    data->back_menu = NULL;
     data->settings_mutex = furi_mutex_alloc(FuriMutexTypeNormal);
 
     do {
         if(!instance->settings_storage) {
-            instance->error = JsAppLauncherErrorSettingsSchemaMissing;
-            scene_manager_replace_current_scene(
-                instance->scene_manager, JsAppLauncherSceneIdError);
+            js_app_launcher_scene_setup_raise_error(
+                instance, JsAppLauncherErrorSettingsSchemaMissing);
             break;
         }
 
         if(!js_app_settings_storage_load(instance->settings_storage)) {
-            instance->error = JsAppLauncherErrorSettingsLoadFailed;
-            scene_manager_replace_current_scene(
-                instance->scene_manager, JsAppLauncherSceneIdError);
+            js_app_launcher_scene_setup_raise_error(
+                instance, JsAppLauncherErrorSettingsLoadFailed);
             break;
         }
 
-        with_gui(instance->gui, {
+        if(JsAppLauncherSceneSetupLevels_size(instance->setup_levels) == 0) {
             const SettingProviderSetting* root =
                 js_app_settings_storage_get_root(instance->settings_storage);
             const SettingProviderStructInterface* interface = root->interface;
 
-            data->front_list = var_item_list_alloc(instance->front_window);
-            data->back_list = var_item_list_alloc(instance->back_window);
+            JsAppLauncherSceneSetupLevels_push_back(
+                instance->setup_levels,
+                (JsAppLauncherSceneSetupLevel){
+                    .settings = interface->inner_settings,
+                    .settings_count = interface->inner_settings_count,
+                    .selected_idx = 0,
+                });
+        }
 
-            data->contexts = calloc(
-                js_app_launcher_scene_setup_count_items(
-                    interface->inner_settings, interface->inner_settings_count),
-                sizeof(*data->contexts));
+        with_gui(instance->gui, {
+            data->front_menu = smenu_alloc(instance->front_window, true);
+            widget_set_context(smenu_get_base(data->front_menu), instance);
 
-            js_app_launcher_scene_setup_add_items(
-                instance,
-                data->front_list,
-                interface->inner_settings,
-                interface->inner_settings_count,
-                &(JsAppLauncherSceneSetupItemContext*){data->contexts},
-                js_app_launcher_scene_setup_value_changed);
+            data->back_menu = smenu_alloc(instance->back_window, false);
+            widget_set_context(smenu_get_base(data->back_menu), instance);
 
-            js_app_launcher_scene_setup_add_items(
-                instance,
-                data->back_list,
-                interface->inner_settings,
-                interface->inner_settings_count,
-                &(JsAppLauncherSceneSetupItemContext*){data->contexts},
-                NULL);
-
-            widget_set_scrollbar_enabled(var_item_list_get_base(data->front_list), true);
-            widget_set_scrollbar_enabled(var_item_list_get_base(data->back_list), true);
+            js_app_launcher_scene_setup_rebuild_level(instance);
         });
     } while(false);
 }
 
 static void js_app_launcher_scene_setup_on_exit(void* context) {
     furi_assert(context);
-    JsAppLauncher* instance = context;
 
+    JsAppLauncher* instance = context;
     JsAppLauncherSceneSetup* data =
         scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdSetup);
 
     with_gui(instance->gui, {
-        nav_bar_pop_location(instance->nav_bar);
-
-        if(data->front_list) {
-            var_item_list_free(data->front_list);
+        if(data->front_menu) {
+            smenu_free(data->front_menu);
         }
 
-        if(data->back_list) {
-            var_item_list_free(data->back_list);
+        if(data->back_menu) {
+            smenu_free(data->back_menu);
         }
     });
 
-    free(data->contexts);
-
     furi_mutex_free(data->settings_mutex);
+}
+
+static bool js_app_launcher_scene_setup_on_settings_changed(JsAppLauncher* instance) {
+    JsAppLauncherSceneSetup* data =
+        scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdSetup);
+
+    furi_mutex_acquire(data->settings_mutex, FuriWaitForever);
+    js_app_settings_storage_save(instance->settings_storage);
+    furi_mutex_release(data->settings_mutex);
+
+    return true;
+}
+
+static bool js_app_launcher_scene_setup_on_item_selected(JsAppLauncher* instance) {
+    JsAppLauncherSceneSetup* data =
+        scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdSetup);
+    JsAppLauncherSceneSetupLevel* level =
+        JsAppLauncherSceneSetupLevels_back(instance->setup_levels);
+
+    size_t setting_idx = data->pending_idx;
+    if(setting_idx < level->settings_count) {
+        level->selected_idx = setting_idx;
+        const SettingProviderSetting* setting = &level->settings[setting_idx];
+
+        if(setting->type == SettingProviderSettingTypeStruct) {
+            const SettingProviderStructInterface* interface = setting->interface;
+
+            JsAppLauncherSceneSetupLevels_push_back(
+                instance->setup_levels,
+                (JsAppLauncherSceneSetupLevel){
+                    .settings = interface->inner_settings,
+                    .settings_count = interface->inner_settings_count,
+                    .selected_idx = 0,
+                });
+
+            with_gui(instance->gui, { js_app_launcher_scene_setup_rebuild_level(instance); });
+        } else {
+            scene_manager_next_scene(instance->scene_manager, JsAppLauncherSceneIdWebSetup);
+        }
+    }
+
+    return true;
+}
+
+static bool js_app_launcher_scene_setup_on_back(JsAppLauncher* instance) {
+    JsAppLauncherSceneSetupLevels_pop_back(NULL, instance->setup_levels);
+
+    bool is_consumed = false;
+    if(JsAppLauncherSceneSetupLevels_size(instance->setup_levels) > 0) {
+        with_gui(instance->gui, { js_app_launcher_scene_setup_rebuild_level(instance); });
+
+        is_consumed = true;
+    } else {
+        with_gui(instance->gui, { nav_bar_pop_location(instance->nav_bar); });
+    }
+
+    return is_consumed;
 }
 
 static bool js_app_launcher_scene_setup_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
 
-    bool consumed = false;
-
     JsAppLauncher* instance = context;
 
+    bool is_consumed = false;
     if(event->type == SceneManagerEventTypeCustom) {
         if(event->event == JsAppLauncherCustomEventSettingsChanged) {
-            JsAppLauncherSceneSetup* data =
-                scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdSetup);
-
-            furi_mutex_acquire(data->settings_mutex, FuriWaitForever);
-            js_app_settings_storage_save(instance->settings_storage);
-            furi_mutex_release(data->settings_mutex);
-
-            consumed = true;
+            is_consumed = js_app_launcher_scene_setup_on_settings_changed(instance);
+        } else if(event->event == JsAppLauncherCustomEventSettingsItemSelected) {
+            is_consumed = js_app_launcher_scene_setup_on_item_selected(instance);
         }
+    } else if(event->type == SceneManagerEventTypeBack) {
+        is_consumed = js_app_launcher_scene_setup_on_back(instance);
     }
 
-    return consumed;
+    return is_consumed;
 }
 
 const Scene js_app_launcher_scene_setup = {
@@ -353,7 +382,7 @@ const Scene js_app_launcher_scene_setup = {
     .event_callback = js_app_launcher_scene_setup_on_event,
 };
 
-static const JsAppLauncherSceneSetupItemEntry js_app_launcher_scene_setup_items[] = {
+static const JsAppLauncherSceneSetupItemTypeApi js_app_launcher_scene_setup_item_type_apis[] = {
     [JsAppSettingsNodeTypeBool] =
         {
             .build = js_app_launcher_scene_setup_build_bool,
@@ -372,7 +401,7 @@ static const JsAppLauncherSceneSetupItemEntry js_app_launcher_scene_setup_items[
     [JsAppSettingsNodeTypeEnum] =
         {
             .build = js_app_launcher_scene_setup_build_enum,
-            .store = js_app_launcher_scene_setup_store_enum,
+            .store = js_app_launcher_scene_setup_store_integer,
         },
     [JsAppSettingsNodeTypeColor] =
         {
@@ -391,9 +420,9 @@ static const JsAppLauncherSceneSetupItemEntry js_app_launcher_scene_setup_items[
         },
     [JsAppSettingsNodeTypeGroup] =
         {
-            .build = NULL,
+            .build = js_app_launcher_scene_setup_build_group,
             .store = NULL,
         },
 };
 
-static_assert(COUNT_OF(js_app_launcher_scene_setup_items) == JsAppSettingsNodeTypesCount);
+static_assert(COUNT_OF(js_app_launcher_scene_setup_item_type_apis) == JsAppSettingsNodeTypesCount);
