@@ -1,7 +1,7 @@
 #include "interface_v1.h"
 
 static const LowPowerMode default_sleep_mode = LowPowerModeSleepAfterHoldoff;
-#define DEFAULT_SLEEP_HOLDOFF_DURATION 10000
+#define DEFAULT_SLEEP_HOLDOFF_DURATION 60000
 
 static bool
     low_power_v1_is_sleep_holdoff_duration_valid(const SettingProviderSetting* setting, int value) {

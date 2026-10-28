@@ -435,4 +435,4 @@ schemas:
         type: number
         description: "Sleep holdoff duration (in milliseconds). The number of milliseconds that passes in between the mode switch being moved to the OFF position, and the sleep mode actually activating. Only relevant if `mode` is `after_holdoff`."
         example: 30000
-        default: 10000
+        default: 60000
