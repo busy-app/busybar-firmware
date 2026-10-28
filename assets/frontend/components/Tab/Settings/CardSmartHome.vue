@@ -4,91 +4,99 @@
     icon="i-bi-smart-home"
     title="Smart home"
   >
-    <div
-      data-id="settings-section-matter"
-      class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-2"
-    >
-      <div class="grow min-w-0 flex flex-col gap-1">
-        <div class="flex items-center gap-2">
-          <UIcon
-            name="i-bi-logo-matter"
-            class="size-6 shrink-0"
-          />
-          <span class="truncate">Matter</span>
-        </div>
-        <p
-          v-if="matterStore.matterCommissioning.fabricCount > 0"
-          class="text-sm text-muted"
+    <template #raw-body>
+      <div class="flex flex-col gap-1 rounded-group">
+        <div
+          data-id="settings-section-matter"
+          class="bg-accented/25 dark:bg-elevated/75 p-4 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-2"
         >
-          {{ matterStore.matterCommissioning.fabricCount }} connections
-        </p>
-      </div>
-      <div class="flex flex-col sm:flex-row gap-2">
-        <UButton
-          v-if="matterStore.matterCommissioning.fabricCount > 0"
-          label="Forget all pairings"
-          variant="outline"
-          color="neutral"
-          class="rounded-full justify-center"
-          @click="() => { showMatterDeleteModal = true; }"
-        />
-        <UButton
-          label="Pair device"
-          icon="i-bi-plus"
-          class="rounded-full justify-center"
-          @click="matterStore.requestMatterLink()"
-        />
-      </div>
-    </div>
+          <div class="grow min-w-0 flex flex-col gap-1">
+            <div class="flex items-center gap-2">
+              <UIcon
+                name="i-bi-logo-matter"
+                class="size-6 shrink-0"
+              />
+              <span class="truncate">Matter</span>
+            </div>
+            <p
+              v-if="matterStore.matterCommissioning.fabricCount > 0"
+              class="text-sm text-muted"
+            >
+              {{ matterStore.matterCommissioning.fabricCount }} connections
+            </p>
+          </div>
+          <div class="flex flex-col sm:flex-row gap-2">
+            <UButton
+              v-if="matterStore.matterCommissioning.fabricCount > 0"
+              label="Forget all pairings"
+              variant="outline"
+              color="neutral"
+              class="rounded-full justify-center"
+              @click="() => { showMatterDeleteModal = true; }"
+            />
+            <UButton
+              label="Pair device"
+              icon="i-bi-plus"
+              class="rounded-full justify-center"
+              @click="matterStore.requestMatterLink()"
+            />
+          </div>
+        </div>
 
-    <UButton
-      v-if="accessTokensStore.tokens.length > 0"
-      data-id="settings-section-home-assistant-open"
-      variant="ghost"
-      color="neutral"
-      trailing-icon="i-bi-chevron-right"
-      class="-m-4 p-4 w-[calc(100%+2rem)] gap-2 rounded-[inherit] text-base font-normal text-left"
-      :ui="{ trailingIcon: 'size-6 text-muted' }"
-      @click="emit('openHomeAssistant')"
-    >
-      <span class="grow min-w-0 flex flex-col gap-1">
-        <span class="flex items-center gap-2">
-          <UIcon
-            name="i-bi-logo-home-assistant"
-            class="size-6 shrink-0"
-          />
-          <span class="truncate">Home Assistant</span>
-        </span>
-        <span class="text-sm text-muted">
-          {{ accessTokensStore.tokens.length }} {{ accessTokensStore.tokens.length === 1 ? 'token' : 'tokens' }}
-        </span>
-      </span>
-    </UButton>
-    <div
-      v-else
-      data-id="settings-section-home-assistant"
-      class="min-h-9 flex flex-wrap items-center gap-2"
-    >
-      <div class="grow flex items-center gap-2">
-        <UIcon
-          name="i-bi-logo-home-assistant"
-          class="size-6 shrink-0"
-        />
-        <span class="whitespace-nowrap">Home Assistant</span>
+        <div
+          v-if="accessTokensStore.tokens.length > 0"
+          class="bg-accented/25 dark:bg-elevated/75 overflow-hidden"
+        >
+          <UButton
+            data-id="settings-section-home-assistant-open"
+            variant="ghost"
+            color="neutral"
+            trailing-icon="i-bi-chevron-right"
+            class="w-full p-4 gap-2 rounded-none text-base font-normal text-left"
+            :ui="{ trailingIcon: 'size-6 text-muted' }"
+            @click="emit('openHomeAssistant')"
+          >
+            <span class="grow min-w-0 flex flex-col gap-1">
+              <span class="flex items-center gap-2">
+                <UIcon
+                  name="i-bi-logo-home-assistant"
+                  class="size-6 shrink-0"
+                />
+                <span class="truncate">Home Assistant</span>
+              </span>
+              <span class="text-sm text-muted">
+                {{ accessTokensStore.tokens.length }} {{ accessTokensStore.tokens.length === 1 ? 'token' : 'tokens' }}
+              </span>
+            </span>
+          </UButton>
+        </div>
+        <div
+          v-else
+          data-id="settings-section-home-assistant"
+          class="bg-accented/25 dark:bg-elevated/75 p-4 flex flex-wrap items-center gap-2"
+        >
+          <div class="min-h-9 grow flex items-center gap-2">
+            <UIcon
+              name="i-bi-logo-home-assistant"
+              class="size-6 shrink-0"
+            />
+            <span class="whitespace-nowrap">Home Assistant</span>
+          </div>
+          <UButton
+            variant="link"
+            class="p-0 gap-1 shrink-0 whitespace-nowrap"
+            :href="appConfig.links.homeAssistantDocs"
+            target="_blank"
+          >
+            <span class="underline">How to connect</span>
+            <UIcon
+              name="i-bi-open-in-new"
+              class="size-4"
+            />
+          </UButton>
+        </div>
       </div>
-      <UButton
-        variant="link"
-        class="p-0 gap-1 shrink-0 whitespace-nowrap"
-        :href="appConfig.links.homeAssistantDocs"
-        target="_blank"
-      >
-        <span class="underline">How to connect</span>
-        <UIcon
-          name="i-bi-open-in-new"
-          class="size-4"
-        />
-      </UButton>
-    </div>
+    </template>
   </SectionCard>
 
   <ModalGeneric
@@ -115,7 +123,7 @@
           width="184"
           height="184"
           aria-label="Matter QR code"
-          class="size-[184px] bg-white rounded-xl mb-6"
+          class="size-46 bg-white rounded-xl mb-6"
         />
 
         <p>Or enter the code in your smart home app</p>
@@ -166,7 +174,7 @@
     title="Restarting BUSY Bar..."
     description="Restarting BUSY Bar..."
     :ui="{
-      content: 'max-w-[360px]',
+      content: 'max-w-90',
       description: 'hidden',
       header: 'hidden',
       body: 'p-5 sm:p-5',
