@@ -200,6 +200,9 @@ const emit = defineEmits<{
   openHomeAssistant: [];
 }>();
 
+const REBOOT_TIMEOUT_MS = 60_000;
+let rebootTimeout: ReturnType<typeof setTimeout> | null = null;
+
 const matterStore = useMatterStore();
 const accessTokensStore = useAccessTokensStore();
 const colorMode = useColorMode();
@@ -231,14 +234,29 @@ function onMatterLinkModalClose () {
   return matterStore.fetchMatterCommissioning();
 }
 
+function clearRebootTimeout () {
+  if (rebootTimeout) {
+    clearTimeout(rebootTimeout);
+    rebootTimeout = null;
+  }
+}
+
 async function deleteMatterPairings () {
-  await matterStore.deleteAllPairings();
+  const erased = await matterStore.deleteAllPairings();
   showMatterDeleteModal.value = false;
+
+  if (!erased) {
+    return;
+  }
+
   showRebootingModal.value = true;
+  rebootTimeout = setTimeout(init, REBOOT_TIMEOUT_MS);
 }
 
 async function init () {
+  clearRebootTimeout();
   showRebootingModal.value = false;
+
   await Promise.all([
     matterStore.fetchMatterCommissioning(),
     accessTokensStore.fetchTokens()
@@ -272,5 +290,8 @@ onMounted(async () => {
   window.addEventListener('device-reconnected', init);
 });
 
-onBeforeUnmount(() => window.removeEventListener('device-reconnected', init));
+onBeforeUnmount(() => {
+  window.removeEventListener('device-reconnected', init);
+  clearRebootTimeout();
+});
 </script>
