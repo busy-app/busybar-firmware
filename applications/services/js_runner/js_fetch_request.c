@@ -159,13 +159,16 @@ static jerry_value_t parse_request_method(jerry_value_t obj, FetchRequest* reque
             break;
         }
 
-        char* method_str = js_value_to_c_string(method_val);
+        const jerry_value_t method_str_val = jerry_value_to_string(method_val);
         jerry_value_free(method_val);
 
-        if(method_str == NULL) {
-            result = parse_request_throw_error("Method is not a string");
+        if(jerry_value_is_exception(method_str_val)) {
+            result = method_str_val;
             break;
         }
+
+        char* method_str = js_value_to_c_string(method_val);
+        jerry_value_free(method_str_val);
 
         if(!http_method_is_valid(method_str)) {
             result = parse_request_throw_error("Invalid method");
