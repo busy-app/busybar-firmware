@@ -424,7 +424,7 @@ A long press of the Back button is handled outside of the application and is use
                     "type": "integer",
                     "minimum": 1,
                     "default": 1,
-                    "description": "Value increment in the UI (max - min must be evenly divisible by step)"
+                    "description": "Value increment in the UI"
                 }
             },
             "required": ["default"]
