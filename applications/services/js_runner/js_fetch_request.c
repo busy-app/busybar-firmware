@@ -2,6 +2,9 @@
 
 #include <core/check.h>
 
+#include <ctype.h>
+#include <string.h>
+
 #include <toolbox/url.h>
 #include <http/http_method.h>
 
@@ -11,6 +14,8 @@
 #define TAG "JsFetchRequest"
 
 #define JS_FETCH_HEADER_COUNT_MAX (FETCH_HEADERS_COUNT_MAX - 1)
+
+#define JS_FETCH_HEADER_KEY_TOKEN_CHARS "!#$%&'*+-.^_`|~"
 
 typedef jerry_value_t (*ParseRequestStep)(jerry_value_t obj, FetchRequest* request);
 
@@ -40,16 +45,63 @@ static inline bool parse_request_extra_header_present(const char* input) {
     return strcasestr(input, JS_FETCH_EXTRA_HEADER) != NULL;
 }
 
-static bool parse_request_header_is_valid(const char* header, bool check_colon) {
-    if(header == NULL) return false;
-    while(*header) {
-        if(*header == '\r' || *header == '\n' || (check_colon && *header == ':')) {
-            return false;
+static bool parse_request_header_key_is_valid(const char* key) {
+    bool is_valid = true;
+
+    do {
+        const size_t key_len = strlen(key);
+        if(key_len == 0) {
+            is_valid = false;
+            break;
         }
 
-        header++;
-    }
-    return true;
+        for(size_t i = 0; i < key_len; ++i) {
+            const unsigned char c = key[i];
+            if((c > 0x7F) ||
+               (!isalnum(c) && (strchr(JS_FETCH_HEADER_KEY_TOKEN_CHARS, c) == NULL))) {
+                is_valid = false;
+                break;
+            }
+        }
+    } while(false);
+
+    return is_valid;
+}
+
+static inline bool is_whitespace(unsigned char c) {
+    return (c <= 0x7F) && isspace(c);
+}
+
+static bool parse_request_header_value_is_valid(const char* value) {
+    bool is_valid = true;
+
+    do {
+        const size_t value_len = strlen(value);
+        if(value_len == 0) {
+            is_valid = false;
+            break;
+        }
+
+        if(is_whitespace(value[0])) {
+            is_valid = false;
+            break;
+        }
+
+        if(is_whitespace(value[value_len - 1])) {
+            is_valid = false;
+            break;
+        }
+
+        for(size_t i = 0; i < value_len; ++i) {
+            const unsigned char c = value[i];
+            if((c > 0x7F) || !isprint(c)) {
+                is_valid = false;
+                break;
+            }
+        }
+    } while(false);
+
+    return is_valid;
 }
 
 static jerry_value_t parse_request_url(jerry_value_t obj, FetchRequest* request) {
@@ -174,8 +226,11 @@ static bool parse_request_header(
             break;
         }
 
-        if(!parse_request_header_is_valid(key_string, true) ||
-           !parse_request_header_is_valid(value_string, false)) {
+        if(!parse_request_header_key_is_valid(key_string)) {
+            break;
+        }
+
+        if(!parse_request_header_value_is_valid(value_string)) {
             break;
         }
 
