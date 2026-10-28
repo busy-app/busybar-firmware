@@ -32,12 +32,14 @@ static void js_console_cb(
     static const char* const preamble[] = {
         [JsRunnerConsoleSeverityLog] = "",
         [JsRunnerConsoleSeverityError] = "\x1b[1;31m",
-        [JsRunnerConsoleSeverityInfo] = "\x1b[1;33m",
+        [JsRunnerConsoleSeverityInfo] = "\x1b[1;32m",
+        [JsRunnerConsoleSeverityWarn] = "\x1b[1;33m",
     };
     static const char* const postamble[] = {
         [JsRunnerConsoleSeverityLog] = "",
         [JsRunnerConsoleSeverityError] = "\x1b[0m",
         [JsRunnerConsoleSeverityInfo] = "\x1b[0m",
+        [JsRunnerConsoleSeverityWarn] = "\x1b[0m",
     };
     pipe_send(pipe, preamble[severity], strlen(preamble[severity]));
     pipe_send(pipe, buf, size);

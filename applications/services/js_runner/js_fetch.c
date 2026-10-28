@@ -680,6 +680,11 @@ bool js_fetch_set_data_sink(
         instance->sink.status = ChildStatusDone;
         free_if_not_running(instance);
         return true;
+    } else if(instance->sink.status == ChildStatusNotYet && !callback) {
+        JS_TRACE("no interest in data");
+        instance->sink.status = ChildStatusDone;
+        free_if_not_running(instance);
+        return true;
     }
     return false;
 }

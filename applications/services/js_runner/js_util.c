@@ -167,7 +167,9 @@ bool js_is_instance_of(jerry_value_t obj, const char* constructor_name) {
     jerry_value_t constructor = jerry_object_get_sz(global_obj, constructor_name);
     bool result = false;
     if(!jerry_value_is_exception(constructor)) {
-        result = jerry_binary_op(JERRY_BIN_OP_INSTANCEOF, obj, constructor);
+        jerry_value_t op_result = jerry_binary_op(JERRY_BIN_OP_INSTANCEOF, obj, constructor);
+        result = jerry_value_is_true(op_result);
+        jerry_value_free(op_result);
     }
     jerry_value_free(constructor);
     jerry_value_free(global_obj);
