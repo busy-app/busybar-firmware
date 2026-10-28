@@ -149,6 +149,18 @@ CliAnsiParserResult cli_ansi_parser_feed(CliAnsiParser* parser, char c);
  */
 CliAnsiParserResult cli_ansi_parser_feed_timeout(CliAnsiParser* parser);
 
+/**
+ * @brief Determines the number of visible characters in the given string
+ * 
+ * Rejects ANSI escape sequences, UTF-8 extensions and ASCII non-printable
+ * characters.
+ * 
+ * @param[in] string C-string to calculate the number of printable characters in
+ * 
+ * @returns The number of printable characters 
+ */
+size_t cli_ansi_printable_strlen(const char* string);
+
 #ifdef __cplusplus
 }
 #endif

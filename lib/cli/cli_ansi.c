@@ -121,3 +121,34 @@ CliAnsiParserResult cli_ansi_parser_feed_timeout(CliAnsiParser* parser) {
     parser->state = CliAnsiParserStateInitial;
     return result;
 }
+
+size_t cli_ansi_printable_strlen(const char* string) {
+    size_t count = 0;
+
+    bool inside_escape_sequence = false;
+    char seen_history[3] = {0};
+    while((seen_history[2] = *string++)) {
+        seen_history[0] = seen_history[1];
+        seen_history[1] = seen_history[2];
+        seen_history[2] = '\0';
+        char c = seen_history[1];
+
+        if(strcmp(seen_history, "\e[") == 0) {
+            inside_escape_sequence = true;
+            continue;
+        }
+        bool escape_sequence_terminator = (c >= 0x40) && (c <= 0x7e);
+        if(inside_escape_sequence && escape_sequence_terminator) {
+            inside_escape_sequence = false;
+            continue;
+        }
+        if(inside_escape_sequence) continue;
+
+        if(c >= 128) continue; // UTF-8 extension
+        if(c < ' ') continue; // ASCII non-printable
+
+        count++;
+    }
+
+    return count;
+}
