@@ -158,14 +158,14 @@ static void low_power_sleep_api_message_received(FuriEventLoopObject* object, vo
     furi_assert(instance);
     furi_assert(object == instance->api_queue);
 
-    LowPowerApiMessage* message;
+    LowPowerApiMessage message;
     furi_check(
         furi_message_queue_get(instance->api_queue, &message, FuriWaitForever) == FuriStatusOk);
 
-    if(message->type == LowPowerApiMessageTypeLock) {
-        furi_check(message->lock_select > 0);
-        if(message->lock_select & LowPowerLockSelectStandby) instance->standby_lock_count++;
-        if(message->lock_select & LowPowerLockSelectSleep) instance->sleep_lock_count++;
+    if(message.type == LowPowerApiMessageTypeLock) {
+        furi_check(message.lock_select > 0);
+        if(message.lock_select & LowPowerLockSelectStandby) instance->standby_lock_count++;
+        if(message.lock_select & LowPowerLockSelectSleep) instance->sleep_lock_count++;
 
         if(instance->standby_lock_count > 0) {
             low_power_exit_standby(instance);
@@ -174,13 +174,13 @@ static void low_power_sleep_api_message_received(FuriEventLoopObject* object, vo
             low_power_update_sleep_timer(instance, LowPowerConditionLockActivated);
         }
 
-    } else if(message->type == LowPowerApiMessageTypeUnlock) {
-        furi_check(message->lock_select > 0);
-        if((message->lock_select & LowPowerLockSelectStandby) &&
+    } else if(message.type == LowPowerApiMessageTypeUnlock) {
+        furi_check(message.lock_select > 0);
+        if((message.lock_select & LowPowerLockSelectStandby) &&
            (instance->standby_lock_count > 0)) {
             instance->standby_lock_count--;
         }
-        if((message->lock_select & LowPowerLockSelectSleep) && (instance->sleep_lock_count > 0)) {
+        if((message.lock_select & LowPowerLockSelectSleep) && (instance->sleep_lock_count > 0)) {
             instance->sleep_lock_count--;
         }
 
@@ -191,11 +191,13 @@ static void low_power_sleep_api_message_received(FuriEventLoopObject* object, vo
             low_power_update_sleep_timer(instance, LowPowerConditionLockDeactivated);
         }
 
-    } else if(message->type == LowPowerApiMessageTypeGetSleepSettings) {
-        *message->sleep_settings = instance->settings.sleep;
+    } else if(message.type == LowPowerApiMessageTypeGetSleepSettings) {
+        furi_check(message.api_lock);
+        *message.sleep_settings = instance->settings.sleep;
 
-    } else if(message->type == LowPowerApiMessageTypeSetSleepSettings) {
-        instance->settings.sleep = *message->sleep_settings;
+    } else if(message.type == LowPowerApiMessageTypeSetSleepSettings) {
+        furi_check(message.api_lock);
+        instance->settings.sleep = *message.sleep_settings;
         instance->settings_dirty = true;
         low_power_update_sleep_timer(instance, LowPowerConditionSettingsUpdated);
         furi_event_loop_timer_start(instance->setting_save_timer, SETTINGS_SAVE_DELAY_MS);
@@ -204,39 +206,50 @@ static void low_power_sleep_api_message_received(FuriEventLoopObject* object, vo
         furi_crash("Invalid LowPowerApiMessage value");
     }
 
-    api_lock_unlock(message->api_lock);
+    if(message.api_lock) {
+        api_lock_unlock(message.api_lock);
+    }
 }
 
-static void low_power_send_api_message(LowPower* instance, LowPowerApiMessage* message) {
-    message->api_lock = api_lock_alloc_locked();
+static void
+    low_power_send_api_message(LowPower* instance, LowPowerApiMessage* message, bool nonblocking) {
+    if(nonblocking) {
+        message->api_lock = NULL;
+    } else {
+        message->api_lock = api_lock_alloc_locked();
+    }
 
     const FuriStatus status = furi_message_queue_put(
-        instance->api_queue, &message, furi_ms_to_ticks(API_QUEUE_TIMEOUT_MS));
+        instance->api_queue, message, furi_ms_to_ticks(API_QUEUE_TIMEOUT_MS));
 
     if(status != FuriStatusOk) {
         furi_check(status == FuriStatusErrorTimeout);
         FURI_LOG_E(TAG, "Service is not responding, dropping request");
     }
 
-    api_lock_wait_unlock_and_free(message->api_lock);
+    if(!nonblocking) {
+        api_lock_wait_unlock_and_free(message->api_lock);
+    }
 }
 
-static void low_power_lock_specific(LowPower* instance, LowPowerLockSelect select) {
+static void
+    low_power_lock_specific(LowPower* instance, LowPowerLockSelect select, bool nonblocking) {
     furi_assert(instance);
     LowPowerApiMessage message = {
         .type = LowPowerApiMessageTypeLock,
         .lock_select = select,
     };
-    low_power_send_api_message(instance, &message);
+    low_power_send_api_message(instance, &message, nonblocking);
 }
 
-static void low_power_unlock_specific(LowPower* instance, LowPowerLockSelect select) {
+static void
+    low_power_unlock_specific(LowPower* instance, LowPowerLockSelect select, bool nonblocking) {
     furi_assert(instance);
     LowPowerApiMessage message = {
         .type = LowPowerApiMessageTypeUnlock,
         .lock_select = select,
     };
-    low_power_send_api_message(instance, &message);
+    low_power_send_api_message(instance, &message, nonblocking);
 }
 
 static void low_power_state_of_power_changed(const void* item, void* context) {
@@ -248,10 +261,10 @@ static void low_power_state_of_power_changed(const void* item, void* context) {
     if(power_state->is_usb_connected != low_power->was_usb_connected) {
         if(power_state->is_usb_connected) {
             FURI_LOG_D(TAG, "USB connected");
-            low_power_lock_specific(low_power, LowPowerLockSelectSleep);
+            low_power_lock_specific(low_power, LowPowerLockSelectSleep, true);
         } else {
             FURI_LOG_D(TAG, "USB disconnected");
-            low_power_unlock_specific(low_power, LowPowerLockSelectSleep);
+            low_power_unlock_specific(low_power, LowPowerLockSelectSleep, true);
         }
         low_power->was_usb_connected = power_state->is_usb_connected;
     }
@@ -259,7 +272,7 @@ static void low_power_state_of_power_changed(const void* item, void* context) {
 
 static LowPower* low_power_alloc(void) {
     LowPower* instance = malloc(sizeof(LowPower));
-    instance->api_queue = furi_message_queue_alloc(API_QUEUE_SIZE, sizeof(LowPowerApiMessage*));
+    instance->api_queue = furi_message_queue_alloc(API_QUEUE_SIZE, sizeof(LowPowerApiMessage));
     instance->sleep_lock_count = 1; // Locked by default
     instance->standby_lock_count = 1;
 
@@ -288,13 +301,9 @@ static LowPower* low_power_alloc(void) {
         FuriEventLoopTimerTypeOnce,
         instance);
 
-    PowerState power_state;
-    FuriStateSub* power_sub = furi_state_get_subscribe(
-        power_get_state(instance->power), &power_state, low_power_state_of_power_changed, instance);
+    FuriStateSub* power_sub = furi_state_subscribe(
+        power_get_state(instance->power), low_power_state_of_power_changed, instance);
     UNUSED(power_sub);
-    if(power_state.is_usb_connected) {
-        instance->sleep_lock_count++;
-    }
 
     if(!low_power_settings_load(&instance->settings)) {
         FURI_LOG_E(TAG, "Failed to load settings");
@@ -318,12 +327,13 @@ int32_t low_power_srv(void* arg) {
 
 void low_power_lock(LowPower* instance) {
     furi_check(instance);
-    low_power_lock_specific(instance, LowPowerLockSelectSleep | LowPowerLockSelectStandby);
+    low_power_lock_specific(instance, LowPowerLockSelectSleep | LowPowerLockSelectStandby, false);
 }
 
 void low_power_unlock(LowPower* instance) {
     furi_check(instance);
-    low_power_unlock_specific(instance, LowPowerLockSelectSleep | LowPowerLockSelectStandby);
+    low_power_unlock_specific(
+        instance, LowPowerLockSelectSleep | LowPowerLockSelectStandby, false);
 }
 
 void low_power_get_sleep_settings(LowPower* instance, LowPowerSleepSettings* settings) {
@@ -332,7 +342,7 @@ void low_power_get_sleep_settings(LowPower* instance, LowPowerSleepSettings* set
         .type = LowPowerApiMessageTypeGetSleepSettings,
         .sleep_settings = settings,
     };
-    low_power_send_api_message(instance, &message);
+    low_power_send_api_message(instance, &message, false);
 }
 
 void low_power_set_sleep_settings(LowPower* instance, LowPowerSleepSettings* settings) {
@@ -341,5 +351,5 @@ void low_power_set_sleep_settings(LowPower* instance, LowPowerSleepSettings* set
         .type = LowPowerApiMessageTypeSetSleepSettings,
         .sleep_settings = settings,
     };
-    low_power_send_api_message(instance, &message);
+    low_power_send_api_message(instance, &message, false);
 }
