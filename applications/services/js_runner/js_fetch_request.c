@@ -231,11 +231,8 @@ static bool parse_request_header(
             break;
         }
 
-        if(!parse_request_header_key_is_valid(key_string)) {
-            break;
-        }
-
-        if(!parse_request_header_value_is_valid(value_string)) {
+        if(!parse_request_header_key_is_valid(key_string) ||
+           !parse_request_header_value_is_valid(value_string)) {
             break;
         }
 
