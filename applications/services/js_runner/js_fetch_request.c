@@ -68,10 +68,6 @@ static bool parse_request_header_key_is_valid(const char* key) {
     return is_valid;
 }
 
-static inline bool is_whitespace(unsigned char c) {
-    return (c <= 0x7F) && isspace(c);
-}
-
 static bool parse_request_header_value_is_valid(const char* value) {
     bool is_valid = true;
 
@@ -79,16 +75,6 @@ static bool parse_request_header_value_is_valid(const char* value) {
         const size_t value_len = strlen(value);
         if(value_len == 0) {
             // Empty values are valid
-            break;
-        }
-
-        if(is_whitespace(value[0])) {
-            is_valid = false;
-            break;
-        }
-
-        if(is_whitespace(value[value_len - 1])) {
-            is_valid = false;
             break;
         }
 
