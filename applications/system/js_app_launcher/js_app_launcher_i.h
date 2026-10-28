@@ -15,6 +15,7 @@
 #include <js_app/js_app_settings_storage.h>
 
 #include <toolbox/api_lock.h>
+#include <m-array.h>
 
 #define TAG "JsAppLauncher"
 
@@ -78,6 +79,14 @@ typedef struct {
 } JsAppLauncherApiMessage;
 
 typedef struct {
+    const SettingProviderSetting* settings;
+    size_t settings_count;
+    size_t selected_idx;
+} JsAppLauncherSceneSetupLevel;
+
+ARRAY_DEF(JsAppLauncherSceneSetupLevels, JsAppLauncherSceneSetupLevel, M_POD_OPLIST)
+
+typedef struct {
     FuriEventLoop* event_loop;
     FuriMessageQueue* input_queue;
     FuriMessageQueue* event_queue;
@@ -94,6 +103,7 @@ typedef struct {
     JsApp* js_app;
     JsAppInfo js_app_info;
     JsAppSettingsStorage* settings_storage;
+    JsAppLauncherSceneSetupLevels_t setup_levels;
     JsAppLauncherError error;
     JsAppLauncherStartMode start_mode;
 } JsAppLauncher;
@@ -103,6 +113,7 @@ typedef enum {
     JsAppLauncherCustomEventScriptStarted,
     JsAppLauncherCustomEventScriptFinished,
     JsAppLauncherCustomEventSettingsChanged,
+    JsAppLauncherCustomEventSettingsItemSelected,
     JsAppLauncherCustomEventLongBackPressed,
     JsAppLauncherCustomEventScriptErrorBase = 0x100,
     JsAppLauncherCustomEventScriptErrorMask = 0x0ff,
