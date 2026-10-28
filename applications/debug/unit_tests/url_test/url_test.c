@@ -311,9 +311,10 @@ MU_TEST(url_encode_hash_test) {
 MU_TEST(url_encode_full_test) {
     Url* url = url_alloc();
 
-    mu_check(
-        url_parse(url, "HTTP://My-Host.Local:8080/some dir/f\xc3\xa4il.txt?k=v w&\xc3\xb1=1#s\xc3\xa9"
-                   "e 2"));
+    mu_check(url_parse(
+        url,
+        "HTTP://My-Host.Local:8080/some dir/f\xc3\xa4il.txt?k=v w&\xc3\xb1=1#s\xc3\xa9"
+        "e 2"));
 
     URL_CHECK_PART(url, UrlPartIdProtocol, "http:");
     URL_CHECK_PART(url, UrlPartIdHostname, "my-host.local");
