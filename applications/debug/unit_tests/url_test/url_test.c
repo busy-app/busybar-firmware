@@ -7,11 +7,14 @@
 #define URL_TEST_PORT     "8080"
 #define URL_TEST_PATHNAME "/api/my_endpoint:v1"
 #define URL_TEST_SEARCH   "?my_arg=awesome&hello=there&time=12:00&next=/a/b"
+#define URL_TEST_HASH     "#section:1/a?b=c#d"
 
 #define URL_TEST_REQUIRED     URL_TEST_PROTOCOL "//" URL_TEST_HOSTNAME
 #define URL_TEST_USECASE      URL_TEST_REQUIRED URL_TEST_PATHNAME
 #define URL_TEST_USECASE_ARGS URL_TEST_USECASE URL_TEST_SEARCH
-#define URL_TEST_FULL         URL_TEST_REQUIRED ":" URL_TEST_PORT URL_TEST_PATHNAME URL_TEST_SEARCH
+#define URL_TEST_USECASE_HASH URL_TEST_USECASE URL_TEST_HASH
+#define URL_TEST_FULL_REQUEST URL_TEST_REQUIRED ":" URL_TEST_PORT URL_TEST_PATHNAME URL_TEST_SEARCH
+#define URL_TEST_FULL         URL_TEST_FULL_REQUEST URL_TEST_HASH
 #define URL_TEST_EMPTY_PATH   URL_TEST_REQUIRED "/"
 
 #define URL_CHECK_PART(url, part_id, ref)                            \
@@ -50,6 +53,7 @@ MU_TEST(url_required_test) {
     URL_CHECK_PART(url, UrlPartIdHostname, URL_TEST_HOSTNAME);
     URL_CHECK_PART(url, UrlPartIdOrigin, URL_TEST_REQUIRED);
     URL_CHECK_PART(url, UrlPartIdHref, URL_TEST_REQUIRED "/");
+    URL_CHECK_PART(url, UrlPartIdRequest, URL_TEST_REQUIRED "/");
 
     url_free(url);
 }
@@ -64,6 +68,7 @@ MU_TEST(url_usecase_test) {
     URL_CHECK_PART(url, UrlPartIdHostname, URL_TEST_HOSTNAME);
     URL_CHECK_PART(url, UrlPartIdOrigin, URL_TEST_REQUIRED);
     URL_CHECK_PART(url, UrlPartIdHref, URL_TEST_USECASE);
+    URL_CHECK_PART(url, UrlPartIdRequest, URL_TEST_USECASE);
     URL_CHECK_PART(url, UrlPartIdPathname, URL_TEST_PATHNAME);
 
     url_free(url);
@@ -79,8 +84,28 @@ MU_TEST(url_usecase_args_test) {
     URL_CHECK_PART(url, UrlPartIdHostname, URL_TEST_HOSTNAME);
     URL_CHECK_PART(url, UrlPartIdOrigin, URL_TEST_REQUIRED);
     URL_CHECK_PART(url, UrlPartIdHref, URL_TEST_USECASE_ARGS);
+    URL_CHECK_PART(url, UrlPartIdRequest, URL_TEST_USECASE_ARGS);
     URL_CHECK_PART(url, UrlPartIdPathname, URL_TEST_PATHNAME);
     URL_CHECK_PART(url, UrlPartIdSearch, URL_TEST_SEARCH);
+    URL_CHECK_PART(url, UrlPartIdHash, "");
+
+    url_free(url);
+}
+
+MU_TEST(url_usecase_hash_test) {
+    Url* url = url_alloc();
+
+    mu_check(url_parse(url, URL_TEST_USECASE_HASH));
+
+    URL_CHECK_PART(url, UrlPartIdProtocol, URL_TEST_PROTOCOL);
+    URL_CHECK_PART(url, UrlPartIdHost, URL_TEST_HOSTNAME);
+    URL_CHECK_PART(url, UrlPartIdHostname, URL_TEST_HOSTNAME);
+    URL_CHECK_PART(url, UrlPartIdOrigin, URL_TEST_REQUIRED);
+    URL_CHECK_PART(url, UrlPartIdHref, URL_TEST_USECASE_HASH);
+    URL_CHECK_PART(url, UrlPartIdRequest, URL_TEST_USECASE);
+    URL_CHECK_PART(url, UrlPartIdPathname, URL_TEST_PATHNAME);
+    URL_CHECK_PART(url, UrlPartIdSearch, "");
+    URL_CHECK_PART(url, UrlPartIdHash, URL_TEST_HASH);
 
     url_free(url);
 }
@@ -96,8 +121,10 @@ MU_TEST(url_full_test) {
     URL_CHECK_PART(url, UrlPartIdPort, URL_TEST_PORT);
     URL_CHECK_PART(url, UrlPartIdOrigin, URL_TEST_REQUIRED ":" URL_TEST_PORT);
     URL_CHECK_PART(url, UrlPartIdHref, URL_TEST_FULL);
+    URL_CHECK_PART(url, UrlPartIdRequest, URL_TEST_FULL_REQUEST);
     URL_CHECK_PART(url, UrlPartIdPathname, URL_TEST_PATHNAME);
     URL_CHECK_PART(url, UrlPartIdSearch, URL_TEST_SEARCH);
+    URL_CHECK_PART(url, UrlPartIdHash, URL_TEST_HASH);
 
     url_free(url);
 }
@@ -112,6 +139,7 @@ MU_TEST(url_empty_path_test) {
     URL_CHECK_PART(url, UrlPartIdHostname, URL_TEST_HOSTNAME);
     URL_CHECK_PART(url, UrlPartIdOrigin, URL_TEST_REQUIRED);
     URL_CHECK_PART(url, UrlPartIdHref, URL_TEST_EMPTY_PATH);
+    URL_CHECK_PART(url, UrlPartIdRequest, URL_TEST_EMPTY_PATH);
     URL_CHECK_PART(url, UrlPartIdPathname, "/");
 
     url_free(url);
@@ -184,6 +212,7 @@ MU_TEST(url_encode_port_test) {
     mu_check(!url_parse(url, URL_TEST_REQUIRED ":"));
     mu_check(!url_parse(url, URL_TEST_REQUIRED ":/"));
     mu_check(!url_parse(url, URL_TEST_REQUIRED ":" URL_TEST_SEARCH));
+    mu_check(!url_parse(url, URL_TEST_REQUIRED ":" URL_TEST_HASH));
     mu_check(!url_parse(url, URL_TEST_REQUIRED ":080800/"));
     mu_check(!url_parse(url, URL_TEST_REQUIRED ":65536/"));
     mu_check(!url_parse(url, URL_TEST_REQUIRED ":99999/"));
@@ -199,6 +228,12 @@ MU_TEST(url_encode_port_test) {
     URL_CHECK_PART(url, UrlPartIdPort, URL_TEST_PORT);
     URL_CHECK_PART(url, UrlPartIdPathname, "/");
     URL_CHECK_PART(url, UrlPartIdSearch, URL_TEST_SEARCH);
+
+    mu_check(url_parse(url, URL_TEST_REQUIRED ":" URL_TEST_PORT URL_TEST_HASH));
+    URL_CHECK_PART(url, UrlPartIdPort, URL_TEST_PORT);
+    URL_CHECK_PART(url, UrlPartIdPathname, "/");
+    URL_CHECK_PART(url, UrlPartIdSearch, "");
+    URL_CHECK_PART(url, UrlPartIdHash, URL_TEST_HASH);
 
     url_free(url);
 }
@@ -219,8 +254,12 @@ MU_TEST(url_encode_pathname_test) {
     mu_check(url_parse(url, URL_TEST_REQUIRED "/a\tb\x7f"));
     URL_CHECK_PART(url, UrlPartIdPathname, "/a%09b%7F");
 
-    mu_check(url_parse(url, URL_TEST_REQUIRED "/AZaz09-._~/#[]@!$&'()*+,;="));
-    URL_CHECK_PART(url, UrlPartIdPathname, "/AZaz09-._~/#[]@!$&'()*+,;=");
+    mu_check(url_parse(url, URL_TEST_REQUIRED "/AZaz09-._~/[]@!$&'()*+,;="));
+    URL_CHECK_PART(url, UrlPartIdPathname, "/AZaz09-._~/[]@!$&'()*+,;=");
+
+    mu_check(url_parse(url, URL_TEST_REQUIRED "/a b#c d"));
+    URL_CHECK_PART(url, UrlPartIdPathname, "/a%20b");
+    URL_CHECK_PART(url, UrlPartIdHash, "#c%20d");
 
     url_free(url);
 }
@@ -235,7 +274,9 @@ MU_TEST(url_encode_search_test) {
         url, UrlPartIdHref, URL_TEST_USECASE "?q=hello%20world&name=J%C3%BCrgen&x=%22y%22");
 
     mu_check(url_parse(url, URL_TEST_USECASE "?a=b&c=d/e?f@h#frag"));
-    URL_CHECK_PART(url, UrlPartIdSearch, "?a=b&c=d/e?f@h#frag");
+    URL_CHECK_PART(url, UrlPartIdSearch, "?a=b&c=d/e?f@h");
+    URL_CHECK_PART(url, UrlPartIdHash, "#frag");
+    URL_CHECK_PART(url, UrlPartIdRequest, URL_TEST_USECASE "?a=b&c=d/e?f@h");
 
     mu_check(url_parse(url, URL_TEST_REQUIRED URL_TEST_SEARCH));
     URL_CHECK_PART(url, UrlPartIdHostname, URL_TEST_HOSTNAME);
@@ -246,11 +287,33 @@ MU_TEST(url_encode_search_test) {
     url_free(url);
 }
 
+MU_TEST(url_encode_hash_test) {
+    Url* url = url_alloc();
+
+    mu_check(url_parse(url, URL_TEST_REQUIRED URL_TEST_HASH));
+    URL_CHECK_PART(url, UrlPartIdHostname, URL_TEST_HOSTNAME);
+    URL_CHECK_PART(url, UrlPartIdPort, "");
+    URL_CHECK_PART(url, UrlPartIdPathname, "/");
+    URL_CHECK_PART(url, UrlPartIdSearch, "");
+    URL_CHECK_PART(url, UrlPartIdHash, URL_TEST_HASH);
+    URL_CHECK_PART(url, UrlPartIdHref, URL_TEST_REQUIRED "/" URL_TEST_HASH);
+    URL_CHECK_PART(url, UrlPartIdRequest, URL_TEST_REQUIRED "/");
+
+    mu_check(url_parse(url, URL_TEST_USECASE "#a b\"<>`\xc3\xbc"));
+    URL_CHECK_PART(url, UrlPartIdPathname, URL_TEST_PATHNAME);
+    URL_CHECK_PART(url, UrlPartIdHash, "#a%20b%22%3C%3E%60%C3%BC");
+    URL_CHECK_PART(url, UrlPartIdHref, URL_TEST_USECASE "#a%20b%22%3C%3E%60%C3%BC");
+    URL_CHECK_PART(url, UrlPartIdRequest, URL_TEST_USECASE);
+
+    url_free(url);
+}
+
 MU_TEST(url_encode_full_test) {
     Url* url = url_alloc();
 
     mu_check(
-        url_parse(url, "HTTP://My-Host.Local:8080/some dir/f\xc3\xa4il.txt?k=v w&\xc3\xb1=1"));
+        url_parse(url, "HTTP://My-Host.Local:8080/some dir/f\xc3\xa4il.txt?k=v w&\xc3\xb1=1#s\xc3\xa9"
+                   "e 2"));
 
     URL_CHECK_PART(url, UrlPartIdProtocol, "http:");
     URL_CHECK_PART(url, UrlPartIdHostname, "my-host.local");
@@ -259,8 +322,15 @@ MU_TEST(url_encode_full_test) {
     URL_CHECK_PART(url, UrlPartIdOrigin, "http://my-host.local:8080");
     URL_CHECK_PART(url, UrlPartIdPathname, "/some%20dir/f%C3%A4il.txt");
     URL_CHECK_PART(url, UrlPartIdSearch, "?k=v%20w&%C3%B1=1");
+    URL_CHECK_PART(url, UrlPartIdHash, "#s%C3%A9e%202");
     URL_CHECK_PART(
-        url, UrlPartIdHref, "http://my-host.local:8080/some%20dir/f%C3%A4il.txt?k=v%20w&%C3%B1=1");
+        url,
+        UrlPartIdHref,
+        "http://my-host.local:8080/some%20dir/f%C3%A4il.txt?k=v%20w&%C3%B1=1#s%C3%A9e%202");
+    URL_CHECK_PART(
+        url,
+        UrlPartIdRequest,
+        "http://my-host.local:8080/some%20dir/f%C3%A4il.txt?k=v%20w&%C3%B1=1");
 
     url_free(url);
 }
@@ -268,11 +338,13 @@ MU_TEST(url_encode_full_test) {
 MU_TEST(url_no_double_encoding_test) {
     Url* url = url_alloc();
 
-    const char* encoded = "http://my-host.local:8080/some%20dir/f%C3%A4il.txt?k=v%20w&%C3%B1=1%25";
+    const char* encoded =
+        "http://my-host.local:8080/some%20dir/f%C3%A4il.txt?k=v%20w&%C3%B1=1%25#s%C3%A9e%202";
 
     mu_check(url_parse(url, encoded));
     URL_CHECK_PART(url, UrlPartIdPathname, "/some%20dir/f%C3%A4il.txt");
     URL_CHECK_PART(url, UrlPartIdSearch, "?k=v%20w&%C3%B1=1%25");
+    URL_CHECK_PART(url, UrlPartIdHash, "#s%C3%A9e%202");
     URL_CHECK_PART(url, UrlPartIdHref, encoded);
 
     mu_check(url_parse(url, URL_TEST_REQUIRED "/a%20b c?x=%22y\""));
@@ -301,6 +373,7 @@ MU_TEST_SUITE(url_test_suite) {
     MU_RUN_TEST(url_required_test);
     MU_RUN_TEST(url_usecase_test);
     MU_RUN_TEST(url_usecase_args_test);
+    MU_RUN_TEST(url_usecase_hash_test);
     MU_RUN_TEST(url_full_test);
     MU_RUN_TEST(url_empty_path_test);
     MU_RUN_TEST(url_reset_on_failure_test);
@@ -309,6 +382,7 @@ MU_TEST_SUITE(url_test_suite) {
     MU_RUN_TEST(url_encode_port_test);
     MU_RUN_TEST(url_encode_pathname_test);
     MU_RUN_TEST(url_encode_search_test);
+    MU_RUN_TEST(url_encode_hash_test);
     MU_RUN_TEST(url_encode_full_test);
     MU_RUN_TEST(url_no_double_encoding_test);
 }

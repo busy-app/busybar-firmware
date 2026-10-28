@@ -20,6 +20,7 @@ typedef enum {
     UrlParseStepIdxPort,
     UrlParseStepIdxPathname,
     UrlParseStepIdxSearch,
+    UrlParseStepIdxHash,
     UrlParseStepIdxMax,
 } UrlParseStepIdx;
 
@@ -66,6 +67,7 @@ static const UrlParseStep url_parse_steps[] = {
             UrlParseStepIdxPort,
             UrlParseStepIdxPathname,
             UrlParseStepIdxSearch,
+            UrlParseStepIdxHash,
             UrlParseStepIdxMax,
         },
         .encode_callback = url_encode_hostname,
@@ -76,6 +78,7 @@ static const UrlParseStep url_parse_steps[] = {
         .next_step_idxs = (const UrlParseStepIdx[]) {
             UrlParseStepIdxPathname,
             UrlParseStepIdxSearch,
+            UrlParseStepIdxHash,
             UrlParseStepIdxMax,
         },
         .encode_callback = url_encode_port,
@@ -87,6 +90,7 @@ static const UrlParseStep url_parse_steps[] = {
         .delim = "/",
         .next_step_idxs = (const UrlParseStepIdx[]) {
             UrlParseStepIdxSearch,
+            UrlParseStepIdxHash,
             UrlParseStepIdxMax,
         },
         .encode_callback = url_encode_percent,
@@ -95,6 +99,16 @@ static const UrlParseStep url_parse_steps[] = {
         .part_id = UrlPartIdSearch,
         .is_include_delim = true,
         .delim = "?",
+        .next_step_idxs = (const UrlParseStepIdx[]) {
+            UrlParseStepIdxHash,
+            UrlParseStepIdxMax,
+        },
+        .encode_callback = url_encode_percent,
+    },
+    [UrlParseStepIdxHash] = {
+        .part_id = UrlPartIdHash,
+        .is_include_delim = true,
+        .delim = "#",
         .next_step_idxs = (const UrlParseStepIdx[]) {
             UrlParseStepIdxMax,
         },
@@ -105,6 +119,18 @@ static const UrlParseStep url_parse_steps[] = {
 static const UrlCompoundPart url_compound_parts[] = {
     {
         .part_id = UrlPartIdHref,
+        .subparts = (const UrlParseStepIdx[]) {
+            UrlParseStepIdxProtocol,
+            UrlParseStepIdxHostname,
+            UrlParseStepIdxPort,
+            UrlParseStepIdxPathname,
+            UrlParseStepIdxSearch,
+            UrlParseStepIdxHash,
+            UrlParseStepIdxMax,
+        },
+    },
+    {
+        .part_id = UrlPartIdRequest,
         .subparts = (const UrlParseStepIdx[]) {
             UrlParseStepIdxProtocol,
             UrlParseStepIdxHostname,

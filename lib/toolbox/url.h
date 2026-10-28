@@ -22,6 +22,7 @@ typedef struct Url Url;
  */
 typedef enum {
     UrlPartIdHref, /**< Full URL */
+    UrlPartIdRequest, /**< Full URL, without hash (if present) */
     UrlPartIdOrigin, /**< Protocol + Hostname + Port (if specified) */
     UrlPartIdProtocol, /**< Protocol string */
     UrlPartIdHost, /**< Hostname + Port (if specified) */
@@ -29,6 +30,7 @@ typedef enum {
     UrlPartIdPort, /**< Port string (if specified) */
     UrlPartIdPathname, /**< Request path (if specified) */
     UrlPartIdSearch, /**< Request parameters (if specified) */
+    UrlPartIdHash, /**< Fragment identifier (if specified) */
     UrlPartIdMax, /**< Special value, internal use */
 } UrlPartId;
 

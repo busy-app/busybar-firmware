@@ -79,8 +79,8 @@ static jerry_value_t parse_request_url(jerry_value_t obj, FetchRequest* request)
             break;
         }
 
-        const StringSlice* href = url_get_part(parser, UrlPartIdHref);
-        request->url = string_slice_to_owned_cstr(href);
+        const StringSlice* part = url_get_part(parser, UrlPartIdRequest);
+        request->url = string_slice_to_owned_cstr(part);
 
         result = jerry_undefined();
     } while(false);
