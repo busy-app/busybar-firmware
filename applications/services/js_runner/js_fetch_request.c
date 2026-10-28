@@ -115,13 +115,16 @@ static jerry_value_t parse_request_url(jerry_value_t obj, FetchRequest* request)
             break;
         }
 
-        char* source_str = js_value_to_c_string(url_val);
+        const jerry_value_t url_str_val = jerry_value_to_string(url_val);
         jerry_value_free(url_val);
 
-        if(source_str == NULL) {
-            result = parse_request_throw_error("URL is not a string");
+        if(jerry_value_is_exception(url_str_val)) {
+            result = url_str_val;
             break;
         }
+
+        char* source_str = js_string_to_c_string(url_str_val);
+        jerry_value_free(url_str_val);
 
         const bool can_parse = url_parse(parser, source_str);
         free(source_str);
