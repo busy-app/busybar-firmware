@@ -62,6 +62,13 @@ void sysctl_on_system_start(void) {
     }
 }
 
+bool sysctl_get_debug_enabled(void) {
+    furi_mutex_acquire(s_state.mutex, FuriWaitForever);
+    bool value = s_state.settings.debug_enabled;
+    furi_mutex_release(s_state.mutex);
+    return value;
+}
+
 void sysctl_set_debug_enabled(bool enabled) {
     furi_mutex_acquire(s_state.mutex, FuriWaitForever);
     s_state.settings.debug_enabled = enabled;
