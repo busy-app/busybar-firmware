@@ -38,8 +38,8 @@
         >
           <div class="bg-accented/25 dark:bg-elevated/75 p-4 flex items-center gap-6">
             <div class="grow min-w-0 flex flex-col gap-1">
-              <div class="truncate">{{ token.name }}</div>
-              <div class="text-sm text-muted truncate">{{ token.display_id }}</div>
+              <p class="truncate">{{ token.name }}</p>
+              <p class="text-sm text-muted truncate">{{ token.display_id }}</p>
             </div>
             <UButton
               icon="i-bi-trash-fill"

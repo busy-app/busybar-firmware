@@ -14,14 +14,14 @@
             name="i-bi-logo-matter"
             class="size-6 shrink-0"
           />
-          <div class="truncate">Matter</div>
+          <span class="truncate">Matter</span>
         </div>
-        <div
+        <p
           v-if="matterStore.matterCommissioning.fabricCount > 0"
           class="text-sm text-muted"
         >
           {{ matterStore.matterCommissioning.fabricCount }} connections
-        </div>
+        </p>
       </div>
       <div class="flex flex-col sm:flex-row gap-2">
         <UButton
@@ -41,30 +41,29 @@
       </div>
     </div>
 
-    <button
+    <UButton
       v-if="accessTokensStore.tokens.length > 0"
-      type="button"
       data-id="settings-section-home-assistant-open"
-      class="-m-4 p-4 w-[calc(100%+2rem)] flex items-center gap-2 text-left rounded-[inherit] cursor-pointer hover:bg-elevated transition-colors"
+      variant="ghost"
+      color="neutral"
+      trailing-icon="i-bi-chevron-right"
+      class="-m-4 p-4 w-[calc(100%+2rem)] gap-2 rounded-[inherit] text-base font-normal text-left"
+      :ui="{ trailingIcon: 'size-6 text-muted' }"
       @click="emit('openHomeAssistant')"
     >
-      <div class="grow min-w-0 flex flex-col gap-1">
-        <div class="flex items-center gap-2">
+      <span class="grow min-w-0 flex flex-col gap-1">
+        <span class="flex items-center gap-2">
           <UIcon
             name="i-bi-logo-home-assistant"
             class="size-6 shrink-0"
           />
-          <div class="truncate">Home Assistant</div>
-        </div>
-        <div class="text-sm text-muted">
+          <span class="truncate">Home Assistant</span>
+        </span>
+        <span class="text-sm text-muted">
           {{ accessTokensStore.tokens.length }} {{ accessTokensStore.tokens.length === 1 ? 'token' : 'tokens' }}
-        </div>
-      </div>
-      <UIcon
-        name="i-bi-chevron-right"
-        class="size-6 shrink-0 text-muted"
-      />
-    </button>
+        </span>
+      </span>
+    </UButton>
     <div
       v-else
       data-id="settings-section-home-assistant"
@@ -75,7 +74,7 @@
           name="i-bi-logo-home-assistant"
           class="size-6 shrink-0"
         />
-        <div class="whitespace-nowrap">Home Assistant</div>
+        <span class="whitespace-nowrap">Home Assistant</span>
       </div>
       <UButton
         variant="link"
@@ -109,7 +108,7 @@
     </template>
     <template #body>
       <div class="flex flex-col items-center gap-4">
-        <div>Scan the QR code</div>
+        <p>Scan the QR code</p>
         <canvas
           ref="matterQrCanvasRef"
           data-id="matter-link-qr-code"
@@ -119,7 +118,7 @@
           class="size-[184px] bg-white rounded-xl mb-6"
         />
 
-        <div>Or enter the code in your smart home app</div>
+        <p>Or enter the code in your smart home app</p>
         <CopyButton
           :text="matterStore.matterLink.manualCode"
           variant="subtle"
@@ -128,9 +127,9 @@
           class="w-full rounded-xl p-4 pr-5 text-2xl ring-black/4 dark:ring-white/4"
         />
 
-        <div class="w-full flex justify-end mt-6 text-muted text-sm">
+        <p class="w-full flex justify-end mt-6 text-muted text-sm">
           Expires in&nbsp;<CountDown :ms="matterStore.matterLink.expiresInMs" />
-        </div>
+        </p>
       </div>
     </template>
   </ModalGeneric>
@@ -180,7 +179,7 @@
           name="i-busy-loader"
           class="size-6 text-muted animate-spin"
         />
-        <div>Restarting BUSY Bar...</div>
+        <span>Restarting BUSY Bar...</span>
       </div>
     </template>
   </UModal>

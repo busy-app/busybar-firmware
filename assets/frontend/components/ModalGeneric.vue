@@ -13,7 +13,7 @@
       header: props.hideHeader ? 'hidden' : 'min-h-0 p-4 sm:p-5 pb-4 sm:pb-4',
       title: 'min-h-10 text-xl flex items-center gap-2',
       body: `${props.hideHeader ? 'pt-5 sm:pt-5' : 'pt-0 sm:pt-0'} sm:px-5 sm:pb-5 ${props.stickyActions ? 'overflow-hidden flex flex-col min-h-0' : 'overflow-y-auto'}`,
-      close: showCloseButton ? 'flex top-6 end-5' :'hidden'
+      close: showCloseButton ? 'flex top-5 sm:top-6 end-5' :'hidden'
     }"
   >
     <template #title>
