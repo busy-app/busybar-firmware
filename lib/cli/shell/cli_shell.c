@@ -89,6 +89,7 @@ struct CliShell {
     FuriThread* thread;
     const char* prompt;
     FuriMessageQueue* api_queue;
+    CliShellFlag config_flags;
 
     // Set and freed by shell thread
     FuriEventLoop* event_loop;
@@ -176,6 +177,12 @@ void cli_command_exit(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(pipe);
     UNUSED(args);
     CliShell* shell = context;
+
+    if(shell->config_flags & CliShellFlagNonExitable) {
+        printf(ANSI_FG_RED "this shell can't be exited" ANSI_RESET);
+        return;
+    }
+
     cli_shell_line_set_about_to_exit(shell->components[CliShellComponentLine]);
     furi_event_loop_stop(shell->event_loop);
 }
@@ -572,7 +579,8 @@ CliShell* cli_shell_alloc(
     void* context,
     PipeSide* pipe,
     CliRegistry* registry,
-    const CliCommandExternalConfig* ext_config) {
+    const CliCommandExternalConfig* ext_config,
+    CliShellFlag flags) {
     furi_check(motd);
     furi_check(pipe);
     furi_check(registry);
@@ -585,6 +593,7 @@ CliShell* cli_shell_alloc(
         .registries = {registry, NULL},
         .ext_config = ext_config,
         .api_queue = furi_message_queue_alloc(API_Q_SIZE, sizeof(CliShellApiRequest)),
+        .config_flags = flags,
     };
 
     shell->thread =
