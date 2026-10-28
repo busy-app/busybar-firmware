@@ -125,26 +125,31 @@ CliAnsiParserResult cli_ansi_parser_feed_timeout(CliAnsiParser* parser) {
 size_t cli_ansi_printable_strlen(const char* string) {
     size_t count = 0;
 
-    bool inside_escape_sequence = false;
-    char seen_history[3] = {0};
-    while((seen_history[2] = *string++)) {
-        seen_history[0] = seen_history[1];
-        seen_history[1] = seen_history[2];
-        seen_history[2] = '\0';
-        char c = seen_history[1];
+    bool is_inside_escape_sequence = false;
+    char window[3] = {0};
 
-        if(strcmp(seen_history, "\e[") == 0) {
-            inside_escape_sequence = true;
+    const size_t window_sz = sizeof(window);
+    char* const window_last = &window[window_sz - 1];
+    char* const window_block_start = &window[1];
+    const size_t window_block_sz = window_sz - 1;
+
+    while((*window_last = *string++)) {
+        char c = *window_last;
+        memmove(window, window_block_start, window_block_sz);
+        *window_last = '\0';
+
+        if(strcmp(window, "\e[") == 0) {
+            is_inside_escape_sequence = true;
             continue;
         }
-        bool escape_sequence_terminator = (c >= 0x40) && (c <= 0x7e);
-        if(inside_escape_sequence && escape_sequence_terminator) {
-            inside_escape_sequence = false;
+        bool is_escape_sequence_terminator = (c >= 0x40) && (c <= 0x7e);
+        if(is_inside_escape_sequence && is_escape_sequence_terminator) {
+            is_inside_escape_sequence = false;
             continue;
         }
-        if(inside_escape_sequence) continue;
+        if(is_inside_escape_sequence) continue;
 
-        if(c >= 128) continue; // UTF-8 extension
+        if((c & 0b1100'0000) == 0b1000'0000) continue; // UTF-8 continuation byte
         if(c < ' ') continue; // ASCII non-printable
 
         count++;

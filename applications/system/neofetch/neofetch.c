@@ -22,7 +22,7 @@ void neofetch_command(PipeSide* pipe, FuriString* args, void* context) {
     static const char* const neofetch_logo[] = {
         "    ____    _____________    ____",
         "  _L____J____I_________I____L____J_",
-        " / " ANSI_FG_BR_RED " ___ _   _ _____   __          " NEOFETCH_COLOR "\\",
+        " / " ANSI_FG_BR_RED " ___ _   _ _____   __           " NEOFETCH_COLOR "\\",
         "|  " ANSI_FG_BR_RED "| _ ) | | / __\\ \\ / /            " NEOFETCH_COLOR "|",
         "|  " ANSI_FG_BR_RED "| _ \\ |_| \\__ \\\\ V /             " NEOFETCH_COLOR "|",
         "|  " ANSI_FG_BR_RED "|___/\\___/|___/ |_|              " NEOFETCH_COLOR "|",
