@@ -16,6 +16,15 @@
             "min": 0,
             "max": 10000
         },
+        "step": {
+            "label": "Step",
+            "description": "Integer with a custom editor step: 1, 3, 5, 7 and 9.",
+            "type": "integer",
+            "default": 1,
+            "min": 1,
+            "max": 9,
+            "step": 2
+        },
         "wrap": {
             "label": "Wrap",
             "type": "boolean",
@@ -26,6 +35,85 @@
             "type": "string",
             "default": "JS counter:",
             "max_length": 16
+        },
+        "display": {
+            "label": "Display",
+            "type": "group",
+            "fields": {
+                "font": {
+                    "label": "Font",
+                    "type": "enum",
+                    "default": "small",
+                    "options": [
+                        { "value": "tiny", "label": "Tiny" },
+                        { "value": "small", "label": "Small" },
+                        { "value": "normal", "label": "Normal" }
+                    ]
+                },
+                "color": {
+                    "label": "Color",
+                    "description": "RGB color.",
+                    "type": "color",
+                    "default": "#FFFFFF"
+                },
+                "details": {
+                    "label": "Details",
+                    "description": "Nested group with additional setting types.",
+                    "type": "group",
+                    "fields": {
+                        "color": {
+                            "label": "Details color",
+                            "description": "RGBA color including opacity.",
+                            "type": "color",
+                            "default": "#00FFFF80"
+                        },
+                        "time": {
+                            "label": "Time",
+                            "description": "Time in HH:MM format.",
+                            "type": "time",
+                            "default": "09:00"
+                        },
+                        "time_seconds": {
+                            "label": "Time with seconds",
+                            "description": "Time in HH:MM:SS format.",
+                            "type": "time",
+                            "default": "09:00:30"
+                        }
+                    }
+                }
+            }
+        },
+        "location": {
+            "label": "Location",
+            "type": "group",
+            "fields": {
+                "automatic": {
+                    "label": "Automatic location",
+                    "description": "Automatic source; coordinates are omitted in this mode.",
+                    "type": "geolocation",
+                    "default": { "mode": "auto", "name": "Automatic" }
+                },
+                "fixed": {
+                    "label": "Fixed location",
+                    "description": "Explicit latitude and longitude.",
+                    "type": "geolocation",
+                    "default": {
+                        "mode": "fixed",
+                        "name": "London",
+                        "lat": 51.5074,
+                        "lon": -0.1278
+                    }
+                }
+            }
+        },
+        "password": {
+            "label": "Sensitive text",
+            "description": "Masked while editing.",
+            "type": "string",
+            "default": "",
+            "min_length": 0,
+            "max_length": 32,
+            "sensitive": true
         }
     }
 }
