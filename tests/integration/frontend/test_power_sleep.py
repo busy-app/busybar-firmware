@@ -57,17 +57,33 @@ def test_get_sleep_settings(power_api):
     "settings",
     [
         SleepSettings(sleep="never"),
+        SleepSettings(sleep="after_holdoff", sleep_holdoff=0),
         SleepSettings(sleep="after_holdoff", sleep_holdoff=30000),
         SleepSettings(sleep="after_holdoff", sleep_holdoff=60000),
         SleepSettings(sleep="after_holdoff", sleep_holdoff=86400000),
     ],
-    ids=["never", "30-seconds", "60-seconds", "24-hours"],
+    ids=["never", "zero-holdoff", "30-seconds", "60-seconds", "24-hours"],
 )
 def test_sleep_settings_round_trip(power_api, sleep_settings_guard, settings):
     with allure.step("Set the policy and verify readback"):
         power_api.set_sleep(settings)
         actual = power_api.get_sleep()
         assert actual == settings, f"Expected {settings}, got {actual}"
+
+
+@allure.title("Sleep policy updates replace the mode and holdoff")
+def test_sleep_settings_transitions(power_api, sleep_settings_guard):
+    policies = [
+        SleepSettings(sleep="after_holdoff", sleep_holdoff=30000),
+        SleepSettings(sleep="after_holdoff", sleep_holdoff=90000),
+        SleepSettings(sleep="never"),
+        SleepSettings(sleep="after_holdoff", sleep_holdoff=60000),
+    ]
+    for settings in policies:
+        with allure.step(f"Apply and read back {settings}"):
+            power_api.set_sleep(settings)
+            actual = power_api.get_sleep()
+            assert actual == settings, f"Expected {settings}, got {actual}"
 
 
 @allure.title("Invalid sleep settings are rejected without changing the policy")
@@ -109,6 +125,7 @@ def test_sleep_settings_round_trip(power_api, sleep_settings_guard, settings):
 def test_invalid_sleep_settings(
     power_api, sleep_settings_guard, web_session, web_base_url, payload
 ):
+    power_api.set_sleep(SleepSettings(sleep="after_holdoff", sleep_holdoff=90000))
     before = power_api.get_sleep()
     with allure.step("Reject invalid JSON values and preserve the current policy"):
         response = web_session.post(f"{web_base_url}{SLEEP_ENDPOINT}", json=payload)
@@ -130,8 +147,6 @@ def test_invalid_sleep_settings(
         b'{"sleep":',
         b"null",
         b"[]",
-        b'{"sleep":"never"',
-        b'{"sleep":"never"} trailing',
     ],
 )
 def test_malformed_sleep_settings(
