@@ -101,16 +101,18 @@ static bool
     bool is_drawn = false;
     if(lv_obj_get_scroll_snap_y(object) != LV_SCROLL_SNAP_NONE && focused_item) {
         int32_t items_count = lv_group_get_obj_count(instance->items_group);
-        int32_t focused_item_idx =
-            lv_group_ext_get_index_by_obj(instance->items_group, focused_item);
+
+        uint32_t focused_item_idx = 0;
+        lv_group_ext_get_index_by_obj(instance->items_group, focused_item, &focused_item_idx);
 
         int32_t track_height = lv_area_get_height(track_area);
         int32_t thumb_height =
             MAX(track_height / items_count, lv_obj_get_style_length(object, LV_PART_SCROLLBAR));
-        int32_t thumb_y = (items_count > 1) ? SMENU_ROUNDING_INT_DIV(
-                                                  (track_height - thumb_height) * focused_item_idx,
-                                                  items_count - 1) :
-                                              0;
+        int32_t thumb_y =
+            (items_count > 1) ?
+                SMENU_ROUNDING_INT_DIV(
+                    (track_height - thumb_height) * (int32_t)focused_item_idx, items_count - 1) :
+                0;
 
         lv_draw_rect_dsc_t thumb_descriptor;
         lv_draw_rect_dsc_init(&thumb_descriptor);
@@ -216,9 +218,13 @@ void smenu_set_selected_item_index(SMenu* instance, size_t index) {
 
 size_t smenu_get_selected_item_index(SMenu* instance) {
     furi_check(instance);
+    furi_check(lv_group_get_obj_count(instance->items_group) > 0);
 
-    return lv_group_ext_get_index_by_obj(
-        instance->items_group, lv_group_get_focused(instance->items_group));
+    uint32_t index = 0;
+    lv_group_ext_get_index_by_obj(
+        instance->items_group, lv_group_get_focused(instance->items_group), &index);
+
+    return index;
 }
 
 SMenu* smenu_get_from_item(SMenuItem* item) {

@@ -2,21 +2,23 @@
 
 #include <lvgl/src/core/lv_group_private.h>
 
-uint32_t lv_group_ext_get_index_by_obj(lv_group_t* group, lv_obj_t* object) {
+bool lv_group_ext_get_index_by_obj(lv_group_t* group, lv_obj_t* object, uint32_t* index) {
     furi_check(group);
+    furi_check(index);
 
-    uint32_t index = 0;
-    bool is_found = false;
+    uint32_t object_index = 0;
+    bool is_object_found = false;
 
     lv_obj_t** group_object;
     LV_LL_READ(&group->obj_ll, group_object) {
         if(*group_object == object) {
-            is_found = true;
+            *index = object_index;
+            is_object_found = true;
             break;
         }
 
-        index++;
+        object_index++;
     }
 
-    return is_found ? index : 0;
+    return is_object_found;
 }

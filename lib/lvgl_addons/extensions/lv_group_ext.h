@@ -12,16 +12,16 @@ extern "C" {
 #endif
 
 /**
- * @brief Get the index of an object within a group.
+ * @brief Find the position of an object within a group.
  * Walks the group's object list in a single pass.
  *
- * @param[in, out] group lvgl group
+ * @param[in] group lvgl group
  * @param[in] object object to look up
+ * @param[out] index zero-based index of the object
  *
- * @returns zero-based index of the object, or 0 if the object is not part
- * of the group
+ * @returns true if the object is part of the group, false otherwise
  */
-uint32_t lv_group_ext_get_index_by_obj(lv_group_t* group, lv_obj_t* object);
+bool lv_group_ext_get_index_by_obj(lv_group_t* group, lv_obj_t* object, uint32_t* index);
 
 #ifdef __cplusplus
 }
