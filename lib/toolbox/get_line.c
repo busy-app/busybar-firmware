@@ -4,19 +4,23 @@
 
 #include <cli/cli_ansi.h>
 
-#define ECHO 1
+static int read_stdin(void) {
+    const int c = getchar();
+    if(c == 255) {
+        // TODO BUG getchar returns 255 on EOF
+        return -1;
+    }
+    return c;
+}
 
-typedef int (*ReadCallback)(void* context);
-typedef void (*EchoCallback)(const char* data, size_t data_len, void* context);
-
-static GetLineResult
-    get_line_common(size_t max_length, ReadCallback read_cb, EchoCallback echo_cb, void* context) {
-    int c = 0;
+GetLineResult get_line(size_t max_length) {
     size_t count = 0;
+
     GetLineError error = GetLineErrorNone;
     FuriString* line = furi_string_alloc();
-    while(c != CliKeyCR) {
-        c = read_cb(context);
+
+    for(int c = 0; c != CliKeyCR;) {
+        c = read_stdin();
         if(c < 0 || c == CliKeyEOT) {
             error = GetLineErrorEOF;
             break;
@@ -32,82 +36,35 @@ static GetLineResult
             if(count < max_length) {
                 furi_string_left(line, count);
             }
-#if ECHO
-            // Backspace, print " ", backspace
-            echo_cb("\b \b", 3, context);
-#else
-            UNUSED(echo);
-#endif // ECHO
+            // Backspace, " ", backspace
+            printf("\b \b");
+
         } else {
             if(count < max_length) {
                 furi_string_push_back(line, c);
             }
-#if ECHO
-            const char ch = c;
-            echo_cb(&ch, 1, context);
-#else
-            UNUSED(echo);
-#endif // ECHO
             count += 1;
+
+            putchar(c);
         }
+
+        fflush(stdout);
     }
+
     if(count > max_length) {
         error = GetLineErrorTooLong;
     }
+
     if(error != GetLineErrorNone) {
         furi_string_free(line);
         line = NULL;
     } else {
         furi_string_trim(line, "\r\n");
     }
+
     return (GetLineResult){
         .error = error,
         .line = line,
     };
 }
 
-static int read_stdin(void* context) {
-    UNUSED(context);
-    int c = getchar();
-    if(c == 255) {
-        // TODO BUG getchar returns 255 on EOF
-        return -1;
-    }
-    return c;
-}
-
-static int read_pipe(void* context) {
-    PipeSide* pipe = context;
-    char buf;
-    if(pipe_receive(pipe, &buf, 1) == 1) {
-        if(buf == 255) {
-            // TODO BUG pipe_receive receives 255 on EOF
-            return -1;
-        } else {
-            return buf;
-        }
-    } else {
-        return -1;
-    }
-}
-
-static void echo_stdin(const char* data, size_t data_len, void* context) {
-    UNUSED(context);
-    for(size_t i = 0; i < data_len; ++i) {
-        putchar(data[i]);
-    }
-    fflush(stdout);
-}
-
-static void echo_pipe(const char* data, size_t data_len, void* context) {
-    PipeSide* pipe = context;
-    pipe_send(pipe, data, data_len);
-}
-
-GetLineResult get_line(size_t max_length) {
-    return get_line_common(max_length, read_stdin, echo_stdin, NULL);
-}
-
-GetLineResult get_line_pipe(PipeSide* pipe, size_t max_length) {
-    return get_line_common(max_length, read_pipe, echo_pipe, pipe);
-}
