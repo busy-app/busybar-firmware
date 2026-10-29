@@ -3,6 +3,7 @@
 #define TAG "IntercomMeta"
 
 #define INTERCOM_META_CHANNEL_ID (IntercomChannelIdMax)
+#define TIMEOUT                  furi_ms_to_ticks(3000)
 
 typedef enum {
     IntercomMetaFrameTypeChannelReady,
@@ -40,8 +41,11 @@ static void intercom_meta_handle_heartbeat_received(Intercom* instance) {
 
 static void intercom_meta_send_frame(Intercom* instance, const IntercomMetaFrame* frame) {
     const size_t tx_size = intercom_tx_internal(
-        instance, INTERCOM_META_CHANNEL_ID, frame, sizeof(IntercomMetaFrame), FuriWaitForever);
-    furi_check(tx_size == sizeof(IntercomMetaFrame));
+        instance, INTERCOM_META_CHANNEL_ID, frame, sizeof(IntercomMetaFrame), TIMEOUT);
+    if(tx_size != sizeof(IntercomMetaFrame)) {
+        FURI_LOG_E(TAG, "TX on meta channel timed out");
+        intercom_set_status(instance, IntercomStatusErrorTimeout);
+    }
 }
 
 void intercom_meta_activate_channel(Intercom* instance, IntercomChannelId channel_id) {
