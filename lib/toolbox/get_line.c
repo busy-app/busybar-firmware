@@ -40,11 +40,13 @@ GetLineResult get_line(size_t max_length) {
             printf("\b \b");
 
         } else {
+            if(c > CliKeyDEL) {
+                continue;
+            }
             if(count < max_length) {
                 furi_string_push_back(line, c);
             }
             count += 1;
-
             putchar(c);
         }
 
