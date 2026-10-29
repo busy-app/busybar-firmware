@@ -2,6 +2,8 @@
 
 #include <desktop/desktop.h>
 #include <loader/loader.h>
+#include <path.h>
+#include <storage/storage.h>
 
 #include <js_app/js_app_common.h>
 
@@ -144,5 +146,74 @@ JsAppLauncherStatus js_app_launcher_get_running_app_id(FuriString* app_id) {
     }
 
     furi_record_close(RECORD_JS_APP_LAUNCHER);
+    return status;
+}
+
+static FuriString* js_app_launcher_get_data_path(const FuriString* app_id) {
+    return furi_string_alloc_printf("%s/%s", JS_APP_DATA_PREFIX, furi_string_get_cstr(app_id));
+}
+
+static bool js_app_launcher_replace_data_path(
+    FuriString* fs_path,
+    const char* virtual_path,
+    const FuriString* app_id) {
+    FuriString* data_path = js_app_launcher_get_data_path(app_id);
+
+    bool is_success = path_replace_prefix(
+        virtual_path, JS_APP_DATA_MOUNT_POINT, furi_string_get_cstr(data_path), fs_path);
+
+    furi_string_free(data_path);
+    return is_success;
+}
+
+static bool js_app_launcher_ensure_data_path(const FuriString* app_id) {
+    FuriString* data_path = js_app_launcher_get_data_path(app_id);
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+    bool is_success = storage_simply_mkpath(storage, furi_string_get_cstr(data_path));
+    if(!is_success) {
+        FURI_LOG_E(TAG, "Cannot make path: %s", furi_string_get_cstr(data_path));
+    }
+    furi_record_close(RECORD_STORAGE);
+    furi_string_free(data_path);
+    return is_success;
+}
+
+JsAppLauncherStatus js_app_launcher_translate_path(FuriString* fs_path, const char* virtual_path) {
+    FuriString* app_id = furi_string_alloc();
+    JsAppLauncherStatus status = JsAppLauncherStatusOk;
+    do {
+        status = js_app_launcher_get_running_app_id(app_id);
+        if(status != JsAppLauncherStatusOk) {
+            FURI_LOG_E(TAG, "Cannot get running app id: %d", status);
+            break;
+        }
+
+        if(js_app_launcher_replace_data_path(fs_path, virtual_path, app_id)) {
+            status = JsAppLauncherStatusOk;
+        } else {
+            FURI_LOG_D(TAG, "Path %s is not allowed for JS apps", virtual_path);
+            status = JsAppLauncherStatusError;
+        }
+    } while(false);
+    furi_string_free(app_id);
+    return status;
+}
+
+JsAppLauncherStatus js_app_launcher_ensure_current_app_directories(void) {
+    FuriString* app_id = furi_string_alloc();
+    JsAppLauncherStatus status = JsAppLauncherStatusOk;
+    do {
+        status = js_app_launcher_get_running_app_id(app_id);
+        if(status != JsAppLauncherStatusOk) {
+            FURI_LOG_E(TAG, "Cannot get running app id: %d", status);
+            break;
+        }
+
+        if(!js_app_launcher_ensure_data_path(app_id)) {
+            status = JsAppLauncherStatusError;
+            break;
+        }
+    } while(false);
+    furi_string_free(app_id);
     return status;
 }

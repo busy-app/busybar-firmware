@@ -4,15 +4,49 @@
 #include <gui/gui.h>
 #include <toolbox/path.h>
 #include <cjson/cJSON.h>
+#include <js_app_launcher/js_app_launcher.h>
 
 #define TAG "HttpStorage"
 
 #define FILE_PATH_LEN_MAX 256
 
+static bool api_storage_translate_path(
+    FuriString* out_path,
+    const char* in_path,
+    size_t in_path_len,
+    bool is_js) {
+    furi_string_printf(out_path, "%.*s", in_path_len, in_path);
+    if(furi_string_end_with(out_path, "/")) {
+        furi_string_left(out_path, furi_string_size(out_path) - 1);
+    }
+
+    if(!mg_path_is_sane(mg_str(furi_string_get_cstr(out_path)))) {
+        return false;
+    }
+
+    if(is_js) {
+        JsAppLauncherStatus status = js_app_launcher_ensure_current_app_directories();
+        if(status == JsAppLauncherStatusOk) {
+            FuriString* translated_path = furi_string_alloc();
+            status =
+                js_app_launcher_translate_path(translated_path, furi_string_get_cstr(out_path));
+            if(status == JsAppLauncherStatusOk) {
+                furi_string_set(out_path, translated_path);
+            }
+            furi_string_free(translated_path);
+        }
+        return status == JsAppLauncherStatusOk;
+    } else {
+        return furi_string_start_with(out_path, STORAGE_EXT_PATH_PREFIX);
+    }
+}
+
 static bool api_storage_parse_path_parameter(
+    struct mg_connection* conn,
     struct mg_str* params_str,
     const char* name,
     FuriString* path) {
+    ConnectionContext* conn_ctx = (ConnectionContext*)conn->data;
     if(params_str->len == 0) {
         return false;
     }
@@ -23,16 +57,8 @@ static bool api_storage_parse_path_parameter(
     if(var_len <= 0) {
         return false;
     }
-    furi_string_printf(path, "%.*s", var_len, temp_str);
-    if(furi_string_end_with(path, "/")) {
-        furi_string_left(path, furi_string_size(path) - 1);
-    }
 
-    if(!mg_path_is_sane(mg_str(furi_string_get_cstr(path)))) {
-        return false;
-    }
-
-    return furi_string_start_with(path, STORAGE_EXT_PATH_PREFIX);
+    return api_storage_translate_path(path, temp_str, var_len, conn_ctx->is_js);
 }
 
 static bool api_storage_parse_append_parameter(struct mg_str* params_str, bool* append) {
@@ -67,7 +93,7 @@ static bool api_storage_write_headers_callback(
 
     FuriString* file_path = furi_string_alloc();
     bool append = false;
-    if(api_storage_parse_path_parameter(&msg->query, "path", file_path) &&
+    if(api_storage_parse_path_parameter(conn, &msg->query, "path", file_path) &&
        api_storage_parse_append_parameter(&msg->query, &append)) {
         http_upload_start(conn, msg, furi_string_get_cstr(file_path), append);
     } else {
@@ -118,7 +144,7 @@ static bool api_storage_read_callback(
 
     FuriString* file_path = furi_string_alloc();
     bool success = false;
-    if(api_storage_parse_path_parameter(&msg->query, "path", file_path)) {
+    if(api_storage_parse_path_parameter(conn, &msg->query, "path", file_path)) {
         Storage* fs_api = furi_record_open(RECORD_STORAGE);
         success = storage_file_exists(fs_api, furi_string_get_cstr(file_path));
         furi_record_close(RECORD_STORAGE);
@@ -171,7 +197,7 @@ static bool api_storage_delete_callback(
 
     FuriString* file_path = furi_string_alloc();
     bool success = false;
-    if(api_storage_parse_path_parameter(&msg->query, "path", file_path)) {
+    if(api_storage_parse_path_parameter(conn, &msg->query, "path", file_path)) {
         Storage* fs_api = furi_record_open(RECORD_STORAGE);
         success = storage_simply_remove_recursive(fs_api, furi_string_get_cstr(file_path));
         furi_record_close(RECORD_STORAGE);
@@ -200,7 +226,7 @@ static bool api_storage_mkdir_callback(
 
     FuriString* dir_path = furi_string_alloc();
     bool success = false;
-    if(api_storage_parse_path_parameter(&msg->query, "path", dir_path)) {
+    if(api_storage_parse_path_parameter(conn, &msg->query, "path", dir_path)) {
         success = http_fs_get()->mkd(furi_string_get_cstr(dir_path));
     }
     furi_string_free(dir_path);
@@ -227,8 +253,8 @@ static bool api_storage_rename_callback(
 
     FuriString* old_path = furi_string_alloc();
     FuriString* new_path = furi_string_alloc();
-    bool success = api_storage_parse_path_parameter(&msg->query, "path", old_path) &&
-                   api_storage_parse_path_parameter(&msg->query, "new_path", new_path);
+    bool success = api_storage_parse_path_parameter(conn, &msg->query, "path", old_path) &&
+                   api_storage_parse_path_parameter(conn, &msg->query, "new_path", new_path);
 
     if(success) {
         success =
@@ -263,7 +289,7 @@ static bool api_storage_list_callback(
 
     cJSON* list_array = cJSON_CreateArray();
 
-    if(api_storage_parse_path_parameter(&msg->query, "path", dir_path)) {
+    if(api_storage_parse_path_parameter(conn, &msg->query, "path", dir_path)) {
         Storage* api = furi_record_open(RECORD_STORAGE);
         File* file = storage_file_alloc(api);
         if(storage_dir_open(file, furi_string_get_cstr(dir_path))) {

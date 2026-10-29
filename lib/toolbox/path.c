@@ -206,3 +206,23 @@ void path_normalize(const char* path, FuriString* out_path, bool allow_escape_ro
     free(own_path);
     free(fragments);
 }
+
+bool path_replace_prefix(
+    const char* path,
+    const char* old_prefix,
+    const char* new_prefix,
+    FuriString* out_path) {
+    size_t old_prefix_len = strlen(old_prefix);
+    if(strncmp(path, old_prefix, old_prefix_len) != 0) {
+        return false;
+    }
+    if(path[old_prefix_len] == '\0') {
+        furi_string_set(out_path, new_prefix);
+        return true;
+    } else if(path[old_prefix_len] == '/') {
+        path_concat(new_prefix, path + old_prefix_len + 1, out_path);
+        return true;
+    } else {
+        return false;
+    }
+}

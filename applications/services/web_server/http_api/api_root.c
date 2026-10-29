@@ -164,6 +164,7 @@ static const HttpApiAccess js_apps_api_allowlist[] = {
     {"status/firmware", HttpApiAccessMatchTypeExact, HttpMethodGet},
     {"status/system", HttpApiAccessMatchTypeExact, HttpMethodGet},
     {"status/power", HttpApiAccessMatchTypeExact, HttpMethodGet},
+    {"storage", HttpApiAccessMatchTypePrefix, HttpMethodAny},
 };
 
 typedef struct {
@@ -365,6 +366,8 @@ static HttpApiAccessStatusEx http_api_access_status(
     HttpMethod method,
     struct mg_connection* conn,
     struct mg_http_message* msg) {
+    ConnectionContext* conn_ctx = (ConnectionContext*)conn->data;
+
     HttpApiAccessStatusEx status_ex;
     memset(&status_ex, 0, sizeof(status_ex));
     status_ex.status = HttpApiAccessStatusMax;
@@ -385,8 +388,8 @@ static HttpApiAccessStatusEx http_api_access_status(
             path, method, api_access_allowlist, COUNT_OF(api_access_allowlist));
         if(status_ex.status != HttpApiAccessStatusMax) break;
 
-        bool is_js = http_api_is_request_from_js(msg);
-        if(is_js) {
+        conn_ctx->is_js = http_api_is_request_from_js(msg);
+        if(conn_ctx->is_js) {
             HttpApiAccessStatus status = http_api_process_allowlist(
                 path, method, js_apps_api_allowlist, COUNT_OF(js_apps_api_allowlist));
             if(status == HttpApiAccessStatusMax) {

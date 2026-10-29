@@ -77,6 +77,30 @@ JsAppLauncherStatus js_app_launcher_stop(JsAppLauncherStopMode stop_mode);
  */
 JsAppLauncherStatus js_app_launcher_get_running_app_id(FuriString* app_id);
 
+/**
+ * @brief Translate a virtual filesystem path available to current JS application to the actual path.
+ *
+ * @param[in] virtual_path virtual filesystem path
+ * @param[in,out] fs_path pointer to the path output string (must be allocated)
+ * @returns @c JsAppLauncherStatusOk on success
+ * @returns @c JsAppLauncherStatusNotRunning no JS application is running
+ * @returns @c JsAppLauncherStatusTimeout operation timed out
+ * @returns @c JsAppLauncherStatusAborted operation was aborted
+ * @returns @c JsAppLauncherStatusError path could not be translated
+ */
+JsAppLauncherStatus js_app_launcher_translate_path(FuriString* fs_path, const char* virtual_path);
+
+/**
+ * @brief Create all necessary directories for current JS application's storage.
+ *
+ * @returns @c JsAppLauncherStatusOk on success
+ * @returns @c JsAppLauncherStatusNotRunning no JS application is running
+ * @returns @c JsAppLauncherStatusTimeout operation timed out
+ * @returns @c JsAppLauncherStatusAborted operation was aborted
+ * @returns @c JsAppLauncherStatusError directories could not be created
+ */
+JsAppLauncherStatus js_app_launcher_ensure_current_app_directories(void);
+
 #ifdef __cplusplus
 }
 #endif
