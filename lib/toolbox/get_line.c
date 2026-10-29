@@ -67,4 +67,3 @@ GetLineResult get_line(size_t max_length) {
         .line = line,
     };
 }
-
