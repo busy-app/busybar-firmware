@@ -1,13 +1,10 @@
 #include "get_line.h"
+
 #include <stdio.h>
 
-#define ECHO 1
+#include <cli/cli_ansi.h>
 
-#define CHAR_ETX 3
-#define CHAR_EOT 4
-#define CHAR_BS  8
-#define CHAR_CR  13
-#define CHAR_DEL 127
+#define ECHO 1
 
 typedef int (*ReadCallback)(void* context);
 typedef void (*EchoCallback)(const char* data, size_t data_len, void* context);
@@ -18,15 +15,15 @@ static GetLineResult
     size_t count = 0;
     GetLineError error = GetLineErrorNone;
     FuriString* line = furi_string_alloc();
-    while(c != CHAR_CR) {
+    while(c != CliKeyCR) {
         c = read_cb(context);
-        if(c < 0 || c == CHAR_EOT) {
+        if(c < 0 || c == CliKeyEOT) {
             error = GetLineErrorEOF;
             break;
-        } else if(c == CHAR_ETX) {
+        } else if(c == CliKeyETX) {
             error = GetLineErrorInterrupt;
             break;
-        } else if(c == CHAR_BS || c == CHAR_DEL) {
+        } else if(c == CliKeyBackspace || c == CliKeyDEL) {
             if(count == 0) {
                 continue;
             }
