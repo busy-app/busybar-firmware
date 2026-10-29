@@ -450,12 +450,6 @@ static CliIntercom* cli_intercom_alloc(void) {
 
     cli_intercom->registry = furi_record_open(RECORD_CLI);
 
-    Intercom* intercom = furi_record_open(RECORD_INTERCOM);
-    cli_intercom->intercom_ch = intercom_channel_open(
-        intercom, IntercomChannelIdCli, cli_intercom_intercom_rx_callback, cli_intercom);
-    furi_state_subscribe(
-        intercom_get_state(intercom), cli_intercom_intercom_state_callback, cli_intercom);
-
     cli_intercom->event_loop = furi_event_loop_alloc();
 
     cli_intercom->msg_queue =
@@ -466,6 +460,12 @@ static CliIntercom* cli_intercom_alloc(void) {
         FuriEventLoopEventIn,
         cli_intercom_msg_handler,
         cli_intercom);
+
+    Intercom* intercom = furi_record_open(RECORD_INTERCOM);
+    cli_intercom->intercom_ch = intercom_channel_open(
+        intercom, IntercomChannelIdCli, cli_intercom_intercom_rx_callback, cli_intercom);
+    furi_state_subscribe(
+        intercom_get_state(intercom), cli_intercom_intercom_state_callback, cli_intercom);
 
     cli_intercom->intercom_rx_stream = furi_stream_buffer_alloc(RX_STREAM_SIZE, 1);
     cli_intercom->tx_data_available = furi_semaphore_alloc(1, 0);
