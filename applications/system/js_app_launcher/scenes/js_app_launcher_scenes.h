@@ -7,6 +7,7 @@ typedef enum {
     JsAppLauncherSceneIdRun,
     JsAppLauncherSceneIdSetup,
     JsAppLauncherSceneIdError,
+    JsAppLauncherSceneIdWebSetup,
     JsAppLauncherSceneIdMax,
 } JsAppLauncherSceneId;
 
