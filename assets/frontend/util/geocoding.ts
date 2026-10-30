@@ -107,7 +107,9 @@ export async function resolveByTimezone (zone: TimezoneInfo, signal?: AbortSigna
   }
 
   const cities = await searchCities(zone.name, signal);
+  const sameCity = cities.filter(city => zoneCity(city.timezone) === zone.name);
 
-  return cities.find(city => zoneCity(city.timezone) === zone.name)
+  return sameCity.find(city => zoneOffset(city.timezone) === zone.offset)
+    ?? sameCity[0]
     ?? cities.find(city => zoneOffset(city.timezone) === zone.offset);
 }

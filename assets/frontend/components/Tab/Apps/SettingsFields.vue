@@ -96,7 +96,7 @@
         variant="soft"
         size="sm"
         :style="GLASS_CONTROL_STYLE"
-        class="h-7 w-fit min-w-[53px] shrink-0"
+        class="h-7 w-fit min-w-18 shrink-0"
         :ui="{
           base: 'text-sm leading-4.5 ps-2 pe-2 py-1 gap-1 focus-visible:outline-2 focus-visible:outline-primary',
           trailing: 'static p-0 pe-0',
