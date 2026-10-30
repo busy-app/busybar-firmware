@@ -9,7 +9,7 @@ typedef struct {
     SMenu* front_menu;
     SMenu* back_menu;
 
-    _Atomic size_t pending_idx;
+    const SettingProviderSetting* _Atomic pending_setting;
 
     FuriMutex* settings_mutex;
 } JsAppLauncherSceneSetup;
@@ -171,18 +171,17 @@ static void js_app_launcher_scene_setup_item_selected_callback(SMenuItem* item) 
     JsAppLauncherSceneSetup* data =
         scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdSetup);
 
-    data->pending_idx = smenu_get_selected_item_index(data->front_menu);
+    data->pending_setting = widget_get_context(smenu_item_get_base(item));
 
     js_app_launcher_send_custom_event(instance, JsAppLauncherCustomEventSettingsItemSelected);
 }
 
 static void js_app_launcher_scene_setup_build_items(
     SMenu* menu,
-    const SettingProviderSetting* settings,
-    size_t settings_count,
+    const JsAppLauncherSceneSetupLevel* level,
     bool is_interactive) {
-    for(size_t i = 0; i < settings_count; i++) {
-        const SettingProviderSetting* setting = &settings[i];
+    for(size_t i = 0; i < level->settings_count; i++) {
+        const SettingProviderSetting* setting = &level->settings[i];
         const JsAppSettingsNode* node = js_app_settings_storage_get_node(setting);
         const JsAppLauncherSceneSetupItemTypeApi* type_api =
             &js_app_launcher_scene_setup_item_type_apis[node->type];
@@ -196,6 +195,10 @@ static void js_app_launcher_scene_setup_build_items(
                                   js_app_launcher_scene_setup_item_selected_callback);
             widget_set_context(smenu_item_get_base(item), (void*)setting);
         }
+
+        if(setting == level->selected_setting) {
+            smenu_set_selected_item_index(menu, i);
+        }
     }
 }
 
@@ -206,18 +209,13 @@ static void js_app_launcher_scene_setup_rebuild_level(JsAppLauncher* instance) {
     const JsAppLauncherSceneSetupLevel* level =
         JsAppLauncherSceneSetupLevels_back(instance->setup_levels);
 
-    data->pending_idx = 0;
+    data->pending_setting = NULL;
 
     smenu_reset(data->front_menu);
     smenu_reset(data->back_menu);
 
-    js_app_launcher_scene_setup_build_items(
-        data->front_menu, level->settings, level->settings_count, true);
-    js_app_launcher_scene_setup_build_items(
-        data->back_menu, level->settings, level->settings_count, false);
-
-    smenu_set_selected_item_index(data->front_menu, level->selected_idx);
-    smenu_set_selected_item_index(data->back_menu, level->selected_idx);
+    js_app_launcher_scene_setup_build_items(data->front_menu, level, true);
+    js_app_launcher_scene_setup_build_items(data->back_menu, level, false);
 }
 
 static void
@@ -262,7 +260,7 @@ static void js_app_launcher_scene_setup_on_enter(void* context) {
                 (JsAppLauncherSceneSetupLevel){
                     .settings = interface->inner_settings,
                     .settings_count = interface->inner_settings_count,
-                    .selected_idx = 0,
+                    .selected_setting = NULL,
                 });
         }
 
@@ -314,21 +312,19 @@ static bool js_app_launcher_scene_setup_on_item_selected(JsAppLauncher* instance
         scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdSetup);
     JsAppLauncherSceneSetupLevel* level =
         JsAppLauncherSceneSetupLevels_back(instance->setup_levels);
+    const SettingProviderSetting* setting = data->pending_setting;
 
-    size_t setting_idx = data->pending_idx;
-    if(setting_idx < level->settings_count) {
-        level->selected_idx = setting_idx;
-        const SettingProviderSetting* setting = &level->settings[setting_idx];
+    if(setting) {
+        level->selected_setting = setting;
 
         if(setting->type == SettingProviderSettingTypeStruct) {
             const SettingProviderStructInterface* interface = setting->interface;
-
             JsAppLauncherSceneSetupLevels_push_back(
                 instance->setup_levels,
                 (JsAppLauncherSceneSetupLevel){
                     .settings = interface->inner_settings,
                     .settings_count = interface->inner_settings_count,
-                    .selected_idx = 0,
+                    .selected_setting = NULL,
                 });
 
             with_gui(instance->gui, { js_app_launcher_scene_setup_rebuild_level(instance); });
