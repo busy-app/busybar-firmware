@@ -243,21 +243,21 @@ static void smenu_item_editable_style_front(const lv_obj_class_t* class, Widget*
 
     SMenuItemEditable* instance = (SMenuItemEditable*)widget;
 
-    lv_obj_set_style_text_color(
-        instance->base.right_container, lv_color_hex(0x666666), LV_PART_MAIN);
-    lv_obj_set_style_text_color(
-        instance->base.right_container, lv_color_white(), LV_PART_MAIN | LV_STATE_EDITED);
+    lv_obj_set_style_text_opa(
+        instance->base.right_container, LV_OPA_40, LV_PART_MAIN | LV_STATE_FOCUSED);
+    lv_obj_set_style_text_opa(
+        instance->base.right_container, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_EDITED);
 
     instance->standby_long_mode = LV_LABEL_LONG_MODE_CLIP;
     lv_label_set_long_mode(instance->primary_label, instance->standby_long_mode);
 
-    lv_obj_set_style_text_color(
-        instance->left_arrow_label, lv_color_hex(0x666666), LV_PART_MAIN | LV_STATE_DISABLED);
+    lv_obj_set_style_text_opa(
+        instance->left_arrow_label, LV_OPA_40, LV_PART_MAIN | LV_STATE_DISABLED);
 
     lv_obj_set_style_pad_hor(instance->value_label, 1, LV_PART_MAIN);
 
-    lv_obj_set_style_text_color(
-        instance->right_arrow_label, lv_color_hex(0x666666), LV_PART_MAIN | LV_STATE_DISABLED);
+    lv_obj_set_style_text_opa(
+        instance->right_arrow_label, LV_OPA_40, LV_PART_MAIN | LV_STATE_DISABLED);
 }
 
 static void smenu_item_editable_style_back(const lv_obj_class_t* class, Widget* widget) {
