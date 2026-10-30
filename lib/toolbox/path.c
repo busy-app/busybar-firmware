@@ -94,7 +94,15 @@ void path_append(FuriString* path, const char* suffix) {
     suffix_str = furi_string_alloc_set(suffix);
     furi_string_trim(suffix_str);
     furi_string_trim(suffix_str, "/");
-    furi_string_cat_printf(path, "/%s", furi_string_get_cstr(suffix_str));
+    if(furi_string_cmp(path, "/") == 0) {
+        // append to root
+        furi_string_cat(path, suffix_str);
+    } else if(furi_string_empty(path)) {
+        // append to empty - relative path
+        furi_string_set(path, suffix_str);
+    } else {
+        furi_string_cat_printf(path, "/%s", furi_string_get_cstr(suffix_str));
+    }
     furi_string_free(suffix_str);
 }
 

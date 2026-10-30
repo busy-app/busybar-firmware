@@ -13,6 +13,7 @@ extern "C" {
 
 #define TEST_FUNCTION_DECLS
 #include "test_test/test_test.h"
+#include "misc_test/path_test.h"
 #include "rle_test/rle_test.h"
 #include "pipe_test/pipe_test.h"
 #include "json_helper_test/json_helper_test.h"
@@ -24,7 +25,6 @@ extern "C" {
 #include "rtc_test/rtc_test.h"
 #include "datetime_test/datetime_test.h"
 #include "misc_test/misc_test.h"
-#include "misc_test/path_test.h"
 #include "rate_limiter_test/rate_limiter_test.h"
 #include "crypto_test/crypto_test.h"
 #include "timer_test/timer_test.h"
@@ -43,6 +43,7 @@ typedef int (*TestCallback)(void);
 static TestCallback unit_test_callbacks[] = {
 #define TEST_FUNCTION_REFS
 #include "test_test/test_test.h"
+#include "misc_test/path_test.h"
 #include "rle_test/rle_test.h"
 #include "pipe_test/pipe_test.h"
 #include "json_helper_test/json_helper_test.h"
@@ -54,7 +55,6 @@ static TestCallback unit_test_callbacks[] = {
 #include "rtc_test/rtc_test.h"
 #include "datetime_test/datetime_test.h"
 #include "misc_test/misc_test.h"
-#include "misc_test/path_test.h"
 #include "rate_limiter_test/rate_limiter_test.h"
 #include "crypto_test/crypto_test.h"
 #include "timer_test/timer_test.h"

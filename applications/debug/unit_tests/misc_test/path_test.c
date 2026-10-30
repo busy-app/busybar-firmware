@@ -72,9 +72,33 @@ MU_TEST(path_tests_path_replace_prefix) {
     check_path_replace_prefix("/foo", "/foo", "/", "/");
 }
 
+#define check_path_append(path, suffix, expected)                      \
+    {                                                                  \
+        FuriString* path_str = furi_string_alloc_set(path);            \
+        path_append(path_str, suffix);                                 \
+        mu_assert_string_eq(expected, furi_string_get_cstr(path_str)); \
+        furi_string_free(path_str);                                    \
+    }
+
+MU_TEST(path_tests_path_append) {
+    check_path_append("foo", "bar", "foo/bar");
+    check_path_append("/foo", "bar", "/foo/bar");
+    check_path_append("foo", "bar/", "foo/bar");
+    check_path_append("foo/", "bar", "foo/bar");
+    check_path_append("/foo/", "/bar/", "/foo/bar");
+    check_path_append("/", "bar", "/bar");
+    check_path_append("", "bar", "bar");
+    check_path_append("", "/bar", "bar");
+    check_path_append("/", "", "/");
+    check_path_append("/", "/", "/");
+    check_path_append("", "/", "");
+    check_path_append("", "", "");
+}
+
 MU_TEST_SUITE(path_test_suite) {
     MU_RUN_TEST(path_tests_path_normalize);
     MU_RUN_TEST(path_tests_path_replace_prefix);
+    MU_RUN_TEST(path_tests_path_append);
 }
 
 int run_minunit_path_test(void) {
