@@ -220,7 +220,7 @@
         v-model:open="showMkdirModal"
         data-id="modal-storage-mkdir"
         title="Create directory"
-        :dismissible="!isAnythingLoading"
+        :dismissible="!loading.mkdir"
         :primary-action-props="{
           label: 'Create',
           loading: loading.mkdir,
@@ -250,9 +250,9 @@
       <ModalGeneric
         v-model:open="showUploadModal"
         data-id="modal-storage-upload"
-        :title="uploadDirectory ? `Upload files to ${uploadDirectory.slice(uploadDirectory.lastIndexOf('/') + 1)}` : 'Upload files'"
+        :title="uploadModalTitle"
         wide
-        :dismissible="!isAnythingLoading"
+        :dismissible="!loading.write"
         :primary-action-props="{
           class: allFilesUploaded ? 'hidden' : '',
           label: 'Upload',
@@ -381,7 +381,7 @@
         v-model:open="showDeleteModal"
         data-id="modal-storage-delete"
         :title="itemToDelete ? `Delete ${itemToDelete.name}?` : `Delete ${selectedItems.size} items?`"
-        :dismissible="!isAnythingLoading"
+        :dismissible="!loading.remove"
         description="This action is irreversible"
         :primary-action-props="{
           label: 'Delete',
@@ -412,19 +412,30 @@ interface InputMenuItem {
   icon?: string;
 }
 
+interface UploadFile {
+  blob: File;
+  status: 'idle' | 'uploading' | 'success' | 'error';
+}
+
 interface ListOptions {
   syncUrl?: boolean;
   replaceUrl?: boolean;
   errorNotificationTimeout?: number;
 }
 
+const fileRelativePaths = new WeakMap<File, string>();
+
 const deviceStore = useDeviceStore();
 const route = useRoute();
 const router = useRouter();
 
-const fileRelativePaths = new WeakMap<File, string>();
-
 const filesInputMenu = useTemplateRef('filesInputMenu');
+
+defineShortcuts({
+  '/': () => {
+    filesInputMenu.value?.inputRef?.focus();
+  }
+});
 
 const loading = ref({
   list: false,
@@ -463,7 +474,7 @@ const fileListContainer = ref<HTMLElement | null>(null);
 
 const showUploadModal = ref(false);
 const filesModel = ref<File[] | null>(null);
-const filesToUpload = ref<{ blob: File; status: 'idle' | 'uploading' | 'success' | 'error' }[]>([]);
+const filesToUpload = ref<UploadFile[]>([]);
 
 const showDeleteModal = ref(false);
 const itemToDelete = ref<StorageListElement & { fullPath: string } | null>(null);
@@ -474,6 +485,10 @@ const allFilesUploaded = computed(() => filesModel.value
   && filesModel.value.length > 0
   && filesToUpload.value.length === filesModel.value.length
   && filesToUpload.value.filter(f => f.status !== 'success').length === 0);
+
+const uploadModalTitle = computed(() => (uploadDirectory.value
+  ? `Upload files to ${uploadDirectory.value.slice(uploadDirectory.value.lastIndexOf('/') + 1)}`
+  : 'Upload files'));
 
 function getQueryPath (queryPath: LocationQueryValue | LocationQueryValue[] | undefined): string | null {
   if (Array.isArray(queryPath)) {
@@ -919,12 +934,13 @@ async function remove () {
 
 function prepareFiles () {
   if (!filesModel.value) {
+    filesToUpload.value = [];
     return;
   }
 
-  for (const file of filesModel.value) {
-    filesToUpload.value.push({ blob: file, status: 'idle' });
-  }
+  const prepared = filesToUpload.value;
+  filesToUpload.value = filesModel.value.map<UploadFile>(file => prepared.find(f => f.blob === file)
+    ?? { blob: file, status: 'idle' });
 }
 function removeUpdatedFiles () {
   if (filesModel.value && filesModel.value.length) {
@@ -947,23 +963,6 @@ async function getDroppedUploadFiles (dataTransfer: DataTransfer) {
   return droppedFiles.map(({ file }) => file);
 }
 
-async function createUploadDirectories (basePath: string) {
-  const directories = new Set(filesToUpload.value
-    .map(file => getUploadPath(file.blob))
-    .filter(path => path.includes('/'))
-    .map(path => path.slice(0, path.lastIndexOf('/'))));
-
-  for (const directory of directories) {
-    const path = `${basePath}/${directory}`;
-
-    try {
-      await deviceStore.busyBar.StorageMkdir({ path });
-    } catch (error) {
-      await handleHTTPError(error, `Couldn't create ${path}`, false, 0);
-    }
-  }
-}
-
 async function uploadFiles () {
   if (!filesModel.value) {
     showUploadModal.value = false;
@@ -983,9 +982,12 @@ async function uploadFiles () {
 
   prepareFiles();
   const _currentPath = uploadDirectory.value ?? currentPath.value;
-  await createUploadDirectories(_currentPath);
 
   for (const file of filesToUpload.value) {
+    if (file.status === 'success') {
+      continue;
+    }
+
     try {
       file.status = 'uploading';
       await deviceStore.busyBar.StorageWrite({
@@ -1175,7 +1177,7 @@ watch(() => route.query.path, async queryPath => {
   }
 }, { immediate: true });
 
-onMounted(async () => {
+onMounted(() => {
   window.addEventListener('device-reconnected', refreshCurrentPath);
   window.addEventListener('click', onGlobalClick);
   window.addEventListener('dragenter', onWindowDragEnter);
@@ -1193,12 +1195,6 @@ onBeforeUnmount(() => {
   window.removeEventListener('drop', onWindowDrop);
 
   router.replace({ query: { ...route.query, path: undefined } });
-});
-
-defineShortcuts({
-  '/': () => {
-    filesInputMenu.value?.inputRef?.focus();
-  }
 });
 </script>
 

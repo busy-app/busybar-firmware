@@ -55,20 +55,20 @@
             class="size-6 shrink-0 text-error"
           />
 
-          <div
+          <p
             v-if="appMismatch"
             data-id="modal-uploader-app-error-mismatch"
             class="min-w-0 flex-1"
           >
             This file contains a different app. Select an update package for this app.
-          </div>
-          <div
+          </p>
+          <p
             v-else
             data-id="modal-uploader-app-error-reason"
             class="min-w-0 flex-1"
           >
             {{ errorReason }}
-          </div>
+          </p>
         </div>
 
         <div
@@ -85,13 +85,12 @@
 
             <li>
               Still having trouble? See
-              <a
+              <ULink
                 data-id="modal-uploader-app-error-docs-link"
                 class="text-primary underline"
-                :href="DOCS_URL"
+                :to="appConfig.links.appsTroubleshootingDocs"
                 target="_blank"
-                rel="noreferrer"
-              >BUSY Bar Docs</a>
+              >BUSY Bar Docs</ULink>
             </li>
           </ul>
         </div>
@@ -249,29 +248,34 @@ const emit = defineEmits<{
 
 const open = defineModel<boolean>('open', { default: false });
 
-const DOCS_URL = 'https://go.busy.app/docs-apps-troubleshooting';
-
 const STEP_REBUILD = 'Rebuild the app — the app file may be corrupted or incomplete';
 const STEP_MANIFEST = 'Check manifest.json — it must include id, name, version, and api_version';
 const STEP_API_VERSION = 'Check the API version — the app must use a supported version';
 const STEP_UPDATE_FIRMWARE = 'Update BUSY Bar — install the latest firmware';
 const STEP_RETRY = 'Try uploading the app again';
 
+const INSTALL_FAILED_CODE = 'installation_failed';
+
 const DEFAULT_ERROR_REASON = 'Unable to upload this file.';
 const DEFAULT_ERROR_STEPS = [STEP_RETRY];
 
-const ERROR_REASONS: Record<string, string> = {
-  unpack_error: 'Unable to unpack the app file.',
-  manifest_error: 'Invalid app manifest.',
-  api_mismatch: 'App API version isn\'t supported by this BUSY Bar.',
-  installation_failed: 'Unable to install the app.'
-};
-
-const ERROR_STEPS: Record<string, string[]> = {
-  unpack_error: [STEP_REBUILD],
-  manifest_error: [STEP_MANIFEST],
-  api_mismatch: [STEP_API_VERSION, STEP_UPDATE_FIRMWARE],
-  installation_failed: [STEP_RETRY]
+const APP_ERRORS: Record<string, { reason: string; steps: string[] }> = {
+  unpack_error: {
+    reason: 'Unable to unpack the app file.',
+    steps: [STEP_REBUILD]
+  },
+  manifest_error: {
+    reason: 'Invalid app manifest.',
+    steps: [STEP_MANIFEST]
+  },
+  api_mismatch: {
+    reason: 'App API version isn\'t supported by this BUSY Bar.',
+    steps: [STEP_API_VERSION, STEP_UPDATE_FIRMWARE]
+  },
+  [INSTALL_FAILED_CODE]: {
+    reason: 'Unable to install the app.',
+    steps: [STEP_RETRY]
+  }
 };
 
 const APP_FILE_EXTENSION = '.tgz';
@@ -281,6 +285,7 @@ let uploadController: AbortController | null = null;
 
 const toast = useToast();
 const appsStore = useAppsStore();
+const appConfig = useAppConfig();
 
 const file = ref<File | null>(null);
 
@@ -293,13 +298,11 @@ const failed = ref(false);
 const appMismatch = ref(false);
 const errorCode = ref<string>();
 
-const errorReason = computed(() => {
-  const reason = errorCode.value ? ERROR_REASONS[errorCode.value] : undefined;
+const appError = computed(() => (errorCode.value ? APP_ERRORS[errorCode.value] : undefined));
 
-  return `${reason ?? DEFAULT_ERROR_REASON} Try these steps:`;
-});
+const errorReason = computed(() => `${appError.value?.reason ?? DEFAULT_ERROR_REASON} Try these steps:`);
 
-const errorSteps = computed(() => (errorCode.value ? ERROR_STEPS[errorCode.value] : undefined) ?? DEFAULT_ERROR_STEPS);
+const errorSteps = computed(() => appError.value?.steps ?? DEFAULT_ERROR_STEPS);
 
 const confirming = computed(() => !!stageResult.value && !uploading.value && !failed.value);
 const uploaded = computed(() => progress.value >= 100);
@@ -393,7 +396,7 @@ async function installFile () {
     open.value = false;
   } catch (error) {
     console.error('App installation failed', error);
-    errorCode.value = httpErrorCode(error) ?? 'installation_failed';
+    errorCode.value = httpErrorCode(error) ?? INSTALL_FAILED_CODE;
     failed.value = true;
   } finally {
     installing.value = false;
