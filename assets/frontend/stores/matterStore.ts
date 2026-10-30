@@ -57,18 +57,25 @@ export const useMatterStore = defineStore('matter', () => {
         await handleHTTPError(error, 'Couldn\'t request Matter commissioning link');
       });
   }
-  async function deleteAllPairings (): Promise<void> {
-    await deviceStore.busyBar.SmartHomeErase()
-      .then(() => {
-        console.debug('All Matter pairings deleted, waiting for device to reboot');
-      })
-      .catch(async error => {
-        console.error(error.message);
-        if (error.message.includes('timed out')) {
-          return;
-        }
-        await handleHTTPError(error, 'Couldn\'t delete pairings');
-      });
+  async function deleteAllPairings () {
+    try {
+      await deviceStore.busyBar.SmartHomeErase();
+      console.debug('All Matter pairings deleted, waiting for device to reboot');
+
+      return true;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(message);
+
+      // The device reboots right after erasing, so the response may never arrive
+      if (message.includes('timed out')) {
+        return true;
+      }
+
+      await handleHTTPError(error, 'Couldn\'t delete pairings');
+
+      return false;
+    }
   }
 
   return {
