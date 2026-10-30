@@ -164,7 +164,7 @@ static const HttpApiAccess js_apps_api_allowlist[] = {
     {"status/firmware", HttpApiAccessMatchTypeExact, HttpMethodGet},
     {"status/system", HttpApiAccessMatchTypeExact, HttpMethodGet},
     {"status/power", HttpApiAccessMatchTypeExact, HttpMethodGet},
-    {"storage", HttpApiAccessMatchTypePrefix, HttpMethodAny},
+    {"storage", HttpApiAccessMatchTypePrefix, HttpMethodGet | HttpMethodPost | HttpMethodDelete},
 };
 
 typedef struct {

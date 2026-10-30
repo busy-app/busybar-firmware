@@ -124,26 +124,26 @@ Apps run in isolation and can only reach these endpoints (relative to `http://lo
 endpoint is rejected, even if it is listed in the full [HTTP API reference](https://docs.busy.app/bar/dev/http-api).
 Do not design an app around an endpoint that is not on this list.
 
-| Endpoint             | Allowed method(s) |
-| -------------------- | :---------------: |
-| `apps/settings`      | `GET` [1]         |
-| `display/brightness` | `GET`, `POST`     |
-| `display/draw`       | `POST`, `DELETE`  |
-| `audio/play`         | `POST`, `DELETE`  |
-| `audio/volume`       | `GET`, `POST`     |
-| `busy`               | `GET`, `PUT`      |
-| `name`               | `GET`             |
-| `time`               | `GET`             |
-| `wifi/status`        | `GET`             |
-| `version`            | `GET`             |
-| `access`             | `GET`             |
-| `transport`          | `GET`             |
-| `status`             | `GET`             |
-| `status/device`      | `GET`             |
-| `status/firmware`    | `GET`             |
-| `status/system`      | `GET`             |
-| `status/power`       | `GET`             |
-| `storage`            | any [2]           |
+| Endpoint             | Allowed method(s)           |
+| -------------------- | :-------------------------: |
+| `apps/settings`      | `GET` [1]                   |
+| `display/brightness` | `GET`, `POST`               |
+| `display/draw`       | `POST`, `DELETE`            |
+| `audio/play`         | `POST`, `DELETE`            |
+| `audio/volume`       | `GET`, `POST`               |
+| `busy`               | `GET`, `PUT`                |
+| `name`               | `GET`                       |
+| `time`               | `GET`                       |
+| `wifi/status`        | `GET`                       |
+| `version`            | `GET`                       |
+| `access`             | `GET`                       |
+| `transport`          | `GET`                       |
+| `status`             | `GET`                       |
+| `status/device`      | `GET`                       |
+| `status/firmware`    | `GET`                       |
+| `status/system`      | `GET`                       |
+| `status/power`       | `GET`                       |
+| `storage`            | `GET`, `POST`, `DELETE` [2] |
 
 - [1] Only with `app_id` equal to the running app's id. Apps can read their settings but not write them.
 - [2] Requests made to Storage API from a JS application can only access application's sandboxed storage space mapped to `/ext/data`.
