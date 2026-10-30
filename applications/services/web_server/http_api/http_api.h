@@ -8,7 +8,7 @@ int http_api_extract_status(const struct mg_connection* conn);
 void http_api_log_access(struct mg_connection* conn, struct mg_http_message* msg, int status_code);
 
 // Check for JS applications accessing the API
-bool http_api_is_request_from_js(struct mg_http_message* msg);
+bool http_api_is_request_from_js(const struct mg_connection* conn);
 
 // Root API handlers
 void* http_api_root_alloc(void);

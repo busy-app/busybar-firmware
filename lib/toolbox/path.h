@@ -90,6 +90,26 @@ bool path_contains_only_ascii(const char* path);
  * @endcode
  */
 void path_normalize(const char* path, FuriString* out_path, bool allow_escape_root);
+
+/**
+ * @brief Replaces an old path prefix with a new one.
+ *
+ * @param[in] path input path
+ * @param[in] old_prefix prefix to be replaced
+ * @param[in] new_prefix new prefix to be used
+ * @param[in,out] out_path pointer to the path output string (must be allocated)
+ * @return true on success, false if path does not start with old_prefix
+ *
+ * @code
+ * path_replace_prefix("/a/b/c/foo", "/a/b", "/g", out_path); // produces "/g/c/foo"
+ * path_replace_prefix("/a/bar/c/foo", "/a/b", "/g", out_path); // returns false
+ * @endcode
+ */
+bool path_replace_prefix(
+    const char* path,
+    const char* old_prefix,
+    const char* new_prefix,
+    FuriString* out_path);
 #ifdef __cplusplus
 }
 #endif

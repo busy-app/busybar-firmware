@@ -166,27 +166,29 @@ fetch("http://localhost/api/display/draw", {
 
 For application isolation purposes, only the following API endpoints are accessible from within the applications:
 
-| Endpoint             | Allowed method(s) |
-| -------------------- | :---------------: |
-| `apps/settings`      | `GET` [1]         |
-| `display/brightness` | `GET`, `POST`     |
-| `display/draw`       | `POST`, `DELETE`  |
-| `audio/play`         | `POST`, `DELETE`  |
-| `busy`               | `GET`, `PUT`      |
-| `name`               | `GET`             |
-| `audio/volume`       | `GET`, `POST`     |
-| `time`               | `GET`             |
-| `wifi/status`        | `GET`             |
-| `version`            | `GET`             |
-| `access`             | `GET`             |
-| `transport`          | `GET`             |
-| `status`             | `GET`             |
-| `status/device`      | `GET`             |
-| `status/firmware`    | `GET`             |
-| `status/system`      | `GET`             |
-| `status/power`       | `GET`             |
+| Endpoint             | Allowed method(s)           |
+| -------------------- | :-------------------------: |
+| `apps/settings`      | `GET` [1]                   |
+| `display/brightness` | `GET`, `POST`               |
+| `display/draw`       | `POST`, `DELETE`            |
+| `audio/play`         | `POST`, `DELETE`            |
+| `busy`               | `GET`, `PUT`                |
+| `name`               | `GET`                       |
+| `audio/volume`       | `GET`, `POST`               |
+| `time`               | `GET`                       |
+| `wifi/status`        | `GET`                       |
+| `version`            | `GET`                       |
+| `access`             | `GET`                       |
+| `transport`          | `GET`                       |
+| `status`             | `GET`                       |
+| `status/device`      | `GET`                       |
+| `status/firmware`    | `GET`                       |
+| `status/system`      | `GET`                       |
+| `status/power`       | `GET`                       |
+| `storage`            | `GET`, `POST`, `DELETE` [2] |
 
 - [1] The request is only allowed if the `app_id` request parameter matches the running application ID.
+- [2] Requests made to Storage API from a JS application can only access application's sandboxed storage space mapped to `/ext/data`.
 
 The `fetch` function can also be used to access remote HTTP(S) resources in the same manner, provided there is a working Wi-Fi connection.
 

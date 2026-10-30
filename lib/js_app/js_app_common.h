@@ -9,6 +9,9 @@
 
 #define JS_APP_ID_LEN_MAX 32
 
+#define JS_APP_DATA_MOUNT_POINT "/ext/data"
+#define JS_APP_DATA_PREFIX      "/ext/apps_data/js_apps"
+
 /**
  * @brief Check if an application ID is valid.
  *

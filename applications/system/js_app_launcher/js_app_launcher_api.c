@@ -2,6 +2,8 @@
 
 #include <desktop/desktop.h>
 #include <loader/loader.h>
+#include <path.h>
+#include <storage/storage.h>
 
 #include <js_app/js_app_common.h>
 
@@ -145,4 +147,59 @@ JsAppLauncherStatus js_app_launcher_get_running_app_id(FuriString* app_id) {
 
     furi_record_close(RECORD_JS_APP_LAUNCHER);
     return status;
+}
+
+static FuriString* js_app_launcher_get_data_path(const char* app_id) {
+    return furi_string_alloc_printf("%s/%s", JS_APP_DATA_PREFIX, app_id);
+}
+
+static bool js_app_launcher_replace_data_path(
+    FuriString* fs_path,
+    const char* virtual_path,
+    const char* app_id) {
+    FuriString* data_path = js_app_launcher_get_data_path(app_id);
+
+    bool is_success = path_replace_prefix(
+        virtual_path, JS_APP_DATA_MOUNT_POINT, furi_string_get_cstr(data_path), fs_path);
+
+    furi_string_free(data_path);
+    return is_success;
+}
+
+static bool js_app_launcher_ensure_data_path(const char* app_id) {
+    FuriString* data_path = js_app_launcher_get_data_path(app_id);
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+    bool is_success = storage_simply_mkpath(storage, furi_string_get_cstr(data_path));
+    if(!is_success) {
+        FURI_LOG_E(TAG, "Cannot make path: %s", furi_string_get_cstr(data_path));
+    }
+    furi_record_close(RECORD_STORAGE);
+    furi_string_free(data_path);
+    return is_success;
+}
+
+bool js_app_launcher_translate_path(
+    const char* app_id,
+    FuriString* fs_path,
+    const char* virtual_path) {
+    bool is_success = true;
+    do {
+        if(js_app_launcher_replace_data_path(fs_path, virtual_path, app_id)) {
+            break;
+        }
+        FURI_LOG_D(TAG, "Path %s is not allowed for JS apps", virtual_path);
+        is_success = false;
+    } while(false);
+    return is_success;
+}
+
+bool js_app_launcher_ensure_app_directories(const char* app_id) {
+    bool is_success = false;
+    do {
+        if(!js_app_launcher_ensure_data_path(app_id)) {
+            break;
+        }
+        is_success = true;
+    } while(false);
+    return is_success;
 }
