@@ -360,7 +360,17 @@ static MatterStatus matter_fabric_count_response_handler(
     const MatterIntercomFrame* response) {
     UNUSED(api_message);
     const MatterIntercomFabricCountUpdateFrame* fabric_count = &response->fabric_count;
-    instance->fabrics.count = fabric_count->fabric_count;
+
+    if(instance->fabrics.count != fabric_count->fabric_count) {
+        instance->fabrics.count = fabric_count->fabric_count;
+
+        MatterEvent event = {
+            .type = MatterEventTypeFabricCountChanged,
+            .fabric_count = fabric_count->fabric_count,
+        };
+
+        furi_pubsub_publish(instance->pubsub, &event);
+    }
 
     return STATUS_WAIT_FOR_RESPONSE;
 }
