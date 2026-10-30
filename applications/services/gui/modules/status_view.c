@@ -26,7 +26,9 @@ const lv_obj_class_t status_view_lvgl_class;
 
 /* callbacks */
 
-static void status_view_style_front(Widget* widget) {
+static void status_view_style_front(const lv_obj_class_t* class, Widget* widget) {
+    UNUSED(class);
+
     StatusView* instance = (StatusView*)widget;
 
     instance->primary_font = font_registry_load_font(instance->font_registry, FONT_BUSY_REGULAR_5);
@@ -55,7 +57,9 @@ static void status_view_style_front(Widget* widget) {
     lv_obj_set_style_text_line_space(instance->auxiliary_label, -2, LV_PART_MAIN);
 }
 
-static void status_view_style_back(Widget* widget) {
+static void status_view_style_back(const lv_obj_class_t* class, Widget* widget) {
+    UNUSED(class);
+
     StatusView* instance = (StatusView*)widget;
 
     instance->primary_font = font_registry_load_font(instance->font_registry, FONT_BUSY_REGULAR_9);
