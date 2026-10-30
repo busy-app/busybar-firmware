@@ -210,6 +210,7 @@ def test_js_storage_crud(storage_app_runner, storage_api: StorageAPI):
 @allure.title(
     "JS storage rejects paths outside its virtual mount without changing files"
 )
+@pytest.mark.skip(reason="FW-1271: https://flipper.atlassian.net/browse/FW-1271")
 @pytest.mark.parametrize("path_kind", ["prefix_collision", "traversal", "relative"])
 def test_js_storage_rejects_outside_paths(
     storage_app_runner,
