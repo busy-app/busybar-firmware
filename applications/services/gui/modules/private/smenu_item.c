@@ -1,7 +1,7 @@
 #include "smenu_item_i.h"
 
-#define SMENU_ITEM_FADER_WIDTH         (10)
-#define SMENU_ITEM_RIGHT_MAX_WIDTH_PCT (45)
+#define SMENU_ITEM_FADER_WIDTH         (16)
+#define SMENU_ITEM_RIGHT_MAX_WIDTH_PCT (60)
 
 static const lv_obj_class_t smenu_item_right_container_lvgl_class;
 
@@ -59,8 +59,12 @@ static void smenu_item_on_lvgl_event(const lv_obj_class_t* class, lv_event_t* ev
 
         if(event_code == LV_EVENT_FOCUSED) {
             lv_obj_scroll_to_view_recursive(object, LV_ANIM_OFF);
+            lv_obj_add_state(instance->left_container, LV_STATE_FOCUSED);
+            lv_obj_add_state(instance->right_container, LV_STATE_FOCUSED);
             instance->is_active = true;
         } else if(event_code == LV_EVENT_DEFOCUSED) {
+            lv_obj_remove_state(instance->left_container, LV_STATE_FOCUSED);
+            lv_obj_remove_state(instance->right_container, LV_STATE_FOCUSED);
             instance->is_active = false;
         } else if(event_code == LV_EVENT_DRAW_POST) {
             if(instance->do_draw_fader) {
@@ -112,10 +116,14 @@ static void smenu_item_style_front(const lv_obj_class_t* class, Widget* widget) 
     lv_obj_t* object = TO_LV_OBJ(widget);
     SMenuItem* instance = (SMenuItem*)widget;
 
-    lv_obj_set_style_text_color(object, lv_color_hex(0x666666), LV_PART_MAIN);
-    lv_obj_set_style_text_color(object, lv_color_white(), LV_PART_MAIN | LV_STATE_FOCUSED);
+    lv_obj_set_style_text_color(object, lv_color_white(), LV_PART_MAIN);
+    lv_obj_set_style_text_opa(object, LV_OPA_40, LV_PART_MAIN);
+    lv_obj_set_style_text_opa(object, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_FOCUSED);
 
     lv_obj_set_style_pad_hor(instance->cursor_label, 1, LV_PART_MAIN);
+
+    lv_obj_set_style_opa(instance->right_container, LV_OPA_TRANSP, LV_PART_MAIN);
+    lv_obj_set_style_opa(instance->right_container, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_FOCUSED);
 
     instance->do_draw_fader = true;
 }
