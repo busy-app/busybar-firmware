@@ -700,6 +700,22 @@ static bool api_apps_settings_callback(
     return true;
 }
 
+static bool api_apps_queue_request_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(ctx);
+    UNUSED(msg);
+    UNUSED(method);
+
+    FURI_LOG_W(TAG, "Path: %s", furi_string_get_cstr(path));
+
+    MG_REPLY_OK(conn);
+    return true;
+}
+
 static const HttpHandler api_apps_handlers[] = {
     {
         .uri = "",
@@ -743,6 +759,12 @@ static const HttpHandler api_apps_handlers[] = {
         .method = HttpMethodGet | HttpMethodPut | HttpMethodDelete,
         .type = HttpHandlerCustom,
         .on_request = api_apps_settings_callback,
+    },
+    {
+        .uri = "queue",
+        .method = HttpMethodGet | HttpMethodPost,
+        .type = HttpHandlerCustom,
+        .on_request = api_apps_queue_request_callback,
     },
 };
 

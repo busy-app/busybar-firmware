@@ -375,12 +375,90 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /api/apps/queue:
+    get:
+      tags:
+        - Apps
+      summary: Get the app queue contents
+      description: >
+        Get the current status of the app management queue.
+      x-local-only: true
+      operationId: getAppQueue
+      responses:
+        "200":
+          description: Got status successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppQueueGetResponse"
+    post:
+      tags:
+        - Apps
+      summary: Add operation(s) to the app queue
+      description: >
+        Add specified operations to the app management queue.
+      x-local-only: true
+      operationId: addToAppQueue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppQueueAddRequest"
+      responses:
+        "202":
+          description: Added to queue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppQueueAddResponse"
+
+  /api/apps/queue/cancel:
+    post:
+      tags:
+        - Apps
+      summary: Cancel operation or clear the app queue
+      description: >
+        Cancel a queued operation by its queue ID, or clear the whole queue.
+      x-local-only: true
+      operationId: cancelAppQueue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: "#/components/schemas/AppQueueCancelRequest"
+                - $ref: "#/components/schemas/AppQueueClearRequest"
+            examples:
+              cancelOne:
+                summary: Cancel a single operation
+                value:
+                  item_id: 42
+              clearAll:
+                summary: Clear the whole queue
+                value:
+                  all: true
+      responses:
+        "202":
+          description: >
+            Item(s) removed from queue or whole queue cleared.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
 schemas:
   AppId:
     type: string
     pattern: "^[a-zA-Z0-9_\\-][a-zA-Z0-9_\\-.]{0,31}$"
     description: JavaScript application id
     example: "app.author.example_app"
+
+  AppVersion:
+    type: string
+    description: Version in SemVer (x.y.z) format
+    example: "1.2.3"
 
   AppStageResult:
     type: object
@@ -473,3 +551,99 @@ schemas:
     required:
       - version
       - values
+
+  AppQueueItemId:
+    type: integer
+    description: Numeric identifier of the item in the queue
+    examples:
+      startValue:
+        summary: Starting value for the first queue operation after reset
+        value: 0
+      anyValue:
+        summary: Any value during operation (wraps back to 0)
+        value: 42
+
+  AppQueueOperation:
+    type: object
+    properties:
+      type:
+        type: string
+        enum:
+          - "install"
+          - "delete"
+      version:
+        $ref: "#/components/schemas/AppVersion"
+
+  AppQueueStatus:
+    type: string
+    enum:
+      - "queued"
+      - "in_progress"
+
+  AppQueueDetail:
+    type: object
+    properties:
+      step:
+        type: string
+        example: "unpacking"
+      progress:
+        type: integer
+        minimum: 0
+        maximum: 100
+        example: 34
+
+  AppQueueItem:
+    type: object
+    properties:
+      item_id:
+        $ref: "#/components/schemas/AppQueueItemId"
+      app_id:
+        $ref: "#/components/schemas/AppId"
+      operation:
+        $ref: "#/components/schemas/AppQueueOperation"
+      status:
+        $ref: "#/components/schemas/AppQueueStatus"
+      detail:
+        $ref: "#/components/schemas/AppQueueDetail"
+    required:
+      - item_id
+      - app_id
+      - operation
+      - status
+
+  AppQueueGetResponse:
+    type: object
+    properties:
+      result:
+        type: array
+        items:
+          $ref: "#/components/schemas/AppQueueItem"
+
+  AppQueueAddRequest:
+    type: object
+    properties:
+      operations:
+        type: array
+
+  AppQueueAddResponse:
+    type: object
+    properties:
+      result:
+        type: array
+
+  AppQueueCancelRequest:
+    type: object
+    properties:
+      item_id:
+        $ref: "#/components/schemas/AppQueueItemId"
+    required:
+      - item_id
+
+  AppQueueClearRequest:
+    type: object
+    properties:
+      all:
+        type: boolean
+        const: true
+    required:
+      - all
