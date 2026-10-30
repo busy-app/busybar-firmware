@@ -10,11 +10,11 @@
 
 #define FILE_PATH_LEN_MAX 256
 
-static bool api_storage_translate_path(
+static bool api_storage_translate_path_js(
     FuriString* out_path,
     const char* in_path,
     size_t in_path_len,
-    bool is_js) {
+    const char* app_id) {
     furi_string_printf(out_path, "%.*s", in_path_len, in_path);
     if(furi_string_end_with(out_path, "/")) {
         furi_string_left(out_path, furi_string_size(out_path) - 1);
@@ -24,28 +24,29 @@ static bool api_storage_translate_path(
         return false;
     }
 
-    if(is_js) {
-        JsAppLauncherStatus status = js_app_launcher_ensure_current_app_directories();
-        if(status == JsAppLauncherStatusOk) {
+    if(app_id) {
+        bool status = js_app_launcher_ensure_app_directories(app_id);
+        if(status) {
             FuriString* translated_path = furi_string_alloc();
-            status =
-                js_app_launcher_translate_path(translated_path, furi_string_get_cstr(out_path));
-            if(status == JsAppLauncherStatusOk) {
+            status = js_app_launcher_translate_path(
+                app_id, translated_path, furi_string_get_cstr(out_path));
+            if(status) {
                 furi_string_set(out_path, translated_path);
             }
             furi_string_free(translated_path);
         }
-        return status == JsAppLauncherStatusOk;
+        return status;
     } else {
         return furi_string_start_with(out_path, STORAGE_EXT_PATH_PREFIX);
     }
 }
 
-static bool api_storage_parse_path_parameter(
+static bool api_storage_parse_path_parameter_with_app_id(
     struct mg_connection* conn,
     struct mg_str* params_str,
     const char* name,
-    FuriString* path) {
+    FuriString* path,
+    const char* app_id) {
     ConnectionContext* conn_ctx = (ConnectionContext*)conn->data;
     if(params_str->len == 0) {
         return false;
@@ -58,7 +59,33 @@ static bool api_storage_parse_path_parameter(
         return false;
     }
 
-    return api_storage_translate_path(path, temp_str, var_len, conn_ctx->is_js);
+    if(conn_ctx->is_js) {
+        return api_storage_translate_path_js(path, temp_str, var_len, app_id);
+    } else {
+        return api_storage_translate_path_js(path, temp_str, var_len, NULL);
+    }
+}
+
+static bool api_storage_parse_path_parameter(
+    struct mg_connection* conn,
+    struct mg_str* params_str,
+    const char* name,
+    FuriString* path) {
+    ConnectionContext* conn_ctx = (ConnectionContext*)conn->data;
+    if(conn_ctx->is_js) {
+        FuriString* app_id = furi_string_alloc();
+        bool result = false;
+        if(js_app_launcher_get_running_app_id(app_id) == JsAppLauncherStatusOk) {
+            result = api_storage_parse_path_parameter_with_app_id(
+                conn, params_str, name, path, furi_string_get_cstr(app_id));
+        } else {
+            FURI_LOG_E(TAG, "API request from JS, but no app is running");
+        }
+        furi_string_free(app_id);
+        return result;
+    } else {
+        return api_storage_parse_path_parameter_with_app_id(conn, params_str, name, path, NULL);
+    }
 }
 
 static bool api_storage_parse_append_parameter(struct mg_str* params_str, bool* append) {
@@ -253,8 +280,26 @@ static bool api_storage_rename_callback(
 
     FuriString* old_path = furi_string_alloc();
     FuriString* new_path = furi_string_alloc();
-    bool success = api_storage_parse_path_parameter(conn, &msg->query, "path", old_path) &&
-                   api_storage_parse_path_parameter(conn, &msg->query, "new_path", new_path);
+
+    ConnectionContext* conn_ctx = (ConnectionContext*)conn->data;
+    bool success = false;
+
+    if(!conn_ctx->is_js) {
+        success = api_storage_parse_path_parameter(conn, &msg->query, "path", old_path) &&
+                  api_storage_parse_path_parameter(conn, &msg->query, "new_path", new_path);
+    } else {
+        FuriString* app_id = furi_string_alloc();
+        if(js_app_launcher_get_running_app_id(app_id) == JsAppLauncherStatusOk) {
+            const char* app_id_cstr = furi_string_get_cstr(app_id);
+            success = api_storage_parse_path_parameter_with_app_id(
+                          conn, &msg->query, "path", old_path, app_id_cstr) &&
+                      api_storage_parse_path_parameter_with_app_id(
+                          conn, &msg->query, "new_path", new_path, app_id_cstr);
+        } else {
+            FURI_LOG_E(TAG, "API request from JS, but no app is running");
+        }
+        furi_string_free(app_id);
+    }
 
     if(success) {
         success =
