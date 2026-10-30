@@ -10,4 +10,4 @@ Read `applications_js/AGENTS.md` and `documentation/JavaScript Applications.dox.
 - One app, one repository: app sources are scaffolded with `busy-tools` elsewhere. Do not ask for new apps to be added here unless the PR is explicitly about the examples.
 - Apps reach the device only through `fetch` on `http://localhost/api/...`, and only a subset of the HTTP API is exposed. Check that every call belongs to that subset.
 - The default button press event is `short`, not `press`.
-- Check that `src/appmeta/manifest.json` matches the sources and the declared API version.
+- Check that application's `manifest.json` matches the sources and the declared API version.
