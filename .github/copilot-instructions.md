@@ -45,6 +45,19 @@ When reviewing a pull request:
 - Be specific: quote or paraphrase the exact code rather than describing it vaguely.
 - Leave a top-level summary comment stating the overall verdict and any cross-cutting observations.
 
+## Review Environment
+
+- The review runtime has the full source tree, including every submodule under `lib/` and `fbt_layers/`. Read surrounding code, headers and sibling modules before commenting.
+- There is no ARM toolchain, no `./fbt` build, no test runner and no device attached. Never state that a change compiles, links, lints cleanly or passes tests; if that matters, say which CI check to look at instead.
+- Do not try to install toolchains or run builds. Report code-level findings only.
+
+## Repository References
+
+- `documentation/Code Style.dox.md` - mandatory naming, formatting and control-flow rules.
+- `documentation/Services.dox.md` - service architecture, message dispatch and pub/sub conventions.
+- `documentation/Native Applications.dox.md`, `documentation/JavaScript Applications.dox.md` - the two application types and when each applies.
+- `AGENTS.md` - architecture overview, module layout and build commands.
+
 ## Additional Notes
 
 - Keep in mind that this project uses a specialized malloc implementation which provides zeroed memory, refuses 0-byte allocations, and aborts on allocation failure. This may affect how you reason about memory safety and error handling.
