@@ -68,6 +68,8 @@ MU_TEST(path_tests_path_replace_prefix) {
     check_path_replace_prefix("foo/bar", "foo", "baz", "baz/bar");
     check_path_replace_prefix("foo/bar", "foo", "/baz", "/baz/bar");
     check_path_replace_prefix("foo/bar", "/foo", "/baz", NULL);
+    check_path_replace_prefix("/", "/", "/", "/");
+    check_path_replace_prefix("/foo", "/foo", "/", "/");
 }
 
 MU_TEST_SUITE(path_test_suite) {

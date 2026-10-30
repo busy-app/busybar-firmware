@@ -56,7 +56,7 @@ void path_extract_extension(FuriString* path, char* ext, size_t ext_len_max) {
 
 static inline void path_cleanup(FuriString* path) {
     furi_string_trim(path);
-    while(furi_string_end_with(path, "/")) {
+    while(furi_string_size(path) > 1 && furi_string_end_with(path, "/")) {
         furi_string_left(path, furi_string_size(path) - 1);
     }
 }
