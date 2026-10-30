@@ -115,6 +115,7 @@ typedef enum {
     JsAppLauncherCustomEventSettingsChanged,
     JsAppLauncherCustomEventSettingsItemSelected,
     JsAppLauncherCustomEventLongBackPressed,
+    JsAppLauncherCustomEventSceneExitRequested,
     JsAppLauncherCustomEventScriptErrorBase = 0x100,
     JsAppLauncherCustomEventScriptErrorMask = 0x0ff,
 } JsAppLauncherCustomEvent;

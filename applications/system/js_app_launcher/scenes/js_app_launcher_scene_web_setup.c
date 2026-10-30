@@ -12,13 +12,38 @@ typedef struct {
     StatusView* back_status;
 } JsAppLauncherSceneWebSetup;
 
+static bool
+    js_app_launcher_scene_web_setup_input_callback(const InputEvent* event, void* context) {
+    furi_assert(event);
+    furi_assert(context);
+
+    JsAppLauncher* instance = context;
+
+    bool is_consumed = false;
+    if(event->type == InputTypeShort) {
+        if((event->key == InputKeyOk || event->key == InputKeyStart)) {
+            js_app_launcher_send_custom_event(
+                instance, JsAppLauncherCustomEventSceneExitRequested);
+            is_consumed = true;
+        }
+    }
+
+    return is_consumed;
+}
+
 static void js_app_launcher_scene_web_setup_on_enter(void* context) {
+    furi_assert(context);
+
     JsAppLauncher* instance = context;
 
     JsAppLauncherSceneWebSetup* data =
         scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdWebSetup);
 
     with_gui(instance->gui, {
+        GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        gui_layer_add_input_callback(
+            layer, js_app_launcher_scene_web_setup_input_callback, instance);
+
         widget_set_visible(nav_bar_get_base(instance->nav_bar), false);
 
         data->front_layout = flex_layout_alloc(instance->front_window, FlexLayoutTypeRow);
@@ -46,12 +71,17 @@ static void js_app_launcher_scene_web_setup_on_enter(void* context) {
 }
 
 static void js_app_launcher_scene_web_setup_on_exit(void* context) {
+    furi_assert(context);
+
     JsAppLauncher* instance = context;
 
     JsAppLauncherSceneWebSetup* data =
         scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdWebSetup);
 
     with_gui(instance->gui, {
+        GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
+        gui_layer_remove_input_callback(layer, js_app_launcher_scene_web_setup_input_callback);
+
         flex_layout_free(data->front_layout);
         status_view_free(data->back_status);
 
@@ -61,10 +91,19 @@ static void js_app_launcher_scene_web_setup_on_exit(void* context) {
 
 static bool
     js_app_launcher_scene_web_setup_on_event(const SceneManagerEvent* event, void* context) {
-    UNUSED(event);
-    UNUSED(context);
+    furi_assert(event);
+    furi_assert(context);
 
-    return false;
+    JsAppLauncher* instance = context;
+
+    bool is_consumed = false;
+    if(event->type == SceneManagerEventTypeCustom) {
+        if(event->event == JsAppLauncherCustomEventSceneExitRequested) {
+            is_consumed = scene_manager_previous_scene(instance->scene_manager);
+        }
+    }
+
+    return is_consumed;
 }
 
 const Scene js_app_launcher_scene_web_setup = {
