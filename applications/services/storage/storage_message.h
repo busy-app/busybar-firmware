@@ -164,6 +164,7 @@ typedef enum {
     StorageCommandSDMount,
     StorageCommandCommonEquivalentPath,
     StorageCommandBackupReadOnly,
+    StorageCommandBackupReadOnlyGet,
     StorageCommandCommonShutdown,
 } StorageCommand;
 

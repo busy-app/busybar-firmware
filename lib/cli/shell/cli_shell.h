@@ -19,6 +19,16 @@ typedef struct CliShell CliShell;
 typedef void (*CliShellMotd)(void* context);
 
 /**
+ * @brief CLI shell configuration flags
+ */
+typedef enum {
+    CliShellFlagNone = 0,
+    CliShellFlagNonExitable =
+        (1
+         << 0), //!< The "exit" command or Ctrl+D handling are non-functional, instead printing an error. Useful for UART shells or other interfaces where exiting a shell would lead to the interface being unusable until a reset.
+} CliShellFlag;
+
+/**
  * @brief Allocates a shell
  * 
  * @param [in] motd       Message of the Day callback
@@ -36,7 +46,8 @@ CliShell* cli_shell_alloc(
     void* context,
     PipeSide* pipe,
     CliRegistry* registry,
-    const CliCommandExternalConfig* ext_config);
+    const CliCommandExternalConfig* ext_config,
+    CliShellFlag flags);
 
 /**
  * @brief Frees a shell

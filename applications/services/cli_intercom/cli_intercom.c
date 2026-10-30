@@ -234,8 +234,8 @@ static void cli_intercom_do_protocol_spawn(CliIntercom* cli_intercom) {
 
     cli_intercom_attach_own_pipe(cli_intercom, bundle.alices_side);
 
-    cli_intercom->cli_shell =
-        cli_shell_alloc(cli_main_motd, NULL, shell_pipe, cli_intercom->registry, NULL);
+    cli_intercom->cli_shell = cli_shell_alloc(
+        cli_main_motd, NULL, shell_pipe, cli_intercom->registry, NULL, CliShellFlagNone);
     cli_shell_free_pipe_on_exit(cli_intercom->cli_shell);
     cli_shell_set_prompt(cli_intercom->cli_shell, "917");
     cli_shell_start(cli_intercom->cli_shell);

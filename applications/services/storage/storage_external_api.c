@@ -895,7 +895,18 @@ void storage_backup_set_readonly(Storage* storage, bool readonly) {
 
     S_API_MESSAGE(StorageCommandBackupReadOnly);
     S_API_EPILOGUE;
-} //-V773
+}
+
+bool storage_backup_get_readonly(Storage* storage) {
+    furi_check(storage);
+
+    S_API_PROLOGUE;
+    SAData data = {};
+
+    S_API_MESSAGE(StorageCommandBackupReadOnlyGet);
+    S_API_EPILOGUE;
+    return S_RETURN_BOOL;
+}
 
 /****************** Raw SD API ******************/
 

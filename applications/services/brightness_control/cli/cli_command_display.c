@@ -54,6 +54,7 @@ static void cli_action_show(PipeSide* pipe, FuriString* args, GuiDisplayId id) {
         if(!result) {
             printf("Error! Unable to set '%s' as image source", furi_string_get_cstr(args));
         } else {
+            printf("Press CTRL+C to stop...\r\n");
             while(!cli_is_pipe_broken_or_is_etx_next_char(pipe)) {
                 furi_delay_ms(50);
             }
