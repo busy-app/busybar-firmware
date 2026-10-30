@@ -42,7 +42,7 @@ JS_API_FULL_ACCESS_PATHS = {
     "/api/display/brightness",
     "/api/audio/volume",
 }
-JS_API_FULL_ACCESS_TAGS = {"Busy"}
+JS_API_FULL_ACCESS_TAGS = {"Busy", "Storage"}
 JS_API_GET_ACCESS_TAGS = {"System", "Time"}
 
 
