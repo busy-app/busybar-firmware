@@ -25,17 +25,18 @@ static bool api_storage_translate_path_js(
     }
 
     if(app_id) {
-        bool status = js_app_launcher_ensure_app_directories(app_id);
-        if(status) {
-            FuriString* translated_path = furi_string_alloc();
-            status = js_app_launcher_translate_path(
-                app_id, translated_path, furi_string_get_cstr(out_path));
-            if(status) {
-                furi_string_set(out_path, translated_path);
-            }
-            furi_string_free(translated_path);
+        FuriString* translated_path = furi_string_alloc();
+        bool is_ok = js_app_launcher_translate_path(
+            app_id, translated_path, furi_string_get_cstr(out_path));
+        if(is_ok) {
+            furi_string_set(out_path, translated_path);
         }
-        return status;
+        furi_string_free(translated_path);
+
+        if(is_ok) {
+            is_ok = js_app_launcher_ensure_app_directories(app_id);
+        }
+        return is_ok;
     } else {
         return furi_string_start_with(out_path, STORAGE_EXT_PATH_PREFIX);
     }
@@ -47,7 +48,6 @@ static bool api_storage_parse_path_parameter_with_app_id(
     const char* name,
     FuriString* path,
     const char* app_id) {
-    ConnectionContext* conn_ctx = (ConnectionContext*)conn->data;
     if(params_str->len == 0) {
         return false;
     }
@@ -59,7 +59,7 @@ static bool api_storage_parse_path_parameter_with_app_id(
         return false;
     }
 
-    if(conn_ctx->is_js) {
+    if(http_api_is_request_from_js(conn)) {
         return api_storage_translate_path_js(path, temp_str, var_len, app_id);
     } else {
         return api_storage_translate_path_js(path, temp_str, var_len, NULL);
@@ -71,8 +71,7 @@ static bool api_storage_parse_path_parameter(
     struct mg_str* params_str,
     const char* name,
     FuriString* path) {
-    ConnectionContext* conn_ctx = (ConnectionContext*)conn->data;
-    if(conn_ctx->is_js) {
+    if(http_api_is_request_from_js(conn)) {
         FuriString* app_id = furi_string_alloc();
         bool result = false;
         if(js_app_launcher_get_running_app_id(app_id) == JsAppLauncherStatusOk) {
@@ -281,10 +280,9 @@ static bool api_storage_rename_callback(
     FuriString* old_path = furi_string_alloc();
     FuriString* new_path = furi_string_alloc();
 
-    ConnectionContext* conn_ctx = (ConnectionContext*)conn->data;
     bool success = false;
 
-    if(!conn_ctx->is_js) {
+    if(!http_api_is_request_from_js(conn)) {
         success = api_storage_parse_path_parameter(conn, &msg->query, "path", old_path) &&
                   api_storage_parse_path_parameter(conn, &msg->query, "new_path", new_path);
     } else {
