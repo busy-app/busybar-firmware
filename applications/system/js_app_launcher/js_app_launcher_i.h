@@ -81,7 +81,7 @@ typedef struct {
 typedef struct {
     const SettingProviderSetting* settings;
     size_t settings_count;
-    size_t selected_idx;
+    const SettingProviderSetting* selected_setting;
 } JsAppLauncherSceneSetupLevel;
 
 ARRAY_DEF(JsAppLauncherSceneSetupLevels, JsAppLauncherSceneSetupLevel, M_POD_OPLIST)
