@@ -185,8 +185,10 @@ For application isolation purposes, only the following API endpoints are accessi
 | `status/firmware`    | `GET`             |
 | `status/system`      | `GET`             |
 | `status/power`       | `GET`             |
+| `storage`            | any [2]           |
 
 - [1] The request is only allowed if the `app_id` request parameter matches the running application ID.
+- [2] Requests made to Storage API from a JS application can only access application's sandboxed storage space mapped to `/ext/data`.
 
 The `fetch` function can also be used to access remote HTTP(S) resources in the same manner, provided there is a working Wi-Fi connection.
 
