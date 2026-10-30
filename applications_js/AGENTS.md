@@ -143,8 +143,10 @@ Do not design an app around an endpoint that is not on this list.
 | `status/firmware`    | `GET`             |
 | `status/system`      | `GET`             |
 | `status/power`       | `GET`             |
+| `storage`            | any [2]           |
 
 - [1] Only with `app_id` equal to the running app's id. Apps can read their settings but not write them.
+- [2] Requests made to Storage API from a JS application can only access application's sandboxed storage space mapped to `/ext/data`.
 
 This list mirrors [JavaScript Applications](../documentation/JavaScript%20Applications.dox.md#http-requests),
 which is authoritative. Check it if the two ever differ. Remote HTTP(S) resources can be fetched with the same
