@@ -21,6 +21,9 @@
 #define INSTALL_KEY_LEN_MAX 11
 #define APP_ID_LEN_MAX      (JS_APP_ID_LEN_MAX + 2)
 
+#define APPS_CANCEL_ITEM_ID_KEY "item_id"
+#define APPS_CANCEL_ALL_KEY     "all"
+
 typedef struct {
     Storage* storage;
     TempFile* update_file;
@@ -32,6 +35,16 @@ typedef struct {
 
     CoarseTimer timeout_timer;
 } HttpInstallHandlerCtx;
+
+typedef enum {
+    ApiAppsQueueCancelTypeId,
+    ApiAppsQueueCancelTypeAll,
+} ApiAppsQueueCancelType;
+
+typedef struct {
+    ApiAppsQueueCancelType cancel_type;
+    uint32_t item_id;
+} ApiAppsQueueCancelRequest;
 
 static void api_apps_on_data_cb(struct mg_connection* conn, struct mg_iobuf* io);
 static void api_apps_on_close_cb(struct mg_connection* conn);
@@ -700,7 +713,85 @@ static bool api_apps_settings_callback(
     return true;
 }
 
+static void api_apps_queue_get(struct mg_connection* conn, struct mg_http_message* msg) {
+    UNUSED(msg);
+    MG_REPLY_OK(conn);
+    FURI_LOG_W(TAG, "Queue get");
+}
+
+static void api_apps_queue_post(struct mg_connection* conn, struct mg_http_message* msg) {
+    UNUSED(msg);
+    MG_REPLY_OK(conn);
+    FURI_LOG_W(TAG, "Queue post");
+}
+
 static bool api_apps_queue_request_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) {
+        return false;
+    }
+
+    if(method == HttpMethodGet) {
+        api_apps_queue_get(conn, msg);
+    } else if(method == HttpMethodPost) {
+        api_apps_queue_post(conn, msg);
+    } else {
+        furi_crash("Unexpected method");
+    }
+
+    return true;
+}
+
+static bool api_apps_queue_cancel_request_parse(
+    ApiAppsQueueCancelRequest* request,
+    const struct mg_str source) {
+    bool success = false;
+
+    cJSON* json = cJSON_ParseWithLength(source.buf, source.len);
+
+    do {
+        if(!cJSON_IsObject(json)) {
+            break;
+        }
+
+        if(cJSON_HasObjectItem(json, APPS_CANCEL_ITEM_ID_KEY)) {
+            const cJSON* item_id = cJSON_GetObjectItem(json, APPS_CANCEL_ITEM_ID_KEY);
+            if(!cJSON_IsNumber(item_id)) {
+                break;
+            }
+
+            request->cancel_type = ApiAppsQueueCancelTypeId;
+            request->item_id = cJSON_GetNumberValue(item_id);
+
+        } else if(cJSON_HasObjectItem(json, APPS_CANCEL_ALL_KEY)) {
+            const cJSON* is_all = cJSON_GetObjectItem(json, APPS_CANCEL_ALL_KEY);
+            if(!cJSON_IsBool(is_all) || !cJSON_IsTrue(is_all)) {
+                break;
+            }
+
+            request->cancel_type = ApiAppsQueueCancelTypeAll;
+
+        } else {
+            break;
+        }
+
+        success = true;
+    } while(false);
+
+    if(json != NULL) {
+        cJSON_free(json);
+    }
+
+    return success;
+}
+
+static bool api_apps_queue_cancel_request_callback(
     FuriString* path,
     HttpMethod method,
     struct mg_connection* conn,
@@ -710,9 +801,24 @@ static bool api_apps_queue_request_callback(
     UNUSED(msg);
     UNUSED(method);
 
-    FURI_LOG_W(TAG, "Path: %s", furi_string_get_cstr(path));
+    if(!IS_HTTP_ENDPOINT(path)) {
+        return false;
+    }
 
-    MG_REPLY_OK(conn);
+    ApiAppsQueueCancelRequest request;
+    if(!api_apps_queue_cancel_request_parse(&request, msg->body)) {
+        MG_REPLY_BAD_REQUEST(conn);
+        return true;
+    }
+
+    const ApiAppsQueueCancelType cancel_type = request.cancel_type;
+    if(cancel_type == ApiAppsQueueCancelTypeId) {
+        FURI_LOG_W(TAG, "Queue cancel id: %lu", request.item_id);
+    } else {
+        FURI_LOG_W(TAG, "Queue cancel ALL");
+    }
+
+    MG_REPLY_OK_ASYNC(conn);
     return true;
 }
 
@@ -765,6 +871,12 @@ static const HttpHandler api_apps_handlers[] = {
         .method = HttpMethodGet | HttpMethodPost,
         .type = HttpHandlerCustom,
         .on_request = api_apps_queue_request_callback,
+    },
+    {
+        .uri = "queue/cancel",
+        .method = HttpMethodPost,
+        .type = HttpHandlerCustom,
+        .on_request = api_apps_queue_cancel_request_callback,
     },
 };
 
