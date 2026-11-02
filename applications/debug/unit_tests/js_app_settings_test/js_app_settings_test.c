@@ -163,12 +163,28 @@ MU_TEST(js_app_settings_test_integer) {
         js_app_settings_free(settings);
     }
 
+    /* non-divisible step ranges are accepted */
+    {
+        JsAppSettings* settings =
+            js_app_settings_test_parse("{\"format_version\":1,\"version\":1,\"fields\":{"
+                                       "\"any\":{\"label\":\"Any\",\"type\":\"integer\","
+                                       "\"default\":5,\"min\":0,\"max\":10,\"step\":3}}}");
+
+        mu_assert_not_null(settings);
+
+        JsAppSettingsIntData* data = settings->nodes[0].data;
+        mu_assert_int_eq(0, data->min_value);
+        mu_assert_int_eq(10, data->max_value);
+        mu_assert_int_eq(3, data->value_step);
+
+        js_app_settings_free(settings);
+    }
+
     /* rejected integers */
     static const char* const invalid[] = {
         "{\"format_version\":1,\"version\":1,\"fields\":{\"any\":{\"label\":\"A\",\"type\":\"integer\",\"min\":0,\"max\":1}}}",
         "{\"format_version\":1,\"version\":1,\"fields\":{\"any\":{\"label\":\"A\",\"type\":\"integer\",\"default\":5,\"min\":10,\"max\":0}}}",
         "{\"format_version\":1,\"version\":1,\"fields\":{\"any\":{\"label\":\"A\",\"type\":\"integer\",\"default\":5,\"step\":0}}}",
-        "{\"format_version\":1,\"version\":1,\"fields\":{\"any\":{\"label\":\"A\",\"type\":\"integer\",\"default\":5,\"min\":0,\"max\":10,\"step\":3}}}",
         "{\"format_version\":1,\"version\":1,\"fields\":{\"any\":{\"label\":\"A\",\"type\":\"integer\",\"default\":11,\"min\":0,\"max\":10}}}",
     };
 
