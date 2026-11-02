@@ -576,12 +576,14 @@ schemas:
 
   AppQueueStatus:
     type: string
+    description: Status of the queued operation
     enum:
       - "queued"
       - "in_progress"
 
   AppQueueDetail:
     type: object
+    description: Additional status of the ongoing operation
     properties:
       step:
         type: string
@@ -591,9 +593,12 @@ schemas:
         minimum: 0
         maximum: 100
         example: 34
+    required:
+      - step
 
   AppQueueItem:
     type: object
+    description: Single item of the app operation queue
     properties:
       item_id:
         $ref: "#/components/schemas/AppQueueItemId"
@@ -611,6 +616,33 @@ schemas:
       - operation
       - status
 
+  AppQueueRequestItem:
+    type: object
+    description: Single item to be sent as an app operation queue command
+    properties:
+      app_id:
+        $ref: "#/components/schemas/AppId"
+      operation:
+        $ref: "#/components/schemas/AppQueueOperation"
+    required:
+      - app_id
+      - operation
+
+  AppQueueResponseItem:
+    type: object
+    description: Single item of the app operation queue response
+    properties:
+      app_id:
+        $ref: "#/components/schemas/AppId"
+      operation:
+        $ref: "#/components/schemas/AppQueueOperation"
+      item_id:
+        $ref: "#/components/schemas/AppQueueItemId"
+    required:
+      - app_id
+      - operation
+      - item_id
+
   AppQueueGetResponse:
     type: object
     properties:
@@ -618,18 +650,28 @@ schemas:
         type: array
         items:
           $ref: "#/components/schemas/AppQueueItem"
+    required:
+      - result
 
   AppQueueAddRequest:
     type: object
     properties:
       operations:
         type: array
+        items:
+          $ref: "#/components/schemas/AppQueueRequestItem"
+    required:
+      - operations
 
   AppQueueAddResponse:
     type: object
     properties:
       result:
         type: array
+        items:
+          $ref: "#/components/schemas/AppQueueResponseItem"
+    required:
+      - result
 
   AppQueueCancelRequest:
     type: object
