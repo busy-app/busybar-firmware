@@ -381,13 +381,6 @@ static bool js_app_settings_parse_int(const JsAppSettingsCursor* cursor, JsAppSe
             break;
         }
 
-        unsigned int range = (unsigned int)data->max_value - (unsigned int)data->min_value;
-        if(range % data->value_step != 0) {
-            js_app_settings_json_log_error(
-                cursor, "'max' - 'min' must be evenly divisible by 'step'");
-            break;
-        }
-
         if(!js_app_settings_is_int_valid(node, &data->default_value)) {
             js_app_settings_json_log_error(cursor, "default is out of bounds");
             break;
