@@ -21,7 +21,16 @@ from utils.fetch_http_server import (
 )
 
 
-pytestmark = pytest.mark.cli
+pytestmark = [
+    pytest.mark.cli,
+    pytest.mark.bsb_metadata(
+        suite="Integration",
+        level="Integration",
+        intent="Product",
+        interfaces=("CLI", "Device API"),
+        transports=("Telnet", "LAN REST"),
+    ),
+]
 
 UPDATE_DIRECTORY_URL = "https://update.busy.app/busybar-firmware/directory.json"
 JS_FETCH_HEADER = "X-busybar-fetch"
@@ -194,9 +203,9 @@ def build_api_access_case(cases, *, forbidden):
     ).strip()
 
 
-@allure.epic("BSB CLI Testing")
-@allure.feature("JavaScript Fetch API")
-@allure.story("JS Apps")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("JavaScript applications")
+@allure.story("JavaScript Fetch API")
 class TestJSFetch:
     """Exercise JS Apps fetch semantics through the real device network."""
 

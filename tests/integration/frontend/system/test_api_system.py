@@ -5,6 +5,17 @@ from clients.api import SystemAPI
 from clients.api.system import DeviceInfo, FirmwareInfo, TimezoneResponse, TimezoneListResponse
 
 
+pytestmark = [
+    pytest.mark.bsb_metadata(
+        suite="Contract",
+        level="Component",
+        intent="Product",
+        interfaces=("Device API",),
+        transports=("LAN REST",),
+    ),
+]
+
+
 @pytest.fixture
 def time_settings_guard(system_api: SystemAPI):
     """Restore device time and timezone after a test."""
@@ -20,12 +31,12 @@ def time_settings_guard(system_api: SystemAPI):
         pass
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Device HTTP API")
 @allure.story("System")
 class TestSystemAPI:
     """Test cases for System API endpoints"""
 
-    @allure.id("2638")
     @allure.title("GET /api/version")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -37,7 +48,6 @@ class TestSystemAPI:
         major, minor, patch = [int(p) for p in response.api_semver.split(".")]
         assert (major, minor, patch) >= (0, 0, 0)
 
-    @allure.id("2639")
     @allure.title("GET /api/status")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -64,7 +74,6 @@ class TestSystemAPI:
                     f"CLI `device_info` is missing {marker!r}. Output:\n{data}"
                 )
 
-    @allure.id("2640")
     @allure.title("GET /api/status/system")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -105,7 +114,6 @@ class TestSystemAPI:
         assert response.build_date
         assert response.commit_hash
 
-    @allure.id("2641")
     @allure.title("GET /api/status/power")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -118,12 +126,12 @@ class TestSystemAPI:
         assert 0 <= response.battery_charge <= 100
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Device HTTP API")
 @allure.story("System")
 class TestTimeAPI:
     """Test cases for Time API endpoints"""
 
-    @allure.id("2680")
     @allure.title("GET /api/time")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -135,7 +143,6 @@ class TestTimeAPI:
         assert "T" in response.timestamp
         assert "+" in response.timestamp or "-" in response.timestamp[10:]
 
-    @allure.id("2681")
     @allure.title("POST /api/time/timestamp")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -145,7 +152,6 @@ class TestTimeAPI:
 
         system_api.set_timestamp(test_timestamp)
 
-    @allure.id("2682")
     @allure.title("POST /api/time/timestamp (invalid)")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -194,7 +200,6 @@ class TestTimeAPI:
             assert tz.name
             assert tz.offset
 
-    @allure.id("2683")
     @allure.title("POST /api/time/timezone")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -211,7 +216,6 @@ class TestTimeAPI:
         """Test POST /api/time/timezone endpoint"""
         system_api.set_timezone(test_tz)
 
-    @allure.id("2684")
     @allure.title("POST /api/time/timezone (invalid)")
     @pytest.mark.api
     @pytest.mark.frontend

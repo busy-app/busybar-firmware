@@ -7,16 +7,24 @@ not exercised here. Coverage matrix: scratchpad/cli_coverage_matrix.md.
 import allure
 import pytest
 
-pytestmark = pytest.mark.cli
+pytestmark = [
+    pytest.mark.cli,
+    pytest.mark.bsb_metadata(
+        suite="Component",
+        level="Component",
+        intent="Product",
+        interfaces=("CLI",),
+        transports=("Telnet",),
+    ),
+]
 
 
-@allure.epic("BSB CLI Testing")
-@allure.feature("6. CLI")
-@allure.story("Commands Check")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Firmware CLI")
+@allure.story("Power management")
 class TestCLIPower:
     """Read-only power queries and usage."""
 
-    @allure.id("2026")
     @allure.title("CLI. Command Power.")
     @pytest.mark.story_commands_check
     def test_cli_command_power(self, persistent_cli_connection):

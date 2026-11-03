@@ -12,12 +12,21 @@ import pytest
 
 from utils.cli_helpers import DEBUG_ONLY_COMMANDS, command_set
 
-pytestmark = pytest.mark.cli
+pytestmark = [
+    pytest.mark.cli,
+    pytest.mark.bsb_metadata(
+        suite="Component",
+        level="Component",
+        intent="Product",
+        interfaces=("CLI",),
+        transports=("Telnet",),
+    ),
+]
 
 
-@allure.epic("BSB CLI Testing")
-@allure.feature("6. CLI")
-@allure.story("Commands Check")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Firmware CLI")
+@allure.story("Configuration")
 class TestCLIConfig:
     """Reversible config toggles and status_lights."""
 
@@ -84,9 +93,9 @@ class TestCLIConfig:
             assert "enabled" in on.lower(), on
 
 
-@allure.epic("BSB CLI Testing")
-@allure.feature("6. CLI")
-@allure.story("Commands Check")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Firmware CLI")
+@allure.story("Debug command availability")
 class TestCLIDebugGatedCommands:
     """Debug mode and what it gates (the `cli_debug` fixture keeps it on).
 

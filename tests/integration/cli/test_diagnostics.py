@@ -8,12 +8,21 @@ import re
 import allure
 import pytest
 
-pytestmark = pytest.mark.cli
+pytestmark = [
+    pytest.mark.cli,
+    pytest.mark.bsb_metadata(
+        suite="Operations",
+        level="Integration",
+        intent="Operations",
+        interfaces=("CLI",),
+        transports=("Telnet",),
+    ),
+]
 
 
-@allure.epic("BSB CLI Testing")
-@allure.feature("6. CLI")
-@allure.story("Commands Check")
+@allure.epic("Platform Operations")
+@allure.feature("Firmware diagnostics")
+@allure.story("Telemetry and diagnostics")
 class TestCLIDiagnostics:
     """Read-only diagnostics: nothing here changes device state."""
 
@@ -48,7 +57,6 @@ class TestCLIDiagnostics:
         response = persistent_cli_connection.execute_command("timezone")
         assert response.strip(), "timezone should return a non-empty zone name"
 
-    @allure.id("2043")
     @allure.title("CLI. Command Free.")
     @pytest.mark.story_commands_check
     def test_cli_command_free(self, persistent_cli_connection):
@@ -68,7 +76,6 @@ class TestCLIDiagnostics:
         assert free_heap, f"Could not parse free heap size: {response!r}"
         assert int(free_heap.group(1)) > 25000, f"Free heap too low: {free_heap.group(1)}"
 
-    @allure.id("2034")
     @allure.title("CLI. Command Free_blocks.")
     @pytest.mark.story_commands_check
     def test_cli_command_free_blocks(self, persistent_cli_connection):
@@ -76,7 +83,6 @@ class TestCLIDiagnostics:
         # heap block dump: lines like 'A 200B2660 S 1821080'
         assert re.search(r"A\s+[0-9A-Fa-f]+\s+S\s+\d+", response), response
 
-    @allure.id("2041")
     @allure.title("CLI. Command Uptime.")
     @pytest.mark.story_commands_check
     def test_cli_command_uptime(self, persistent_cli_connection):
@@ -86,7 +92,6 @@ class TestCLIDiagnostics:
             unit in response.lower() for unit in ("d", "h", "m", "s")
         ), f"Uptime should contain time units, got: {response}"
 
-    @allure.id("2035")
     @allure.title("CLI. Command Device_info.")
     @pytest.mark.story_commands_check
     def test_cli_command_device_info(self, persistent_cli_connection):
@@ -100,7 +105,6 @@ class TestCLIDiagnostics:
         origin_git = re.search(r"u5_firmware_origin_git\s*:\s*(\S+)", response)
         assert origin_git, "Should include firmware origin git information"
 
-    @allure.id("2031")
     @allure.title("CLI. Command Echo.")
     @pytest.mark.story_commands_check
     def test_cli_command_echo(self, persistent_cli_connection):

@@ -36,7 +36,7 @@ on:
         type: string
         default: ''
       firmware_branch:
-        description: 'Firmware branch/path prefix. Empty uses the selected workflow ref.'
+        description: 'Firmware branch/path prefix. Empty uses the selected workflow ref; TestOps defaults to dev.'
         required: false
         type: string
         default: ''
@@ -50,6 +50,14 @@ on:
         required: false
         type: string
         default: '22'
+      ALLURE_JOB_RUN_ID:
+        description: 'Allure TestOps service parameter. Leave blank.'
+        required: false
+        type: string
+      ALLURE_USERNAME:
+        description: 'Allure TestOps service parameter. Leave blank.'
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -61,6 +69,8 @@ env:
   U5_HW_TARGET: ${{ inputs.target || '22' }}
   FIRMWARE_BASE_URL: https://update.busy.app/builds/busybar-firmware
   PYTEST_FAILED_TEST_RETRIES: 1
+  ALLURE_JOB_RUN_ID: ${{ github.event.inputs.ALLURE_JOB_RUN_ID }}
+  ALLURE_USERNAME: ${{ github.event.inputs.ALLURE_USERNAME }}
 
 jobs:
   integration-tests:
@@ -71,6 +81,18 @@ jobs:
     steps:
       # - name: 'Wipe workspace'
       #   run: find ./ -mount -maxdepth 1 -exec rm -rf {} \;
+
+      - name: Validate TestOps configuration
+        if: env.ALLURE_JOB_RUN_ID != ''
+        env:
+          ALLURE_ENDPOINT: ${{ vars.ALLURE_TESTOPS_URL }}
+          ALLURE_TOKEN: ${{ secrets.ALLURE_TESTOPS_TOKEN }}
+          ALLURE_PROJECT_ID: ${{ secrets.ALLURE_PROJECT_ID }}
+        run: |
+          if [ -z "$ALLURE_ENDPOINT" ] || [ -z "$ALLURE_TOKEN" ] || [ -z "$ALLURE_PROJECT_ID" ]; then
+            echo '::error::A TestOps run requires ALLURE_TESTOPS_URL, ALLURE_TESTOPS_TOKEN, and ALLURE_PROJECT_ID.'
+            exit 1
+          fi
 
       - name: 'Checkout code'
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -113,6 +135,9 @@ jobs:
             fi
           else
             BRANCH="${FIRMWARE_BRANCH_INPUT:-${GITHUB_REF_NAME:-}}"
+            if [ -n "$ALLURE_JOB_RUN_ID" ] && [ -z "$FIRMWARE_BRANCH_INPUT" ]; then
+              BRANCH=dev
+            fi
             if [ -z "$BRANCH" ]; then
               echo "ERROR: No update_url, firmware_branch, or selected ref provided"; exit 1
             fi
@@ -185,6 +210,16 @@ jobs:
           python3 -m pip install --upgrade pip
           python3 -m pip install -r tests/requirements.txt
 
+      - name: Setup allurectl for selected TestOps plan
+        id: testops_allure_setup
+        if: env.ALLURE_JOB_RUN_ID != ''
+        uses: allure-framework/setup-allurectl@2d89ee0b7ba2f59dbe9849b6df5763cab78e14db # v1.0.3
+        with:
+          allure-endpoint: ${{ vars.ALLURE_TESTOPS_URL }}
+          allure-token: ${{ secrets.ALLURE_TESTOPS_TOKEN }}
+          allure-project-id: ${{ secrets.ALLURE_PROJECT_ID }}
+          allurectl-version: 2.22.0
+
       - name: Resolve pytest marker filter
         id: pytest_filter
         env:
@@ -208,7 +243,7 @@ jobs:
           esac
           # treat empty / all (case-insensitive) as "no filter" (full suite)
           shopt -s nocasematch
-          if [ -z "$filter" ] || [[ "$filter" == "all" ]]; then
+          if [ -n "$ALLURE_JOB_RUN_ID" ] || [ -z "$filter" ] || [[ "$filter" == "all" ]]; then
             filter=""
           fi
           shopt -u nocasematch
@@ -247,7 +282,22 @@ jobs:
           if [ "$PYTEST_FAILED_TEST_RETRIES" -gt 0 ]; then
             pytest_args+=(--reruns "$PYTEST_FAILED_TEST_RETRIES" --reruns-delay 1 -rR)
           fi
-          python3 -m pytest "${pytest_args[@]}" 2>&1 | tee "$PYTEST_OUTPUT"
+          test_command=(python3 -m pytest "${pytest_args[@]}")
+          if [ -n "$ALLURE_JOB_RUN_ID" ]; then
+            export ALLURE_RESULTS="$PWD/allure-results"
+            test_command=(allurectl watch -- bash -c '
+              if ! python3 -c "import json, os, sys; from pathlib import Path; \
+                plan = json.loads(Path(os.environ[\"ALLURE_TESTPLAN_PATH\"]).read_text(encoding=\"utf-8\")); \
+                selected = plan.get(\"tests\") if isinstance(plan, dict) else None; \
+                valid = isinstance(selected, list) and selected and all(isinstance(test, dict) and (test.get(\"id\") or test.get(\"selector\")) for test in selected); \
+                sys.exit(0 if valid else 2)"; then
+                echo "::error::TestOps returned an empty or invalid test plan."
+                exit 2
+              fi
+              exec "$@"
+            ' _ "${test_command[@]}")
+          fi
+          "${test_command[@]}" 2>&1 | tee "$PYTEST_OUTPUT"
           PYTEST_EXIT=${PIPESTATUS[0]}
           echo "pytest_exit=$PYTEST_EXIT" >> "$GITHUB_OUTPUT"
 
@@ -257,6 +307,7 @@ jobs:
           fi
 
       - name: Setup allurectl
+        if: env.ALLURE_JOB_RUN_ID == ''
         continue-on-error: true
         uses: allure-framework/setup-allurectl@2d89ee0b7ba2f59dbe9849b6df5763cab78e14db # v1.0.3
         with:
@@ -266,6 +317,7 @@ jobs:
 
       - name: Upload test results to Allure TestOps
         id: allure_upload
+        if: env.ALLURE_JOB_RUN_ID == ''
         continue-on-error: true
         env:
           LAUNCH_BRANCH: ${{ inputs.branch_name || github.head_ref || github.ref_name }}
@@ -281,6 +333,13 @@ jobs:
           if [ -n "$LAUNCH_ID" ]; then
             echo "allure_launch_url=${{ vars.ALLURE_TESTOPS_URL }}/launch/$LAUNCH_ID" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Set selected TestOps report URL
+        id: testops_allure_report
+        if: always() && steps.testops_allure_setup.outcome == 'success'
+        continue-on-error: true
+        run: |
+          echo "allure_launch_url=${{ vars.ALLURE_TESTOPS_URL }}/jobrun/$ALLURE_JOB_RUN_ID" >> "$GITHUB_OUTPUT"
 
       - name: 'Configure AWS CLI'
         if: always()
@@ -319,7 +378,7 @@ jobs:
         env:
           JUNIT_XML: tests/test-results.xml
           PYTEST_OUTPUT: tests/pytest-output.log
-          ALLURE_URL: ${{ steps.allure_upload.outputs.allure_launch_url }}
+          ALLURE_URL: ${{ steps.testops_allure_report.outputs.allure_launch_url || steps.allure_upload.outputs.allure_launch_url }}
           FIRMWARE_URL: ${{ steps.resolve_firmware.outputs.update_url }}
           BRANCH_NAME: ${{ inputs.branch_name || github.head_ref || github.ref_name }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
