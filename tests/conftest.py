@@ -327,9 +327,12 @@ def fresh_cli_connection():
 def pytest_collection_modifyitems(items):
     for item in items:
         try:
-            case_metadata(item)
+            metadata = case_metadata(item)
         except ValueError as exc:
             raise pytest.UsageError(f"{item.nodeid}: {exc}") from exc
+        if metadata is not None:
+            for label, value in case_labels(metadata):
+                item.add_marker(allure.label(label, value))
 
 
 def pytest_runtest_setup(item):
@@ -349,10 +352,7 @@ def pytest_runtest_setup(item):
     logger.info(f"Setting up: {item.name}")
     _write_test_context(item.name, test_nodeid=item.nodeid, phase="setup")
 
-    metadata = case_metadata(item)
-    if metadata is not None:
-        for label, value in case_labels(metadata):
-            allure.dynamic.label(label, value)
+    if item.get_closest_marker("bsb_metadata") is not None:
         return
 
     for marker in item.iter_markers():
