@@ -405,6 +405,23 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/AppQueueAddRequest"
+            examples:
+              install:
+                summary: Install application
+                value:
+                  operations:
+                    - app_id: "com.author.example-app"
+                      operation:
+                        type: "install"
+                        url: "https://author.com/apps/example-app.tgz"
+                        version: "1.2.3"
+              remove:
+                summary: Remove application
+                value:
+                  operations:
+                    - app_id: "com.author.example-app"
+                      operation:
+                        type: "remove"
       responses:
         "202":
           description: Added to queue
@@ -451,9 +468,14 @@ paths:
 schemas:
   AppId:
     type: string
-    pattern: "^[a-zA-Z0-9_\\-][a-zA-Z0-9_\\-.]{0,31}$"
+    pattern: "^[a-z0-9_\\-][a-z0-9_\\-.]{0,31}$"
     description: JavaScript application id
-    example: "app.author.example_app"
+    example: "com.author.example-app"
+
+  AppUrl:
+    type: string
+    format: url
+    example: "https://author.com/apps/example-app.tar.gz"
 
   AppVersion:
     type: string
@@ -563,16 +585,21 @@ schemas:
         summary: Any value during operation (wraps back to 0)
         value: 42
 
+  AppQueueOperationType:
+    type: string
+    enum:
+      - "install"
+      - "remove"
+
   AppQueueOperation:
     type: object
     properties:
       type:
-        type: string
-        enum:
-          - "install"
-          - "delete"
+        $ref: "#/components/schemas/AppQueueOperationType"
       version:
         $ref: "#/components/schemas/AppVersion"
+    required:
+      - type
 
   AppQueueStatus:
     type: string
@@ -616,6 +643,18 @@ schemas:
       - operation
       - status
 
+  AppQueueRequestOperation:
+    type: object
+    properties:
+      type:
+        $ref: "#/components/schemas/AppQueueOperationType"
+      url:
+        $ref: "#/components/schemas/AppUrl"
+      version:
+        $ref: "#/components/schemas/AppVersion"
+    required:
+      - type
+
   AppQueueRequestItem:
     type: object
     description: Single item to be sent as an app operation queue command
@@ -623,7 +662,7 @@ schemas:
       app_id:
         $ref: "#/components/schemas/AppId"
       operation:
-        $ref: "#/components/schemas/AppQueueOperation"
+        $ref: "#/components/schemas/AppQueueRequestOperation"
     required:
       - app_id
       - operation
