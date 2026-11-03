@@ -20,6 +20,18 @@ from utils.wifi_helpers import (
 )
 
 
+pytestmark = [
+    pytest.mark.bsb_metadata(
+        suite="Integration",
+        level="Integration",
+        intent="Product",
+        interfaces=("Device API",),
+        transports=("LAN REST",),
+        hardware=("BusyBar", "Wi-Fi AP"),
+    ),
+]
+
+
 _WIFI_API_ACCESS_KEY = "12345678"
 
 
@@ -109,13 +121,13 @@ def wifi_setup_teardown(web_base_url):
         session.close()
 
 
-@allure.feature("5. Web Frontend")
-@allure.story("Wi-Fi")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Wi-Fi")
+@allure.story("Connection lifecycle")
 @pytest.mark.regression
 class TestWifiAPI:
     """Test cases for WiFi API endpoints"""
 
-    @allure.id("2657")
     @allure.title("GET /api/wifi/status")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -136,7 +148,6 @@ class TestWifiAPI:
             connect_to_test_network_or_fail(wifi_api)
             assert wifi_api.get_status().state == "connected"
 
-    @allure.id("2660")
     @allure.title("GET /api/wifi/networks")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -154,7 +165,6 @@ class TestWifiAPI:
         if WIFI_SSID not in ssids:
             pytest.skip(f"Test SSID not found in scan results: {WIFI_SSID}")
 
-    @allure.id("2661")
     @allure.title("POST /api/wifi/connect")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -170,7 +180,6 @@ class TestWifiAPI:
         # Should return 400 for bad request
         assert response.status_code in [400]
 
-    @allure.id("2662")
     @allure.title("POST /api/wifi/disconnect")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -321,7 +330,8 @@ class TestWifiAPI:
                 sleep(scan_pause)
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Wi-Fi")
 @allure.story("Wi-Fi / fetch")
 class TestWifiFetch:
     """`fetch` CLI downloads a URL into device storage over the Wi-Fi link."""

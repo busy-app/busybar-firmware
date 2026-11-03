@@ -7,6 +7,17 @@ import pytest
 from clients.api import StorageAPI
 
 
+pytestmark = [
+    pytest.mark.bsb_metadata(
+        suite="Contract",
+        level="Component",
+        intent="Product",
+        interfaces=("Device API",),
+        transports=("LAN REST",),
+    ),
+]
+
+
 @pytest.fixture
 def storage_path_test_dir(storage_api: StorageAPI):
     """Keep boundary-test files in a unique directory with a short cleanup path."""
@@ -22,12 +33,12 @@ def storage_path_test_dir(storage_api: StorageAPI):
         )
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Device storage")
 @allure.story("Storage")
 class TestStorageAPI:
     """Test cases for Storage API endpoints"""
 
-    @allure.id("2679")
     @allure.title("GET /api/storage/status")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -43,7 +54,6 @@ class TestStorageAPI:
         # Validate logical consistency
         assert response.used_bytes + response.free_bytes <= response.total_bytes
 
-    @allure.id("2648")
     @allure.title("GET /api/storage/list")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -61,7 +71,6 @@ class TestStorageAPI:
             if item.type == "file":
                 assert item.size is not None
 
-    @allure.id("2649")
     @allure.title("POST /api/storage/mkdir")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -74,7 +83,6 @@ class TestStorageAPI:
         finally:
             storage_api.remove_raw(test_dir)
 
-    @allure.id("2650")
     @allure.title(
         "POST /api/storage/write + GET /api/storage/read + DELETE /api/storage/remove"
     )
@@ -418,7 +426,6 @@ class TestStorageAPI:
         )
         assert response.status_code == 400
 
-    @allure.id("2675")
     @allure.title("POST /api/storage/write (file size limits)")
     @pytest.mark.api
     @pytest.mark.frontend
