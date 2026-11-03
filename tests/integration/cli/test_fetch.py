@@ -13,7 +13,16 @@ from utils.fetch_http_server import (
     UNKNOWN_LENGTH_PAYLOAD,
 )
 
-pytestmark = pytest.mark.cli
+pytestmark = [
+    pytest.mark.cli,
+    pytest.mark.bsb_metadata(
+        suite="Integration",
+        level="Integration",
+        intent="Integration",
+        interfaces=("CLI",),
+        transports=("Telnet",),
+    ),
+]
 
 FETCH_USAGE = """Usage:
 fetch [options] <url>
@@ -29,9 +38,9 @@ Options:
 -v Enable full output"""
 
 
-@allure.epic("BSB CLI Testing")
-@allure.feature("6. CLI")
-@allure.story("Commands Check")
+@allure.epic("Device Connectivity")
+@allure.feature("Outbound HTTP/TLS")
+@allure.story("HTTP request and download lifecycle")
 class TestCLIFetch:
     """Exercise the real device Fetch path through a local host server."""
 

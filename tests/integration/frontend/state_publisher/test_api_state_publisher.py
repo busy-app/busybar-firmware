@@ -8,8 +8,20 @@ from clients.state_publisher import StatePublisherWebSocket, state_update_kinds
 from utils.simple_websocket import websocket_upgrade, websocket_url
 
 
-@allure.feature("5. Web Frontend")
-@allure.story("State Publisher")
+pytestmark = [
+    pytest.mark.bsb_metadata(
+        suite="Integration",
+        level="Integration",
+        intent="Reliability",
+        interfaces=("Device API", "WebSocket"),
+        transports=("LAN REST", "WebSocket"),
+    ),
+]
+
+
+@allure.epic("Realtime & Sync")
+@allure.feature("State publisher")
+@allure.story("WebSocket contract")
 @pytest.mark.api
 @pytest.mark.frontend
 class TestStatePublisherRegressions:
@@ -39,6 +51,7 @@ class TestStatePublisherRegressions:
         assert "frame" in seen_update_kinds
 
     @allure.title("/api/status/ws plain HTTP endpoint does not upgrade")
+    @pytest.mark.bsb_metadata(interfaces=("Device API",), transports=("LAN REST",))
     def test_status_ws_plain_http_contract(self, api_session, web_base_url):
         response = api_session.get(f"{web_base_url}/api/status/ws", timeout=10)
 

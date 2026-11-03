@@ -8,12 +8,21 @@ import pytest
 from utils.js_test_runner import INPUT_READY_MARKER, run_js_input_case
 
 
-pytestmark = pytest.mark.cli
+pytestmark = [
+    pytest.mark.cli,
+    pytest.mark.bsb_metadata(
+        suite="Integration",
+        level="Integration",
+        intent="Product",
+        interfaces=("CLI", "Device API"),
+        transports=("Telnet", "LAN REST"),
+    ),
+]
 
 
-@allure.epic("BSB CLI Testing")
-@allure.feature("JavaScript input API")
-@allure.story("JS Apps")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("JavaScript applications")
+@allure.story("JavaScript input events")
 class TestJSInput:
     @allure.title("JavaScript listen validates its input-listener contract.")
     def test_listen_contract_and_validation(self, js_case_runner):

@@ -17,7 +17,17 @@ from utils.wait import wait_for
 SANDBOX_ROOT = "/ext/apps_data/js_apps"
 JS_FETCH_HEADERS = {"X-busybar-fetch": "js"}
 RESULT_KEY = "storage_test_result"
-pytestmark = [pytest.mark.api, pytest.mark.frontend]
+pytestmark = [
+    pytest.mark.api,
+    pytest.mark.frontend,
+    pytest.mark.bsb_metadata(
+        suite="Integration",
+        level="Integration",
+        intent="Product",
+        interfaces=("Device API",),
+        transports=("LAN REST",),
+    ),
+]
 
 
 def _storage_script(body: str) -> bytes:
@@ -154,6 +164,9 @@ def protected_storage_dir(storage_api: StorageAPI):
         ), f"Failed to remove {path!r}: HTTP {response.status_code}, {response.text!r}"
 
 
+@allure.epic("BusyBar & Local Control")
+@allure.feature("JavaScript applications")
+@allure.story("JavaScript storage sandbox")
 @allure.title("JS storage creates and maps the application's data root")
 @pytest.mark.parametrize("virtual_root", ["/ext/data", "/ext/data/"])
 def test_js_storage_maps_root(
@@ -170,6 +183,9 @@ def test_js_storage_maps_root(
         assert listing.list == [], f"Unexpected sandbox contents: {listing!r}"
 
 
+@allure.epic("BusyBar & Local Control")
+@allure.feature("JavaScript applications")
+@allure.story("JavaScript storage sandbox")
 @allure.title("JS storage supports file and directory operations inside the sandbox")
 def test_js_storage_crud(storage_app_runner, storage_api: StorageAPI):
     app_id = storage_app_runner(
@@ -207,6 +223,9 @@ def test_js_storage_crud(storage_app_runner, storage_api: StorageAPI):
         assert listing.list == [], f"Unexpected remaining files: {listing!r}"
 
 
+@allure.epic("BusyBar & Local Control")
+@allure.feature("JavaScript applications")
+@allure.story("JavaScript storage sandbox")
 @allure.title(
     "JS storage rejects paths outside its virtual mount without changing files"
 )
@@ -269,6 +288,9 @@ def test_js_storage_rejects_outside_paths(
             ], f"Rejected requests changed the directory: {listing!r}"
 
 
+@allure.epic("BusyBar & Local Control")
+@allure.feature("JavaScript applications")
+@allure.story("JavaScript storage sandbox")
 @allure.title(
     "JS storage keeps the same virtual filename isolated between applications"
 )
@@ -297,6 +319,9 @@ def test_js_storage_isolates_applications(storage_app_runner, storage_api: Stora
             ), f"{app_id!r} file changed: expected {expected!r}, got {response.content!r}"
 
 
+@allure.epic("BusyBar & Local Control")
+@allure.feature("JavaScript applications")
+@allure.story("JavaScript storage sandbox")
 @allure.title("JS storage preserves files when the same application is relaunched")
 def test_js_storage_persists_across_launches(
     storage_app_runner, storage_api: StorageAPI
@@ -323,6 +348,9 @@ def test_js_storage_persists_across_launches(
         ), f"Unexpected persistent content: {response.content!r}"
 
 
+@allure.epic("BusyBar & Local Control")
+@allure.feature("JavaScript applications")
+@allure.story("JavaScript storage sandbox")
 @allure.title("JS-marked storage requests require a running application")
 @pytest.mark.parametrize(
     ("method", "operation"),

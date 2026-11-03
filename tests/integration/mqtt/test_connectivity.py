@@ -6,7 +6,19 @@ import pytest
 from clients.api import AccountBackend
 
 
-@allure.feature("MQTT")
+pytestmark = [
+    pytest.mark.bsb_metadata(
+        suite="Integration",
+        level="Integration",
+        intent="Reliability",
+        interfaces=("Device API", "MQTT"),
+        transports=("LAN REST", "MQTT"),
+    ),
+]
+
+
+@allure.epic("Realtime & Sync")
+@allure.feature("MQTT command/event path")
 @allure.story("Connectivity")
 @pytest.mark.api
 @pytest.mark.mqtt
