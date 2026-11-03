@@ -2,6 +2,7 @@
 
 #include <storage_utils/temp_file.h>
 #include <toolbox/timers.h>
+#include <toolbox/url.h>
 
 #include <js_app_installer/js_app_installer_paths.h>
 #include <js_app_installer/js_app_installer.h>
@@ -21,8 +22,17 @@
 #define INSTALL_KEY_LEN_MAX 11
 #define APP_ID_LEN_MAX      (JS_APP_ID_LEN_MAX + 2)
 
+#define APPS_ADD_APP_ID_KEY            "app_id"
+#define APPS_ADD_OPERATION_KEY         "operation"
+#define APPS_ADD_OPERATION_TYPE_KEY    "type"
+#define APPS_ADD_OPERATION_URL_KEY     "url"
+#define APPS_ADD_OPERATION_VERSION_KEY "version"
+
 #define APPS_CANCEL_ITEM_ID_KEY "item_id"
 #define APPS_CANCEL_ALL_KEY     "all"
+
+#define APPS_ADD_OPERATION_INSTALL_VALUE "install"
+#define APPS_ADD_OPERATION_REMOVE_VALUE  "remove"
 
 typedef struct {
     Storage* storage;
@@ -36,14 +46,24 @@ typedef struct {
     CoarseTimer timeout_timer;
 } HttpInstallHandlerCtx;
 
-typedef enum {
-    ApiAppsQueueCancelTypeId,
-    ApiAppsQueueCancelTypeAll,
-} ApiAppsQueueCancelType;
+typedef struct {
+    JsAppInstallerOperationType type;
+    JsAppInstallerSourceInfo source;
+} ApiAppsQueueOperationInfo;
 
 typedef struct {
-    ApiAppsQueueCancelType cancel_type;
+    const char* app_id;
+    ApiAppsQueueOperationInfo info;
+} ApiAppsQueueOperation;
+
+typedef struct {
+    ApiAppsQueueOperation* operations;
+    uint32_t operations_count;
+} ApiAppsQueueAddRequest;
+
+typedef struct {
     uint32_t item_id;
+    bool is_clear_all;
 } ApiAppsQueueCancelRequest;
 
 static void api_apps_on_data_cb(struct mg_connection* conn, struct mg_iobuf* io);
@@ -359,7 +379,7 @@ static bool api_apps_install_request_callback(
         }
 
         JsAppInstaller* installer = furi_record_open(RECORD_JS_APP_INSTALLER);
-        JsAppInstallerError error = js_app_installer_install(installer, install_key);
+        JsAppInstallerError error = js_app_installer_install_staged(installer, install_key);
         success = error == JsAppInstallerErrorNone;
         furi_record_close(RECORD_JS_APP_INSTALLER);
     } while(false);
@@ -719,10 +739,217 @@ static void api_apps_queue_get(struct mg_connection* conn, struct mg_http_messag
     FURI_LOG_W(TAG, "Queue get");
 }
 
+static bool api_apps_queue_operation_source_info_parse(
+    JsAppInstallerSourceInfo* source,
+    const cJSON* json) {
+    bool success = false;
+
+    do {
+        const cJSON* item;
+
+        item = cJSON_GetObjectItem(json, APPS_ADD_OPERATION_URL_KEY);
+        if(!cJSON_IsString(item)) {
+            break;
+        }
+
+        const char* url_str = cJSON_GetStringValue(item);
+        Url* url = url_alloc();
+        const bool is_url_valid = url_parse(url, url_str);
+        url_free(url);
+
+        if(!is_url_valid) {
+            break;
+        }
+
+        source->url = url_str;
+
+        if(cJSON_HasObjectItem(json, APPS_ADD_OPERATION_VERSION_KEY)) {
+            item = cJSON_GetObjectItem(json, APPS_ADD_OPERATION_VERSION_KEY);
+            if(!cJSON_IsString(item)) {
+                break;
+            }
+
+            if(!semver_parse(&source->version, cJSON_GetStringValue(item))) {
+                break;
+            }
+
+            source->has_version = true;
+        } else {
+            source->has_version = false;
+        }
+
+        success = true;
+    } while(false);
+
+    return success;
+}
+
+static bool api_apps_queue_operation_info_parse(
+    ApiAppsQueueOperationInfo* operation_info,
+    const cJSON* json) {
+    bool success = false;
+
+    do {
+        if(!cJSON_IsObject(json)) {
+            break;
+        }
+
+        const cJSON* item;
+
+        item = cJSON_GetObjectItem(json, APPS_ADD_OPERATION_TYPE_KEY);
+        if(!cJSON_IsString(item)) {
+            break;
+        }
+
+        const char* type_str = cJSON_GetStringValue(item);
+        if(strcmp(type_str, APPS_ADD_OPERATION_INSTALL_VALUE) == 0) {
+            if(!api_apps_queue_operation_source_info_parse(&operation_info->source, json)) {
+                break;
+            }
+            operation_info->type = JsAppInstallerOperationTypeInstall;
+        } else if(strcmp(type_str, APPS_ADD_OPERATION_REMOVE_VALUE) == 0) {
+            operation_info->type = JsAppInstallerOperationTypeRemove;
+        } else {
+            break;
+        }
+
+        success = true;
+    } while(false);
+
+    return success;
+}
+
+static bool api_apps_queue_operation_parse(ApiAppsQueueOperation* operation, const cJSON* json) {
+    bool success = false;
+
+    do {
+        if(!cJSON_IsObject(json)) {
+            break;
+        }
+
+        const cJSON* item;
+
+        item = cJSON_GetObjectItem(json, APPS_ADD_APP_ID_KEY);
+        if(!cJSON_IsString(item)) {
+            break;
+        }
+
+        const char* app_id_str = cJSON_GetStringValue(item);
+        if(!js_app_is_valid_id(app_id_str)) {
+            break;
+        }
+
+        operation->app_id = app_id_str;
+
+        item = cJSON_GetObjectItem(json, APPS_ADD_OPERATION_KEY);
+        if(!api_apps_queue_operation_info_parse(&operation->info, item)) {
+            break;
+        }
+
+        success = true;
+    } while(false);
+
+    return success;
+}
+
+static bool api_apps_queue_add_request_parse(ApiAppsQueueAddRequest* request, const cJSON* json) {
+    bool success = false;
+
+    do {
+        if(!cJSON_IsObject(json)) {
+            break;
+        }
+
+        const cJSON* operations = cJSON_GetObjectItem(json, "operations");
+        if(!cJSON_IsArray(operations)) {
+            break;
+        }
+
+        const uint32_t count = cJSON_GetArraySize(operations);
+        if(count == 0) {
+            break;
+        }
+
+        ApiAppsQueueOperation* data = calloc(count, sizeof(ApiAppsQueueOperation));
+
+        uint32_t parsed_count;
+        for(parsed_count = 0; parsed_count < count; ++parsed_count) {
+            const cJSON* item = cJSON_GetArrayItem(operations, parsed_count);
+            if(!api_apps_queue_operation_parse(&data[parsed_count], item)) {
+                break;
+            }
+        }
+
+        if(parsed_count != count) {
+            free(data);
+            break;
+        }
+
+        request->operations = data;
+        request->operations_count = count;
+
+        success = true;
+    } while(false);
+
+    return success;
+}
+
 static void api_apps_queue_post(struct mg_connection* conn, struct mg_http_message* msg) {
-    UNUSED(msg);
-    MG_REPLY_OK(conn);
-    FURI_LOG_W(TAG, "Queue post");
+    ApiAppsQueueAddRequest request = {0};
+    cJSON* json = cJSON_ParseWithLength(msg->body.buf, msg->body.len);
+
+    do {
+        if(json == NULL) {
+            MG_REPLY_BAD_REQUEST(conn);
+            break;
+        }
+
+        if(!api_apps_queue_add_request_parse(&request, json)) {
+            MG_REPLY_BAD_REQUEST(conn);
+            break;
+        }
+
+        JsAppInstaller* installer = furi_record_open(RECORD_JS_APP_INSTALLER);
+        JsAppInstallerOperationResult result;
+
+        for(uint32_t i = 0; i < request.operations_count; ++i) {
+            const ApiAppsQueueOperation* operation = &request.operations[i];
+            const ApiAppsQueueOperationInfo* info = &operation->info;
+            const JsAppInstallerOperationType operation_type = info->type;
+
+            if(operation_type == JsAppInstallerOperationTypeInstall) {
+                result = js_app_installer_install(installer, operation->app_id, &info->source);
+            } else if(operation_type == JsAppInstallerOperationTypeRemove) {
+                result = js_app_installer_remove(installer, operation->app_id);
+            } else {
+                furi_crash("Invalid JsAppInstallerOperationType value");
+            }
+
+            if(result.error != JsAppInstallerErrorNone) {
+                break;
+            }
+        }
+
+        furi_record_close(RECORD_JS_APP_INSTALLER);
+
+        if(result.error != JsAppInstallerErrorNone) {
+            // TODO: Proper error handling
+            MG_REPLY_BAD_REQUEST(conn);
+            break;
+        }
+
+        // TODO: Actual response
+        MG_REPLY_OK_ASYNC(conn);
+    } while(false);
+
+    if(request.operations) {
+        furi_assert(request.operations_count);
+        free(request.operations);
+    }
+
+    if(json != NULL) {
+        cJSON_free(json);
+    }
 }
 
 static bool api_apps_queue_request_callback(
@@ -766,7 +993,7 @@ static bool api_apps_queue_cancel_request_parse(
                 break;
             }
 
-            request->cancel_type = ApiAppsQueueCancelTypeId;
+            request->is_clear_all = false;
             request->item_id = cJSON_GetNumberValue(item_id);
 
         } else if(cJSON_HasObjectItem(json, APPS_CANCEL_ALL_KEY)) {
@@ -775,7 +1002,7 @@ static bool api_apps_queue_cancel_request_parse(
                 break;
             }
 
-            request->cancel_type = ApiAppsQueueCancelTypeAll;
+            request->is_clear_all = true;
 
         } else {
             break;
@@ -798,7 +1025,6 @@ static bool api_apps_queue_cancel_request_callback(
     struct mg_http_message* msg,
     void* ctx) {
     UNUSED(ctx);
-    UNUSED(msg);
     UNUSED(method);
 
     if(!IS_HTTP_ENDPOINT(path)) {
@@ -811,14 +1037,24 @@ static bool api_apps_queue_cancel_request_callback(
         return true;
     }
 
-    const ApiAppsQueueCancelType cancel_type = request.cancel_type;
-    if(cancel_type == ApiAppsQueueCancelTypeId) {
-        FURI_LOG_W(TAG, "Queue cancel id: %lu", request.item_id);
+    JsAppInstaller* installer = furi_record_open(RECORD_JS_APP_INSTALLER);
+    JsAppInstallerError error;
+
+    if(request.is_clear_all) {
+        error = js_app_installer_cancel_all(installer);
     } else {
-        FURI_LOG_W(TAG, "Queue cancel ALL");
+        error = js_app_installer_cancel_operation(installer, request.item_id);
     }
 
-    MG_REPLY_OK_ASYNC(conn);
+    furi_record_close(RECORD_JS_APP_INSTALLER);
+
+    if(error == JsAppInstallerErrorNone) {
+        MG_REPLY_OK_ASYNC(conn);
+    } else {
+        // TODO: Proper error handling
+        MG_REPLY_BAD_REQUEST(conn);
+    }
+
     return true;
 }
 

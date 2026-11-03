@@ -218,7 +218,8 @@ static void handle_install(JsAppInstaller* instance, JsAppInstallerMsg* message)
     *message->install.error = result;
 }
 
-JsAppInstallerError js_app_installer_install(JsAppInstaller* instance, uint32_t install_key) {
+JsAppInstallerError
+    js_app_installer_install_staged(JsAppInstaller* instance, uint32_t install_key) {
     JsAppInstallerError result;
 
     JsAppInstallerMsg msg = {
@@ -235,6 +236,45 @@ JsAppInstallerError js_app_installer_install(JsAppInstaller* instance, uint32_t 
 
     api_lock_wait_unlock_and_free(msg.api_lock);
     return result;
+}
+
+JsAppInstallerOperationResult js_app_installer_install(
+    JsAppInstaller* instance,
+    const char* app_id,
+    const JsAppInstallerSourceInfo* info) {
+    furi_check(instance);
+    furi_check(app_id);
+    furi_check(info);
+    furi_crash("TODO");
+}
+
+JsAppInstallerOperationResult
+    js_app_installer_remove(JsAppInstaller* instance, const char* app_id) {
+    furi_check(instance);
+    furi_check(app_id);
+    furi_crash("TODO");
+}
+
+JsAppInstallerError js_app_installer_get_operation_queue(
+    JsAppInstaller* instance,
+    JsAppInstallerOperationInfoCallback callback,
+    void* context) {
+    furi_check(instance);
+    furi_check(callback);
+    UNUSED(context);
+    furi_crash("TODO");
+}
+
+JsAppInstallerError
+    js_app_installer_cancel_operation(JsAppInstaller* instance, uint32_t operation_id) {
+    furi_check(instance);
+    UNUSED(operation_id);
+    furi_crash("TODO");
+}
+
+JsAppInstallerError js_app_installer_cancel_all(JsAppInstaller* instance) {
+    furi_check(instance);
+    furi_crash("TODO");
 }
 
 static JsAppInstaller* js_app_installer_alloc(void) {
