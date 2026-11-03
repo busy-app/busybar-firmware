@@ -942,8 +942,7 @@ static void api_apps_queue_post(struct mg_connection* conn, struct mg_http_messa
         MG_REPLY_OK_ASYNC(conn);
     } while(false);
 
-    if(request.operations) {
-        furi_assert(request.operations_count);
+    if(request.operations != NULL) {
         free(request.operations);
     }
 
