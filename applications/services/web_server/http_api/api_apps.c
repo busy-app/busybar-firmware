@@ -824,16 +824,16 @@ static void api_apps_queue_item_callback(const JsAppInstallerOperationInfo* info
 static void api_apps_queue_get(struct mg_connection* conn, struct mg_http_message* msg) {
     UNUSED(msg);
 
-    cJSON* json = cJSON_CreateObject();
-    cJSON* result = cJSON_AddArrayToObject(json, RESULT_KEY);
+    cJSON* response_json = cJSON_CreateObject();
+    cJSON* result_json = cJSON_AddArrayToObject(response_json, RESULT_KEY);
 
     JsAppInstaller* installer = furi_record_open(RECORD_JS_APP_INSTALLER);
     const JsAppInstallerError error =
-        js_app_installer_get_operation_queue(installer, api_apps_queue_item_callback, result);
+        js_app_installer_get_operation_queue(installer, api_apps_queue_item_callback, result_json);
     furi_record_close(RECORD_JS_APP_INSTALLER);
 
     if(error == JsAppInstallerErrorNone) {
-        char* response_body = cJSON_PrintUnformatted(json);
+        char* response_body = cJSON_PrintUnformatted(response_json);
         MG_REPLY_OK_BODY(conn, "%s", response_body);
         free(response_body);
     } else {
@@ -841,7 +841,7 @@ static void api_apps_queue_get(struct mg_connection* conn, struct mg_http_messag
         MG_REPLY_BAD_REQUEST(conn);
     }
 
-    cJSON_Delete(json);
+    cJSON_Delete(response_json);
 }
 
 static bool api_apps_queue_operation_source_info_parse(
@@ -1003,9 +1003,9 @@ static bool api_apps_queue_add_request_parse(ApiAppsQueueAddRequest* request, co
 
 static char* api_apps_queue_add_response_format(const ApiAppsQueueAddRequest* request) {
     char* response_body = NULL;
-    cJSON* json = cJSON_CreateObject();
+    cJSON* response_body_json = cJSON_CreateObject();
 
-    cJSON* result_json = cJSON_AddArrayToObject(json, RESULT_KEY);
+    cJSON* result_json = cJSON_AddArrayToObject(response_body_json, RESULT_KEY);
     for(size_t i = 0; i < request->operations_count; ++i) {
         const ApiAppsQueueOperation* operation = &request->operations[i];
         cJSON* item_json = cJSON_CreateObject();
@@ -1019,8 +1019,8 @@ static char* api_apps_queue_add_response_format(const ApiAppsQueueAddRequest* re
         cJSON_AddItemToArray(result_json, item_json);
     }
 
-    response_body = cJSON_PrintUnformatted(json);
-    cJSON_Delete(json);
+    response_body = cJSON_PrintUnformatted(response_body_json);
+    cJSON_Delete(response_body_json);
 
     return response_body;
 }
@@ -1101,8 +1101,6 @@ static bool api_apps_queue_request_callback(
         api_apps_queue_get(conn, msg);
     } else if(method == HttpMethodPost) {
         api_apps_queue_post(conn, msg);
-    } else {
-        furi_crash("Unexpected method");
     }
 
     return true;
@@ -1113,30 +1111,21 @@ static bool api_apps_queue_cancel_request_parse(
     const struct mg_str source) {
     bool success = false;
 
-    cJSON* json = cJSON_ParseWithLength(source.buf, source.len);
+    cJSON* request_json = cJSON_ParseWithLength(source.buf, source.len);
 
     do {
-        if(!cJSON_IsObject(json)) {
+        if(!cJSON_IsObject(request_json)) {
             break;
         }
 
-        if(cJSON_HasObjectItem(json, ITEM_ID_KEY)) {
-            const cJSON* item_id = cJSON_GetObjectItem(json, ITEM_ID_KEY);
-            if(!cJSON_IsNumber(item_id)) {
-                break;
-            }
+        const cJSON* item_id_json = cJSON_GetObjectItem(request_json, ITEM_ID_KEY);
+        const cJSON* all_json = cJSON_GetObjectItem(request_json, CANCEL_ALL_KEY);
 
+        if(cJSON_IsNumber(item_id_json) && all_json == NULL) {
             request->is_clear_all = false;
-            request->item_id = cJSON_GetNumberValue(item_id);
-
-        } else if(cJSON_HasObjectItem(json, CANCEL_ALL_KEY)) {
-            const cJSON* is_all = cJSON_GetObjectItem(json, CANCEL_ALL_KEY);
-            if(!cJSON_IsBool(is_all) || !cJSON_IsTrue(is_all)) {
-                break;
-            }
-
+            request->item_id = cJSON_GetNumberValue(item_id_json);
+        } else if(cJSON_IsTrue(all_json) && item_id_json == NULL) {
             request->is_clear_all = true;
-
         } else {
             break;
         }
@@ -1144,7 +1133,7 @@ static bool api_apps_queue_cancel_request_parse(
         success = true;
     } while(false);
 
-    cJSON_Delete(json);
+    cJSON_Delete(request_json);
 
     return success;
 }
