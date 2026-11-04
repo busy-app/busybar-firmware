@@ -9,6 +9,17 @@ from clients.api import SmartHomeAPI
 
 from clients.api.base import APIError
 
+
+pytestmark = [
+    pytest.mark.bsb_metadata(
+        suite="Integration",
+        level="Integration",
+        intent="Product",
+        interfaces=("Device API",),
+        transports=("LAN REST",),
+    ),
+]
+
 # Retry settings for non-blocking Matter API operations.
 # After the queue-based refactor (PR #814), set_switch_state returns
 # immediately after queuing; the cached FuriState is updated
@@ -64,7 +75,8 @@ def _poll_switch_state(
     return False
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Matter / Smart Home local")
 @allure.story("Smart Home")
 class TestSmartHomePairingAPI:
     """Test cases for Smart Home Pairing API endpoints"""
@@ -179,7 +191,8 @@ class TestSmartHomePairingAPI:
         assert 0 < timestamp < 10_000_000_000
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Matter / Smart Home local")
 @allure.story("Smart Home")
 class TestSmartHomeSwitchAPI:
     """Test cases for Smart Home Switch API"""

@@ -7,16 +7,24 @@ These carry TestOps ids and run outside the `regression` sweep.
 import allure
 import pytest
 
-pytestmark = pytest.mark.cli
+pytestmark = [
+    pytest.mark.cli,
+    pytest.mark.bsb_metadata(
+        suite="Component",
+        level="Component",
+        intent="Product",
+        interfaces=("CLI",),
+        transports=("Telnet",),
+    ),
+]
 
 
-@allure.epic("BSB CLI Testing")
-@allure.feature("6. CLI")
-@allure.story("Commands Check")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Firmware CLI")
+@allure.story("Shell command contract")
 class TestCLIShell:
     """The `?` command list, exit, and the help/usage mechanism."""
 
-    @allure.id("2047")
     @allure.title("CLI. Command ?.")
     @pytest.mark.story_commands_check
     def test_cli_command_question_mark(self, persistent_cli_connection, test_logger):
@@ -57,14 +65,12 @@ class TestCLIShell:
             missing = [cmd for cmd in expected_commands if cmd not in response_lower]
             assert not missing, f"Missing expected commands: {missing}"
 
-    @allure.id("2046")
     @allure.title("CLI. Command Exit.")
     @pytest.mark.story_commands_check
     def test_cli_command_exit(self, persistent_cli_connection):
         help_response = persistent_cli_connection.execute_command("?", timeout=20)
         assert "exit" in help_response.lower(), "Exit command should be available in help"
 
-    @allure.id("2045")
     @allure.title("CLI. Command Help.")
     @pytest.mark.story_commands_check
     def test_cli_command_help(self, persistent_cli_connection):
@@ -75,13 +81,12 @@ class TestCLIShell:
         assert "Cmd list:" in response, "Should list all sub-commands"
 
 
-@allure.epic("BSB CLI Testing")
-@allure.feature("6. CLI")
-@allure.story("UI Validation")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Firmware CLI")
+@allure.story("Shell interface")
 class TestCLIUI:
     """CLI UI rendering."""
 
-    @allure.id("2048")
     @allure.title("CLI. UI. Render")
     @pytest.mark.story_ui_validation
     def test_cli_ui_render(self, fresh_cli_connection):
@@ -89,7 +94,6 @@ class TestCLIUI:
         assert response.strip(), "CLI should render help properly"
         assert len(response) > 100, "Help output should be substantial"
 
-    @allure.id("2152")
     @allure.title("CLI. UI. Welcome message.")
     @pytest.mark.story_ui_validation
     def test_cli_ui_welcome_message(self, fresh_cli_connection):
@@ -98,13 +102,12 @@ class TestCLIUI:
         assert "Available commands:" in response, "CLI should respond properly to commands"
 
 
-@allure.epic("BSB CLI Testing")
-@allure.feature("6. CLI")
-@allure.story("Connection Management")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Firmware CLI")
+@allure.story("Connection lifecycle")
 class TestCLIConnectionManagement:
     """917 CLI entry/exit robustness."""
 
-    @allure.id("2727")
     @allure.title("CLI. 917 CLI. Multiple Entries.")
     @pytest.mark.story_commands_check
     def test_cli_917_multiple_entries(self, fresh_cli_connection):

@@ -10,16 +10,24 @@ import pytest
 
 from clients.cli import SimpleCLIConnection
 
-pytestmark = pytest.mark.cli
+pytestmark = [
+    pytest.mark.cli,
+    pytest.mark.bsb_metadata(
+        suite="Component",
+        level="Component",
+        intent="Product",
+        interfaces=("CLI",),
+        transports=("Telnet",),
+    ),
+]
 
 
-@allure.epic("BSB CLI Testing")
-@allure.feature("6. CLI")
-@allure.story("Commands Check")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Wi-Fi")
+@allure.story("Wireless diagnostics")
 class TestCLISlCli:
     """Entering and leaving the 917 sub-CLI (`sl_cli`)."""
 
-    @allure.id("2040")
     @allure.title("CLI. Command Sl_cli.")
     @pytest.mark.story_commands_check
     def test_cli_command_sl_cli(self, fresh_cli_connection):
@@ -63,9 +71,9 @@ class TestCLISlCli:
             first.exit_sl_cli()
 
 
-@allure.epic("BSB CLI Testing")
-@allure.feature("6. CLI")
-@allure.story("Commands Check")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Matter / Smart Home local")
+@allure.story("Matter diagnostics")
 class TestCLIMatterReadOnly:
     """Read-only matter submenu commands (enter/leave via execute_command)."""
 
@@ -97,9 +105,9 @@ class TestCLIMatterReadOnly:
             assert cd in response, f"missing CD {cd}: {response!r}"
 
 
-@allure.epic("BSB CLI Testing")
-@allure.feature("6. CLI")
-@allure.story("Commands Check")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Firmware CLI")
+@allure.story("Wireless coprocessor commands")
 @pytest.mark.uses_si917
 class TestCLI917ReadOnlyCommands:
     """Read-only 917 CLI commands (entered via the sl_cli fixture)."""
