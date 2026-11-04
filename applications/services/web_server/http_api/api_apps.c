@@ -815,7 +815,7 @@ static void api_apps_queue_get(struct mg_connection* conn, struct mg_http_messag
         MG_REPLY_BAD_REQUEST(conn);
     }
 
-    cJSON_free(json);
+    cJSON_Delete(json);
 }
 
 static bool api_apps_queue_operation_source_info_parse(
@@ -1010,7 +1010,7 @@ static char* api_apps_queue_add_response_format(const ApiAppsQueueAddRequest* re
     }
 
     response_body = cJSON_PrintUnformatted(json);
-    cJSON_free(json);
+    cJSON_Delete(json);
 
     return response_body;
 }
@@ -1072,9 +1072,7 @@ static void api_apps_queue_post(struct mg_connection* conn, struct mg_http_messa
         free(request.operations);
     }
 
-    if(json != NULL) {
-        cJSON_free(json);
-    }
+    cJSON_Delete(json);
 }
 
 static bool api_apps_queue_request_callback(
@@ -1136,9 +1134,7 @@ static bool api_apps_queue_cancel_request_parse(
         success = true;
     } while(false);
 
-    if(json != NULL) {
-        cJSON_free(json);
-    }
+    cJSON_Delete(json);
 
     return success;
 }
