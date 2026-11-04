@@ -26,6 +26,10 @@
 #define OPERATIONS_KEY "operations"
 #define CANCEL_ALL_KEY "all"
 
+#define STATUS_KEY               "status"
+#define STATUS_VALUE_PENDING     "pending"
+#define STATUS_VALUE_IN_PROGRESS "in_progress"
+
 #define DETAIL_KEY          "detail"
 #define DETAIL_STEP_KEY     "step"
 #define DETAIL_PROGRESS_KEY "progress"
@@ -767,7 +771,8 @@ static void api_apps_queue_item_callback(const JsAppInstallerOperationInfo* info
 
     cJSON* operation_json = cJSON_AddObjectToObject(item_json, OPERATION_KEY);
 
-    if(info->type == JsAppInstallerOperationTypeInstall) {
+    const JsAppInstallerOperationType operation_type = info->type;
+    if(operation_type == JsAppInstallerOperationTypeInstall) {
         cJSON_AddStringToObject(operation_json, OPERATION_TYPE_KEY, OPERATION_TYPE_INSTALL_VALUE);
 
         if(app_info->has_version) {
@@ -778,20 +783,28 @@ static void api_apps_queue_item_callback(const JsAppInstallerOperationInfo* info
             furi_string_free(version_string);
         }
 
-    } else if(info->type == JsAppInstallerOperationTypeRemove) {
+    } else if(operation_type == JsAppInstallerOperationTypeRemove) {
         cJSON_AddStringToObject(operation_json, OPERATION_TYPE_KEY, OPERATION_TYPE_REMOVE_VALUE);
     } else {
         furi_crash("Invalid JsAppInstallerOperationType value");
     }
 
-    const JsAppInstallerOperationDetail* detail = &info->detail;
+    const JsAppInstallerOperationStatus operation_status = info->status;
+    if(operation_status == JsAppInstallerOperationStatusInProgress) {
+        cJSON_AddStringToObject(item_json, STATUS_KEY, STATUS_VALUE_IN_PROGRESS);
+        const JsAppInstallerOperationDetail* detail = &info->detail;
 
-    cJSON* detail_json = cJSON_AddObjectToObject(item_json, DETAIL_KEY);
-    cJSON_AddStringToObject(
-        detail_json, DETAIL_STEP_KEY, api_apps_queue_get_step_type_string(detail->step));
+        cJSON* detail_json = cJSON_AddObjectToObject(item_json, DETAIL_KEY);
+        cJSON_AddStringToObject(
+            detail_json, DETAIL_STEP_KEY, api_apps_queue_get_step_type_string(detail->step));
 
-    if(detail->has_progress) {
-        cJSON_AddNumberToObject(detail_json, DETAIL_PROGRESS_KEY, detail->progress);
+        if(detail->has_progress) {
+            cJSON_AddNumberToObject(detail_json, DETAIL_PROGRESS_KEY, detail->progress);
+        }
+    } else if(operation_status == JsAppInstallerOperationStatusPending) {
+        cJSON_AddStringToObject(item_json, STATUS_KEY, STATUS_VALUE_PENDING);
+    } else {
+        furi_crash("Invalid JsAppInstallerOperationStatus value");
     }
 }
 
