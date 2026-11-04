@@ -808,7 +808,7 @@ static void api_apps_queue_get(struct mg_connection* conn, struct mg_http_messag
 
     if(error == JsAppInstallerErrorNone) {
         char* response_body = cJSON_PrintUnformatted(json);
-        MG_REPLY_OK_BODY(conn, response_body);
+        MG_REPLY_OK_BODY(conn, "%s", response_body);
         free(response_body);
     } else {
         // TODO: Proper error handling
@@ -1063,7 +1063,7 @@ static void api_apps_queue_post(struct mg_connection* conn, struct mg_http_messa
         }
 
         char* response_body = api_apps_queue_add_response_format(&request);
-        MG_REPLY_OK_ASYNC_BODY(conn, response_body);
+        MG_REPLY_OK_ASYNC_BODY(conn, "%s", response_body);
         free(response_body);
 
     } while(false);
