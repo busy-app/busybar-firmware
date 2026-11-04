@@ -117,6 +117,8 @@ static const char* const installer_errors[] = {
     [JsAppInstallerErrorManifest] = "Wrong app manifest",
     [JsAppInstallerErrorApiVersion] = "API version mismatch",
     [JsAppInstallerErrorInstall] = "Installation failed",
+    [JsAppInstallerErrorTimeout] = "Operation timed out",
+    [JsAppInstallerErrorQueueFull] = "Too many operations",
 };
 
 static const char* const installer_error_codes[] = {
@@ -125,6 +127,8 @@ static const char* const installer_error_codes[] = {
     [JsAppInstallerErrorManifest] = "manifest_error",
     [JsAppInstallerErrorApiVersion] = "api_mismatch",
     [JsAppInstallerErrorInstall] = "installation_failed",
+    [JsAppInstallerErrorTimeout] = "operation_timeout",
+    [JsAppInstallerErrorQueueFull] = "queue_full",
 };
 
 static_assert(COUNT_OF(installer_errors) == JsAppInstallerErrorMax);
@@ -756,7 +760,7 @@ static const char* api_apps_queue_get_step_type_string(JsAppInstallerOperationSt
     return step_types_table[step_type];
 }
 
-static void api_apps_queue_item_add_operation(
+static void api_apps_queue_item_operation_format(
     cJSON* item_json,
     JsAppInstallerOperationType operation_type,
     const JsAppInstallerAppVersion* app_version) {
@@ -780,8 +784,9 @@ static void api_apps_queue_item_add_operation(
     }
 }
 
-static void
-    api_apps_queue_item_add_detail(cJSON* item_json, const JsAppInstallerOperationDetail* detail) {
+static void api_apps_queue_item_detail_format(
+    cJSON* item_json,
+    const JsAppInstallerOperationDetail* detail) {
     cJSON* detail_json = cJSON_AddObjectToObject(item_json, DETAIL_KEY);
     cJSON_AddStringToObject(
         detail_json, DETAIL_STEP_KEY, api_apps_queue_get_step_type_string(detail->step));
@@ -791,13 +796,13 @@ static void
     }
 }
 
-static void api_apps_queue_item_add_status(
+static void api_apps_queue_item_status_format(
     cJSON* item_json,
     JsAppInstallerOperationStatus operation_status,
     const JsAppInstallerOperationDetail* detail) {
     if(operation_status == JsAppInstallerOperationStatusInProgress) {
         cJSON_AddStringToObject(item_json, STATUS_KEY, STATUS_VALUE_IN_PROGRESS);
-        api_apps_queue_item_add_detail(item_json, detail);
+        api_apps_queue_item_detail_format(item_json, detail);
     } else if(operation_status == JsAppInstallerOperationStatusPending) {
         cJSON_AddStringToObject(item_json, STATUS_KEY, STATUS_VALUE_PENDING);
     } else {
@@ -817,8 +822,8 @@ static void api_apps_queue_item_callback(const JsAppInstallerOperationInfo* info
     cJSON_AddNumberToObject(item_json, ITEM_ID_KEY, info->item_id);
     cJSON_AddStringToObject(item_json, APP_ID_KEY, app_info->app_id);
 
-    api_apps_queue_item_add_operation(item_json, info->type, &app_info->version);
-    api_apps_queue_item_add_status(item_json, info->status, &info->detail);
+    api_apps_queue_item_operation_format(item_json, info->type, &app_info->version);
+    api_apps_queue_item_status_format(item_json, info->status, &info->detail);
 }
 
 static void api_apps_queue_get(struct mg_connection* conn, struct mg_http_message* msg) {
@@ -836,9 +841,11 @@ static void api_apps_queue_get(struct mg_connection* conn, struct mg_http_messag
         char* response_body = cJSON_PrintUnformatted(response_json);
         MG_REPLY_OK_BODY(conn, "%s", response_body);
         free(response_body);
+
+    } else if(error == JsAppInstallerErrorTimeout) {
+        MG_REPLY_TIMEOUT(conn);
     } else {
-        // TODO: Proper error handling
-        MG_REPLY_BAD_REQUEST(conn);
+        MG_REPLY_SERVICE_UNAVAILABLE(conn);
     }
 
     cJSON_Delete(response_json);
@@ -1014,7 +1021,8 @@ static char* api_apps_queue_add_response_format(const ApiAppsQueueAddRequest* re
         cJSON_AddNumberToObject(item_json, ITEM_ID_KEY, operation->item_id);
 
         const ApiAppsQueueOperationInfo* info = &operation->info;
-        api_apps_queue_item_add_operation(item_json, info->operation_type, &info->source.version);
+        api_apps_queue_item_operation_format(
+            item_json, info->operation_type, &info->source.version);
 
         cJSON_AddItemToArray(result_json, item_json);
     }

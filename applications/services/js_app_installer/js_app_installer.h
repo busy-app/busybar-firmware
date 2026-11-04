@@ -16,6 +16,8 @@ typedef enum JsAppInstallerError {
     JsAppInstallerErrorManifest,
     JsAppInstallerErrorApiVersion,
     JsAppInstallerErrorInstall,
+    JsAppInstallerErrorTimeout,
+    JsAppInstallerErrorQueueFull,
     JsAppInstallerErrorMax,
 } JsAppInstallerError;
 
