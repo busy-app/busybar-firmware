@@ -759,15 +759,15 @@ static const char* api_apps_queue_get_step_type_string(JsAppInstallerOperationSt
 static void api_apps_queue_item_add_operation(
     cJSON* item_json,
     JsAppInstallerOperationType operation_type,
-    const JsAppInstallerAppInfo* app_info) {
+    const SemVer* app_version) {
     cJSON* operation_json = cJSON_AddObjectToObject(item_json, OPERATION_KEY);
 
     if(operation_type == JsAppInstallerOperationTypeInstall) {
         cJSON_AddStringToObject(operation_json, OPERATION_TYPE_KEY, OPERATION_TYPE_INSTALL_VALUE);
 
-        if(app_info->has_version) {
+        if(app_version != NULL) {
             FuriString* version_string = furi_string_alloc();
-            semver_to_string(&app_info->version, version_string);
+            semver_to_string(app_version, version_string);
             cJSON_AddStringToObject(
                 operation_json, OPERATION_VERSION_KEY, furi_string_get_cstr(version_string));
             furi_string_free(version_string);
@@ -813,10 +813,12 @@ static void api_apps_queue_item_callback(const JsAppInstallerOperationInfo* info
     cJSON* item_json = cJSON_CreateObject();
     cJSON_AddItemToArray(items_json, item_json);
 
+    const JsAppInstallerAppInfo* app_info = &info->app_info;
     cJSON_AddNumberToObject(item_json, ITEM_ID_KEY, info->item_id);
-    cJSON_AddStringToObject(item_json, APP_ID_KEY, info->app_info.app_id);
+    cJSON_AddStringToObject(item_json, APP_ID_KEY, app_info->app_id);
 
-    api_apps_queue_item_add_operation(item_json, info->type, &info->app_info);
+    const SemVer* app_version = app_info->has_version ? &app_info->version : NULL;
+    api_apps_queue_item_add_operation(item_json, info->type, app_version);
     api_apps_queue_item_add_status(item_json, info->status, &info->detail);
 }
 
@@ -1010,26 +1012,10 @@ static char* api_apps_queue_add_response_format(const ApiAppsQueueAddRequest* re
         cJSON_AddStringToObject(item_json, APP_ID_KEY, operation->app_id);
         cJSON_AddNumberToObject(item_json, ITEM_ID_KEY, operation->item_id);
 
-        cJSON* operation_json = cJSON_AddObjectToObject(item_json, OPERATION_KEY);
-
-        const JsAppInstallerOperationType type = operation->info.type;
-        if(type == JsAppInstallerOperationTypeInstall) {
-            const JsAppInstallerSourceInfo* source = &operation->info.source;
-            if(source->has_version) {
-                FuriString* version_str = furi_string_alloc();
-                semver_to_string(&source->version, version_str);
-                cJSON_AddStringToObject(
-                    operation_json, OPERATION_VERSION_KEY, furi_string_get_cstr(version_str));
-                furi_string_free(version_str);
-            }
-            cJSON_AddStringToObject(
-                operation_json, OPERATION_TYPE_KEY, OPERATION_TYPE_INSTALL_VALUE);
-        } else if(type == JsAppInstallerOperationTypeRemove) {
-            cJSON_AddStringToObject(
-                operation_json, OPERATION_TYPE_KEY, OPERATION_TYPE_REMOVE_VALUE);
-        } else {
-            furi_crash("Invalid JsAppInstallerOperationType value");
-        }
+        const ApiAppsQueueOperationInfo* info = &operation->info;
+        const JsAppInstallerOperationType operation_type = info->type;
+        const SemVer* app_version = info->source.has_version ? &info->source.version : NULL;
+        api_apps_queue_item_add_operation(item_json, operation_type, app_version);
 
         cJSON_AddItemToArray(result_json, item_json);
     }
