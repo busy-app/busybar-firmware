@@ -128,6 +128,26 @@ void busy_timer_set_snapshot(BusyTimer* instance, const BusyTimerSnapshot* snaps
     busy_timer_api_asynchronous_request(instance, &message);
 }
 
+void busy_timer_set_snapshot_json(BusyTimer* instance, const char* json_text, size_t json_text_len) {
+    furi_check(instance);
+    furi_check(json_text);
+
+    // NOTE: The message handler owns and frees this buffer. The extra byte avoids malloc(0)
+    char* json_text_copy = malloc(json_text_len + 1);
+    memcpy(json_text_copy, json_text, json_text_len);
+
+    BusyTimerApiMessage message = {
+        .type = BusyTimerApiMessageTypeSetSnapshotJson,
+        .data.set_snapshot_json =
+            {
+                .json_text = json_text_copy,
+                .json_text_len = json_text_len,
+            },
+    };
+
+    busy_timer_api_asynchronous_request(instance, &message);
+}
+
 void busy_timer_get_profile(
     BusyTimer* instance,
     BusyTimerProfileId profile_id,
@@ -162,6 +182,32 @@ void busy_timer_set_profile(
             {
                 .profile_id = profile_id,
                 .profile = *profile,
+            },
+    };
+
+    busy_timer_api_asynchronous_request(instance, &message);
+}
+
+void busy_timer_set_profile_json(
+    BusyTimer* instance,
+    BusyTimerProfileId profile_id,
+    const char* json_text,
+    size_t json_text_len) {
+    furi_check(instance);
+    furi_check(profile_id < BusyTimerProfileIdMax);
+    furi_check(json_text);
+
+    // NOTE: The message handler owns and frees this buffer. The extra byte avoids malloc(0)
+    char* json_text_copy = malloc(json_text_len + 1);
+    memcpy(json_text_copy, json_text, json_text_len);
+
+    BusyTimerApiMessage message = {
+        .type = BusyTimerApiMessageTypeSetProfileJson,
+        .data.set_profile_json =
+            {
+                .profile_id = profile_id,
+                .json_text = json_text_copy,
+                .json_text_len = json_text_len,
             },
     };
 

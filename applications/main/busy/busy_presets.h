@@ -27,6 +27,7 @@ typedef enum {
     BusyTimerIndicatorTypeRest,
     BusyTimerIndicatorTypeWorkBig,
     BusyTimerIndicatorTypeRestBig,
+    BusyTimerIndicatorTypeWorkBigProgress,
     BusyTimerIndicatorTypeMax,
 } BusyTimerIndicatorType;
 
