@@ -22,17 +22,19 @@
 #define INSTALL_KEY_LEN_MAX 11
 #define APP_ID_LEN_MAX      (JS_APP_ID_LEN_MAX + 2)
 
-#define APPS_ADD_APP_ID_KEY            "app_id"
-#define APPS_ADD_OPERATION_KEY         "operation"
-#define APPS_ADD_OPERATION_TYPE_KEY    "type"
-#define APPS_ADD_OPERATION_URL_KEY     "url"
-#define APPS_ADD_OPERATION_VERSION_KEY "version"
+#define RESULT_KEY     "result"
+#define OPERATIONS_KEY "operations"
+#define CANCEL_ALL_KEY "all"
 
-#define APPS_CANCEL_ITEM_ID_KEY "item_id"
-#define APPS_CANCEL_ALL_KEY     "all"
+#define APP_ID_KEY            "app_id"
+#define ITEM_ID_KEY           "item_id"
+#define OPERATION_KEY         "operation"
+#define OPERATION_TYPE_KEY    "type"
+#define OPERATION_URL_KEY     "url"
+#define OPERATION_VERSION_KEY "version"
 
-#define APPS_ADD_OPERATION_INSTALL_VALUE "install"
-#define APPS_ADD_OPERATION_REMOVE_VALUE  "remove"
+#define OPERATION_TYPE_INSTALL_VALUE "install"
+#define OPERATION_TYPE_REMOVE_VALUE  "remove"
 
 typedef struct {
     Storage* storage;
@@ -52,13 +54,14 @@ typedef struct {
 } ApiAppsQueueOperationInfo;
 
 typedef struct {
+    uint32_t item_id;
     const char* app_id;
     ApiAppsQueueOperationInfo info;
 } ApiAppsQueueOperation;
 
 typedef struct {
     ApiAppsQueueOperation* operations;
-    uint32_t operations_count;
+    size_t operations_count;
 } ApiAppsQueueAddRequest;
 
 typedef struct {
@@ -747,7 +750,7 @@ static bool api_apps_queue_operation_source_info_parse(
     do {
         const cJSON* item;
 
-        item = cJSON_GetObjectItem(json, APPS_ADD_OPERATION_URL_KEY);
+        item = cJSON_GetObjectItem(json, OPERATION_URL_KEY);
         if(!cJSON_IsString(item)) {
             break;
         }
@@ -763,8 +766,8 @@ static bool api_apps_queue_operation_source_info_parse(
 
         source->url = url_str;
 
-        if(cJSON_HasObjectItem(json, APPS_ADD_OPERATION_VERSION_KEY)) {
-            item = cJSON_GetObjectItem(json, APPS_ADD_OPERATION_VERSION_KEY);
+        if(cJSON_HasObjectItem(json, OPERATION_VERSION_KEY)) {
+            item = cJSON_GetObjectItem(json, OPERATION_VERSION_KEY);
             if(!cJSON_IsString(item)) {
                 break;
             }
@@ -796,18 +799,18 @@ static bool api_apps_queue_operation_info_parse(
 
         const cJSON* item;
 
-        item = cJSON_GetObjectItem(json, APPS_ADD_OPERATION_TYPE_KEY);
+        item = cJSON_GetObjectItem(json, OPERATION_TYPE_KEY);
         if(!cJSON_IsString(item)) {
             break;
         }
 
         const char* type_str = cJSON_GetStringValue(item);
-        if(strcmp(type_str, APPS_ADD_OPERATION_INSTALL_VALUE) == 0) {
+        if(strcmp(type_str, OPERATION_TYPE_INSTALL_VALUE) == 0) {
             if(!api_apps_queue_operation_source_info_parse(&operation_info->source, json)) {
                 break;
             }
             operation_info->type = JsAppInstallerOperationTypeInstall;
-        } else if(strcmp(type_str, APPS_ADD_OPERATION_REMOVE_VALUE) == 0) {
+        } else if(strcmp(type_str, OPERATION_TYPE_REMOVE_VALUE) == 0) {
             operation_info->type = JsAppInstallerOperationTypeRemove;
         } else {
             break;
@@ -829,7 +832,7 @@ static bool api_apps_queue_operation_parse(ApiAppsQueueOperation* operation, con
 
         const cJSON* item;
 
-        item = cJSON_GetObjectItem(json, APPS_ADD_APP_ID_KEY);
+        item = cJSON_GetObjectItem(json, APP_ID_KEY);
         if(!cJSON_IsString(item)) {
             break;
         }
@@ -841,7 +844,7 @@ static bool api_apps_queue_operation_parse(ApiAppsQueueOperation* operation, con
 
         operation->app_id = app_id_str;
 
-        item = cJSON_GetObjectItem(json, APPS_ADD_OPERATION_KEY);
+        item = cJSON_GetObjectItem(json, OPERATION_KEY);
         if(!api_apps_queue_operation_info_parse(&operation->info, item)) {
             break;
         }
@@ -860,7 +863,7 @@ static bool api_apps_queue_add_request_parse(ApiAppsQueueAddRequest* request, co
             break;
         }
 
-        const cJSON* operations = cJSON_GetObjectItem(json, "operations");
+        const cJSON* operations = cJSON_GetObjectItem(json, OPERATIONS_KEY);
         if(!cJSON_IsArray(operations)) {
             break;
         }
@@ -894,8 +897,51 @@ static bool api_apps_queue_add_request_parse(ApiAppsQueueAddRequest* request, co
     return success;
 }
 
+static char* api_apps_queue_add_response_format(const ApiAppsQueueAddRequest* request) {
+    char* response_body = NULL;
+    cJSON* json = cJSON_CreateObject();
+
+    cJSON* result_json = cJSON_AddArrayToObject(json, RESULT_KEY);
+    for(size_t i = 0; i < request->operations_count; ++i) {
+        const ApiAppsQueueOperation* operation = &request->operations[i];
+        cJSON* item_json = cJSON_CreateObject();
+
+        cJSON_AddStringToObject(item_json, APP_ID_KEY, operation->app_id);
+        cJSON_AddNumberToObject(item_json, ITEM_ID_KEY, operation->item_id);
+
+        cJSON* operation_json = cJSON_AddObjectToObject(item_json, OPERATION_KEY);
+
+        const JsAppInstallerOperationType type = operation->info.type;
+        if(type == JsAppInstallerOperationTypeInstall) {
+            const JsAppInstallerSourceInfo* source = &operation->info.source;
+            if(source->has_version) {
+                FuriString* version_str = furi_string_alloc();
+                semver_to_string(&source->version, version_str);
+                cJSON_AddStringToObject(
+                    operation_json, OPERATION_VERSION_KEY, furi_string_get_cstr(version_str));
+                furi_string_free(version_str);
+            }
+            cJSON_AddStringToObject(
+                operation_json, OPERATION_TYPE_KEY, OPERATION_TYPE_INSTALL_VALUE);
+        } else if(type == JsAppInstallerOperationTypeRemove) {
+            cJSON_AddStringToObject(
+                operation_json, OPERATION_TYPE_KEY, OPERATION_TYPE_REMOVE_VALUE);
+        } else {
+            furi_crash("Invalid JsAppInstallerOperationType value");
+        }
+
+        cJSON_AddItemToArray(result_json, item_json);
+    }
+
+    response_body = cJSON_PrintUnformatted(json);
+    cJSON_free(json);
+
+    return response_body;
+}
+
 static void api_apps_queue_post(struct mg_connection* conn, struct mg_http_message* msg) {
     ApiAppsQueueAddRequest request = {0};
+
     cJSON* json = cJSON_ParseWithLength(msg->body.buf, msg->body.len);
 
     do {
@@ -912,8 +958,9 @@ static void api_apps_queue_post(struct mg_connection* conn, struct mg_http_messa
         JsAppInstaller* installer = furi_record_open(RECORD_JS_APP_INSTALLER);
         JsAppInstallerOperationResult result;
 
-        for(uint32_t i = 0; i < request.operations_count; ++i) {
-            const ApiAppsQueueOperation* operation = &request.operations[i];
+        for(size_t i = 0; i < request.operations_count; ++i) {
+            ApiAppsQueueOperation* operation = &request.operations[i];
+
             const ApiAppsQueueOperationInfo* info = &operation->info;
             const JsAppInstallerOperationType operation_type = info->type;
 
@@ -928,6 +975,7 @@ static void api_apps_queue_post(struct mg_connection* conn, struct mg_http_messa
             if(result.error != JsAppInstallerErrorNone) {
                 break;
             }
+            operation->item_id = result.operation_id;
         }
 
         furi_record_close(RECORD_JS_APP_INSTALLER);
@@ -938,8 +986,10 @@ static void api_apps_queue_post(struct mg_connection* conn, struct mg_http_messa
             break;
         }
 
-        // TODO: Actual response
-        MG_REPLY_OK_ASYNC(conn);
+        char* response_body = api_apps_queue_add_response_format(&request);
+        MG_REPLY_OK_ASYNC_BODY(conn, response_body);
+        free(response_body);
+
     } while(false);
 
     if(request.operations != NULL) {
@@ -986,8 +1036,8 @@ static bool api_apps_queue_cancel_request_parse(
             break;
         }
 
-        if(cJSON_HasObjectItem(json, APPS_CANCEL_ITEM_ID_KEY)) {
-            const cJSON* item_id = cJSON_GetObjectItem(json, APPS_CANCEL_ITEM_ID_KEY);
+        if(cJSON_HasObjectItem(json, ITEM_ID_KEY)) {
+            const cJSON* item_id = cJSON_GetObjectItem(json, ITEM_ID_KEY);
             if(!cJSON_IsNumber(item_id)) {
                 break;
             }
@@ -995,8 +1045,8 @@ static bool api_apps_queue_cancel_request_parse(
             request->is_clear_all = false;
             request->item_id = cJSON_GetNumberValue(item_id);
 
-        } else if(cJSON_HasObjectItem(json, APPS_CANCEL_ALL_KEY)) {
-            const cJSON* is_all = cJSON_GetObjectItem(json, APPS_CANCEL_ALL_KEY);
+        } else if(cJSON_HasObjectItem(json, CANCEL_ALL_KEY)) {
+            const cJSON* is_all = cJSON_GetObjectItem(json, CANCEL_ALL_KEY);
             if(!cJSON_IsBool(is_all) || !cJSON_IsTrue(is_all)) {
                 break;
             }

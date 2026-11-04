@@ -33,6 +33,8 @@
 #define MG_REPLY_OK(conn)                      _MG_JSON_RESULT(conn, 200, RESPONSE_BODY_OK)
 #define MG_REPLY_OK_ASYNC(conn)                _MG_JSON_RESULT(conn, 202, RESPONSE_BODY_OK)
 #define MG_REPLY_OK_BODY(conn, json_body, ...) _MG_JSON_RESULT(conn, 200, json_body, ##__VA_ARGS__)
+#define MG_REPLY_OK_ASYNC_BODY(conn, json_body, ...) \
+    _MG_JSON_RESULT(conn, 202, json_body, ##__VA_ARGS__)
 
 // Force closing the connection - to prevent clients from reusing it
 // (e.g. after a streaming upload) and racing with the server-side FIN
