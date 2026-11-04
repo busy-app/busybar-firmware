@@ -26,6 +26,10 @@
 #define OPERATIONS_KEY "operations"
 #define CANCEL_ALL_KEY "all"
 
+#define DETAIL_KEY          "detail"
+#define DETAIL_STEP_KEY     "step"
+#define DETAIL_PROGRESS_KEY "progress"
+
 #define APP_ID_KEY            "app_id"
 #define ITEM_ID_KEY           "item_id"
 #define OPERATION_KEY         "operation"
@@ -736,10 +740,82 @@ static bool api_apps_settings_callback(
     return true;
 }
 
+static const char* api_apps_queue_get_step_type_string(JsAppInstallerOperationStepType step_type) {
+    furi_assert(step_type < JsAppInstallerOperationStepTypeMax);
+
+    static const char* const step_types_table[] = {
+        [JsAppInstallerOperationStepTypeDownloading] = "downloading",
+        [JsAppInstallerOperationStepTypeUnpacking] = "unpacking",
+        [JsAppInstallerOperationStepTypeRemoving] = "removing",
+    };
+
+    return step_types_table[step_type];
+}
+
+static void api_apps_queue_item_callback(const JsAppInstallerOperationInfo* info, void* context) {
+    furi_assert(info);
+    furi_assert(context);
+
+    cJSON* json = context;
+    cJSON* item_json = cJSON_CreateObject();
+
+    const JsAppInstallerAppInfo* app_info = &info->app_info;
+
+    cJSON_AddItemToArray(json, item_json);
+    cJSON_AddNumberToObject(item_json, ITEM_ID_KEY, info->item_id);
+    cJSON_AddStringToObject(item_json, APP_ID_KEY, app_info->app_id);
+
+    cJSON* operation_json = cJSON_AddObjectToObject(item_json, OPERATION_KEY);
+
+    if(info->type == JsAppInstallerOperationTypeInstall) {
+        cJSON_AddStringToObject(operation_json, OPERATION_TYPE_KEY, OPERATION_TYPE_INSTALL_VALUE);
+
+        if(app_info->has_version) {
+            FuriString* version_string = furi_string_alloc();
+            semver_to_string(&app_info->version, version_string);
+            cJSON_AddStringToObject(
+                operation_json, OPERATION_VERSION_KEY, furi_string_get_cstr(version_string));
+            furi_string_free(version_string);
+        }
+
+    } else if(info->type == JsAppInstallerOperationTypeRemove) {
+        cJSON_AddStringToObject(operation_json, OPERATION_TYPE_KEY, OPERATION_TYPE_REMOVE_VALUE);
+    } else {
+        furi_crash("Invalid JsAppInstallerOperationType value");
+    }
+
+    const JsAppInstallerOperationDetail* detail = &info->detail;
+
+    cJSON* detail_json = cJSON_AddObjectToObject(item_json, DETAIL_KEY);
+    cJSON_AddStringToObject(
+        detail_json, DETAIL_STEP_KEY, api_apps_queue_get_step_type_string(detail->step));
+
+    if(detail->has_progress) {
+        cJSON_AddNumberToObject(detail_json, DETAIL_PROGRESS_KEY, detail->progress);
+    }
+}
+
 static void api_apps_queue_get(struct mg_connection* conn, struct mg_http_message* msg) {
     UNUSED(msg);
-    MG_REPLY_OK(conn);
-    FURI_LOG_W(TAG, "Queue get");
+
+    cJSON* json = cJSON_CreateObject();
+    cJSON* result = cJSON_AddArrayToObject(json, RESULT_KEY);
+
+    JsAppInstaller* installer = furi_record_open(RECORD_JS_APP_INSTALLER);
+    const JsAppInstallerError error =
+        js_app_installer_get_operation_queue(installer, api_apps_queue_item_callback, result);
+    furi_record_close(RECORD_JS_APP_INSTALLER);
+
+    if(error == JsAppInstallerErrorNone) {
+        char* response_body = cJSON_PrintUnformatted(json);
+        MG_REPLY_OK_BODY(conn, response_body);
+        free(response_body);
+    } else {
+        // TODO: Proper error handling
+        MG_REPLY_BAD_REQUEST(conn);
+    }
+
+    cJSON_free(json);
 }
 
 static bool api_apps_queue_operation_source_info_parse(

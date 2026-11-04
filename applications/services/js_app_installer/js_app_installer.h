@@ -37,6 +37,12 @@ typedef struct {
 } JsAppInstallerOperationResult;
 
 typedef struct {
+    const char* app_id;
+    SemVer version;
+    bool has_version;
+} JsAppInstallerAppInfo;
+
+typedef struct {
     const char* url;
     SemVer version;
     bool has_version;
@@ -57,6 +63,7 @@ typedef enum {
     JsAppInstallerOperationStepTypeUnpacking,
     JsAppInstallerOperationStepTypeRemoving,
     // TODO: More step types
+    JsAppInstallerOperationStepTypeMax,
 } JsAppInstallerOperationStepType;
 
 typedef struct {
@@ -66,8 +73,10 @@ typedef struct {
 } JsAppInstallerOperationDetail;
 
 typedef struct {
-    JsAppInstallerOperationStatus status;
+    uint32_t item_id;
+    JsAppInstallerAppInfo app_info;
     JsAppInstallerOperationType type;
+    JsAppInstallerOperationStatus status;
     JsAppInstallerOperationDetail detail;
 } JsAppInstallerOperationInfo;
 

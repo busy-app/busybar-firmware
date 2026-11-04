@@ -269,7 +269,46 @@ JsAppInstallerError js_app_installer_get_operation_queue(
     void* context) {
     furi_check(instance);
     furi_check(callback);
-    UNUSED(context);
+
+    const JsAppInstallerOperationInfo infos[] = {
+        {
+            .item_id = 67,
+            .app_info =
+                {
+                    .app_id = "com.example.my-app",
+                    .version =
+                        {
+                            .major = 1,
+                            .minor = 2,
+                            .patch = 3,
+                        },
+                    .has_version = true,
+                },
+            .type = JsAppInstallerOperationTypeInstall,
+            .status = JsAppInstallerOperationStatusInProgress,
+            .detail =
+                {
+                    .step = JsAppInstallerOperationStepTypeDownloading,
+                    .has_progress = true,
+                    .progress = 69,
+                },
+        },
+        {
+            .item_id = 42,
+            .app_info =
+                {
+                    .app_id = "com.example.another-app",
+                },
+            .type = JsAppInstallerOperationTypeRemove,
+            .status = JsAppInstallerOperationStatusPending,
+        },
+    };
+
+    for(size_t i = 0; i < COUNT_OF(infos); ++i) {
+        const JsAppInstallerOperationInfo* info = &infos[i];
+        callback(info, context);
+    }
+
     return JsAppInstallerErrorNone;
 }
 
