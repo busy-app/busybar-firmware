@@ -37,15 +37,18 @@ typedef struct {
 } JsAppInstallerOperationResult;
 
 typedef struct {
+    SemVer value;
+    bool is_present;
+} JsAppInstallerAppVersion;
+
+typedef struct {
     const char* app_id;
-    SemVer version;
-    bool has_version;
+    JsAppInstallerAppVersion version;
 } JsAppInstallerAppInfo;
 
 typedef struct {
     const char* url;
-    SemVer version;
-    bool has_version;
+    JsAppInstallerAppVersion version;
 } JsAppInstallerSourceInfo;
 
 typedef enum {

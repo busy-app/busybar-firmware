@@ -57,7 +57,7 @@ typedef struct {
 } HttpInstallHandlerCtx;
 
 typedef struct {
-    JsAppInstallerOperationType type;
+    JsAppInstallerOperationType operation_type;
     JsAppInstallerSourceInfo source;
 } ApiAppsQueueOperationInfo;
 
@@ -759,15 +759,15 @@ static const char* api_apps_queue_get_step_type_string(JsAppInstallerOperationSt
 static void api_apps_queue_item_add_operation(
     cJSON* item_json,
     JsAppInstallerOperationType operation_type,
-    const SemVer* app_version) {
+    const JsAppInstallerAppVersion* app_version) {
     cJSON* operation_json = cJSON_AddObjectToObject(item_json, OPERATION_KEY);
 
     if(operation_type == JsAppInstallerOperationTypeInstall) {
         cJSON_AddStringToObject(operation_json, OPERATION_TYPE_KEY, OPERATION_TYPE_INSTALL_VALUE);
 
-        if(app_version != NULL) {
+        if(app_version->is_present) {
             FuriString* version_string = furi_string_alloc();
-            semver_to_string(app_version, version_string);
+            semver_to_string(&app_version->value, version_string);
             cJSON_AddStringToObject(
                 operation_json, OPERATION_VERSION_KEY, furi_string_get_cstr(version_string));
             furi_string_free(version_string);
@@ -817,8 +817,7 @@ static void api_apps_queue_item_callback(const JsAppInstallerOperationInfo* info
     cJSON_AddNumberToObject(item_json, ITEM_ID_KEY, info->item_id);
     cJSON_AddStringToObject(item_json, APP_ID_KEY, app_info->app_id);
 
-    const SemVer* app_version = app_info->has_version ? &app_info->version : NULL;
-    api_apps_queue_item_add_operation(item_json, info->type, app_version);
+    api_apps_queue_item_add_operation(item_json, info->type, &app_info->version);
     api_apps_queue_item_add_status(item_json, info->status, &info->detail);
 }
 
@@ -869,19 +868,21 @@ static bool api_apps_queue_operation_source_info_parse(
 
         source->url = url_str;
 
+        JsAppInstallerAppVersion* version = &source->version;
+
         if(cJSON_HasObjectItem(json, OPERATION_VERSION_KEY)) {
             item = cJSON_GetObjectItem(json, OPERATION_VERSION_KEY);
             if(!cJSON_IsString(item)) {
                 break;
             }
 
-            if(!semver_parse(&source->version, cJSON_GetStringValue(item))) {
+            if(!semver_parse(&version->value, cJSON_GetStringValue(item))) {
                 break;
             }
 
-            source->has_version = true;
+            version->is_present = true;
         } else {
-            source->has_version = false;
+            version->is_present = false;
         }
 
         success = true;
@@ -912,9 +913,9 @@ static bool api_apps_queue_operation_info_parse(
             if(!api_apps_queue_operation_source_info_parse(&operation_info->source, json)) {
                 break;
             }
-            operation_info->type = JsAppInstallerOperationTypeInstall;
+            operation_info->operation_type = JsAppInstallerOperationTypeInstall;
         } else if(strcmp(type_str, OPERATION_TYPE_REMOVE_VALUE) == 0) {
-            operation_info->type = JsAppInstallerOperationTypeRemove;
+            operation_info->operation_type = JsAppInstallerOperationTypeRemove;
         } else {
             break;
         }
@@ -1013,9 +1014,7 @@ static char* api_apps_queue_add_response_format(const ApiAppsQueueAddRequest* re
         cJSON_AddNumberToObject(item_json, ITEM_ID_KEY, operation->item_id);
 
         const ApiAppsQueueOperationInfo* info = &operation->info;
-        const JsAppInstallerOperationType operation_type = info->type;
-        const SemVer* app_version = info->source.has_version ? &info->source.version : NULL;
-        api_apps_queue_item_add_operation(item_json, operation_type, app_version);
+        api_apps_queue_item_add_operation(item_json, info->operation_type, &info->source.version);
 
         cJSON_AddItemToArray(result_json, item_json);
     }
@@ -1049,7 +1048,7 @@ static void api_apps_queue_post(struct mg_connection* conn, struct mg_http_messa
             ApiAppsQueueOperation* operation = &request.operations[i];
 
             const ApiAppsQueueOperationInfo* info = &operation->info;
-            const JsAppInstallerOperationType operation_type = info->type;
+            const JsAppInstallerOperationType operation_type = info->operation_type;
 
             if(operation_type == JsAppInstallerOperationTypeInstall) {
                 result = js_app_installer_install(installer, operation->app_id, &info->source);
