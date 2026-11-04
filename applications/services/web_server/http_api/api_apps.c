@@ -1237,16 +1237,16 @@ static const HttpHandler api_apps_handlers[] = {
         .on_request = api_apps_settings_callback,
     },
     {
-        .uri = "queue",
-        .method = HttpMethodGet | HttpMethodPost,
-        .type = HttpHandlerCustom,
-        .on_request = api_apps_queue_request_callback,
-    },
-    {
         .uri = "queue/cancel",
         .method = HttpMethodPost,
         .type = HttpHandlerCustom,
         .on_request = api_apps_queue_cancel_request_callback,
+    },
+    {
+        .uri = "queue",
+        .method = HttpMethodGet | HttpMethodPost,
+        .type = HttpHandlerCustom,
+        .on_request = api_apps_queue_request_callback,
     },
 };
 
