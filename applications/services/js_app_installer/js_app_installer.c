@@ -278,11 +278,14 @@ JsAppInstallerError js_app_installer_get_operation_queue(
                     .app_id = "com.example.my-app",
                     .version =
                         {
-                            .major = 1,
-                            .minor = 2,
-                            .patch = 3,
+                            .value =
+                                {
+                                    .major = 1,
+                                    .minor = 2,
+                                    .patch = 3,
+                                },
+                            .is_present = true,
                         },
-                    .has_version = true,
                 },
             .type = JsAppInstallerOperationTypeInstall,
             .status = JsAppInstallerOperationStatusInProgress,
