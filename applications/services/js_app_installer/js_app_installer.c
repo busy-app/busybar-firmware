@@ -245,14 +245,22 @@ JsAppInstallerOperationResult js_app_installer_install(
     furi_check(instance);
     furi_check(app_id);
     furi_check(info);
-    furi_crash("TODO");
+    const JsAppInstallerOperationResult res = {
+        .error = JsAppInstallerErrorNone,
+        .operation_id = 42,
+    };
+    return res;
 }
 
 JsAppInstallerOperationResult
     js_app_installer_remove(JsAppInstaller* instance, const char* app_id) {
     furi_check(instance);
     furi_check(app_id);
-    furi_crash("TODO");
+    const JsAppInstallerOperationResult res = {
+        .error = JsAppInstallerErrorNone,
+        .operation_id = 67,
+    };
+    return res;
 }
 
 JsAppInstallerError js_app_installer_get_operation_queue(
@@ -262,19 +270,19 @@ JsAppInstallerError js_app_installer_get_operation_queue(
     furi_check(instance);
     furi_check(callback);
     UNUSED(context);
-    furi_crash("TODO");
+    return JsAppInstallerErrorNone;
 }
 
 JsAppInstallerError
     js_app_installer_cancel_operation(JsAppInstaller* instance, uint32_t operation_id) {
     furi_check(instance);
     UNUSED(operation_id);
-    furi_crash("TODO");
+    return JsAppInstallerErrorNone;
 }
 
 JsAppInstallerError js_app_installer_cancel_all(JsAppInstaller* instance) {
     furi_check(instance);
-    furi_crash("TODO");
+    return JsAppInstallerErrorNone;
 }
 
 static JsAppInstaller* js_app_installer_alloc(void) {
