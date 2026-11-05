@@ -16,6 +16,7 @@
 #define TAG "HttpApiApps"
 
 #define MAX_UPLOAD_FILE_SIZE (100 * 1024 * 1024)
+#define MAX_APP_QUEUE_ITEMS (100)
 
 #define APP_UPLOAD_IDLE_TIMEOUT_MS 5000
 
@@ -985,7 +986,7 @@ static bool api_apps_queue_add_request_parse(ApiAppsQueueAddRequest* request, co
         }
 
         const uint32_t count = cJSON_GetArraySize(operations);
-        if(count == 0) {
+        if((count == 0) || (count > MAX_APP_QUEUE_ITEMS)) {
             break;
         }
 
