@@ -1144,10 +1144,17 @@ static bool api_apps_queue_cancel_request_parse(
         const cJSON* all_json = cJSON_GetObjectItem(request_json, CANCEL_ALL_KEY);
 
         if(cJSON_IsNumber(item_id_json) && all_json == NULL) {
+            const double item_id_d = cJSON_GetNumberValue(item_id_json);
+            if((item_id_d < 0.0) || (item_id_d > UINT32_MAX)) {
+                break;
+            }
+
             request->is_clear_all = false;
             request->item_id = cJSON_GetNumberValue(item_id_json);
+
         } else if(cJSON_IsTrue(all_json) && item_id_json == NULL) {
             request->is_clear_all = true;
+
         } else {
             break;
         }
