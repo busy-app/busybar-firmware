@@ -48,7 +48,6 @@ libenv.AppendUnique(
     ],
     CPPPATH=[],
     CPPFLAGS=[
-        "-Os",
         "-Wno-deprecated-declarations",
         "-Wno-double-promotion",
         "-Wno-extra",
@@ -62,6 +61,7 @@ libenv.AppendUnique(
         "-Wno-undef",
         "-Wno-attributes",
     ],
+    OPTIMIZATION=["-Os"],
 )
 
 sources = [
