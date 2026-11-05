@@ -13,7 +13,17 @@ from clients.api import AccountBackend
 from utils.wait import wait_for
 
 
-pytestmark = [pytest.mark.cli, pytest.mark.mtls]
+pytestmark = [
+    pytest.mark.cli,
+    pytest.mark.mtls,
+    pytest.mark.bsb_metadata(
+        suite="Integration",
+        level="Integration",
+        intent="Security",
+        interfaces=("CLI",),
+        transports=("Telnet",),
+    ),
+]
 
 CLOUD_WEATHER_URL = (
     "https://api.dev.busy.app/weather/v1/forecast?latitude=1&longitude=1"
@@ -47,8 +57,9 @@ def _assert_tls_rejected(cli, response: str, server) -> None:
         )
 
 
-@allure.epic("BSB CLI Testing")
-@allure.feature("Fetch mTLS")
+@allure.story("Core behavior")
+@allure.epic("Device Connectivity")
+@allure.feature("Outbound HTTP/TLS")
 class TestFetchTLSArguments:
     @allure.title("CLI. Fetch usage documents all mTLS options exactly once.")
     def test_help_documents_mtls_options(self, persistent_cli_connection):
@@ -132,8 +143,9 @@ class TestFetchTLSArguments:
             assert "Error: Private key file does not exist" in response, response
 
 
-@allure.epic("BSB CLI Testing")
-@allure.feature("Fetch mTLS")
+@allure.story("Core behavior")
+@allure.epic("Device Connectivity")
+@allure.feature("Outbound HTTP/TLS")
 @pytest.mark.uses_si917
 class TestFetchCustomMTLS:
     @allure.title("CLI. Fetch authenticates with a custom client certificate.")
@@ -413,8 +425,9 @@ class TestFetchCustomMTLS:
         _assert_tls_rejected(persistent_cli_connection, response, server)
 
 
-@allure.epic("BSB CLI Testing")
-@allure.feature("Fetch mTLS")
+@allure.story("Core behavior")
+@allure.epic("Device Connectivity")
+@allure.feature("Outbound HTTP/TLS")
 @pytest.mark.uses_si917
 class TestFetchDeviceMTLS:
     @allure.title("CLI. Provisioned device mTLS is accepted by the development API.")

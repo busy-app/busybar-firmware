@@ -56,7 +56,7 @@ void path_extract_extension(FuriString* path, char* ext, size_t ext_len_max) {
 
 static inline void path_cleanup(FuriString* path) {
     furi_string_trim(path);
-    while(furi_string_end_with(path, "/")) {
+    while(furi_string_size(path) > 1 && furi_string_end_with(path, "/")) {
         furi_string_left(path, furi_string_size(path) - 1);
     }
 }
@@ -94,7 +94,15 @@ void path_append(FuriString* path, const char* suffix) {
     suffix_str = furi_string_alloc_set(suffix);
     furi_string_trim(suffix_str);
     furi_string_trim(suffix_str, "/");
-    furi_string_cat_printf(path, "/%s", furi_string_get_cstr(suffix_str));
+    if(furi_string_cmp(path, "/") == 0) {
+        // append to root
+        furi_string_cat(path, suffix_str);
+    } else if(furi_string_empty(path)) {
+        // append to empty - relative path
+        furi_string_set(path, suffix_str);
+    } else {
+        furi_string_cat_printf(path, "/%s", furi_string_get_cstr(suffix_str));
+    }
     furi_string_free(suffix_str);
 }
 
@@ -205,4 +213,48 @@ void path_normalize(const char* path, FuriString* out_path, bool allow_escape_ro
 
     free(own_path);
     free(fragments);
+}
+
+bool path_replace_prefix(
+    const char* path,
+    const char* old_prefix,
+    const char* new_prefix,
+    FuriString* out_path) {
+    size_t old_prefix_len = strlen(old_prefix);
+    while(old_prefix_len > 1 && old_prefix[old_prefix_len - 1] == '/') {
+        old_prefix_len -= 1;
+    }
+    if(strncmp(path, old_prefix, old_prefix_len) != 0) {
+        return false;
+    }
+
+    size_t new_prefix_len = strlen(new_prefix);
+    while(new_prefix_len > 1 && new_prefix[new_prefix_len - 1] == '/') {
+        new_prefix_len -= 1;
+    }
+
+    if(old_prefix_len == 1 && old_prefix[0] == '/') {
+        // replace root
+        furi_string_printf(out_path, "%.*s%s", new_prefix_len, new_prefix, path);
+        path_cleanup(out_path);
+        return true;
+    } else if(old_prefix_len == 0) {
+        // prepend to a relative path
+        if(path[0] == '/') {
+            return false;
+        } else {
+            furi_string_printf(out_path, "%.*s/%s", new_prefix_len, new_prefix, path);
+            path_cleanup(out_path);
+            return true;
+        }
+    } else if(path[old_prefix_len] == '\0') {
+        furi_string_printf(out_path, "%.*s", new_prefix_len, new_prefix);
+        return true;
+    } else if(path[old_prefix_len] == '/') {
+        furi_string_printf(out_path, "%.*s%s", new_prefix_len, new_prefix, path + old_prefix_len);
+        path_cleanup(out_path);
+        return true;
+    } else {
+        return false;
+    }
 }

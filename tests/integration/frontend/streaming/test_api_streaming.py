@@ -5,12 +5,23 @@ from clients.api import StreamingAPI
 from utils.simple_websocket import websocket_upgrade, websocket_url
 
 
-@allure.feature("5. Web Frontend")
+pytestmark = [
+    pytest.mark.bsb_metadata(
+        suite="Integration",
+        level="Integration",
+        intent="Product",
+        interfaces=("Device API",),
+        transports=("LAN REST",),
+    ),
+]
+
+
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Display/assets/screen")
 @allure.story("Streaming")
 class TestStreamingAPI:
     """Test cases for Streaming API endpoints"""
 
-    @allure.id("2667")
     @allure.title("GET /api/screen (front display)")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -26,7 +37,6 @@ class TestStreamingAPI:
 
         allure.attach(response.content, "Front Display Frame", allure.attachment_type.BMP)
 
-    @allure.id("2668")
     @allure.title("GET /api/screen (back display)")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -42,7 +52,6 @@ class TestStreamingAPI:
 
         allure.attach(response.content, "Back Display Frame", allure.attachment_type.BMP)
 
-    @allure.id("2669")
     @allure.title("GET /api/screen (invalid display)")
     @pytest.mark.api
     @pytest.mark.frontend

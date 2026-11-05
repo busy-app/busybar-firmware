@@ -20,6 +20,23 @@ def _requested_transports() -> list[str]:
     return [item.strip() for item in raw.split(",") if item.strip()]
 
 
+_TRANSPORT_METADATA = {
+    "ws": pytest.mark.bsb_metadata(
+        interfaces=("Device API", "WebSocket"),
+        transports=("LAN REST", "WebSocket"),
+    ),
+    "mqtt": pytest.mark.bsb_metadata(
+        interfaces=("Device API", "MQTT"),
+        transports=("LAN REST", "MQTT"),
+    ),
+    "ble": pytest.mark.bsb_metadata(
+        interfaces=("Device API", "BLE"),
+        transports=("LAN REST", "BLE"),
+        hardware=("BusyBar", "BLE adapter"),
+    ),
+}
+
+
 @pytest.fixture
 def busy_state_guard(api_session, web_base_url):
     original = get_snapshot(api_session, web_base_url)
@@ -35,7 +52,12 @@ def busy_state_guard(api_session, web_base_url):
         pass
 
 
-@pytest.fixture(params=_requested_transports())
+@pytest.fixture(
+    params=[
+        pytest.param(name, marks=_TRANSPORT_METADATA.get(name, ()))
+        for name in _requested_transports()
+    ]
+)
 def state_transport(request, web_base_url):
     name = request.param
     if name == "ws":

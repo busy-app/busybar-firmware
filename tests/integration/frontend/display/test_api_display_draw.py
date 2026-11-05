@@ -49,6 +49,17 @@ from .display_helpers import (
     wait_for_front_frame,
 )
 
+
+pytestmark = [
+    pytest.mark.bsb_metadata(
+        suite="Contract",
+        level="Component",
+        intent="Product",
+        interfaces=("Device API",),
+        transports=("LAN REST",),
+    ),
+]
+
 _MISSING_IMAGE = "nonexistent/does_not_exist.image"
 _MISSING_ANIM = "nonexistent/does_not_exist.anim"
 _VALID_TEXT_FONTS = [
@@ -112,7 +123,8 @@ def _draw_raw(api: AssetsAPI, body: dict) -> requests.Response:
 # ───────────────────────────────────────────────────────────────────────────
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Display/assets/screen")
 @allure.story("Draw API – Request Validation")
 class TestDrawRequestValidation:
     """
@@ -209,7 +221,8 @@ class TestDrawRequestValidation:
 # ───────────────────────────────────────────────────────────────────────────
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Display/assets/screen")
 @allure.story("Draw API – Common Element Fields")
 class TestCommonElementFields:
     """
@@ -346,7 +359,8 @@ class TestCommonElementFields:
 # ───────────────────────────────────────────────────────────────────────────
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Display/assets/screen")
 @allure.story("Draw API – Text Element")
 class TestTextElement:
     """
@@ -471,7 +485,8 @@ class TestTextElement:
 # ───────────────────────────────────────────────────────────────────────────
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Display/assets/screen")
 @allure.story("Draw API – Countdown Element")
 class TestCountdownElement:
     """
@@ -571,7 +586,8 @@ class TestCountdownElement:
 # ───────────────────────────────────────────────────────────────────────────
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Display/assets/screen")
 @allure.story("Draw API – Image Element")
 class TestImageElement:
     """
@@ -645,7 +661,8 @@ class TestImageElement:
 # ───────────────────────────────────────────────────────────────────────────
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Display/assets/screen")
 @allure.story("Draw API – Anim Element")
 class TestAnimElement:
     """
@@ -733,7 +750,8 @@ class TestAnimElement:
 # ───────────────────────────────────────────────────────────────────────────
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Display/assets/screen")
 @allure.story("Draw API – Multiple Elements")
 class TestDrawMultipleElements:
     """
@@ -786,7 +804,8 @@ class TestDrawMultipleElements:
 # ───────────────────────────────────────────────────────────────────────────
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Display/assets/screen")
 @allure.story("Draw API – DELETE")
 class TestDeleteDisplay:
     """
@@ -850,7 +869,8 @@ class TestDeleteDisplay:
 # ───────────────────────────────────────────────────────────────────────────
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Display/assets/screen")
 @allure.story("Brightness API – GET")
 class TestBrightnessGet:
     """
@@ -886,7 +906,8 @@ class TestBrightnessGet:
 # ───────────────────────────────────────────────────────────────────────────
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Display/assets/screen")
 @allure.story("Brightness API – POST")
 class TestBrightnessSet:
     """
