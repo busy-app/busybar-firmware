@@ -7,16 +7,16 @@
 typedef struct {
     StatusView* front_status;
     StatusView* back_status;
-} JsAppLauncherSceneError;
+} JsAppLauncherSceneStatus;
 
-static void js_app_launcher_scene_error_on_enter(void* context) {
+static void js_app_launcher_scene_status_on_enter(void* context) {
     furi_assert(context);
     JsAppLauncher* instance = context;
 
-    JsAppLauncherSceneError* data =
-        scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdError);
+    JsAppLauncherSceneStatus* data =
+        scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdStatus);
 
-    const JsAppLauncherErrorDesc* desc = js_app_launcher_get_error_desc(instance);
+    const JsAppLauncherShowStatusDesc* desc = js_app_launcher_get_show_status_desc(instance);
 
     with_gui(instance->gui, {
         widget_set_visible(nav_bar_get_base(instance->nav_bar), false);
@@ -32,12 +32,12 @@ static void js_app_launcher_scene_error_on_enter(void* context) {
     });
 }
 
-static void js_app_launcher_scene_error_on_exit(void* context) {
+static void js_app_launcher_scene_status_on_exit(void* context) {
     furi_assert(context);
     JsAppLauncher* instance = context;
 
-    JsAppLauncherSceneError* data =
-        scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdError);
+    JsAppLauncherSceneStatus* data =
+        scene_manager_get_scene_data(instance->scene_manager, JsAppLauncherSceneIdStatus);
 
     with_gui(instance->gui, {
         status_view_free(data->front_status);
@@ -47,7 +47,7 @@ static void js_app_launcher_scene_error_on_exit(void* context) {
     });
 }
 
-static bool js_app_launcher_scene_error_on_event(const SceneManagerEvent* event, void* context) {
+static bool js_app_launcher_scene_status_on_event(const SceneManagerEvent* event, void* context) {
     furi_assert(event);
     furi_assert(context);
 
@@ -62,9 +62,9 @@ static bool js_app_launcher_scene_error_on_event(const SceneManagerEvent* event,
     return consumed;
 }
 
-const Scene js_app_launcher_scene_error = {
-    .data_size = sizeof(JsAppLauncherSceneError),
-    .enter_callback = js_app_launcher_scene_error_on_enter,
-    .exit_callback = js_app_launcher_scene_error_on_exit,
-    .event_callback = js_app_launcher_scene_error_on_event,
+const Scene js_app_launcher_scene_status = {
+    .data_size = sizeof(JsAppLauncherSceneStatus),
+    .enter_callback = js_app_launcher_scene_status_on_enter,
+    .exit_callback = js_app_launcher_scene_status_on_exit,
+    .event_callback = js_app_launcher_scene_status_on_event,
 };

@@ -1,12 +1,13 @@
 #include "js_app_launcher_i.h"
 
-static const JsAppLauncherErrorDesc js_app_launcher_error_descs[JsAppLauncherErrorMax] = {
-    [JsAppLauncherErrorNone] =
+static const JsAppLauncherShowStatusDesc
+    js_app_launcher_show_status_descs[JsAppLauncherShowStatusMax] = {
+    [JsAppLauncherShowStatusNone] =
         {
             {0}, /* Empty, no error message to display */
             {0}, /* Empty, no error message to display */
         },
-    [JsAppLauncherErrorLoadFailed] =
+    [JsAppLauncherShowStatusLoadFailed] =
         {
             .primary =
                 {
@@ -18,7 +19,7 @@ static const JsAppLauncherErrorDesc js_app_launcher_error_descs[JsAppLauncherErr
                     .back = "Try to restart or reinstall it",
                 },
         },
-    [JsAppLauncherErrorApiVersionMismatch] =
+    [JsAppLauncherShowStatusApiVersionMismatch] =
         {
             .primary =
                 {
@@ -30,7 +31,7 @@ static const JsAppLauncherErrorDesc js_app_launcher_error_descs[JsAppLauncherErr
                     .back = "Update the firmware",
                 },
         },
-    [JsAppLauncherErrorSettingsSchemaMissing] =
+    [JsAppLauncherShowStatusSettingsSchemaMissing] =
         {
             .primary =
                 {
@@ -42,7 +43,7 @@ static const JsAppLauncherErrorDesc js_app_launcher_error_descs[JsAppLauncherErr
                     .back = "Add settings file to the app",
                 },
         },
-    [JsAppLauncherErrorSettingsSchemaInvalid] =
+    [JsAppLauncherShowStatusSettingsSchemaInvalid] =
         {
             .primary =
                 {
@@ -54,7 +55,7 @@ static const JsAppLauncherErrorDesc js_app_launcher_error_descs[JsAppLauncherErr
                     .back = "Fix the app settings file",
                 },
         },
-    [JsAppLauncherErrorSettingsStorageFailure] =
+    [JsAppLauncherShowStatusSettingsStorageFailure] =
         {
             .primary =
                 {
@@ -66,7 +67,7 @@ static const JsAppLauncherErrorDesc js_app_launcher_error_descs[JsAppLauncherErr
                     .back = "Check the storage device",
                 },
         },
-    [JsAppLauncherErrorSettingsLoadFailed] =
+    [JsAppLauncherShowStatusSettingsLoadFailed] =
         {
             .primary =
                 {
@@ -78,7 +79,7 @@ static const JsAppLauncherErrorDesc js_app_launcher_error_descs[JsAppLauncherErr
                     .back = "Check the app settings file",
                 },
         },
-    [JsAppLauncherErrorSyntaxError] =
+    [JsAppLauncherShowStatusSyntaxError] =
         {
             .primary =
                 {
@@ -90,7 +91,7 @@ static const JsAppLauncherErrorDesc js_app_launcher_error_descs[JsAppLauncherErr
                     .back = "Check the app script file",
                 },
         },
-    [JsAppLauncherErrorProgramCrashed] =
+    [JsAppLauncherShowStatusProgramCrashed] =
         {
             .primary =
                 {
@@ -104,25 +105,27 @@ static const JsAppLauncherErrorDesc js_app_launcher_error_descs[JsAppLauncherErr
         },
 };
 
-const JsAppLauncherErrorDesc* js_app_launcher_get_error_desc(const JsAppLauncher* instance) {
-    furi_assert(instance->error < JsAppLauncherErrorMax);
-    furi_assert(instance->error != JsAppLauncherErrorNone);
-    return &js_app_launcher_error_descs[instance->error];
+const JsAppLauncherShowStatusDesc*
+    js_app_launcher_get_show_status_desc(const JsAppLauncher* instance) {
+    furi_assert(instance->show_status < JsAppLauncherShowStatusMax);
+    furi_assert(instance->show_status != JsAppLauncherShowStatusNone);
+    return &js_app_launcher_show_status_descs[instance->show_status];
 }
 
-JsAppLauncherError js_app_launcher_translate_from_js_runner_error(JsRunnerError js_runner_error) {
+JsAppLauncherShowStatus
+    js_app_launcher_translate_from_js_runner_error(JsRunnerError js_runner_error) {
     furi_assert(js_runner_error < JsRunnerErrorMax);
-    JsAppLauncherError translated_error;
+    JsAppLauncherShowStatus translated_status;
 
     if(js_runner_error == JsRunnerErrorNone) {
-        translated_error = JsAppLauncherErrorNone;
+        translated_status = JsAppLauncherShowStatusNone;
     } else if(js_runner_error == JsRunnerErrorParseException) {
-        translated_error = JsAppLauncherErrorSyntaxError;
+        translated_status = JsAppLauncherShowStatusSyntaxError;
     } else if(js_runner_error == JsRunnerErrorOutOfMemory) {
-        translated_error = JsAppLauncherErrorProgramCrashed;
+        translated_status = JsAppLauncherShowStatusProgramCrashed;
     } else {
-        translated_error = JsAppLauncherErrorLoadFailed;
+        translated_status = JsAppLauncherShowStatusLoadFailed;
     }
 
-    return translated_error;
+    return translated_status;
 }

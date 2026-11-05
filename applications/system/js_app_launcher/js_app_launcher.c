@@ -185,13 +185,13 @@ static JsAppLauncherStartMode
     return start_mode;
 }
 
-static JsAppLauncherError
+static JsAppLauncherShowStatus
     js_app_launcher_translate_from_settings_storage_status(JsAppSettingsStorageStatus status) {
-    static const JsAppLauncherError status_map[] = {
-        [JsAppSettingsStorageStatusOk] = JsAppLauncherErrorNone,
-        [JsAppSettingsStorageStatusSchemaMissing] = JsAppLauncherErrorSettingsSchemaMissing,
-        [JsAppSettingsStorageStatusSchemaInvalid] = JsAppLauncherErrorSettingsSchemaInvalid,
-        [JsAppSettingsStorageStatusStorageFailure] = JsAppLauncherErrorSettingsStorageFailure,
+    static const JsAppLauncherShowStatus status_map[] = {
+        [JsAppSettingsStorageStatusOk] = JsAppLauncherShowStatusNone,
+        [JsAppSettingsStorageStatusSchemaMissing] = JsAppLauncherShowStatusSettingsSchemaMissing,
+        [JsAppSettingsStorageStatusSchemaInvalid] = JsAppLauncherShowStatusSettingsSchemaInvalid,
+        [JsAppSettingsStorageStatusStorageFailure] = JsAppLauncherShowStatusSettingsStorageFailure,
     };
 
     static_assert(COUNT_OF(status_map) == JsAppSettingsStorageStatusesCount);
@@ -205,7 +205,7 @@ static void js_app_launcher_init_current_app(JsAppLauncher* instance, const char
     JsAppSettingsStorage* settings_storage = NULL;
 
     JsAppLauncherStartMode start_mode;
-    JsAppLauncherError error = JsAppLauncherErrorLoadFailed;
+    JsAppLauncherShowStatus show_status = JsAppLauncherShowStatusLoadFailed;
 
     do {
         char app_id[JS_APP_ID_LEN_MAX + 1];
@@ -226,7 +226,7 @@ static void js_app_launcher_init_current_app(JsAppLauncher* instance, const char
         const JsAppInfo* info = &instance->js_app_info;
 
         if(!web_server_is_api_version_compatible(&info->manifest.api_version)) {
-            error = JsAppLauncherErrorApiVersionMismatch;
+            show_status = JsAppLauncherShowStatusApiVersionMismatch;
             break;
         }
 
@@ -235,15 +235,15 @@ static void js_app_launcher_init_current_app(JsAppLauncher* instance, const char
 
         if((settings_storage == NULL) &&
            (storage_status != JsAppSettingsStorageStatusSchemaMissing)) {
-            error = js_app_launcher_translate_from_settings_storage_status(storage_status);
+            show_status = js_app_launcher_translate_from_settings_storage_status(storage_status);
             break;
         }
 
-        error = JsAppLauncherErrorNone;
+        show_status = JsAppLauncherShowStatusNone;
 
     } while(false);
 
-    if(error != JsAppLauncherErrorNone) {
+    if(show_status != JsAppLauncherShowStatusNone) {
         if(js_app != NULL) {
             js_app_free(js_app);
             js_app = NULL;
@@ -255,7 +255,7 @@ static void js_app_launcher_init_current_app(JsAppLauncher* instance, const char
     instance->js_app = js_app;
     instance->settings_storage = settings_storage;
     instance->start_mode = start_mode;
-    instance->error = error;
+    instance->show_status = show_status;
 }
 
 static void js_app_launcher_set_navbar_text(const JsAppLauncher* instance) {
@@ -296,7 +296,7 @@ static void js_app_launcher_go_to_next_scene(const JsAppLauncher* instance) {
     uint32_t scene_ids[2];
     size_t scene_ids_count;
 
-    if(instance->error == JsAppLauncherErrorNone) {
+    if(instance->show_status == JsAppLauncherShowStatusNone) {
         scene_ids[0] = JsAppLauncherSceneIdStart;
         scene_ids_count = 1;
 
@@ -306,7 +306,7 @@ static void js_app_launcher_go_to_next_scene(const JsAppLauncher* instance) {
         }
 
     } else {
-        scene_ids[0] = JsAppLauncherSceneIdError;
+        scene_ids[0] = JsAppLauncherSceneIdStatus;
         scene_ids_count = 1;
     }
 
