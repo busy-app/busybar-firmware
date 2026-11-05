@@ -764,6 +764,8 @@ static const char* api_apps_queue_get_step_type_string(JsAppInstallerOperationSt
         [JsAppInstallerOperationStepTypeRemoving] = "removing",
     };
 
+    static_assert(COUNT_OF(step_types_table) == JsAppInstallerOperationStepTypeMax);
+
     return step_types_table[step_type];
 }
 
