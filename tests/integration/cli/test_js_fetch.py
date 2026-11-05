@@ -203,6 +203,35 @@ def build_api_access_case(cases, *, forbidden):
     ).strip()
 
 
+def build_promise_rejection_check(
+    expression, error_type="TypeError", expected_message=None
+):
+    """Check that an expression returns a Promise rejected with an error object."""
+    body = dedent(
+        f"""
+            const promise = {expression};
+            assert(promise instanceof Promise, "expected Promise, got=" + promise);
+            let rejection;
+            try {{
+                await promise;
+            }} catch (error) {{
+                rejection = error;
+            }}
+            assert(rejection instanceof {error_type},
+                "expected {error_type} rejection, got=" + rejection);
+            assert(typeof rejection.message === "string" &&
+                rejection.message.length > 0,
+                "missing error message: " + rejection);
+        """
+    ).strip()
+    if expected_message is not None:
+        body += (
+            f"\nassert(rejection.message === {json.dumps(expected_message)},\n"
+            '    "error message=" + rejection.message);'
+        )
+    return body
+
+
 @allure.epic("BusyBar & Local Control")
 @allure.feature("JavaScript applications")
 @allure.story("JavaScript Fetch API")
@@ -683,10 +712,11 @@ class TestJSFetch:
                             const directory = await response.json();
                             return {{response: response, directory: directory}};
                         }} catch (error) {{
-                            const message = String(error);
-                            transientErrors.push(message);
-                            if (message !== "DNS error" &&
-                                message !== "Inactivity timeout") {{
+                            const message = error.message;
+                            transientErrors.push(String(error));
+                            if (!(error instanceof TypeError) ||
+                                (message !== "DNS error" &&
+                                    message !== "Inactivity timeout")) {{
                                 throw error;
                             }}
                             if (attempt < 4) {{
@@ -721,36 +751,51 @@ class TestJSFetch:
     def test_invalid_json_rejects(self, js_case_runner, http_server):
         case_name = "invalid_json"
         url = json.dumps(http_server.url("/invalid-json"))
-        body = dedent(
-            f"""
-                const response = await fetch({url});
-                let rejected = false;
-                try {{
-                    await response.json();
-                }} catch (error) {{
-                    rejected = true;
-                }}
-                assert(rejected, "json() accepted malformed JSON");
-                assert(response.bodyUsed === true, "bodyUsed after json()");
-            """
-        ).strip()
+        body = (
+            f"const response = await fetch({url});\n"
+            + build_promise_rejection_check("response.json()", "SyntaxError")
+            + '\nassert(response.bodyUsed === true, "bodyUsed after json()");'
+        )
 
         js_case_runner(case_name, body)
+
+    @allure.title("JavaScript fetch rejects text() for invalid UTF-8 with TypeError.")
+    def test_invalid_utf8_rejects(self, js_case_runner, http_server):
+        url = json.dumps(http_server.url("/invalid-utf8"))
+        body = (
+            f"const response = await fetch({url});\n"
+            + build_promise_rejection_check(
+                "response.text()", expected_message="Invalid UTF-8"
+            )
+            + '\nassert(response.bodyUsed === true, "bodyUsed after text()");'
+        )
+
+        js_case_runner("invalid_utf8", body)
+
+    @allure.title("Unimplemented JavaScript response body methods reject with Error.")
+    @pytest.mark.parametrize("method", ["blob", "formData"])
+    def test_unimplemented_body_method_rejects(
+        self, js_case_runner, http_server, method
+    ):
+        url = json.dumps(http_server.url("/text"))
+        body = (
+            f"const response = await fetch({url});\n"
+            + build_promise_rejection_check(
+                f"response.{method}()", "Error", "unimplemented"
+            )
+            + '\nassert(rejection.name === "Error", "error name=" + rejection.name);'
+            + '\nassert(response.bodyUsed === true, "bodyUsed after read");'
+        )
+
+        js_case_runner(f"unimplemented_{method}", body)
 
     @allure.title("JavaScript fetch rejects a call without a URL.")
     def test_missing_url_rejects(self, js_case_runner):
         case_name = "missing_url"
-        body = dedent(
-            """
-                let rejected = false;
-                try {
-                    await fetch();
-                } catch (error) {
-                    rejected = true;
-                }
-                assert(rejected, "fetch() without URL was not rejected");
-            """
-        ).strip()
+        body = build_promise_rejection_check(
+            "fetch()",
+            expected_message="At least 1 argument required, but only 0 passed",
+        )
 
         js_case_runner(case_name, body)
 
@@ -758,17 +803,9 @@ class TestJSFetch:
     def test_invalid_init_rejects(self, js_case_runner, http_server):
         case_name = "invalid_init"
         url = json.dumps(http_server.url("/text"))
-        body = dedent(
-            f"""
-                let rejected = false;
-                try {{
-                    await fetch({url}, 42);
-                }} catch (error) {{
-                    rejected = true;
-                }}
-                assert(rejected, "numeric init argument was not rejected");
-            """
-        ).strip()
+        body = build_promise_rejection_check(
+            f"fetch({url}, 42)", expected_message="Invalid parameter"
+        )
 
         js_case_runner(case_name, body)
 
@@ -776,17 +813,7 @@ class TestJSFetch:
     def test_disconnect_before_headers_rejects(self, js_case_runner, http_server):
         case_name = "disconnect_before_headers"
         url = json.dumps(http_server.url("/disconnect"))
-        body = dedent(
-            f"""
-                let rejected = false;
-                try {{
-                    await fetch({url});
-                }} catch (error) {{
-                    rejected = true;
-                }}
-                assert(rejected, "disconnect before headers was not rejected");
-            """
-        ).strip()
+        body = build_promise_rejection_check(f"fetch({url})")
 
         js_case_runner(case_name, body)
 
@@ -982,23 +1009,20 @@ class TestJSFetch:
         js_case_runner(case_name, body)
 
     @allure.title("JavaScript response body can only be consumed once.")
-    def test_body_is_single_use(self, js_case_runner, http_server):
+    @pytest.mark.parametrize(
+        "method", ["text", "json", "arrayBuffer", "bytes", "blob", "formData"]
+    )
+    def test_body_is_single_use(self, js_case_runner, http_server, method):
         case_name = "body_single_use"
         url = json.dumps(http_server.url("/text"))
-        body = dedent(
-            f"""
-                const response = await fetch({url});
-                await response.text();
-                let rejected = false;
-                try {{
-                    await response.text();
-                }} catch (error) {{
-                    rejected = true;
-                }}
-                assert(rejected, "second body read was not rejected");
-                assert(response.bodyUsed === true, "bodyUsed after read");
-            """
-        ).strip()
+        body = (
+            f"const response = await fetch({url});\n"
+            "await response.text();\n"
+            + build_promise_rejection_check(
+                f"response.{method}()", expected_message="Body is already in use"
+            )
+            + '\nassert(response.bodyUsed === true, "bodyUsed after read");'
+        )
 
         js_case_runner(case_name, body)
 
@@ -1006,18 +1030,12 @@ class TestJSFetch:
     def test_truncated_body_rejects(self, js_case_runner, http_server):
         case_name = "truncated_body"
         url = json.dumps(http_server.url("/truncated"))
-        body = dedent(
-            f"""
-                const response = await fetch({url});
-                let rejected = false;
-                try {{
-                    await response.text();
-                }} catch (error) {{
-                    rejected = true;
-                }}
-                assert(rejected, "truncated body was not rejected");
-            """
-        ).strip()
+        body = (
+            f"const response = await fetch({url});\n"
+            + build_promise_rejection_check(
+                "response.text()", expected_message="Incomplete response body"
+            )
+        )
 
         js_case_runner(case_name, body)
 
@@ -1025,20 +1043,66 @@ class TestJSFetch:
     def test_inactivity_after_headers_rejects(self, js_case_runner, http_server):
         case_name = "inactivity_after_headers"
         url = json.dumps(http_server.url("/stall"))
+        body = (
+            f"const response = await fetch({url});\n"
+            + build_promise_rejection_check(
+                "response.text()", expected_message="Inactivity timeout"
+            )
+        )
+
+        js_case_runner(case_name, body, timeout=12)
+
+    @allure.title("JavaScript reader.closed reports stream completion and errors.")
+    @pytest.mark.parametrize(
+        "path, has_error",
+        [("/text", False), ("/truncated", True)],
+        ids=["complete", "truncated"],
+    )
+    def test_reader_closed(self, js_case_runner, http_server, path, has_error):
+        url = json.dumps(http_server.url(path))
         body = dedent(
             f"""
                 const response = await fetch({url});
-                let rejected = false;
-                try {{
-                    await response.text();
-                }} catch (error) {{
-                    rejected = true;
+                const reader = response.body.getReader();
+                function observeClosed() {{
+                    const promise = reader.closed;
+                    assert(promise instanceof Promise,
+                        "expected closed Promise, got=" + promise);
+                    return promise.then(
+                        function(value) {{
+                            return {{rejected: false, value: value}};
+                        }},
+                        function(error) {{
+                            return {{rejected: true, error: error}};
+                        }}
+                    );
                 }}
-                assert(rejected, "inactivity timeout did not reject body read");
+                const pendingClosed = observeClosed();
+                let chunk;
+                do {{
+                    chunk = await reader.read();
+                }} while (!chunk.done);
+
+                const outcomes = [await pendingClosed, await observeClosed()];
+                for (let index = 0; index < outcomes.length; index++) {{
+                    const outcome = outcomes[index];
+                    assert(outcome.rejected === {json.dumps(has_error)},
+                        "closed result=" + JSON.stringify(outcome) +
+                        ", index=" + index);
+                    if (outcome.rejected) {{
+                        assert(outcome.error instanceof TypeError,
+                            "expected TypeError, got=" + outcome.error);
+                        assert(outcome.error.message === "Stream error",
+                            "closed error=" + outcome.error);
+                    }} else {{
+                        assert(outcome.value === undefined,
+                            "closed value=" + outcome.value);
+                    }}
+                }}
             """
         ).strip()
 
-        js_case_runner(case_name, body, timeout=12)
+        js_case_runner("reader_closed", body)
 
     @allure.title("JavaScript fetch accepts the documented ten request headers.")
     def test_ten_request_headers(self, js_case_runner, http_server):
