@@ -101,8 +101,7 @@ jobs:
 
       - name: 'Check Python code formatting for f21 and f64'
         id: syntax_check_py
-        # if: always()
-        if: false
+        if: always()
         run: |
           set +e;
           export FBT_NO_SYNC=1;
