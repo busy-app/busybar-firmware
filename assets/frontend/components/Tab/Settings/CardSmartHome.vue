@@ -5,10 +5,11 @@
     title="Smart home"
   >
     <template #raw-body>
-      <div class="flex flex-col gap-1 rounded-group">
+      <div class="flex flex-col gap-1 rounded-group [&>*:first-child]:rounded-b-sm! [&>*:last-child]:rounded-t-sm!">
         <div
           data-id="settings-section-matter"
           class="bg-accented/25 dark:bg-elevated/75 p-4 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-2"
+          :class="{ 'min-h-20': accessTokensStore.tokens.length > 0 }"
         >
           <div class="grow min-w-0 flex flex-col gap-1">
             <div class="flex items-center gap-2">
