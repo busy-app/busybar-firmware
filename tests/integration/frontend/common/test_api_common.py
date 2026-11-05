@@ -7,16 +7,27 @@ import pytest
 from clients.api import BaseAPI, InputAPI, SettingsAPI, StorageAPI, StreamingAPI
 
 
+pytestmark = [
+    pytest.mark.bsb_metadata(
+        suite="Contract",
+        level="Component",
+        intent="Product",
+        interfaces=("Device API",),
+        transports=("LAN REST",),
+    ),
+]
+
+
 def _allow_set(response) -> set[str]:
     return {item.strip() for item in response.headers.get("Allow", "").split(",") if item.strip()}
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Device HTTP API")
 @allure.story("Common")
 class TestAPIErrorHandling:
     """Test cases for API error handling and edge cases"""
 
-    @allure.id("2671")
     @allure.title("GET /api/* (404 errors)")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -36,7 +47,6 @@ class TestAPIErrorHandling:
                 response = api.get_raw(endpoint)
                 assert response.status_code == 404
 
-    @allure.id("2673")
     @allure.title("API endpoints (missing required parameters)")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -57,7 +67,6 @@ class TestAPIErrorHandling:
             response = streaming_api.get_raw("/api/screen")
             assert response.status_code == 400
 
-    @allure.id("2674")
     @allure.title("API endpoints (invalid parameter values)")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -78,7 +87,6 @@ class TestAPIErrorHandling:
                 response = test_func()
                 assert response.status_code == 400
 
-    @allure.id("2708")
     @allure.title("GET /api/version (concurrent requests)")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -115,12 +123,12 @@ class TestAPIErrorHandling:
             )
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Device HTTP API")
 @allure.story("Common")
 class TestAPIAuthentication:
     """Test cases for API authentication (when implemented)"""
 
-    @allure.id("2709")
     @allure.title("GET /api/status (no auth token)")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -138,7 +146,6 @@ class TestAPIAuthentication:
 
         assert response.status_code == 401
 
-    @allure.id("2710")
     @allure.title("GET /api/status (invalid auth token)")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -155,7 +162,6 @@ class TestAPIAuthentication:
 
         assert response.status_code == 403
 
-    @allure.id("2711")
     @allure.title("GET /api/status (valid auth token)")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -168,7 +174,8 @@ class TestAPIAuthentication:
             assert response.status_code == 200
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Device HTTP API")
 @allure.story("Common")
 @pytest.mark.api
 @pytest.mark.frontend

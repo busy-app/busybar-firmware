@@ -4,8 +4,6 @@
 
 #include <gui/modules/var_item_list.h>
 
-#define MANUAL_BRIGHTNESS_DEFAULT_VALUE 50
-
 typedef enum {
     SceneEventModeChanged = AppEventSceneEventsStart,
     SceneEventBrightnessChanged,
@@ -138,10 +136,8 @@ static void scene_main_on_enter(void* context) {
     SettingsSceneBrightness* data =
         scene_manager_get_scene_data(instance->scene_manager, SceneIdMain);
 
-    BrightnessMode mode = brightness_model_get_mode(instance->model);
-    data->mode = mode;
-    data->brightness = (mode == BrightnessModeAuto) ? MANUAL_BRIGHTNESS_DEFAULT_VALUE :
-                                                      brightness_model_get(instance->model);
+    data->mode = brightness_model_get_mode(instance->model);
+    data->brightness = brightness_model_get(instance->model);
 
     with_gui(instance->gui, {
         data->front_container.list = var_item_list_alloc(instance->front_scene_window);

@@ -2,6 +2,7 @@
 
 #include <http/http_response.h>
 #include <http/http_headers.h>
+#include <http/http_method.h>
 
 #define CHECK_HEADER_BY_INDEX(index, k, v)                                      \
     do {                                                                        \
@@ -18,10 +19,17 @@
         mu_assert_string_eq(v, furi_string_get_cstr(__header->value)); \
     } while(false)
 
+#define HTTP_METHOD_BUF_SIZE (16U)
+
 typedef struct {
     const char* key;
     const char* value;
 } HttpHeaderTest;
+
+typedef struct {
+    const char* input;
+    const char* expected;
+} HttpMethodNormalizeTest;
 
 static const HttpHeaderTest misc_test_http_headers[] = {
     [0] = {"Server", "nginx/1.18.0"},
@@ -31,6 +39,42 @@ static const HttpHeaderTest misc_test_http_headers[] = {
     [4] = {"Last-Modified", "Tue, 09 Apr 2024 06:23:39 GMT"},
     [5] = {"Connection", "close"},
     [6] = {"Accept-Ranges", "bytes"},
+};
+
+static const char* const http_test_valid_methods[] = {
+    "GET",
+    "post",
+    "Put",
+    "PATCH",
+    "M",
+    "Method2",
+    "0",
+};
+
+static const char* const http_test_invalid_methods[] = {
+    "",
+    " GET",
+    "GET ",
+    "GE T",
+    "GET\r\n",
+    "\tPOST",
+    "G\xC3\x89T",
+    "\x80",
+};
+
+static const HttpMethodNormalizeTest http_test_normalize_methods[] = {
+    {"GET", "GET"},
+    {"get", "GET"},
+    {"pOsT", "POST"},
+    {"put", "PUT"},
+    {"Delete", "DELETE"},
+    {"head", "HEAD"},
+    {"options", "OPTIONS"},
+    {"patch", "patch"},
+    {"Connect", "Connect"},
+    {"getx", "getx"},
+    {"ge", "ge"},
+    {"", ""},
 };
 
 MU_TEST(http_headers_parse_test) {
@@ -107,10 +151,36 @@ MU_TEST(http_headers_set_test) {
     http_headers_free(headers);
 }
 
+MU_TEST(http_method_valid_test) {
+    for(uint32_t i = 0; i < COUNT_OF(http_test_valid_methods); ++i) {
+        mu_check(http_method_is_valid(http_test_valid_methods[i]));
+    }
+}
+
+MU_TEST(http_method_invalid_test) {
+    for(uint32_t i = 0; i < COUNT_OF(http_test_invalid_methods); ++i) {
+        mu_check(!http_method_is_valid(http_test_invalid_methods[i]));
+    }
+}
+
+MU_TEST(http_method_normalize_test) {
+    char method[HTTP_METHOD_BUF_SIZE];
+
+    for(uint32_t i = 0; i < COUNT_OF(http_test_normalize_methods); ++i) {
+        const HttpMethodNormalizeTest* test = &http_test_normalize_methods[i];
+        strlcpy(method, test->input, sizeof(method));
+        http_method_normalize(method);
+        mu_assert_string_eq(test->expected, method);
+    }
+}
+
 MU_TEST_SUITE(http_test_suite) {
     MU_RUN_TEST(http_headers_parse_test);
     MU_RUN_TEST(http_headers_min_parse_test);
     MU_RUN_TEST(http_headers_set_test);
+    MU_RUN_TEST(http_method_valid_test);
+    MU_RUN_TEST(http_method_invalid_test);
+    MU_RUN_TEST(http_method_normalize_test);
 }
 
 int run_minunit_http_test(void) {

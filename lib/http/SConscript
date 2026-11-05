@@ -9,6 +9,7 @@ env.Append(
     ],
     SDK_HEADERS=[
         File("http_headers.h"),
+        File("http_method.h"),
         File("http_response.h"),
     ],
 )
@@ -18,6 +19,7 @@ libenv.ApplyLibFlags()
 
 sources = [
     "http_headers.c",
+    "http_method.c",
     "http_response.c",
 ]
 

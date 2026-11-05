@@ -12,6 +12,7 @@ from SCons.Action import Action
 from SCons.Builder import Builder
 from SCons.Errors import StopError
 from SCons.Node.FS import Dir
+from SCons.Scanner import Scanner
 
 GITHUB_API_VERSION = "2026-03-10"
 
@@ -62,7 +63,17 @@ def _js_app_get_release_data(url: str, version: str):
     return github_api_send_request(api_url)
 
 
+_release_data_cache = {}
+
+
 def _js_app_get_release_data_by_version_or_latest(url, version):
+    key = (url, version)
+    if key not in _release_data_cache:
+        _release_data_cache[key] = _js_app_fetch_release_data(url, version)
+    return _release_data_cache[key]
+
+
+def _js_app_fetch_release_data(url, version):
     release_data = _js_app_get_release_data(url, version)
     if release_data is not None:
         if release_data.status_code == 404:
@@ -171,15 +182,17 @@ def _js_app_emitter(target, source, env):
     source = [env.Dir("${PROJECT_ROOT}").Dir(source_dir.relpath)]
     source += env.GlobRecursive("*", source_dir)
 
-    json_src_path = source[0].abspath
-    exists, url, version = _js_app_json_read(json_src_path)
-    if exists:
-        release_data = _js_app_get_release_data_by_version_or_latest(url, version)
-        version_node = env.Value(release_data['name'])
-        source.append(version_node)
-
     target = [target_dir.File("appmeta/manifest.json")]
     return (target, source)
+
+
+def _js_app_release_scanner(node, env, path):
+    exists, url, version = _js_app_json_read(node.sources[0].abspath)
+    if not exists:
+        return []
+
+    release_data = _js_app_get_release_data_by_version_or_latest(url, version)
+    return [env.Value(release_data['name'])]
 
 
 def generate(env):
@@ -196,6 +209,11 @@ def generate(env):
                     "${JSAPPCOMSTR}",
                 ),
                 emitter=_js_app_emitter,
+                target_scanner=Scanner(
+                    function=_js_app_release_scanner,
+                    name="JsAppReleaseScanner",
+                    node_class=None,
+                ),
             ),
         }
     )

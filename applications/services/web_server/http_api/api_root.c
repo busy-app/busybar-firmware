@@ -164,6 +164,7 @@ static const HttpApiAccess js_apps_api_allowlist[] = {
     {"status/firmware", HttpApiAccessMatchTypeExact, HttpMethodGet},
     {"status/system", HttpApiAccessMatchTypeExact, HttpMethodGet},
     {"status/power", HttpApiAccessMatchTypeExact, HttpMethodGet},
+    {"storage", HttpApiAccessMatchTypePrefix, HttpMethodGet | HttpMethodPost | HttpMethodDelete},
 };
 
 typedef struct {
@@ -342,7 +343,12 @@ static HttpApiAccessStatus http_api_process_allowlist(
     return status;
 }
 
-bool http_api_is_request_from_js(struct mg_http_message* msg) {
+bool http_api_is_request_from_js(const struct mg_connection* conn) {
+    ConnectionContext* conn_ctx = (ConnectionContext*)conn->data;
+    return conn_ctx->is_js;
+}
+
+static void http_api_detect_js(const struct mg_connection* conn, struct mg_http_message* msg) {
     bool is_js = false;
     const struct mg_str* header = mg_http_get_header(msg, JS_FETCH_EXTRA_HEADER);
 
@@ -350,7 +356,8 @@ bool http_api_is_request_from_js(struct mg_http_message* msg) {
         is_js = (mg_strcasecmp(*header, mg_str(JS_FETCH_EXTRA_VALUE)) == 0);
     }
 
-    return is_js;
+    ConnectionContext* conn_ctx = (ConnectionContext*)conn->data;
+    conn_ctx->is_js = is_js;
 }
 
 static inline bool http_api_path_is_safe(struct mg_http_message* msg) {
@@ -385,8 +392,8 @@ static HttpApiAccessStatusEx http_api_access_status(
             path, method, api_access_allowlist, COUNT_OF(api_access_allowlist));
         if(status_ex.status != HttpApiAccessStatusMax) break;
 
-        bool is_js = http_api_is_request_from_js(msg);
-        if(is_js) {
+        http_api_detect_js(conn, msg);
+        if(http_api_is_request_from_js(conn)) {
             HttpApiAccessStatus status = http_api_process_allowlist(
                 path, method, js_apps_api_allowlist, COUNT_OF(js_apps_api_allowlist));
             if(status == HttpApiAccessStatusMax) {

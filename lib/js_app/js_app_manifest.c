@@ -41,6 +41,14 @@ static void js_app_manifest_reset(JsAppManifest* instance) {
     }
 }
 
+static void js_app_manifest_log_missing_value(const char* key) {
+    FURI_LOG_E(TAG, "Missing or invalid value: %s", key);
+}
+
+static void js_app_manifest_log_invalid_string_value(const char* key, const char* value) {
+    FURI_LOG_E(TAG, "Invalid %s value: %s", key, value);
+}
+
 static bool js_app_manifest_parse_semver(const cJSON* json, const char* key, SemVer* out) {
     bool success = false;
 
@@ -118,6 +126,7 @@ static bool
 
         item = cJSON_GetObjectItem(json, JS_APP_MANIFEST_FORMAT_VERSION_KEY);
         if(!cJSON_IsNumber(item)) {
+            js_app_manifest_log_missing_value(JS_APP_MANIFEST_FORMAT_VERSION_KEY);
             break;
         }
 
@@ -129,26 +138,31 @@ static bool
 
         item = cJSON_GetObjectItem(json, JS_APP_MANIFEST_ID_KEY);
         if(!cJSON_IsString(item)) {
+            js_app_manifest_log_missing_value(JS_APP_MANIFEST_ID_KEY);
             break;
         }
 
         info->id = cJSON_GetStringValue(item);
         if(!js_app_is_valid_id(info->id)) {
+            js_app_manifest_log_invalid_string_value(JS_APP_MANIFEST_ID_KEY, info->id);
             break;
         }
 
         item = cJSON_GetObjectItem(json, JS_APP_MANIFEST_NAME_KEY);
         if(!cJSON_IsString(item)) {
+            js_app_manifest_log_missing_value(JS_APP_MANIFEST_NAME_KEY);
             break;
         }
 
         info->name = cJSON_GetStringValue(item);
 
         if(!js_app_manifest_parse_version(json, info)) {
+            js_app_manifest_log_missing_value(JS_APP_MANIFEST_VERSION_KEY);
             break;
         }
 
         if(!js_app_manifest_parse_api_version(json, info)) {
+            js_app_manifest_log_missing_value(JS_APP_MANIFEST_API_VERSION_KEY);
             break;
         }
 
@@ -167,6 +181,7 @@ static bool
         }
 
         if(!js_app_manifest_parse_heap_size(json, info)) {
+            js_app_manifest_log_missing_value(JS_APP_MANIFEST_HEAP_SIZE_KEY);
             break;
         }
 
@@ -218,41 +233,41 @@ bool js_app_manifest_load_from_file(JsAppManifest* instance, const char* file_pa
         FileInfo file_info;
 
         if(storage_common_stat(storage, file_path, &file_info) != FSE_OK) {
-            FURI_LOG_W(TAG, "File is not present");
+            FURI_LOG_W(TAG, "File %s is not present", file_path);
             break;
         }
 
         if(file_info_is_dir(&file_info)) {
-            FURI_LOG_E(TAG, "File path is a directory");
+            FURI_LOG_E(TAG, "File path %s is a directory", file_path);
             break;
         }
 
         const uint32_t file_size = file_info.size;
 
         if(file_size == 0) {
-            FURI_LOG_E(TAG, "File is empty");
+            FURI_LOG_E(TAG, "File %s is empty", file_path);
             break;
         }
 
         if(file_size > JS_APP_MANIFEST_MAX_FILE_SIZE) {
-            FURI_LOG_E(TAG, "File is too big");
+            FURI_LOG_E(TAG, "File %s is too big", file_path);
             break;
         }
 
         if(!storage_file_open(file, file_path, FSAM_READ, FSOM_OPEN_EXISTING)) {
-            FURI_LOG_E(TAG, "Failed to open file for reading");
+            FURI_LOG_E(TAG, "Failed to open file %s for reading", file_path);
             break;
         }
 
         file_buf = malloc(file_size);
 
         if(storage_file_read(file, file_buf, file_size) != file_size) {
-            FURI_LOG_E(TAG, "Failed to read file");
+            FURI_LOG_E(TAG, "Failed to read file %s", file_path);
             break;
         }
 
         if(!js_app_manifest_parse_data(instance, file_buf, file_size)) {
-            FURI_LOG_E(TAG, "Failed to parse file");
+            FURI_LOG_E(TAG, "Failed to parse file %s", file_path);
             break;
         }
 

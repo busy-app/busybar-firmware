@@ -191,3 +191,5 @@ CanvasResult
     canvas_delete_elements(CanvasSrv* canvas, const char* app_id, const char* const* element_ids);
 
 CanvasResult canvas_get_app_id(CanvasSrv* canvas, FuriString* string);
+
+void canvas_set_clear_on_back(CanvasSrv* canvas, bool is_clear_on_back);
