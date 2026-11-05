@@ -18,6 +18,7 @@ NON_BMP_UNICODE_TEXT_PAYLOAD = NON_BMP_UNICODE_TEXT.encode("utf-8")
 EMPTY_PAYLOAD = b""
 JSON_PAYLOAD = b'{"message":"busybar-js-fetch","value":42}'
 INVALID_JSON_PAYLOAD = b'{"message":"unterminated"'
+INVALID_UTF8_PAYLOAD = b"busybar-\xff\n"
 HEADERS_PAYLOAD = b"headers-ok\n"
 CREATED_PAYLOAD = b'{"created":true}'
 SERVER_ERROR_PAYLOAD = b'{"error":"server-error"}'
@@ -124,6 +125,8 @@ class FetchRequestHandler(http.server.BaseHTTPRequestHandler):
             self._send_payload(500, SERVER_ERROR_PAYLOAD, "application/json")
         elif request_path == "/invalid-json":
             self._send_payload(200, INVALID_JSON_PAYLOAD, "application/json")
+        elif request_path == "/invalid-utf8":
+            self._send_payload(200, INVALID_UTF8_PAYLOAD, "text/plain; charset=utf-8")
         elif request_path == "/headers":
             self._send_payload(
                 200,
