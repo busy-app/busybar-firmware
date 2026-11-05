@@ -16,7 +16,7 @@
 #define TAG "HttpApiApps"
 
 #define MAX_UPLOAD_FILE_SIZE (100 * 1024 * 1024)
-#define MAX_APP_QUEUE_ITEMS (100)
+#define MAX_APP_QUEUE_ITEMS  (100)
 
 #define APP_UPLOAD_IDLE_TIMEOUT_MS 5000
 
@@ -69,6 +69,7 @@ typedef struct {
     const char* app_id;
     JsAppInstallerOperationResult result;
     ApiAppsQueueOperationInfo info;
+    bool is_processed;
 } ApiAppsQueueOperation;
 
 typedef struct {
@@ -1020,14 +1021,13 @@ static char* api_apps_queue_add_response_format(const ApiAppsQueueAddRequest* re
 
     cJSON* result_json = cJSON_AddArrayToObject(response_body_json, RESULT_KEY);
 
-    bool has_errors = false;
     for(size_t i = 0; i < request->operations_count; ++i) {
         const ApiAppsQueueOperation* operation = &request->operations[i];
         cJSON* item_json = cJSON_CreateObject();
 
         cJSON_AddStringToObject(item_json, APP_ID_KEY, operation->app_id);
 
-        if(!has_errors) {
+        if(operation->is_processed) {
             const JsAppInstallerOperationResult* result = &operation->result;
             const JsAppInstallerError error = result->error;
 
@@ -1035,7 +1035,6 @@ static char* api_apps_queue_add_response_format(const ApiAppsQueueAddRequest* re
                 cJSON_AddNumberToObject(item_json, ITEM_ID_KEY, result->operation_id);
             } else {
                 cJSON_AddStringToObject(item_json, ERROR_KEY, installer_error_codes[error]);
-                has_errors = true;
             }
 
         } else {
@@ -1091,6 +1090,8 @@ static void api_apps_queue_post(struct mg_connection* conn, struct mg_http_messa
             if(operation->result.error != JsAppInstallerErrorNone) {
                 break;
             }
+
+            operation->is_processed = true;
         }
 
         furi_record_close(RECORD_JS_APP_INSTALLER);
