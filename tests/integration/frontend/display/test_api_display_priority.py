@@ -57,6 +57,17 @@ from utils.busy_timer import (
     wait_for_snapshot_type,
 )
 
+
+pytestmark = [
+    pytest.mark.bsb_metadata(
+        suite="Contract",
+        level="Component",
+        intent="Product",
+        interfaces=("Device API",),
+        transports=("LAN REST",),
+    ),
+]
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -283,7 +294,8 @@ def _eviction_probe_element(text: str) -> dict:
 # ---------------------------------------------------------------------------
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("Focus Sessions")
+@allure.feature("Priority rules")
 @allure.story("Display Priority – Validation")
 class TestDrawPriorityValidation:
     """
@@ -368,7 +380,8 @@ class TestDrawPriorityValidation:
         assets_api.assert_status(resp, 400)
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("Focus Sessions")
+@allure.feature("Priority rules")
 @allure.story("Display Priority – Default App State")
 class TestDrawInDefaultState:
     """
@@ -414,7 +427,8 @@ class TestDrawInDefaultState:
         assets_api.assert_status(resp, 200)
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("Focus Sessions")
+@allure.feature("Priority rules")
 @allure.story("Display Priority – Busy Timer Transitions")
 class TestDrawBusyTimerTransitions:
     """
@@ -539,7 +553,8 @@ class TestDrawBusyTimerTransitions:
             assets_api.assert_status(resp, 409)
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("Focus Sessions")
+@allure.feature("Priority rules")
 @allure.story("Display Priority – Draw Lifecycle")
 class TestDrawDisplayLifecycle:
     """
@@ -681,7 +696,8 @@ class TestDrawDisplayLifecycle:
         assets_api.clear_display()
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("Focus Sessions")
+@allure.feature("Priority rules")
 @allure.story("Display Priority – Reactive Eviction")
 class TestCanvasEvictionOnPriorityChange:
     """

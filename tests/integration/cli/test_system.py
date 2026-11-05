@@ -10,12 +10,21 @@ import pytest
 
 from utils.cli_helpers import run_streaming
 
-pytestmark = pytest.mark.cli
+pytestmark = [
+    pytest.mark.cli,
+    pytest.mark.bsb_metadata(
+        suite="Component",
+        level="Component",
+        intent="Product",
+        interfaces=("CLI",),
+        transports=("Telnet",),
+    ),
+]
 
 
-@allure.epic("BSB CLI Testing")
-@allure.feature("6. CLI")
-@allure.story("Commands Check")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Firmware CLI")
+@allure.story("System commands")
 class TestCLISystemCommands:
     """Process/system commands: top, log, loader, update."""
 

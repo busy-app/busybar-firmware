@@ -2,10 +2,22 @@ import allure
 import pytest
 
 
+pytestmark = [
+    pytest.mark.bsb_metadata(
+        suite="Integration",
+        level="Integration",
+        intent="Integration",
+        interfaces=("Device API",),
+        transports=("LAN REST",),
+    ),
+]
+
+
 EVENT_NAMES = ["input", "timer", "brightness", "timezone", "autoupdate"]
 
 
-@allure.feature("State Publisher")
+@allure.epic("Realtime & Sync")
+@allure.feature("State publisher")
 @allure.story("Published events")
 @pytest.mark.api
 @pytest.mark.state_publisher
