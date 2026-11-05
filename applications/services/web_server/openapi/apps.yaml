@@ -399,6 +399,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "Internal Error"
         "503":
           description: >
             Operation is taking too long.
@@ -406,6 +408,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "Operation Timeout"
     post:
       tags:
         - Apps
@@ -482,11 +486,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-              examples:
-                badRequest:
-                  summary: Invalid request
-                  value:
-                    error: "Bad Request"
+              example:
+                error: "Bad Request"
 
   /api/apps/queue/cancel:
     post:
@@ -529,6 +530,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "Not Found"
         "500":
           description: >
             Unknown internal error has occurred.
@@ -536,6 +539,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "Internal Error"
         "503":
           description: >
             Operation is taking too long.
@@ -543,6 +548,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+              example:
+                error: "Operation Timeout"
 schemas:
   AppId:
     type: string
