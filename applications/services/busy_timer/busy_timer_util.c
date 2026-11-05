@@ -5,6 +5,7 @@
 
 #define BUSY_APP_WAIT_TIME_TICKS (500)
 
+#ifdef APP_BUSY
 static bool busy_timer_app_show_timer(BusyApp* busy_app, const BusyAppConfig* app_config) {
     bool success = false;
 
@@ -28,8 +29,10 @@ static void busy_timer_app_launch(Desktop* desktop) {
         furi_delay_tick(2);
     }
 }
+#endif // APP_BUSY
 
 void busy_timer_start_app(const BusyAppConfig* app_config) {
+#ifdef APP_BUSY
     // NOTE: Waiting for Desktop before attempting to look for the app record
     Desktop* desktop = furi_record_open(RECORD_DESKTOP);
 
@@ -50,13 +53,18 @@ void busy_timer_start_app(const BusyAppConfig* app_config) {
     } while(!success);
 
     furi_record_close(RECORD_DESKTOP);
+#else
+    UNUSED(app_config);
+#endif
 }
 
 void busy_timer_exit_app(void) {
+#ifdef APP_BUSY
     BusyApp* busy_app = furi_record_open_ex(RECORD_BUSY_APP, 0);
 
     if(busy_app != NULL) {
         busy_request_exit(busy_app);
         furi_record_close(RECORD_BUSY_APP);
     }
+#endif
 }

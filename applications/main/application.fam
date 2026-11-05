@@ -5,7 +5,6 @@ App(
     provides=[
         "apps_menu",
         "canvas",
-        "busy",
         "soft_off",
         "power_on",
         "settings_menu",

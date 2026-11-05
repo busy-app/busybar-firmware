@@ -11,6 +11,7 @@ _fw_default_apps_config = {
         "settings",
         "system_apps",
         "debug_apps",
+        "busy",
     ],
     "unit_tests": [
         "basic_services",
