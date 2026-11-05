@@ -44,7 +44,15 @@ typedef enum {
     JsAppLauncherShowStatusMax,
 } JsAppLauncherShowStatus;
 
+typedef enum {
+    JsAppLauncherShowStatusTypeGeneralError,
+    JsAppLauncherShowStatusTypeGeneralInfo,
+
+    JsAppLauncherShowStatusTypesCount,
+} JsAppLauncherShowStatusType;
+
 typedef struct {
+    JsAppLauncherShowStatusType type;
     struct {
         const char* front;
         const char* back;

@@ -1,14 +1,15 @@
 #include "js_app_launcher_i.h"
 
-static const JsAppLauncherShowStatusDesc
-    js_app_launcher_show_status_descs[JsAppLauncherShowStatusMax] = {
+static const JsAppLauncherShowStatusDesc js_app_launcher_show_status_descs[] = {
     [JsAppLauncherShowStatusNone] =
         {
-            {0}, /* Empty, no error message to display */
-            {0}, /* Empty, no error message to display */
+            .type = JsAppLauncherShowStatusTypeGeneralError,
+            .primary = {0}, /* Empty, no error message to display */
+            .auxiliary = {0}, /* Empty, no error message to display */
         },
     [JsAppLauncherShowStatusLoadFailed] =
         {
+            .type = JsAppLauncherShowStatusTypeGeneralError,
             .primary =
                 {
                     .front = "App loading failed,\nreinstall it.",
@@ -21,6 +22,7 @@ static const JsAppLauncherShowStatusDesc
         },
     [JsAppLauncherShowStatusApiVersionMismatch] =
         {
+            .type = JsAppLauncherShowStatusTypeGeneralError,
             .primary =
                 {
                     .front = "App incompatible,\nupdate firmware.",
@@ -33,6 +35,7 @@ static const JsAppLauncherShowStatusDesc
         },
     [JsAppLauncherShowStatusSettingsSchemaMissing] =
         {
+            .type = JsAppLauncherShowStatusTypeGeneralInfo,
             .primary =
                 {
                     .front = "This app has\nno settings.",
@@ -45,6 +48,7 @@ static const JsAppLauncherShowStatusDesc
         },
     [JsAppLauncherShowStatusSettingsSchemaInvalid] =
         {
+            .type = JsAppLauncherShowStatusTypeGeneralError,
             .primary =
                 {
                     .front = "Settings file\nis invalid.",
@@ -57,6 +61,7 @@ static const JsAppLauncherShowStatusDesc
         },
     [JsAppLauncherShowStatusSettingsStorageFailure] =
         {
+            .type = JsAppLauncherShowStatusTypeGeneralError,
             .primary =
                 {
                     .front = "Settings storage\nerror.",
@@ -69,6 +74,7 @@ static const JsAppLauncherShowStatusDesc
         },
     [JsAppLauncherShowStatusSettingsLoadFailed] =
         {
+            .type = JsAppLauncherShowStatusTypeGeneralError,
             .primary =
                 {
                     .front = "Settings loading\nfailed.",
@@ -81,6 +87,7 @@ static const JsAppLauncherShowStatusDesc
         },
     [JsAppLauncherShowStatusSyntaxError] =
         {
+            .type = JsAppLauncherShowStatusTypeGeneralError,
             .primary =
                 {
                     .front = "Syntax error,\ncheck script.",
@@ -93,6 +100,7 @@ static const JsAppLauncherShowStatusDesc
         },
     [JsAppLauncherShowStatusProgramCrashed] =
         {
+            .type = JsAppLauncherShowStatusTypeGeneralError,
             .primary =
                 {
                     .front = "App crashed,\nsee device logs.",
@@ -104,6 +112,8 @@ static const JsAppLauncherShowStatusDesc
                 },
         },
 };
+
+static_assert(COUNT_OF(js_app_launcher_show_status_descs) == JsAppLauncherShowStatusMax);
 
 const JsAppLauncherShowStatusDesc*
     js_app_launcher_get_show_status_desc(const JsAppLauncher* instance) {
