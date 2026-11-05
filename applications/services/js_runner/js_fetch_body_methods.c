@@ -238,6 +238,7 @@ static bool form_data_body_collected(BodyMethod* instance) {
     jerry_value_t exception = jerry_error_sz(JERRY_ERROR_COMMON, "unimplemented");
     jerry_value_free(jerry_promise_reject(instance->promise, exception));
     jerry_value_free(instance->promise);
+    jerry_value_free(exception);
     js_run_jobs();
     return false;
 }
