@@ -76,16 +76,20 @@ export const useFirmwareStore = defineStore('firmware', () => {
       });
   }
 
+  function stopAutoUpdateProgressPolling () {
+    if (autoUpdate.value.progressPollingInterval) {
+      clearInterval(autoUpdate.value.progressPollingInterval);
+      autoUpdate.value.progressPollingInterval = null;
+    }
+  }
+
   function resetAutoUpdateState () {
     autoUpdate.value.status = null;
     autoUpdate.value.availableVersion = null;
     autoUpdate.value.isAllowed = null;
     autoUpdate.value.changelog = null;
     autoUpdate.value.progress = 0;
-    if (autoUpdate.value.progressPollingInterval) {
-      clearInterval(autoUpdate.value.progressPollingInterval);
-      autoUpdate.value.progressPollingInterval = null;
-    }
+    stopAutoUpdateProgressPolling();
     autoUpdate.value.error.stage = UpdateStage.IDLE;
     autoUpdate.value.error.message = null;
   }
@@ -237,6 +241,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
     await deviceStore.busyBar.UpdateAbort()
       .then(() => {
         console.debug('Auto-update download abort requested');
+        stopAutoUpdateProgressPolling();
         autoUpdate.value.modals.updating = false;
         autoUpdate.value.stage = UpdateStage.IDLE;
         autoUpdate.value.progress = 0;
@@ -247,6 +252,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
   }
   async function startAutoUpdate () {
     console.debug('Starting auto-update process');
+    stopAutoUpdateProgressPolling();
     autoUpdate.value.progress = 0;
     autoUpdate.value.error.stage = UpdateStage.IDLE;
     autoUpdate.value.error.message = null;
@@ -254,25 +260,27 @@ export const useFirmwareStore = defineStore('firmware', () => {
     // enable loading before sending the request
     autoUpdate.value.stage = UpdateStage.LOADING;
 
-    await requestAutoUpdateInstallation()
-      .catch(async error => {
-        await handleHTTPError(error, 'Update failed');
-        return;
-      });
+    try {
+      await requestAutoUpdateInstallation();
+    } catch (error) {
+      await handleHTTPError(error, 'Update failed');
+      autoUpdate.value.stage = UpdateStage.IDLE;
+      return;
+    }
 
-    autoUpdate.value.progressPollingInterval = setInterval(async () => {
+    const pollingInterval = setInterval(async () => {
       await deviceStore.busyBar.UpdateStatusGet()
         .then(status => {
+          if (autoUpdate.value.progressPollingInterval !== pollingInterval) {
+            return;
+          }
           if (!status.install) {
             throw new Error('Invalid update status response: missing install info');
           }
 
           // handle session stop event
           if (status.install.event === 'session_stop') {
-            if (autoUpdate.value.progressPollingInterval) {
-              clearInterval(autoUpdate.value.progressPollingInterval);
-              autoUpdate.value.progressPollingInterval = null;
-            }
+            stopAutoUpdateProgressPolling();
 
             if (status.install.status === 'ok') {
               // wait for device to complete the installation and reboot
@@ -305,12 +313,16 @@ export const useFirmwareStore = defineStore('firmware', () => {
             return;
           }
 
+          if (status.install.event === 'session_start') {
+            return;
+          }
+
           if (status.install.status !== 'ok' && status.install.status !== 'busy') {
             console.error('Update failed with status:', status);
             autoUpdate.value.error.stage = autoUpdate.value.stage;
             autoUpdate.value.error.message = `Update failed: ${status.install.status}`;
             autoUpdate.value.stage = UpdateStage.ERROR;
-            clearInterval(autoUpdate.value.progressPollingInterval!);
+            stopAutoUpdateProgressPolling();
             return;
           }
 
@@ -327,21 +339,27 @@ export const useFirmwareStore = defineStore('firmware', () => {
             }
 
             autoUpdate.value.stage = UpdateStage.LOADING;
-            if (totalBytes > 0) {
+            if (status.install.event === 'action_begin') {
+              autoUpdate.value.progress = 0;
+            } else if (status.install.event === 'action_progress' && totalBytes > 0) {
               autoUpdate.value.progress = Math.round((receivedBytes / totalBytes) * 100);
             }
           } else if (status.install.action !== 'none') {
             autoUpdate.value.stage = UpdateStage.UPDATING;
             autoUpdate.value.progress = 0;
-            clearInterval(autoUpdate.value.progressPollingInterval!);
+            stopAutoUpdateProgressPolling();
           }
         })
         .catch(async error => {
+          if (autoUpdate.value.progressPollingInterval !== pollingInterval) {
+            return;
+          }
+          stopAutoUpdateProgressPolling();
           await handleHTTPError(error, 'Couldn\'t fetch update status');
           autoUpdate.value.stage = UpdateStage.ERROR;
-          clearInterval(autoUpdate.value.progressPollingInterval!);
         });
     }, 1000);
+    autoUpdate.value.progressPollingInterval = pollingInterval;
 
     autoUpdate.value.modals.changelog = false;
     autoUpdate.value.modals.updating = true;
