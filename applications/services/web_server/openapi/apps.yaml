@@ -386,11 +386,26 @@ paths:
       operationId: getAppQueue
       responses:
         "200":
-          description: Got status successfully
+          description: >
+            Got status successfully.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/AppQueueGetResponse"
+        "408":
+          description: >
+            Operation is taking too long.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: >
+            Unknown internal error has occurred.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
     post:
       tags:
         - Apps
@@ -507,7 +522,27 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
-
+        "404":
+          description: >
+            Item with requested ID is not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "408":
+          description: >
+            Operation is taking too long.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: >
+            Unknown internal error has occurred.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 schemas:
   AppId:
     type: string
