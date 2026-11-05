@@ -26,6 +26,13 @@ typedef enum {
     VarItemFlagMaxIsInf = 1UL << 1, /**< Show infinity symbol instead of maximum value */
 } VarItemFlag;
 
+/** The rough order of allowed duration intervals for `timebox_ex` */
+typedef enum {
+    VarItemTimeboxBaseSeconds, /**< The duration value is expressed in seconds */
+    VarItemTimeboxBaseMinutes, /**< The duration value is expressed in minutes */
+    VarItemTimeboxBaseMAX,
+} VarItemTimeboxBase;
+
 /**
  * @brief VarItemList item callback function type.
  */
@@ -75,6 +82,29 @@ VarItem* var_item_list_add_timebox(
     int32_t min_mn,
     int32_t max_mn,
     uint32_t step_mn,
+    VarItemChangeCallback callback,
+    void* context);
+
+/**
+ * @brief Add a time selection item (extended API).
+ *
+ * @param[in,out] instance pointer to the VarItemList instance to be modified
+ * @param[in] label zero-terminated string containing the item label
+ * @param[in] base order of magnitude for `min`, `max`, `step` and the user-selected value
+ * @param[in] min_val minimum allowed value, in units of `base`
+ * @param[in] max_val maximum allowed value, in units of `base`
+ * @param[in] val_step step or increment, in units of `base`
+ * @param[in] callback pointer to the function to call upon value being changed
+ * @param[in,out] context pointer to a user-specific object, will be passed to callback
+ * @returns pointer to the newly created VarItem instance
+ */
+VarItem* var_item_list_add_timebox_ex(
+    VarItemList* instance,
+    const char* label,
+    VarItemTimeboxBase base,
+    int32_t min_val,
+    int32_t max_val,
+    uint32_t val_step,
     VarItemChangeCallback callback,
     void* context);
 

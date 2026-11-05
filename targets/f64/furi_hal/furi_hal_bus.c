@@ -144,16 +144,16 @@ void furi_hal_bus_enable(FuriHalBus bus) {
 
     if(bus < FuriHalBusGEN_SPI_MST1_HCLK) {
         furi_check((M4CLK->CLK_ENABLE_SET_REG1 & value) == 0);
-        M4CLK->CLK_ENABLE_SET_REG1 = value;
+        if((M4CLK->CLK_ENABLE_SET_REG1 & value) == 0) M4CLK->CLK_ENABLE_SET_REG1 = value;
     } else if(bus < FuriHalBusBUS_CLK) {
         furi_check((M4CLK->CLK_ENABLE_SET_REG2 & value) == 0);
-        M4CLK->CLK_ENABLE_SET_REG2 = value;
+        if((M4CLK->CLK_ENABLE_SET_REG2 & value) == 0) M4CLK->CLK_ENABLE_SET_REG2 = value;
     } else if(bus < FuriHalBusUlpTOUCH_SENSOR_PCLK) {
         furi_check((M4CLK->CLK_ENABLE_SET_REG3 & value) == 0);
-        M4CLK->CLK_ENABLE_SET_REG3 = value;
+        if((M4CLK->CLK_ENABLE_SET_REG3 & value) == 0) M4CLK->CLK_ENABLE_SET_REG3 = value;
     } else {
         furi_check((ULPCLK->ULP_MISC_SOFT_SET_REG & value) == 0);
-        ULPCLK->ULP_MISC_SOFT_SET_REG |= value;
+        if((ULPCLK->ULP_MISC_SOFT_SET_REG & value) == 0) ULPCLK->ULP_MISC_SOFT_SET_REG |= value;
     }
 
     FURI_CRITICAL_EXIT();

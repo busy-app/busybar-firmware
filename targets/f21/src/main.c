@@ -26,7 +26,7 @@ int32_t init_task(void* context) {
 
 int main(void) {
     // Initialize FURI layer
-
+    furi_hal_init_super_early();
     furi_init();
 
     // Critical FURI HAL
