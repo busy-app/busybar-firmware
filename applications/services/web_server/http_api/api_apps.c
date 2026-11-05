@@ -848,9 +848,9 @@ static void api_apps_queue_get(struct mg_connection* conn, struct mg_http_messag
         free(response_body);
 
     } else if(error == JsAppInstallerErrorTimeout) {
-        MG_REPLY_TIMEOUT(conn);
+        MG_REPLY_ERROR(conn, 503, "Operation Timeout");
     } else {
-        MG_REPLY_SERVICE_UNAVAILABLE(conn);
+        MG_REPLY_ERROR(conn, 500, "Internal Error");
     }
 
     cJSON_Delete(response_json);
@@ -1193,11 +1193,11 @@ static bool api_apps_queue_cancel_request_callback(
     if(error == JsAppInstallerErrorNone) {
         MG_REPLY_OK_ASYNC(conn);
     } else if(error == JsAppInstallerErrorTimeout) {
-        MG_REPLY_TIMEOUT(conn);
+        MG_REPLY_ERROR(conn, 503, "Operation Timeout");
     } else if(error == JsAppInstallerErrorNotFound) {
         MG_REPLY_NOT_FOUND(conn);
     } else {
-        MG_REPLY_SERVICE_UNAVAILABLE(conn);
+        MG_REPLY_ERROR(conn, 500, "Internal Error");
     }
 
     return true;

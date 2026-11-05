@@ -392,16 +392,16 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AppQueueGetResponse"
-        "408":
+        "500":
           description: >
-            Operation is taking too long.
+            Unknown internal error has occurred.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
         "503":
           description: >
-            Unknown internal error has occurred.
+            Operation is taking too long.
           content:
             application/json:
               schema:
@@ -529,16 +529,16 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "408":
+        "500":
           description: >
-            Operation is taking too long.
+            Unknown internal error has occurred.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
         "503":
           description: >
-            Unknown internal error has occurred.
+            Operation is taking too long.
           content:
             application/json:
               schema:
@@ -683,7 +683,7 @@ schemas:
     type: string
     description: Status of the queued operation
     enum:
-      - "queued"
+      - "pending"
       - "in_progress"
 
   AppQueueError:
