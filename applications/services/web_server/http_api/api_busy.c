@@ -46,12 +46,17 @@ static void api_busy_set_snapshot(struct mg_connection* conn, struct mg_http_mes
 
     do {
         BusyTimerSnapshot snapshot;
+        // NOTE: Start from the current snapshot so optional keys keep their value
+        BusyTimer* timer = furi_record_open(RECORD_BUSY_TIMER);
+        busy_timer_get_snapshot(timer, &snapshot);
+        furi_record_close(RECORD_BUSY_TIMER);
+
         if(!busy_timer_snapshot_deserialize(&snapshot, msg->body.buf, msg->body.len)) {
             error_msg = "Failed to parse snapshot";
             break;
         }
 
-        BusyTimer* timer = furi_record_open(RECORD_BUSY_TIMER);
+        timer = furi_record_open(RECORD_BUSY_TIMER);
         busy_timer_set_snapshot(timer, &snapshot);
         furi_record_close(RECORD_BUSY_TIMER);
 
@@ -123,12 +128,17 @@ static void api_busy_set_profile(
         }
 
         BusyTimerProfile profile;
+        // NOTE: Start from the stored profile so optional keys keep their value
+        BusyTimer* timer = furi_record_open(RECORD_BUSY_TIMER);
+        busy_timer_get_profile(timer, profile_id, &profile);
+        furi_record_close(RECORD_BUSY_TIMER);
+
         if(!busy_timer_profile_deserialize(&profile, msg->body.buf, msg->body.len)) {
             error_msg = "Failed to parse profile";
             break;
         }
 
-        BusyTimer* timer = furi_record_open(RECORD_BUSY_TIMER);
+        timer = furi_record_open(RECORD_BUSY_TIMER);
         busy_timer_set_profile(timer, profile_id, &profile);
         furi_record_close(RECORD_BUSY_TIMER);
 
