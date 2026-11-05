@@ -28,8 +28,8 @@
 #define CANCEL_ALL_KEY "all"
 
 #define STATUS_KEY               "status"
-#define STATUS_VALUE_PENDING     "pending"
-#define STATUS_VALUE_IN_PROGRESS "in_progress"
+#define STATUS_PENDING_VALUE     "pending"
+#define STATUS_IN_PROGRESS_VALUE "in_progress"
 
 #define DETAIL_KEY          "detail"
 #define DETAIL_STEP_KEY     "step"
@@ -810,10 +810,10 @@ static void api_apps_queue_item_status_format(
     JsAppInstallerOperationStatus operation_status,
     const JsAppInstallerOperationDetail* detail) {
     if(operation_status == JsAppInstallerOperationStatusInProgress) {
-        cJSON_AddStringToObject(item_json, STATUS_KEY, STATUS_VALUE_IN_PROGRESS);
+        cJSON_AddStringToObject(item_json, STATUS_KEY, STATUS_IN_PROGRESS_VALUE);
         api_apps_queue_item_detail_format(item_json, detail);
     } else if(operation_status == JsAppInstallerOperationStatusPending) {
-        cJSON_AddStringToObject(item_json, STATUS_KEY, STATUS_VALUE_PENDING);
+        cJSON_AddStringToObject(item_json, STATUS_KEY, STATUS_PENDING_VALUE);
     } else {
         furi_crash("Invalid JsAppInstallerOperationStatus value");
     }
@@ -868,7 +868,7 @@ static bool api_apps_queue_operation_source_info_parse(
     do {
         const cJSON* item;
 
-        item = cJSON_GetObjectItem(json, OPERATION_URL_KEY);
+        item = cJSON_GetObjectItemCaseSensitive(json, OPERATION_URL_KEY);
         if(!cJSON_IsString(item)) {
             break;
         }
@@ -886,8 +886,8 @@ static bool api_apps_queue_operation_source_info_parse(
 
         JsAppInstallerAppVersion* version = &source->version;
 
-        if(cJSON_HasObjectItem(json, OPERATION_VERSION_KEY)) {
-            item = cJSON_GetObjectItem(json, OPERATION_VERSION_KEY);
+        item = cJSON_GetObjectItemCaseSensitive(json, OPERATION_VERSION_KEY);
+        if(item != NULL) {
             if(!cJSON_IsString(item)) {
                 break;
             }
@@ -919,7 +919,7 @@ static bool api_apps_queue_operation_info_parse(
 
         const cJSON* item;
 
-        item = cJSON_GetObjectItem(json, OPERATION_TYPE_KEY);
+        item = cJSON_GetObjectItemCaseSensitive(json, OPERATION_TYPE_KEY);
         if(!cJSON_IsString(item)) {
             break;
         }
@@ -952,7 +952,7 @@ static bool api_apps_queue_operation_parse(ApiAppsQueueOperation* operation, con
 
         const cJSON* item;
 
-        item = cJSON_GetObjectItem(json, APP_ID_KEY);
+        item = cJSON_GetObjectItemCaseSensitive(json, APP_ID_KEY);
         if(!cJSON_IsString(item)) {
             break;
         }
@@ -964,7 +964,7 @@ static bool api_apps_queue_operation_parse(ApiAppsQueueOperation* operation, con
 
         operation->app_id = app_id_str;
 
-        item = cJSON_GetObjectItem(json, OPERATION_KEY);
+        item = cJSON_GetObjectItemCaseSensitive(json, OPERATION_KEY);
         if(!api_apps_queue_operation_info_parse(&operation->info, item)) {
             break;
         }
@@ -983,7 +983,7 @@ static bool api_apps_queue_add_request_parse(ApiAppsQueueAddRequest* request, co
             break;
         }
 
-        const cJSON* operations = cJSON_GetObjectItem(json, OPERATIONS_KEY);
+        const cJSON* operations = cJSON_GetObjectItemCaseSensitive(json, OPERATIONS_KEY);
         if(!cJSON_IsArray(operations)) {
             break;
         }
@@ -995,12 +995,14 @@ static bool api_apps_queue_add_request_parse(ApiAppsQueueAddRequest* request, co
 
         ApiAppsQueueOperation* data = calloc(count, sizeof(ApiAppsQueueOperation));
 
-        uint32_t parsed_count;
-        for(parsed_count = 0; parsed_count < count; ++parsed_count) {
-            const cJSON* item = cJSON_GetArrayItem(operations, parsed_count);
+        cJSON* item = NULL;
+        uint32_t parsed_count = 0;
+
+        cJSON_ArrayForEach(item, operations) {
             if(!api_apps_queue_operation_parse(&data[parsed_count], item)) {
                 break;
             }
+            ++parsed_count;
         }
 
         if(parsed_count != count) {
@@ -1019,9 +1021,9 @@ static bool api_apps_queue_add_request_parse(ApiAppsQueueAddRequest* request, co
 
 static char* api_apps_queue_add_response_format(const ApiAppsQueueAddRequest* request) {
     char* response_body = NULL;
-    cJSON* response_body_json = cJSON_CreateObject();
+    cJSON* response_json = cJSON_CreateObject();
 
-    cJSON* result_json = cJSON_AddArrayToObject(response_body_json, RESULT_KEY);
+    cJSON* result_json = cJSON_AddArrayToObject(response_json, RESULT_KEY);
 
     for(size_t i = 0; i < request->operations_count; ++i) {
         const ApiAppsQueueOperation* operation = &request->operations[i];
@@ -1050,8 +1052,8 @@ static char* api_apps_queue_add_response_format(const ApiAppsQueueAddRequest* re
         cJSON_AddItemToArray(result_json, item_json);
     }
 
-    response_body = cJSON_PrintUnformatted(response_body_json);
-    cJSON_Delete(response_body_json);
+    response_body = cJSON_PrintUnformatted(response_json);
+    cJSON_Delete(response_json);
 
     return response_body;
 }
@@ -1104,9 +1106,7 @@ static void api_apps_queue_post(struct mg_connection* conn, struct mg_http_messa
 
     } while(false);
 
-    if(request.operations != NULL) {
-        free(request.operations);
-    }
+    free(request.operations);
 
     cJSON_Delete(json);
 }
@@ -1146,8 +1146,8 @@ static bool api_apps_queue_cancel_request_parse(
             break;
         }
 
-        const cJSON* item_id_json = cJSON_GetObjectItem(request_json, ITEM_ID_KEY);
-        const cJSON* all_json = cJSON_GetObjectItem(request_json, CANCEL_ALL_KEY);
+        const cJSON* item_id_json = cJSON_GetObjectItemCaseSensitive(request_json, ITEM_ID_KEY);
+        const cJSON* all_json = cJSON_GetObjectItemCaseSensitive(request_json, CANCEL_ALL_KEY);
 
         if(cJSON_IsNumber(item_id_json) && all_json == NULL) {
             const double item_id_d = cJSON_GetNumberValue(item_id_json);
