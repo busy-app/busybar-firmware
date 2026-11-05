@@ -10,7 +10,7 @@ env.AppendUnique(
     ],
 )
 
-libenv = env.Clone(FW_LIB_NAME=LIB_DIR)
+libenv = env.Clone(FW_LIB_NAME=LIB_DIR, OPTIMIZATION="-Os")
 libenv.ApplyLibFlags()
 
 libenv.AppendUnique(
@@ -61,7 +61,6 @@ libenv.AppendUnique(
         "-Wno-undef",
         "-Wno-attributes",
     ],
-    OPTIMIZATION=["-Os"],
 )
 
 sources = [
