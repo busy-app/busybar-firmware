@@ -2,7 +2,6 @@
 
 #include "js_app_installer.h"
 
-#include <furi.h>
 #include <toolbox/api_lock.h>
 
 #include <js_app/js_app.h>
