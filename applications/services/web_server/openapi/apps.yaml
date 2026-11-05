@@ -424,11 +424,54 @@ paths:
                         type: "remove"
       responses:
         "202":
-          description: Added to queue
+          description: Enqueue results
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/AppQueueAddResponse"
+              examples:
+                success:
+                  summary: Add to queue success
+                  value:
+                    result:
+                      - app_id: "com.author.example-app"
+                        operation:
+                          type: "install"
+                          version: "1.2.3"
+                        item_id: 42
+                      - app_id: "com.author.example-app"
+                        operation:
+                          type: "remove"
+                          item_id: 67
+                failure:
+                  summary: Failed to add some elements
+                  value:
+                    result:
+                      - app_id: "com.author.example-app"
+                        operation:
+                          type: "install"
+                          version: "1.2.3"
+                        item_id: 42
+                      - app_id: "com.author.other-app"
+                        operation:
+                          type: "install"
+                          version: "3.4.5"
+                        error: "queue_full"
+                      - app_id: "com.author.one-more-app"
+                        operation:
+                          type: "remove"
+                        error: "skipped"
+        "400":
+          description: Failed to parse request or invalid value
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                badRequest:
+                  summary: Invalid request
+                  value:
+                    error: "Bad Request"
 
   /api/apps/queue/cancel:
     post:
@@ -608,6 +651,14 @@ schemas:
       - "queued"
       - "in_progress"
 
+  AppQueueError:
+    type: string
+    description: Error message if item failed to be enqueued
+    enum:
+      - "timeout"
+      - "queue_full"
+      - "skipped"
+
   AppQueueDetail:
     type: object
     description: Additional status of the ongoing operation
@@ -677,10 +728,17 @@ schemas:
         $ref: "#/components/schemas/AppQueueOperation"
       item_id:
         $ref: "#/components/schemas/AppQueueItemId"
-    required:
+      error:
+        $ref: "#/components/schemas/AppQueueError"
+    oneOf:
+    - required:
       - app_id
       - operation
       - item_id
+    - required:
+      - app_id
+      - operation
+      - error
 
   AppQueueGetResponse:
     type: object
