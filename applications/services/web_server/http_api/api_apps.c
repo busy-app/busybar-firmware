@@ -1124,6 +1124,8 @@ static bool api_apps_queue_request_callback(
         api_apps_queue_get(conn, msg);
     } else if(method == HttpMethodPost) {
         api_apps_queue_post(conn, msg);
+    } else {
+        furi_crash("Unexpected method");
     }
 
     return true;
