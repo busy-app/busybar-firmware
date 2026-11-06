@@ -1,97 +1,68 @@
 #include "js_app_installer_i.h"
 
-#define OPERATION_QUEUE_TIMEOUT_MS (1000)
-#define OPERATION_QUEUE_MAX_SIZE   (100)
+#define API_TIMEOUT_MS (1000)
 
-static bool js_app_installer_queue_lock(JsAppInstaller* instance) {
-    bool success = true;
+static void
+    js_app_installer_api_send_message(JsAppInstaller* instance, JsAppInstallerMsg* message) {
+    message->api_lock = api_lock_alloc_locked();
 
     const FuriStatus status =
-        furi_mutex_acquire(instance->queue_mutex, furi_ms_to_ticks(OPERATION_QUEUE_TIMEOUT_MS));
+        furi_message_queue_put(instance->msg_queue, message, furi_ms_to_ticks(API_TIMEOUT_MS));
 
-    if(status != FuriStatusOk) {
+    if(status == FuriStatusOk) {
+        api_lock_wait_unlock_and_free(message->api_lock);
+    } else {
         furi_check(status == FuriStatusErrorTimeout);
-        success = false;
+        *message->error = JsAppInstallerErrorTimeout;
+        api_lock_free(message->api_lock);
     }
-
-    return success;
-}
-
-static void js_app_installer_queue_unlock(JsAppInstaller* instance) {
-    furi_mutex_release(instance->queue_mutex);
-}
-
-static JsAppInstallerOperationResult
-    js_app_installer_enqueue_operation(JsAppInstaller* instance, JsAppInstallerQueueItem* item) {
-    JsAppInstallerOperationResult result;
-
-    do {
-        if(!js_app_installer_queue_lock(instance)) {
-            result.error = JsAppInstallerErrorTimeout;
-            break;
-        }
-
-        if(JsAppInstallerOperationQueue_size(instance->operation_queue) >=
-           OPERATION_QUEUE_MAX_SIZE) {
-            result.error = JsAppInstallerErrorQueueFull;
-            break;
-        }
-
-        item->operation_id = instance->operation_id_counter++;
-        JsAppInstallerOperationQueue_push_front(instance->operation_queue, item);
-
-        result.error = JsAppInstallerErrorNone;
-        result.operation_id = item->operation_id;
-
-    } while(false);
-
-    js_app_installer_queue_unlock(instance);
-
-    if(result.error != JsAppInstallerErrorNone) {
-        js_app_installer_queue_item_free(item);
-    }
-
-    return result;
 }
 
 JsAppInstallerStageResult js_app_installer_stage(JsAppInstaller* instance) {
-    JsAppInstallerStageResult result;
+    furi_check(instance);
 
-    bzero(&result, sizeof(result));
+    JsAppInstallerError error;
+    JsAppInstallerStageInfo stage_info = {0};
 
+    /* clang-format off */
     JsAppInstallerMsg msg = {
         .cmd = JsAppInstallerCmdStage,
-        .api_lock = api_lock_alloc_locked(),
-        .stage =
-            {
-                .result = &result,
-            },
+        .error = &error,
+        .stage = {
+            .stage_info = &stage_info,
+        },
+    };
+    /* clang-format on */
+
+    js_app_installer_api_send_message(instance, &msg);
+
+    const JsAppInstallerStageResult result = {
+        .error = error,
+        .install_key = stage_info.install_key,
+        .staged_app = stage_info.staged_app,
+        .installed_app = stage_info.installed_app,
     };
 
-    furi_check(furi_message_queue_put(instance->msg_queue, &msg, FuriWaitForever) == FuriStatusOk);
-
-    api_lock_wait_unlock_and_free(msg.api_lock);
     return result;
 }
 
 JsAppInstallerError
     js_app_installer_install_staged(JsAppInstaller* instance, uint32_t install_key) {
-    JsAppInstallerError result;
+    furi_check(instance);
 
+    JsAppInstallerError error;
+    /* clang-format off */
     JsAppInstallerMsg msg = {
-        .cmd = JsAppInstallerCmdInstall,
-        .api_lock = api_lock_alloc_locked(),
-        .install =
-            {
-                .install_key = install_key,
-                .error = &result,
-            },
+        .cmd = JsAppInstallerCmdInstallStaged,
+        .error = &error,
+        .install_staged = {
+            .install_key = install_key,
+        },
     };
+    /* clang-format on */
 
-    furi_check(furi_message_queue_put(instance->msg_queue, &msg, FuriWaitForever) == FuriStatusOk);
-
-    api_lock_wait_unlock_and_free(msg.api_lock);
-    return result;
+    js_app_installer_api_send_message(instance, &msg);
+    return error;
 }
 
 JsAppInstallerOperationResult js_app_installer_install(
@@ -101,10 +72,19 @@ JsAppInstallerOperationResult js_app_installer_install(
     furi_check(app_id);
     furi_check(source_info);
 
-    JsAppInstallerQueueItem* item =
-        js_app_installer_queue_item_alloc(app_id, JsAppInstallerOperationTypeInstall, source_info);
-    const JsAppInstallerOperationResult result =
-        js_app_installer_enqueue_operation(instance, item);
+    JsAppInstallerOperationResult result;
+    /* clang-format off */
+    JsAppInstallerMsg msg = {
+        .cmd = JsAppInstallerCmdInstall,
+        .error = &result.error,
+        .install = {
+            .app_id = app_id,
+            .source_info = source_info,
+        },
+    };
+    /* clang-format on */
+
+    js_app_installer_api_send_message(instance, &msg);
     return result;
 }
 
@@ -113,10 +93,18 @@ JsAppInstallerOperationResult
     furi_check(instance);
     furi_check(app_id);
 
-    JsAppInstallerQueueItem* item =
-        js_app_installer_queue_item_alloc(app_id, JsAppInstallerOperationTypeRemove);
-    const JsAppInstallerOperationResult result =
-        js_app_installer_enqueue_operation(instance, item);
+    JsAppInstallerOperationResult result;
+    /* clang-format off */
+    JsAppInstallerMsg msg = {
+        .cmd = JsAppInstallerCmdRemove,
+        .error = &result.error,
+        .remove = {
+            .app_id = app_id,
+        },
+    };
+    /* clang-format on */
+
+    js_app_installer_api_send_message(instance, &msg);
     return result;
 }
 
@@ -127,42 +115,56 @@ JsAppInstallerError js_app_installer_get_operation_queue(
     furi_check(instance);
     furi_check(callback);
 
-    if(!js_app_installer_queue_lock(instance)) {
-        return JsAppInstallerErrorTimeout;
-    }
+    JsAppInstallerError error;
+    /* clang-format off */
+    JsAppInstallerMsg msg = {
+        .cmd = JsAppInstallerCmdRemove,
+        .error = &error,
+        .get_queue = {
+            .callback = callback,
+            .callback_context = context,
+        },
+    };
+    /* clang-format on */
 
-    JsAppInstallerOperationQueue_it_ct it;
-    for(JsAppInstallerOperationQueue_it(it, instance->operation_queue);
-        !JsAppInstallerOperationQueue_end_p(it);
-        JsAppInstallerOperationQueue_next(it)) {
-        const JsAppInstallerQueueItem* item = JsAppInstallerOperationQueue_ref(it);
-        /* clang-format off */
-        const JsAppInstallerOperationInfo operation_info = {
-            .type = item->type,
-            .item_id = item->operation_id,
-            .app_info = {
-                .app_id = furi_string_get_cstr(item->app_id),
-                .version = item->app_version,
-            },
-        };
-        /* clang-format on */
-        callback(&operation_info, context);
-    }
-
-    js_app_installer_queue_unlock(instance);
-    return JsAppInstallerErrorNone;
+    js_app_installer_api_send_message(instance, &msg);
+    return error;
 }
 
 JsAppInstallerError
     js_app_installer_cancel_operation(JsAppInstaller* instance, uint32_t operation_id) {
     furi_check(instance);
-    UNUSED(operation_id);
-    // TODO: Implementation
-    return JsAppInstallerErrorNone;
+
+    JsAppInstallerError error;
+    /* clang-format off */
+    JsAppInstallerMsg msg = {
+        .cmd = JsAppInstallerCmdRemove,
+        .error = &error,
+        .cancel = {
+            .operation_id = operation_id,
+            .is_clear_all = false,
+        },
+    };
+    /* clang-format on */
+
+    js_app_installer_api_send_message(instance, &msg);
+    return error;
 }
 
 JsAppInstallerError js_app_installer_cancel_all(JsAppInstaller* instance) {
     furi_check(instance);
-    // TODO: Implementation
-    return JsAppInstallerErrorNone;
+
+    JsAppInstallerError error;
+    /* clang-format off */
+    JsAppInstallerMsg msg = {
+        .cmd = JsAppInstallerCmdRemove,
+        .error = &error,
+        .cancel = {
+            .is_clear_all = true,
+        },
+    };
+    /* clang-format on */
+
+    js_app_installer_api_send_message(instance, &msg);
+    return error;
 }
