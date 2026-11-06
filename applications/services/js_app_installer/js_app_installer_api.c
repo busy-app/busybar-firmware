@@ -118,7 +118,7 @@ JsAppInstallerError js_app_installer_get_operation_queue(
     JsAppInstallerError error;
     /* clang-format off */
     JsAppInstallerMsg msg = {
-        .cmd = JsAppInstallerCmdRemove,
+        .cmd = JsAppInstallerCmdGetQueue,
         .error = &error,
         .get_queue = {
             .callback = callback,
@@ -138,7 +138,7 @@ JsAppInstallerError
     JsAppInstallerError error;
     /* clang-format off */
     JsAppInstallerMsg msg = {
-        .cmd = JsAppInstallerCmdRemove,
+        .cmd = JsAppInstallerCmdCancel,
         .error = &error,
         .cancel = {
             .operation_id = operation_id,
@@ -157,7 +157,7 @@ JsAppInstallerError js_app_installer_cancel_all(JsAppInstaller* instance) {
     JsAppInstallerError error;
     /* clang-format off */
     JsAppInstallerMsg msg = {
-        .cmd = JsAppInstallerCmdRemove,
+        .cmd = JsAppInstallerCmdCancel,
         .error = &error,
         .cancel = {
             .is_clear_all = true,
