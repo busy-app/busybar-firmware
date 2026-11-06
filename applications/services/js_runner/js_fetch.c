@@ -272,7 +272,7 @@ static void process_error(JsFetch* instance, FuriString* msg) {
         jerry_value_t promise = instance->promise.promise;
         furi_check(jerry_object_delete_native_ptr(promise, &promise_native_info));
 
-        jerry_value_t error = jerry_string_sz(furi_string_get_cstr(msg));
+        jerry_value_t error = jerry_error_sz(JERRY_ERROR_TYPE, furi_string_get_cstr(msg));
         jerry_value_free(jerry_promise_reject(promise, error));
         jerry_value_free(error);
         jerry_value_free(promise);
