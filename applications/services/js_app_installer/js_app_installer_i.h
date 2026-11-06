@@ -1,6 +1,7 @@
 #pragma once
 
 #include "js_app_installer.h"
+#include "js_app_installer_operation.h"
 
 #include <toolbox/api_lock.h>
 
@@ -10,35 +11,33 @@ typedef enum JsAppInstallerCmd {
     JsAppInstallerCmdInvalid = 0,
     JsAppInstallerCmdStage,
     JsAppInstallerCmdInstall,
-
-    JsAppInstallerCmdMax
+    JsAppInstallerCmdMax,
 } JsAppInstallerCmd;
 
-typedef struct JsAppInstallerMsgStage {
+typedef struct {
     JsAppInstallerStageResult* result;
 } JsAppInstallerMsgStage;
 
-typedef struct JsAppInstallerMsgInstall {
+typedef struct {
     uint32_t install_key;
-
     JsAppInstallerError* error;
 } JsAppInstallerMsgInstall;
 
-typedef struct JsAppInstallerMsg {
+typedef struct {
     JsAppInstallerCmd cmd;
-
     FuriApiLock api_lock;
-
     union {
         JsAppInstallerMsgStage stage;
         JsAppInstallerMsgInstall install;
     };
 } JsAppInstallerMsg;
 
-typedef struct JsAppInstaller {
+struct JsAppInstaller {
     FuriEventLoop* event_loop;
     FuriMessageQueue* msg_queue;
-
     uint32_t staged_install_key;
     FuriString* staged_app_path;
-} JsAppInstaller;
+    uint32_t operation_id_counter;
+    FuriMutex* queue_mutex;
+    JsAppInstallerOperationQueue_t operation_queue;
+};

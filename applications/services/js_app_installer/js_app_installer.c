@@ -210,6 +210,9 @@ static JsAppInstaller* js_app_installer_alloc(void) {
     instance->staged_install_key = 0;
     instance->staged_app_path = NULL;
 
+    instance->queue_mutex = furi_mutex_alloc(FuriMutexTypeNormal);
+    JsAppInstallerOperationQueue_init(instance->operation_queue);
+
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
         instance->msg_queue,

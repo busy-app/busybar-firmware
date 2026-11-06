@@ -57,6 +57,7 @@ typedef struct {
 typedef enum {
     JsAppInstallerOperationTypeInstall,
     JsAppInstallerOperationTypeRemove,
+    JsAppInstallerOperationTypeMax,
 } JsAppInstallerOperationType;
 
 typedef enum {
