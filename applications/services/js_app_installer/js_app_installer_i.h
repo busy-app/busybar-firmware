@@ -40,10 +40,11 @@ typedef struct {
 
 typedef struct {
     const char* app_id;
+    uint32_t* item_id;
 } JsAppInstallerMsgRemove;
 
 typedef struct {
-    uint32_t operation_id;
+    uint32_t item_id;
     bool is_clear_all;
 } JsAppInstallerMsgCancel;
 

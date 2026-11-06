@@ -80,6 +80,7 @@ JsAppInstallerOperationResult js_app_installer_install(
         .install = {
             .app_id = app_id,
             .source_info = source_info,
+            .item_id = &result.item_id,
         },
     };
     /* clang-format on */
@@ -100,6 +101,7 @@ JsAppInstallerOperationResult
         .error = &result.error,
         .remove = {
             .app_id = app_id,
+            .item_id = &result.item_id,
         },
     };
     /* clang-format on */
@@ -131,8 +133,7 @@ JsAppInstallerError js_app_installer_get_operation_queue(
     return error;
 }
 
-JsAppInstallerError
-    js_app_installer_cancel_operation(JsAppInstaller* instance, uint32_t operation_id) {
+JsAppInstallerError js_app_installer_cancel_operation(JsAppInstaller* instance, uint32_t item_id) {
     furi_check(instance);
 
     JsAppInstallerError error;
@@ -141,7 +142,7 @@ JsAppInstallerError
         .cmd = JsAppInstallerCmdCancel,
         .error = &error,
         .cancel = {
-            .operation_id = operation_id,
+            .item_id = item_id,
             .is_clear_all = false,
         },
     };

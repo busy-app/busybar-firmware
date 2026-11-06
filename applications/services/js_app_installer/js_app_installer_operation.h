@@ -6,7 +6,7 @@
 
 typedef struct {
     JsAppInstallerOperationType type;
-    uint32_t operation_id;
+    uint32_t id;
     FuriString* app_id;
     FuriString* url;
     JsAppInstallerAppVersion app_version;

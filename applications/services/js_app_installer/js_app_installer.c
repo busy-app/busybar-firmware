@@ -8,8 +8,10 @@
 #include <js_app/js_app_registry.h>
 #include <storage_utils/dir_walk.h>
 
-#define TAG          "JsAppInstaller"
-#define MAX_MESSAGES 4
+#define TAG "JsAppInstaller"
+
+#define MAX_MESSAGES   4
+#define MAX_OPERATIONS 100
 
 typedef JsAppInstallerError (*MessageHandler)(JsAppInstaller* instance, JsAppInstallerMsg* message);
 
@@ -206,6 +208,65 @@ static JsAppInstallerError
     return error;
 }
 
+static JsAppInstallerError
+    enqueue_operation(JsAppInstaller* instance, JsAppInstallerQueueItem* item) {
+    JsAppInstallerError error = JsAppInstallerErrorNone;
+
+    if(JsAppInstallerOperationQueue_size(instance->operation_queue) < MAX_OPERATIONS) {
+        item->id = instance->operation_id_counter++;
+        JsAppInstallerOperationQueue_push_front(instance->operation_queue, item);
+    } else {
+        error = JsAppInstallerErrorQueueFull;
+    }
+
+    return error;
+}
+
+static JsAppInstallerError handle_install(JsAppInstaller* instance, JsAppInstallerMsg* message) {
+    furi_assert(instance);
+    furi_assert(message);
+
+    const JsAppInstallerMsgInstall* msg = &message->install;
+    JsAppInstallerQueueItem* item = js_app_installer_queue_item_alloc(
+        msg->app_id, JsAppInstallerOperationTypeInstall, msg->source_info);
+
+    const JsAppInstallerError error = enqueue_operation(instance, item);
+    if(error == JsAppInstallerErrorNone) {
+        *msg->item_id = item->id;
+    } else {
+        js_app_installer_queue_item_free(item);
+    }
+
+    return error;
+}
+
+static JsAppInstallerError handle_remove(JsAppInstaller* instance, JsAppInstallerMsg* message) {
+    furi_assert(instance);
+    furi_assert(message);
+
+    JsAppInstallerMsgRemove* msg = &message->remove;
+    JsAppInstallerQueueItem* item =
+        js_app_installer_queue_item_alloc(msg->app_id, JsAppInstallerOperationTypeRemove);
+
+    const JsAppInstallerError error = enqueue_operation(instance, item);
+    if(error == JsAppInstallerErrorNone) {
+        *msg->item_id = item->id;
+    } else {
+        js_app_installer_queue_item_free(item);
+    }
+
+    return error;
+}
+
+static JsAppInstallerError handle_cancel(JsAppInstaller* instance, JsAppInstallerMsg* message) {
+    furi_assert(instance);
+    furi_assert(message);
+
+    JsAppInstallerError error = JsAppInstallerErrorNone;
+
+    return error;
+}
+
 static JsAppInstallerError handle_get_queue(JsAppInstaller* instance, JsAppInstallerMsg* message) {
     furi_assert(instance);
     furi_assert(message);
@@ -220,7 +281,7 @@ static JsAppInstallerError handle_get_queue(JsAppInstaller* instance, JsAppInsta
         /* clang-format off */
         const JsAppInstallerOperationInfo operation_info = {
             .type = item->type,
-            .item_id = item->operation_id,
+            .item_id = item->id,
             .app_info = {
                 .app_id = furi_string_get_cstr(item->app_id),
                 .version = item->app_version,
@@ -270,10 +331,10 @@ static void js_app_installer_free(JsAppInstaller* instance) {
 
 static const MessageHandler msg_handlers[] = {
     [JsAppInstallerCmdStage] = handle_stage,
-    [JsAppInstallerCmdInstall] = NULL,
+    [JsAppInstallerCmdInstall] = handle_install,
     [JsAppInstallerCmdInstallStaged] = handle_install_staged,
-    [JsAppInstallerCmdRemove] = NULL,
-    [JsAppInstallerCmdCancel] = NULL,
+    [JsAppInstallerCmdRemove] = handle_remove,
+    [JsAppInstallerCmdCancel] = handle_cancel,
     [JsAppInstallerCmdGetQueue] = handle_get_queue,
 };
 

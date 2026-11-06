@@ -36,7 +36,7 @@ typedef struct JsAppInstallerStageResult {
 
 typedef struct {
     JsAppInstallerError error;
-    uint32_t operation_id;
+    uint32_t item_id;
 } JsAppInstallerOperationResult;
 
 typedef struct {
@@ -124,7 +124,6 @@ JsAppInstallerError js_app_installer_get_operation_queue(
     JsAppInstallerOperationInfoCallback callback,
     void* context);
 
-JsAppInstallerError
-    js_app_installer_cancel_operation(JsAppInstaller* instance, uint32_t operation_id);
+JsAppInstallerError js_app_installer_cancel_operation(JsAppInstaller* instance, uint32_t item_id);
 
 JsAppInstallerError js_app_installer_cancel_all(JsAppInstaller* instance);

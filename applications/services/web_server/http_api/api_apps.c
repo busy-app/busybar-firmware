@@ -1026,7 +1026,7 @@ static void
         const JsAppInstallerError error = result->error;
 
         if(error == JsAppInstallerErrorNone) {
-            cJSON_AddNumberToObject(item_json, ITEM_ID_KEY, result->operation_id);
+            cJSON_AddNumberToObject(item_json, ITEM_ID_KEY, result->item_id);
         } else {
             cJSON_AddStringToObject(item_json, ERROR_KEY, installer_error_codes[error]);
         }
