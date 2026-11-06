@@ -1,1 +1,1 @@
-import{_ as o,c as r,o as t,q as s}from"./entry-28181c5.js";const c={};function n(e,a){return t(),r("td",null,[s(e.$slots,"default")])}const _=o(c,[["render",n]]);export{_ as default};
+import{_ as o,c as r,o as t,q as s}from"./entry-53bb54d.js";const c={};function n(e,a){return t(),r("td",null,[s(e.$slots,"default")])}const _=o(c,[["render",n]]);export{_ as default};

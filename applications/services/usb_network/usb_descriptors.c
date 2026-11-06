@@ -190,7 +190,7 @@ uint16_t const* tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
         size_t uid_len = furi_string_size(uid);
         furi_assert(uid_len < COUNT_OF(desc_string_temp));
         for(uint8_t i = 0; i < uid_len; i++) {
-            desc_string_temp[i] = furi_string_get_char(uid, i);
+            desc_string_temp[i + 1] = furi_string_get_char(uid, i);
         }
         chr_count = uid_len;
         furi_string_free(uid);
