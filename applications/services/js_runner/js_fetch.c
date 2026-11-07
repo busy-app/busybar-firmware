@@ -226,6 +226,15 @@ static jerry_value_t create_response(JsFetch* instance, SizedBuffer headers) {
     jerry_object_set_native_ptr(response, &js_fetch_response_native_info, instance);
 
     jerry_value_t headers_val = js_headers_alloc(http_response.headers);
+    if(jerry_value_is_exception(headers_val)) {
+        // Storing the exception as a property would trip a furi_check and reboot the device.
+        // Like the status line above, a malformed header block degrades to blank headers.
+        FURI_LOG_E(TAG, "Failed to parse response headers");
+        jerry_value_free(headers_val);
+        StringSlice no_headers;
+        string_slice_reset(&no_headers);
+        headers_val = js_headers_alloc(no_headers);
+    }
     jerry_value_t readable_stream = js_readable_stream_alloc(instance);
 
     js_set_property(response, "headers", headers_val);

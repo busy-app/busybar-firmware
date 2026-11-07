@@ -52,7 +52,12 @@ static bool parse_headers_list(HttpHeaders* headers, const char* data, size_t da
             break;
         }
         case ParseStateColon: {
-            if(c != ' ' && c != '\t') {
+            if(c == '\r') {
+                // Empty field value, e.g. "Server: " from aiohttp; RFC 9110 section 5.5 allows it
+                value_begin_i = i;
+                value_end_i = i;
+                state = ParseStateNewline;
+            } else if(c != ' ' && c != '\t') {
                 if(isspace((int)c)) {
                     return false;
                 }
