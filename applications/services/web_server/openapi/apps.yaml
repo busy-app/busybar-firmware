@@ -495,7 +495,7 @@ paths:
         - Apps
       summary: Cancel operation or clear the app queue
       description: >
-        Cancel a queued operation by its queue ID, or clear the whole queue.
+        Cancel a queued operation by its queue ID, or clear the entire queue.
       x-local-only: true
       operationId: cancelAppQueue
       requestBody:
@@ -512,13 +512,13 @@ paths:
                 value:
                   item_id: 42
               clearAll:
-                summary: Clear the whole queue
+                summary: Clear the entire queue
                 value:
                   all: true
       responses:
         "202":
           description: >
-            Item(s) removed from queue or whole queue cleared.
+            Item(s) removed from queue or entire queue cleared.
           content:
             application/json:
               schema:

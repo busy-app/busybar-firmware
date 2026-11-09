@@ -214,7 +214,7 @@ static JsAppInstallerError
 
     if(JsAppInstallerOperationQueue_size(instance->operation_queue) < MAX_OPERATIONS) {
         item->id = instance->operation_id_counter++;
-        JsAppInstallerOperationQueue_push_front(instance->operation_queue, item);
+        JsAppInstallerOperationQueue_push_back(instance->operation_queue, item);
     } else {
         error = JsAppInstallerErrorQueueFull;
     }
@@ -262,7 +262,30 @@ static JsAppInstallerError handle_cancel(JsAppInstaller* instance, JsAppInstalle
     furi_assert(instance);
     furi_assert(message);
 
-    JsAppInstallerError error = JsAppInstallerErrorNone;
+    JsAppInstallerError error = JsAppInstallerErrorNotFound;
+    const JsAppInstallerMsgCancel* msg = &message->cancel;
+
+    if(msg->is_clear_all) {
+        // TODO: Cancel current item separately
+        JsAppInstallerOperationQueue_reset(instance->operation_queue);
+        error = JsAppInstallerErrorNone;
+
+    } else {
+        // TODO: Check if current item_id matches the requested id and cancel it
+        JsAppInstallerOperationQueue_it_t it;
+
+        for(JsAppInstallerOperationQueue_it(it, instance->operation_queue);
+            !JsAppInstallerOperationQueue_end_p(it);
+            JsAppInstallerOperationQueue_next(it)) {
+            JsAppInstallerQueueItem* item = JsAppInstallerOperationQueue_ref(it);
+
+            if(item->id == msg->item_id) {
+                JsAppInstallerOperationQueue_remove(instance->operation_queue, it);
+                error = JsAppInstallerErrorNone;
+                break;
+            }
+        }
+    }
 
     return error;
 }
@@ -353,7 +376,7 @@ static void message_queue_callback(FuriEventLoopObject* object, void* context) {
 
         *msg.error = handler(instance, &msg);
 
-        if(msg.api_lock) {
+        if(msg.api_lock != NULL) {
             api_lock_unlock(msg.api_lock);
         }
     }
