@@ -20,6 +20,7 @@
         <AutoUpdateSuccessModal />
         <FileUpdateUploadModal />
         <TabDrawToolLeaveEditorModal />
+        <TelemetryConsentModal />
 
         <div class="w-full relative flex flex-col items-center xl:items-start gap-4 xl:grid xl:grid-cols-[160px_auto_160px] xl:gap-0">
           <DefaultLayoutTabs />
@@ -53,6 +54,7 @@ const firmwareStore = useFirmwareStore();
 const wifiStore = useWifiStore();
 const stateStreamStore = useStateStreamStore();
 const configStore = useConfigStore();
+const telemetryStore = useTelemetryStore();
 const route = useRoute();
 const tabStore = useTabStore();
 
@@ -89,6 +91,8 @@ async function init () {
     }
 
     await initStateStream();
+
+    telemetryStore.fetchTelemetry();
 
     if (hasPathQuery()) {
       tabStore.showHiddenTabs = true;
