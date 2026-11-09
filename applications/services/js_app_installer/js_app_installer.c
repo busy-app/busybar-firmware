@@ -10,12 +10,10 @@
 
 #define TAG "JsAppInstaller"
 
-#define MAX_MESSAGES   4
-#define MAX_OPERATIONS 100
+#define API_QUEUE_SIZE   1
+#define EVENT_QUEUE_SIZE 1
 
-typedef enum {
-    JsAppInstallerCustomEventOperationFinished = 1UL << 0,
-} JsAppInstallerCustomEvent;
+#define PENDING_QUEUE_MAX_SIZE 100
 
 typedef JsAppInstallerError (*MessageHandler)(JsAppInstaller* instance, JsAppInstallerMsg* message);
 
@@ -215,10 +213,9 @@ static void operation_event_callback(const JsAppInstallerOperationEvent* event, 
     furi_assert(context);
     JsAppInstaller* instance = context;
 
-    if(event->type == JsAppInstallerOperationEventTypeFinished) {
-        furi_event_loop_set_custom_event(
-            instance->event_loop, JsAppInstallerCustomEventOperationFinished);
-    }
+    const FuriStatus status = furi_message_queue_put(instance->event_queue, event, 10000);
+    // TODO: Come up with a better solution?
+    furi_check(status == FuriStatusOk);
 }
 
 static void run_next_operation(JsAppInstaller* instance) {
@@ -244,6 +241,13 @@ static void run_next_operation(JsAppInstaller* instance) {
         js_app_installer_get_operation_name(item->type),
         furi_string_get_cstr(item->app_id),
         item->id);
+}
+
+static void handle_operation_progress(
+    JsAppInstaller* instance,
+    const JsAppInstallerOperationEventProgress* progress) {
+    instance->current_detail = progress->detail;
+    // TODO: Emit update event
 }
 
 static void handle_operation_finished(JsAppInstaller* instance) {
@@ -273,7 +277,7 @@ static JsAppInstallerError
     enqueue_operation(JsAppInstaller* instance, JsAppInstallerQueueItem* item) {
     JsAppInstallerError error = JsAppInstallerErrorNone;
 
-    if(JsAppInstallerOperationQueue_size(instance->pending_queue) < MAX_OPERATIONS) {
+    if(JsAppInstallerOperationQueue_size(instance->pending_queue) < PENDING_QUEUE_MAX_SIZE) {
         item->id = instance->operation_id_counter++;
         JsAppInstallerOperationQueue_push_back(instance->pending_queue, item);
 
@@ -453,12 +457,20 @@ static void message_queue_callback(FuriEventLoopObject* object, void* context) {
     }
 }
 
-static void custom_event_callback(uint32_t events, void* context) {
+static void event_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
-    JsAppInstaller* instance = context;
 
-    if(events & JsAppInstallerCustomEventOperationFinished) {
-        handle_operation_finished(instance);
+    JsAppInstaller* instance = context;
+    furi_assert(object == instance->event_queue);
+
+    JsAppInstallerOperationEvent event;
+    while(furi_message_queue_get(instance->event_queue, &event, 0) == FuriStatusOk) {
+        const JsAppInstallerOperationEventType event_type = event.type;
+        if(event_type == JsAppInstallerOperationEventTypeProgress) {
+            handle_operation_progress(instance, &event.progress);
+        } else if(event_type == JsAppInstallerOperationEventTypeFinished) {
+            handle_operation_finished(instance);
+        }
     }
 }
 
@@ -466,7 +478,9 @@ static JsAppInstaller* js_app_installer_alloc(void) {
     JsAppInstaller* instance = malloc(sizeof(JsAppInstaller));
 
     instance->event_loop = furi_event_loop_alloc();
-    instance->msg_queue = furi_message_queue_alloc(MAX_MESSAGES, sizeof(JsAppInstallerMsg));
+    instance->msg_queue = furi_message_queue_alloc(API_QUEUE_SIZE, sizeof(JsAppInstallerMsg));
+    instance->event_queue =
+        furi_message_queue_alloc(EVENT_QUEUE_SIZE, sizeof(JsAppInstallerOperationEvent));
 
     instance->staged_install_key = 0;
     instance->staged_app_path = NULL;
@@ -481,8 +495,12 @@ static JsAppInstaller* js_app_installer_alloc(void) {
         message_queue_callback,
         instance);
 
-    furi_event_loop_set_custom_event_callback(
-        instance->event_loop, custom_event_callback, instance);
+    furi_event_loop_subscribe_message_queue(
+        instance->event_loop,
+        instance->event_queue,
+        FuriEventLoopEventIn,
+        event_queue_callback,
+        instance);
 
     furi_record_create(RECORD_JS_APP_INSTALLER, instance);
 
