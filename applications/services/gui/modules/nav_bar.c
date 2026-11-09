@@ -3,8 +3,6 @@
 
 #include <m-array.h>
 
-#include <toolbox/m_cstr_dup.h>
-
 #define MY_CLASS (&nav_bar_lvgl_class)
 
 #define COLOR_INACTIVE 777777
@@ -15,13 +13,26 @@
 
 #define BREADCRUMBS_SPACER "\u200A"
 
-ARRAY_DEF(LocationStack, const char*, M_CSTR_DUP_OPLIST);
+#define NAV_BAR_M_CSTR_DUP_UPR_INIT_SET(a, b) ((a) = strupr(strdup(b)))
+#define NAV_BAR_M_CSTR_DUP_UPR_CLEAR(a)       (free((void*)a))
+#define NAV_BAR_M_CSTR_DUP_UPR_SET(a, b) \
+    (NAV_BAR_M_CSTR_DUP_UPR_CLEAR(a), NAV_BAR_M_CSTR_DUP_UPR_INIT_SET(a, b))
+
+#define NAV_BAR_M_CSTR_DUP_UPR_OPLIST           \
+    (INIT_SET(NAV_BAR_M_CSTR_DUP_UPR_INIT_SET), \
+     CLEAR(NAV_BAR_M_CSTR_DUP_UPR_CLEAR),       \
+     SET(NAV_BAR_M_CSTR_DUP_UPR_SET),           \
+     TYPE(const char*))
+
+ARRAY_DEF(LocationStack, const char*, NAV_BAR_M_CSTR_DUP_UPR_OPLIST);
 
 struct NavBar {
     Widget base;
     lv_obj_t* header_image;
     lv_obj_t* header_label;
     lv_obj_t* breadcrumbs_label;
+
+    char* header_text;
 
     LocationStack_t locations;
 };
@@ -59,6 +70,8 @@ static void nav_bar_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* ob
     lv_obj_set_style_pad_top(instance->breadcrumbs_label, 1, LV_PART_MAIN);
     lv_obj_add_flag(instance->breadcrumbs_label, LV_OBJ_FLAG_HIDDEN);
 
+    instance->header_text = NULL;
+
     LocationStack_init(instance->locations);
 }
 
@@ -67,6 +80,7 @@ static void nav_bar_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj
 
     NavBar* instance = (NavBar*)obj;
     LocationStack_clear(instance->locations);
+    free(instance->header_text);
 }
 
 /* implementation */
@@ -134,9 +148,13 @@ void nav_bar_set_header_image(NavBar* instance, const char* file_path) {
 void nav_bar_set_header_text(NavBar* instance, const char* text) {
     furi_check(instance);
 
+    free(instance->header_text);
+
     if(text) {
-        lv_label_set_text(instance->header_label, text);
+        instance->header_text = strupr(strdup(text));
+        lv_label_set_text_static(instance->header_label, instance->header_text);
     } else {
+        instance->header_text = NULL;
         lv_label_set_text_static(instance->header_label, "");
     }
 }
