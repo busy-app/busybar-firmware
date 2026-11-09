@@ -15,8 +15,6 @@
 
 typedef JsAppInstallerError (*MessageHandler)(JsAppInstaller* instance, JsAppInstallerMsg* message);
 
-static void message_queue_callback(FuriEventLoopObject* object, void* context);
-
 static bool prepare_staging_folder(Storage* storage) {
     if(!storage_simply_remove_recursive(storage, JS_APP_STAGING_PATH)) {
         FURI_LOG_E(TAG, "Cannot remove " JS_APP_STAGING_PATH);
@@ -317,41 +315,6 @@ static JsAppInstallerError handle_get_queue(JsAppInstaller* instance, JsAppInsta
     return JsAppInstallerErrorNone;
 }
 
-static JsAppInstaller* js_app_installer_alloc(void) {
-    JsAppInstaller* instance = malloc(sizeof(JsAppInstaller));
-
-    instance->event_loop = furi_event_loop_alloc();
-    instance->msg_queue = furi_message_queue_alloc(MAX_MESSAGES, sizeof(JsAppInstallerMsg));
-
-    instance->staged_install_key = 0;
-    instance->staged_app_path = NULL;
-
-    JsAppInstallerOperationQueue_init(instance->operation_queue);
-
-    furi_event_loop_subscribe_message_queue(
-        instance->event_loop,
-        instance->msg_queue,
-        FuriEventLoopEventIn,
-        message_queue_callback,
-        instance);
-
-    furi_record_create(RECORD_JS_APP_INSTALLER, instance);
-
-    return instance;
-}
-
-static void js_app_installer_free(JsAppInstaller* instance) {
-    furi_event_loop_unsubscribe(instance->event_loop, instance->msg_queue);
-    furi_message_queue_free(instance->msg_queue);
-    furi_event_loop_free(instance->event_loop);
-
-    if(instance->staged_app_path) {
-        furi_string_free(instance->staged_app_path);
-    }
-    furi_record_destroy(RECORD_JS_APP_INSTALLER);
-    free(instance);
-}
-
 static const MessageHandler msg_handlers[] = {
     [JsAppInstallerCmdStage] = handle_stage,
     [JsAppInstallerCmdInstall] = handle_install,
@@ -382,12 +345,34 @@ static void message_queue_callback(FuriEventLoopObject* object, void* context) {
     }
 }
 
-int32_t js_app_installer_app(void* arg) {
+static JsAppInstaller* js_app_installer_alloc(void) {
+    JsAppInstaller* instance = malloc(sizeof(JsAppInstaller));
+
+    instance->event_loop = furi_event_loop_alloc();
+    instance->msg_queue = furi_message_queue_alloc(MAX_MESSAGES, sizeof(JsAppInstallerMsg));
+
+    instance->staged_install_key = 0;
+    instance->staged_app_path = NULL;
+
+    JsAppInstallerOperationQueue_init(instance->operation_queue);
+
+    furi_event_loop_subscribe_message_queue(
+        instance->event_loop,
+        instance->msg_queue,
+        FuriEventLoopEventIn,
+        message_queue_callback,
+        instance);
+
+    furi_record_create(RECORD_JS_APP_INSTALLER, instance);
+
+    return instance;
+}
+
+int32_t js_app_installer_srv(void* arg) {
     UNUSED(arg);
 
     JsAppInstaller* instance = js_app_installer_alloc();
     furi_event_loop_run(instance->event_loop);
-    js_app_installer_free(instance);
 
     return 0;
 }
