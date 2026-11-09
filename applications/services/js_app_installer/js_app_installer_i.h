@@ -74,6 +74,7 @@ struct JsAppInstaller {
     uint32_t staged_install_key;
     FuriString* staged_app_path;
     uint32_t operation_id_counter;
+    JsAppInstallerQueueItem* current_item;
     JsAppInstallerOperation* current_operation;
-    JsAppInstallerOperationQueue_t operation_queue;
+    JsAppInstallerOperationQueue_t pending_queue;
 };
