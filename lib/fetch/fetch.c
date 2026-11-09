@@ -1,4 +1,5 @@
 #include "fetch.h"
+#include "fetch_chunked.h"
 
 #include <network/network.h>
 #include <toolbox/timers.h>
@@ -15,6 +16,7 @@
     "AppleWebKit/537.36 (KHTML, like Gecko) "    \
     "Chrome/138.0.0.0 Safari/537.36"
 
+#define FETCH_DEBUG
 #ifdef FETCH_DEBUG
 #define FETCH_LOG_I(...) FURI_LOG_I(__VA_ARGS__)
 #define FETCH_LOG_E(...) FURI_LOG_E(__VA_ARGS__)
@@ -31,6 +33,8 @@ struct Fetch {
     struct mg_mgr mgr;
     const FetchRequest* request;
     FetchProgress progress;
+
+    FetchChunked* chunked;
 
     uint32_t started_raw_ticks;
     uint32_t started_download_ticks;
@@ -84,12 +88,22 @@ static void fetch_consume_rx_data(struct mg_connection* conn, size_t length) {
     mg_iobuf_del(&conn->recv, 0, length);
 }
 
+static void fetch_on_data(SizedBufferConst data, void* context);
+static void fetch_on_data_error(void* context);
+
 static void fetch_switch_to_raw_protocol(
     Fetch* instance,
     struct mg_connection* conn,
     const struct mg_http_message* msg) {
     const int32_t body_length = (int32_t)msg->body.len;
     FETCH_LOG_I(TAG, "body size: %ld", body_length);
+
+    struct mg_str* transfer_encoding =
+        mg_http_get_header((struct mg_http_message*)msg, "transfer-encoding");
+    if(transfer_encoding && mg_strcasecmp(*transfer_encoding, mg_str("chunked")) == 0) {
+        furi_assert(instance->chunked == NULL);
+        instance->chunked = fetch_chunked_alloc(fetch_on_data, fetch_on_data_error, instance);
+    }
 
     instance->started_raw_ticks = furi_get_tick();
     instance->started_download_ticks = instance->started_raw_ticks;
@@ -137,7 +151,7 @@ static void fetch_send_request_method(const FetchRequest* request, struct mg_con
         method = "GET";
     }
 
-    mg_printf(conn, "%s %s HTTP/1.0\r\n", method, uri);
+    mg_printf(conn, "%s %s HTTP/1.1\r\n", method, uri);
 }
 
 static void fetch_send_request_headers(const FetchRequest* request, struct mg_connection* conn) {
@@ -208,23 +222,11 @@ static FURI_ALWAYS_INLINE void
     fetch_switch_to_raw_protocol(instance, conn, msg);
 }
 
-static FURI_ALWAYS_INLINE void fetch_read_event(Fetch* instance, struct mg_connection* conn) {
-    FETCH_LOG_I(TAG, "MG_EV_READ");
+static void fetch_on_data(SizedBufferConst data, void* context) {
+    Fetch* instance = context;
 
-    if(conn->pfn) {
-        // Ignore read events if the protocol handler function is still set
-        return;
-    }
-
-    struct mg_iobuf* recv = &conn->recv;
-    const size_t recv_len = recv->len;
-
-    FETCH_LOG_I(TAG, "Received %zu bytes", recv_len);
-
-    instance->activity_timer = coarse_timer_create(FETCH_INACTIVITY_TIMEOUT_MS);
-    instance->progress.received_download_size += recv_len;
-    instance->delta_received_bytes += recv_len;
-    instance->count_receive_packets++;
+    instance->progress.received_download_size += data.size;
+    instance->delta_received_bytes += data.size;
 
     if((instance->count_receive_packets % (12 * 8)) == 0) {
         instance->progress.speed_bytes_per_sec =
@@ -240,12 +242,50 @@ static FURI_ALWAYS_INLINE void fetch_read_event(Fetch* instance, struct mg_conne
     }
 
     if(instance->rx_data_callback) {
-        instance->rx_data_callback(recv->buf, recv_len, instance->callback_context);
+        instance->rx_data_callback(data.buffer, data.size, instance->callback_context);
     }
+}
+
+static void fetch_on_data_error(void* context) {
+    Fetch* instance = context;
+    fetch_raise_error(instance, "Chunked transfer error");
+}
+
+static bool fetch_process_packet(Fetch* instance, SizedBufferConst packet) {
+    if(instance->chunked) {
+        return fetch_chunked_process(instance->chunked, packet);
+    } else {
+        fetch_on_data(packet, instance);
+        return fetch_is_rx_complete(instance);
+    }
+}
+
+static FURI_ALWAYS_INLINE void fetch_read_event(Fetch* instance, struct mg_connection* conn) {
+    FETCH_LOG_I(TAG, "MG_EV_READ");
+
+    if(conn->pfn) {
+        // Ignore read events if the protocol handler function is still set
+        return;
+    }
+
+    struct mg_iobuf* recv = &conn->recv;
+    const size_t recv_len = recv->len;
+
+    FETCH_LOG_I(TAG, "Received %zu bytes", recv_len);
+
+    instance->activity_timer = coarse_timer_create(FETCH_INACTIVITY_TIMEOUT_MS);
+    instance->count_receive_packets++;
+
+    bool is_complete = fetch_process_packet(
+        instance,
+        (SizedBufferConst){
+            .buffer = recv->buf,
+            .size = recv_len,
+        });
 
     fetch_consume_rx_data(conn, recv_len);
 
-    if(fetch_is_rx_complete(instance)) {
+    if(is_complete) {
         conn->is_draining = 1;
     }
 }
@@ -321,6 +361,11 @@ static void fetch_reset(Fetch* instance) {
     instance->count_receive_packets = 0;
     instance->is_error_occurred = false;
     instance->is_stop_requested = false;
+
+    if(instance->chunked) {
+        fetch_chunked_free(instance->chunked);
+        instance->chunked = NULL;
+    }
 }
 
 static bool fetch_verify_response_body_size(Fetch* instance) {
