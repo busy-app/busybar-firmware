@@ -31,6 +31,25 @@ typedef struct {
     JsAppInstallerAppVersion version;
 } JsAppInstallerSourceInfo;
 
+typedef enum {
+    JsAppInstallerOperationStatusPending,
+    JsAppInstallerOperationStatusInProgress,
+} JsAppInstallerOperationStatus;
+
+typedef struct {
+    const char* step;
+    bool has_progress;
+    uint32_t progress;
+} JsAppInstallerOperationDetail;
+
+typedef struct {
+    uint32_t item_id;
+    JsAppInstallerAppInfo app_info;
+    JsAppInstallerOperationType type;
+    JsAppInstallerOperationStatus status;
+    JsAppInstallerOperationDetail detail;
+} JsAppInstallerOperationInfo;
+
 const char* js_app_installer_get_operation_name(JsAppInstallerOperationType type);
 
 #ifdef __cplusplus

@@ -16,7 +16,12 @@ typedef struct {
 
 JsAppInstallerQueueItem*
     js_app_installer_queue_item_alloc(const char* app_id, JsAppInstallerOperationType type, ...);
+
 void js_app_installer_queue_item_free(JsAppInstallerQueueItem* instance);
+
+void js_app_installer_queue_item_get_partial_info(
+    const JsAppInstallerQueueItem* instance,
+    JsAppInstallerOperationInfo* info);
 
 #define JS_APP_INSTALLER_QUEUE_ITEM_DEL(a) js_app_installer_queue_item_free(a)
 #define JS_APP_INSTALLER_QUEUE_ITEM_OPLIST \

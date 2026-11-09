@@ -41,33 +41,6 @@ typedef struct {
     uint32_t item_id;
 } JsAppInstallerOperationResult;
 
-typedef enum {
-    JsAppInstallerOperationStatusPending,
-    JsAppInstallerOperationStatusInProgress,
-} JsAppInstallerOperationStatus;
-
-typedef enum {
-    JsAppInstallerOperationStepTypeDownloading,
-    JsAppInstallerOperationStepTypeUnpacking,
-    JsAppInstallerOperationStepTypeRemoving,
-    // TODO: More step types
-    JsAppInstallerOperationStepTypeMax,
-} JsAppInstallerOperationStepType;
-
-typedef struct {
-    JsAppInstallerOperationStepType step;
-    bool has_progress;
-    uint32_t progress;
-} JsAppInstallerOperationDetail;
-
-typedef struct {
-    uint32_t item_id;
-    JsAppInstallerAppInfo app_info;
-    JsAppInstallerOperationType type;
-    JsAppInstallerOperationStatus status;
-    JsAppInstallerOperationDetail detail;
-} JsAppInstallerOperationInfo;
-
 typedef void (
     *JsAppInstallerOperationInfoCallback)(const JsAppInstallerOperationInfo* info, void* context);
 

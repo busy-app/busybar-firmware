@@ -76,5 +76,6 @@ struct JsAppInstaller {
     uint32_t operation_id_counter;
     JsAppInstallerQueueItem* current_item;
     JsAppInstallerOperation* current_operation;
+    JsAppInstallerOperationDetail current_detail;
     JsAppInstallerOperationQueue_t pending_queue;
 };

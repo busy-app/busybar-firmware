@@ -42,3 +42,23 @@ void js_app_installer_queue_item_free(JsAppInstallerQueueItem* instance) {
 
     free(instance);
 }
+
+void js_app_installer_queue_item_get_partial_info(
+    const JsAppInstallerQueueItem* instance,
+    JsAppInstallerOperationInfo* info) {
+    furi_assert(instance);
+    furi_assert(info);
+    /* clang-format off */
+    const JsAppInstallerOperationInfo operation_info = {
+        .item_id = instance->id,
+        .app_info = {
+            .app_id = furi_string_get_cstr(instance->app_id),
+            .version = instance->app_version,
+        },
+        .type = instance->type,
+        .status = JsAppInstallerOperationStatusPending,
+        .detail = {0},
+    };
+    /* clang-format on */
+    *info = operation_info;
+}

@@ -396,10 +396,16 @@ static JsAppInstallerError handle_get_queue(JsAppInstaller* instance, JsAppInsta
     furi_assert(message);
 
     const JsAppInstallerMsgGetQueue* msg = &message->get_queue;
-
     const JsAppInstallerQueueItem* current_item = instance->current_item;
+
     if(current_item != NULL) {
-        // TODO: Special case for the current item
+        JsAppInstallerOperationInfo operation_info;
+        js_app_installer_queue_item_get_partial_info(current_item, &operation_info);
+
+        operation_info.status = JsAppInstallerOperationStatusInProgress;
+        operation_info.detail = instance->current_detail;
+
+        msg->callback(&operation_info, msg->callback_context);
     }
 
     JsAppInstallerOperationQueue_it_ct it;
@@ -407,16 +413,10 @@ static JsAppInstallerError handle_get_queue(JsAppInstaller* instance, JsAppInsta
         !JsAppInstallerOperationQueue_end_p(it);
         JsAppInstallerOperationQueue_next(it)) {
         const JsAppInstallerQueueItem* item = JsAppInstallerOperationQueue_ref(it);
-        /* clang-format off */
-        const JsAppInstallerOperationInfo operation_info = {
-            .type = item->type,
-            .item_id = item->id,
-            .app_info = {
-                .app_id = furi_string_get_cstr(item->app_id),
-                .version = item->app_version,
-            },
-        };
-        /* clang-format on */
+
+        JsAppInstallerOperationInfo operation_info;
+        js_app_installer_queue_item_get_partial_info(item, &operation_info);
+
         msg->callback(&operation_info, msg->callback_context);
     }
 

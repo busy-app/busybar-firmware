@@ -1,5 +1,7 @@
 #pragma once
 
+#include "js_app_installer_common.h"
+
 typedef struct JsAppInstallerOperation JsAppInstallerOperation;
 
 typedef enum {
@@ -8,8 +10,7 @@ typedef enum {
 } JsAppInstallerOperationEventType;
 
 typedef struct {
-    // TODO: Implementation
-    char dummy;
+    JsAppInstallerOperationDetail detail;
 } JsAppInstallerOperationEventProgress;
 
 typedef struct {

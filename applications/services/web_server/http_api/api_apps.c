@@ -755,20 +755,6 @@ static bool api_apps_settings_callback(
     return true;
 }
 
-static const char* api_apps_queue_get_step_type_string(JsAppInstallerOperationStepType step_type) {
-    furi_assert(step_type < JsAppInstallerOperationStepTypeMax);
-
-    static const char* const step_types_table[] = {
-        [JsAppInstallerOperationStepTypeDownloading] = "downloading",
-        [JsAppInstallerOperationStepTypeUnpacking] = "unpacking",
-        [JsAppInstallerOperationStepTypeRemoving] = "removing",
-    };
-
-    static_assert(COUNT_OF(step_types_table) == JsAppInstallerOperationStepTypeMax);
-
-    return step_types_table[step_type];
-}
-
 static void api_apps_queue_item_operation_format(
     cJSON* item_json,
     JsAppInstallerOperationType operation_type,
@@ -797,8 +783,9 @@ static void api_apps_queue_item_detail_format(
     cJSON* item_json,
     const JsAppInstallerOperationDetail* detail) {
     cJSON* detail_json = cJSON_AddObjectToObject(item_json, DETAIL_KEY);
-    cJSON_AddStringToObject(
-        detail_json, DETAIL_STEP_KEY, api_apps_queue_get_step_type_string(detail->step));
+
+    furi_check(detail->step);
+    cJSON_AddStringToObject(detail_json, DETAIL_STEP_KEY, detail->step);
 
     if(detail->has_progress) {
         cJSON_AddNumberToObject(detail_json, DETAIL_PROGRESS_KEY, detail->progress);
