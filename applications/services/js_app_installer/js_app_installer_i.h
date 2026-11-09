@@ -2,6 +2,7 @@
 
 #include "js_app_installer.h"
 #include "js_app_installer_queue.h"
+#include "js_app_installer_operation.h"
 
 #include <toolbox/api_lock.h>
 
@@ -73,5 +74,6 @@ struct JsAppInstaller {
     uint32_t staged_install_key;
     FuriString* staged_app_path;
     uint32_t operation_id_counter;
+    JsAppInstallerOperation* current_operation;
     JsAppInstallerOperationQueue_t operation_queue;
 };

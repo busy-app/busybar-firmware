@@ -14,7 +14,7 @@
 #define MAX_OPERATIONS 100
 
 typedef enum {
-    JsAppInstallerCustomEventNextOperation = 1UL << 0,
+    JsAppInstallerCustomEventOperationFinished = 1UL << 0,
 } JsAppInstallerCustomEvent;
 
 typedef JsAppInstallerError (*MessageHandler)(JsAppInstaller* instance, JsAppInstallerMsg* message);
@@ -210,8 +210,31 @@ static JsAppInstallerError
     return error;
 }
 
+static void operation_event_callback(const JsAppInstallerOperationEvent* event, void* context) {
+    furi_assert(event);
+    furi_assert(context);
+    JsAppInstaller* instance = context;
+
+    if(event->type == JsAppInstallerOperationEventTypeFinished) {
+        furi_event_loop_set_custom_event(
+            instance->event_loop, JsAppInstallerCustomEventOperationFinished);
+    }
+}
+
 static void run_next_operation(JsAppInstaller* instance) {
+    furi_check(instance->current_operation == NULL);
+
+    if(JsAppInstallerOperationQueue_empty_p(instance->operation_queue)) {
+        FURI_LOG_D(TAG, "Queue empty");
+        return;
+    }
+
     JsAppInstallerQueueItem* item = JsAppInstallerOperationQueue_front(instance->operation_queue);
+    JsAppInstallerOperation* operation = js_app_installer_operation_alloc();
+    js_app_installer_operation_set_callback(operation, operation_event_callback, instance);
+    js_app_installer_operation_start(operation);
+
+    instance->current_operation = operation;
 
     FURI_LOG_D(
         TAG,
@@ -219,8 +242,28 @@ static void run_next_operation(JsAppInstaller* instance) {
         js_app_installer_get_operation_name(item->type),
         furi_string_get_cstr(item->app_id),
         item->id);
+}
 
-    // TODO: Actually execute the operation
+static void handle_operation_finished(JsAppInstaller* instance) {
+    JsAppInstallerOperation* operation = instance->current_operation;
+    furi_check(operation != NULL);
+
+    JsAppInstallerQueueItem* item =
+        JsAppInstallerOperationQueue_pop_front(instance->operation_queue);
+
+    FURI_LOG_D(
+        TAG,
+        "Operation finished: %s %s (%lu)",
+        js_app_installer_get_operation_name(item->type),
+        furi_string_get_cstr(item->app_id),
+        item->id);
+
+    js_app_installer_queue_item_free(item);
+
+    js_app_installer_operation_free(operation);
+    instance->current_operation = NULL;
+
+    run_next_operation(instance);
 }
 
 static JsAppInstallerError
@@ -231,8 +274,9 @@ static JsAppInstallerError
         item->id = instance->operation_id_counter++;
         JsAppInstallerOperationQueue_push_back(instance->operation_queue, item);
 
-        // TODO: check if another operation is already in progress
-        furi_event_loop_set_custom_event(instance->event_loop, JsAppInstallerCustomEventNextOperation);
+        if(instance->current_operation == NULL) {
+            run_next_operation(instance);
+        }
 
     } else {
         error = JsAppInstallerErrorQueueFull;
@@ -370,8 +414,8 @@ static void custom_event_callback(uint32_t events, void* context) {
     furi_assert(context);
     JsAppInstaller* instance = context;
 
-    if(events & JsAppInstallerCustomEventNextOperation) {
-        run_next_operation(instance);
+    if(events & JsAppInstallerCustomEventOperationFinished) {
+        handle_operation_finished(instance);
     }
 }
 
@@ -383,6 +427,7 @@ static JsAppInstaller* js_app_installer_alloc(void) {
 
     instance->staged_install_key = 0;
     instance->staged_app_path = NULL;
+    instance->current_operation = NULL;
 
     JsAppInstallerOperationQueue_init(instance->operation_queue);
 
