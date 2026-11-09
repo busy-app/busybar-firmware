@@ -11,6 +11,8 @@
 #define COLOR_INACTIVE_HEX CONCATENATE(0x, COLOR_INACTIVE)
 #define COLOR_ACTIVE_HEX   CONCATENATE(0x, COLOR_ACTIVE)
 
+#define NAV_BAR_FADER_WIDTH 10
+
 #define NAV_BAR_BREADCRUMBS_SPACER   "\u200A"
 #define NAV_BAR_BREADCRUMBS_ELLIPSIS "..."
 #define NAV_BAR_BREADCRUMBS_OVERFLOW 5
@@ -40,6 +42,25 @@ struct NavBar {
 };
 
 const lv_obj_class_t nav_bar_lvgl_class;
+
+static const lv_draw_rect_dsc_t nav_bar_fader_descriptor = {
+    .bg_opa = LV_OPA_COVER,
+    .bg_grad.dir = LV_GRAD_DIR_HOR,
+    .bg_grad.stops_count = 2,
+    .bg_grad.stops =
+        {
+            {
+                .color = LV_COLOR_MAKE(0x00, 0x00, 0x00),
+                .opa = LV_OPA_TRANSP,
+                .frac = 0,
+            },
+            {
+                .color = LV_COLOR_MAKE(0x00, 0x00, 0x00),
+                .opa = LV_OPA_COVER,
+                .frac = 0xFF,
+            },
+        },
+};
 
 /* implementation */
 
@@ -109,12 +130,30 @@ static void nav_bar_update_breadcrumbs(NavBar* instance) {
     }
 }
 
+static void nav_bar_draw_fader(lv_obj_t* object, lv_layer_t* layer) {
+    lv_area_t object_coords;
+    lv_obj_get_coords(object, &object_coords);
+
+    lv_area_t fader_area = {
+        .x1 = object_coords.x2 - NAV_BAR_FADER_WIDTH + 1,
+        .x2 = object_coords.x2,
+        .y1 = object_coords.y1,
+        .y2 = object_coords.y2,
+    };
+
+    lv_draw_rect(layer, &nav_bar_fader_descriptor, &fader_area);
+}
+
 /* LVGL-specific code */
 
 static void nav_bar_lvgl_event(const lv_obj_class_t* class, lv_event_t* event) {
-    if(lv_event_get_code(event) == LV_EVENT_SIZE_CHANGED) {
+    lv_event_code_t event_code = lv_event_get_code(event);
+
+    if(event_code == LV_EVENT_SIZE_CHANGED) {
         NavBar* instance = lv_event_get_current_target(event);
         nav_bar_update_breadcrumbs(instance);
+    } else if(event_code == LV_EVENT_DRAW_POST) {
+        nav_bar_draw_fader(lv_event_get_target_obj(event), lv_event_get_layer(event));
     }
 
     lv_obj_event_base(class, event);
