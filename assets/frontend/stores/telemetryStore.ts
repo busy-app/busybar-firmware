@@ -16,6 +16,7 @@ function isTelemetryState (value: unknown): value is TelemetryState {
 export const useTelemetryStore = defineStore('telemetry', () => {
   const { apiRequest } = useApiStore();
   const configStore = useConfigStore();
+  const wifiStore = useWifiStore();
 
   const isSupported = ref(false);
   const enabled = ref(false);
@@ -23,9 +24,17 @@ export const useTelemetryStore = defineStore('telemetry', () => {
   const saving = ref(false);
   const showConsentModal = ref(false);
 
+  const isWifiConnected = computed(() => wifiStore.wifi?.state === 'connected');
+
   function applyState (state: TelemetryState) {
     enabled.value = state.enabled;
     asked.value = state.asked;
+  }
+
+  function showConsentIfNeeded () {
+    if (isSupported.value && !asked.value && isWifiConnected.value) {
+      showConsentModal.value = true;
+    }
   }
 
   async function fetchTelemetry () {
@@ -47,9 +56,7 @@ export const useTelemetryStore = defineStore('telemetry', () => {
       return;
     }
 
-    if (!asked.value) {
-      showConsentModal.value = true;
-    }
+    showConsentIfNeeded();
   }
 
   async function saveTelemetry (state: TelemetryState) {
@@ -85,6 +92,12 @@ export const useTelemetryStore = defineStore('telemetry', () => {
   async function disable () {
     await saveTelemetry({ enabled: false, asked: true });
   }
+
+  watch(isWifiConnected, isConnected => {
+    if (isConnected) {
+      showConsentIfNeeded();
+    }
+  });
 
   return {
     isSupported,
