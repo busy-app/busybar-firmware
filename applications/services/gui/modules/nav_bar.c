@@ -11,7 +11,9 @@
 #define COLOR_INACTIVE_HEX CONCATENATE(0x, COLOR_INACTIVE)
 #define COLOR_ACTIVE_HEX   CONCATENATE(0x, COLOR_ACTIVE)
 
-#define BREADCRUMBS_SPACER "\u200A"
+#define NAV_BAR_BREADCRUMBS_SPACER   "\u200A"
+#define NAV_BAR_BREADCRUMBS_ELLIPSIS "..."
+#define NAV_BAR_BREADCRUMBS_OVERFLOW 5
 
 #define NAV_BAR_M_CSTR_DUP_UPR_INIT_SET(a, b) ((a) = strupr(strdup(b)))
 #define NAV_BAR_M_CSTR_DUP_UPR_CLEAR(a)       (free((void*)a))
@@ -39,7 +41,84 @@ struct NavBar {
 
 const lv_obj_class_t nav_bar_lvgl_class;
 
+/* implementation */
+
+static void nav_bar_build_breadcrumbs_text(NavBar* instance, size_t start_idx, FuriString* text) {
+    furi_string_set(text, ">");
+
+    if(start_idx > 0) {
+        furi_string_cat_printf(
+            text,
+            NAV_BAR_BREADCRUMBS_SPACER NAV_BAR_BREADCRUMBS_ELLIPSIS NAV_BAR_BREADCRUMBS_SPACER
+            ">");
+    }
+
+    size_t last_idx = LocationStack_size(instance->locations) - 1;
+    for(size_t i = start_idx; i < last_idx; i++) {
+        furi_string_cat_printf(
+            text,
+            NAV_BAR_BREADCRUMBS_SPACER "%s" NAV_BAR_BREADCRUMBS_SPACER ">",
+            *LocationStack_get(instance->locations, i));
+    }
+
+    furi_string_cat_printf(
+        text,
+        NAV_BAR_BREADCRUMBS_SPACER "#" TOSTRING(COLOR_ACTIVE) " %s #",
+        *LocationStack_get(instance->locations, last_idx));
+}
+
+static int32_t nav_bar_get_available_width(NavBar* instance) {
+    int32_t width = lv_obj_get_content_width(TO_LV_OBJ(instance));
+
+    if(!lv_obj_has_flag(instance->header_image, LV_OBJ_FLAG_HIDDEN)) {
+        width -= lv_obj_get_self_width(instance->header_image) +
+                 lv_obj_get_style_pad_column(TO_LV_OBJ(instance), LV_PART_MAIN);
+    }
+
+    return MAX(width, 0);
+}
+
+static void nav_bar_update_breadcrumbs(NavBar* instance) {
+    if(LocationStack_size(instance->locations) > 0) {
+        int32_t available_width = nav_bar_get_available_width(instance);
+
+        FuriString* text_builder = furi_string_alloc();
+        for(size_t i = 0; i < LocationStack_size(instance->locations); i++) {
+            nav_bar_build_breadcrumbs_text(instance, i, text_builder);
+
+            int32_t text_width = lv_text_get_width_with_flags(
+                furi_string_get_cstr(text_builder),
+                furi_string_size(text_builder),
+                lv_obj_get_style_text_font(instance->breadcrumbs_label, LV_PART_MAIN),
+                lv_obj_get_style_text_letter_space(instance->breadcrumbs_label, LV_PART_MAIN),
+                LV_TEXT_FLAG_RECOLOR);
+
+            if(text_width <= available_width + NAV_BAR_BREADCRUMBS_OVERFLOW) {
+                break;
+            }
+        }
+
+        lv_label_set_text(instance->breadcrumbs_label, furi_string_get_cstr(text_builder));
+        lv_obj_remove_flag(instance->breadcrumbs_label, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(instance->header_label, LV_OBJ_FLAG_HIDDEN);
+
+        furi_string_free(text_builder);
+    } else {
+        lv_obj_add_flag(instance->breadcrumbs_label, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_remove_flag(instance->header_label, LV_OBJ_FLAG_HIDDEN);
+    }
+}
+
 /* LVGL-specific code */
+
+static void nav_bar_lvgl_event(const lv_obj_class_t* class, lv_event_t* event) {
+    if(lv_event_get_code(event) == LV_EVENT_SIZE_CHANGED) {
+        NavBar* instance = lv_event_get_current_target(event);
+        nav_bar_update_breadcrumbs(instance);
+    }
+
+    lv_obj_event_base(class, event);
+}
 
 static void nav_bar_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj) {
     UNUSED(class_p);
@@ -48,13 +127,13 @@ static void nav_bar_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* ob
     lv_obj_set_flex_flow(obj, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(obj, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
     lv_obj_set_style_pad_column(obj, 3, LV_PART_MAIN);
+    lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
 
     instance->header_image = lv_image_create(obj);
     lv_obj_add_flag(instance->header_image, LV_OBJ_FLAG_HIDDEN);
 
     instance->header_label = lv_label_create(obj);
     lv_obj_set_style_text_font(instance->header_label, lv_theme_get_font_small(obj), LV_PART_MAIN);
-    lv_obj_set_style_text_align(instance->header_label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
     lv_obj_set_style_text_color(
         instance->header_label, lv_color_hex(COLOR_INACTIVE_HEX), LV_PART_MAIN);
     lv_obj_set_style_text_letter_space(instance->header_label, 1, LV_PART_MAIN);
@@ -68,6 +147,7 @@ static void nav_bar_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* ob
     lv_label_set_recolor(instance->breadcrumbs_label, true);
     lv_obj_set_style_text_letter_space(instance->breadcrumbs_label, 1, LV_PART_MAIN);
     lv_obj_set_style_pad_top(instance->breadcrumbs_label, 1, LV_PART_MAIN);
+    lv_label_set_long_mode(instance->breadcrumbs_label, LV_LABEL_LONG_CLIP);
     lv_obj_add_flag(instance->breadcrumbs_label, LV_OBJ_FLAG_HIDDEN);
 
     instance->header_text = NULL;
@@ -81,33 +161,6 @@ static void nav_bar_lvgl_destructor(const lv_obj_class_t* class_p, lv_obj_t* obj
     NavBar* instance = (NavBar*)obj;
     LocationStack_clear(instance->locations);
     free(instance->header_text);
-}
-
-/* implementation */
-
-static void nav_bar_update_breadcrumbs(NavBar* instance) {
-    if(LocationStack_size(instance->locations) > 0) {
-        FuriString* text = furi_string_alloc_set(">");
-
-        LocationStack_it_t it;
-        LocationStack_it(it, instance->locations);
-        for(; !LocationStack_last_p(it); LocationStack_next(it)) {
-            furi_string_cat_printf(
-                text, BREADCRUMBS_SPACER "%s" BREADCRUMBS_SPACER ">", *LocationStack_cref(it));
-        }
-
-        furi_string_cat_printf(
-            text, BREADCRUMBS_SPACER "#" TOSTRING(COLOR_ACTIVE) " %s #", *LocationStack_cref(it));
-
-        lv_label_set_text(instance->breadcrumbs_label, furi_string_get_cstr(text));
-        lv_obj_remove_flag(instance->breadcrumbs_label, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(instance->header_label, LV_OBJ_FLAG_HIDDEN);
-
-        furi_string_free(text);
-    } else {
-        lv_obj_add_flag(instance->breadcrumbs_label, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_remove_flag(instance->header_label, LV_OBJ_FLAG_HIDDEN);
-    }
 }
 
 /* public API */
@@ -143,6 +196,8 @@ void nav_bar_set_header_image(NavBar* instance, const char* file_path) {
         lv_obj_add_flag(instance->header_image, LV_OBJ_FLAG_HIDDEN);
         lv_image_set_src(instance->header_image, NULL);
     }
+
+    nav_bar_update_breadcrumbs(instance);
 }
 
 void nav_bar_set_header_text(NavBar* instance, const char* text) {
@@ -188,6 +243,7 @@ const lv_obj_class_t nav_bar_lvgl_class = {
     .base_class = &widget_lvgl_class,
     .constructor_cb = nav_bar_lvgl_constructor,
     .destructor_cb = nav_bar_lvgl_destructor,
+    .event_cb = nav_bar_lvgl_event,
     .name = "widget-nav-bar",
     .width_def = LV_PCT(100),
     .height_def = LV_SIZE_CONTENT,
