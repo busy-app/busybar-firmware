@@ -1,8 +1,9 @@
 #pragma once
 
-#include "js_app_installer.h"
-
 #include <m-i-list.h>
+#include <core/string.h>
+
+#include "js_app_installer_common.h"
 
 typedef struct {
     JsAppInstallerOperationType type;

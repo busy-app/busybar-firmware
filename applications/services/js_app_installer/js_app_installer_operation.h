@@ -1,6 +1,6 @@
 #pragma once
 
-#include "js_app_installer.h"
+#include "js_app_installer_common.h"
 
 typedef void (*JsAppInstallerOperationStepHandler)(void);
 

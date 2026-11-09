@@ -6,6 +6,8 @@
 
 #include <js_app/js_app.h>
 
+#include "js_app_installer_common.h"
+
 #define RECORD_JS_APP_INSTALLER "js_app_installer"
 
 typedef struct JsAppInstaller JsAppInstaller;
@@ -38,27 +40,6 @@ typedef struct {
     JsAppInstallerError error;
     uint32_t item_id;
 } JsAppInstallerOperationResult;
-
-typedef struct {
-    SemVer value;
-    bool is_present;
-} JsAppInstallerAppVersion;
-
-typedef struct {
-    const char* app_id;
-    JsAppInstallerAppVersion version;
-} JsAppInstallerAppInfo;
-
-typedef struct {
-    const char* url;
-    JsAppInstallerAppVersion version;
-} JsAppInstallerSourceInfo;
-
-typedef enum {
-    JsAppInstallerOperationTypeInstall,
-    JsAppInstallerOperationTypeRemove,
-    JsAppInstallerOperationTypeMax,
-} JsAppInstallerOperationType;
 
 typedef enum {
     JsAppInstallerOperationStatusPending,
