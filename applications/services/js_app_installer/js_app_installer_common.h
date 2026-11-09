@@ -31,6 +31,8 @@ typedef struct {
     JsAppInstallerAppVersion version;
 } JsAppInstallerSourceInfo;
 
+const char* js_app_installer_get_operation_name(JsAppInstallerOperationType type);
+
 #ifdef __cplusplus
 }
 #endif

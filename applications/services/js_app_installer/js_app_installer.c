@@ -13,6 +13,10 @@
 #define MAX_MESSAGES   4
 #define MAX_OPERATIONS 100
 
+typedef enum {
+    JsAppInstallerCustomEventNextOperation = 1UL << 0,
+} JsAppInstallerCustomEvent;
+
 typedef JsAppInstallerError (*MessageHandler)(JsAppInstaller* instance, JsAppInstallerMsg* message);
 
 static bool prepare_staging_folder(Storage* storage) {
@@ -206,6 +210,19 @@ static JsAppInstallerError
     return error;
 }
 
+static void run_next_operation(JsAppInstaller* instance) {
+    JsAppInstallerQueueItem* item = JsAppInstallerOperationQueue_front(instance->operation_queue);
+
+    FURI_LOG_D(
+        TAG,
+        "Next operation: %s %s (%lu)",
+        js_app_installer_get_operation_name(item->type),
+        furi_string_get_cstr(item->app_id),
+        item->id);
+
+    // TODO: Actually execute the operation
+}
+
 static JsAppInstallerError
     enqueue_operation(JsAppInstaller* instance, JsAppInstallerQueueItem* item) {
     JsAppInstallerError error = JsAppInstallerErrorNone;
@@ -213,6 +230,10 @@ static JsAppInstallerError
     if(JsAppInstallerOperationQueue_size(instance->operation_queue) < MAX_OPERATIONS) {
         item->id = instance->operation_id_counter++;
         JsAppInstallerOperationQueue_push_back(instance->operation_queue, item);
+
+        // TODO: check if another operation is already in progress
+        furi_event_loop_set_custom_event(instance->event_loop, JsAppInstallerCustomEventNextOperation);
+
     } else {
         error = JsAppInstallerErrorQueueFull;
     }
@@ -345,6 +366,15 @@ static void message_queue_callback(FuriEventLoopObject* object, void* context) {
     }
 }
 
+static void custom_event_callback(uint32_t events, void* context) {
+    furi_assert(context);
+    JsAppInstaller* instance = context;
+
+    if(events & JsAppInstallerCustomEventNextOperation) {
+        run_next_operation(instance);
+    }
+}
+
 static JsAppInstaller* js_app_installer_alloc(void) {
     JsAppInstaller* instance = malloc(sizeof(JsAppInstaller));
 
@@ -362,6 +392,9 @@ static JsAppInstaller* js_app_installer_alloc(void) {
         FuriEventLoopEventIn,
         message_queue_callback,
         instance);
+
+    furi_event_loop_set_custom_event_callback(
+        instance->event_loop, custom_event_callback, instance);
 
     furi_record_create(RECORD_JS_APP_INSTALLER, instance);
 
