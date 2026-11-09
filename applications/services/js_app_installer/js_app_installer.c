@@ -212,10 +212,9 @@ static void operation_event_callback(const JsAppInstallerOperationEvent* event, 
     furi_assert(event);
     furi_assert(context);
     JsAppInstaller* instance = context;
-
-    const FuriStatus status = furi_message_queue_put(instance->event_queue, event, 10000);
+    const FuriStatus queue_status = furi_message_queue_put(instance->event_queue, event, 10000);
     // TODO: Come up with a better solution?
-    furi_check(status == FuriStatusOk);
+    furi_check(queue_status == FuriStatusOk);
 }
 
 static void run_next_operation(JsAppInstaller* instance) {
@@ -226,6 +225,10 @@ static void run_next_operation(JsAppInstaller* instance) {
         return;
     }
 
+    JsAppInstallerOperationDetail* current_detail = &instance->current_detail;
+    current_detail->step = "starting";
+    current_detail->has_progress = false;
+
     JsAppInstallerQueueItem* item =
         JsAppInstallerOperationQueue_pop_front(instance->pending_queue);
     JsAppInstallerOperation* operation = js_app_installer_operation_alloc();
@@ -234,6 +237,8 @@ static void run_next_operation(JsAppInstaller* instance) {
 
     instance->current_item = item;
     instance->current_operation = operation;
+
+    // TODO: Emit update event
 
     FURI_LOG_D(
         TAG,
@@ -246,26 +251,42 @@ static void run_next_operation(JsAppInstaller* instance) {
 static void handle_operation_progress(
     JsAppInstaller* instance,
     const JsAppInstallerOperationEventProgress* progress) {
-    instance->current_detail = progress->detail;
+    JsAppInstallerQueueItem* current_item = instance->current_item;
+    furi_check(current_item != NULL);
+
+    const JsAppInstallerOperationDetail* detail = &progress->detail;
+    instance->current_detail = *detail;
+
+    if(detail->has_progress) {
+        FURI_LOG_D(TAG, "Operation status: step: %s (%lu)", detail->step, current_item->id);
+    } else {
+        FURI_LOG_D(
+            TAG,
+            "Operation status: step: %s, progress: %lu%% (%lu)",
+            detail->step,
+            detail->progress,
+            current_item->id);
+    }
+
     // TODO: Emit update event
 }
 
 static void handle_operation_finished(JsAppInstaller* instance) {
-    JsAppInstallerQueueItem* item = instance->current_item;
-    furi_check(item != NULL);
+    JsAppInstallerQueueItem* current_item = instance->current_item;
+    furi_check(current_item != NULL);
 
-    JsAppInstallerOperation* operation = instance->current_operation;
-    furi_check(operation != NULL);
+    JsAppInstallerOperation* current_operation = instance->current_operation;
+    furi_check(current_operation != NULL);
 
     FURI_LOG_D(
         TAG,
         "Operation finished: %s %s (%lu)",
-        js_app_installer_get_operation_name(item->type),
-        furi_string_get_cstr(item->app_id),
-        item->id);
+        js_app_installer_get_operation_name(current_item->type),
+        furi_string_get_cstr(current_item->app_id),
+        current_item->id);
 
-    js_app_installer_queue_item_free(item);
-    js_app_installer_operation_free(operation);
+    js_app_installer_queue_item_free(current_item);
+    js_app_installer_operation_free(current_operation);
 
     instance->current_item = NULL;
     instance->current_operation = NULL;
