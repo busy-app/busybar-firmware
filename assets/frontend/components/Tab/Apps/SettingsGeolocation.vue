@@ -98,6 +98,13 @@ import type { AppSettingsGeolocationValue } from '@/stores/appsStore';
 
 type CityItem = CitySuggestion & { label: string };
 
+interface FullLocationName {
+  name: string;
+  lat: number;
+  lon: number;
+  label: string;
+}
+
 const SEARCH_DEBOUNCE_MS = 300;
 const NAME_MAX_LENGTH = 128;
 const AUTO_LOCATION_NAME = 'Auto';
@@ -105,6 +112,7 @@ const AUTO_LOCATION_NAME = 'Auto';
 let searchTimeout: ReturnType<typeof setTimeout> | undefined;
 let searchController: AbortController | undefined;
 let autoController: AbortController | undefined;
+let fullNameController: AbortController | undefined;
 
 const props = defineProps<{
   label: string;
@@ -121,9 +129,17 @@ const searchTerm = ref('');
 const selectedCity = ref<CityItem>();
 const suggestions = ref<CitySuggestion[]>([]);
 const searching = ref(false);
+const fullName = ref<FullLocationName>();
 
 const cityItems = computed<CityItem[]>(() => suggestions.value.map(city => ({ ...city, label: cityLabel(city) })));
-const locationName = computed(() => value.value.mode === 'fixed' ? value.value.name : AUTO_LOCATION_NAME);
+
+const locationName = computed(() => {
+  if (value.value.mode !== 'fixed') {
+    return AUTO_LOCATION_NAME;
+  }
+
+  return fullNameOf(value.value) ?? value.value.name;
+});
 
 // The name came from the bar's time zone, which the app's own geoip may disagree with.
 const showsTimezoneName = computed(() => value.value.mode === 'fixed' && fromTimezone.value);
@@ -170,7 +186,7 @@ async function loadTimezoneLocation () {
     }
 
     if (city) {
-      setFixedLocation(cityLabel(city), city.lat, city.lng);
+      setFixedLocation(city);
       fromTimezone.value = true;
     }
   } catch {
@@ -182,14 +198,49 @@ async function loadTimezoneLocation () {
   }
 }
 
-function setFixedLocation (name: string, lat: number, lon: number) {
+function setFixedLocation (city: CitySuggestion) {
+  const name = truncateUtf8(city.name, NAME_MAX_LENGTH);
+
   fromTimezone.value = false;
+  fullName.value = { name, lat: city.lat, lon: city.lng, label: cityLabel(city) };
   value.value = {
     mode: 'fixed',
-    name: truncateUtf8(name, NAME_MAX_LENGTH),
-    lat,
-    lon
+    name,
+    lat: city.lat,
+    lon: city.lng
   };
+}
+
+function fullNameOf (location: AppSettingsGeolocationValue) {
+  const known = fullName.value;
+
+  return known?.name === location.name && known.lat === location.lat && known.lon === location.lon
+    ? known.label
+    : undefined;
+}
+
+async function loadFullName () {
+  fullNameController?.abort();
+
+  const location = value.value;
+  const { name, lat, lon } = location;
+
+  if (location.mode !== 'fixed' || lat === undefined || lon === undefined || name.includes(',') || fullNameOf(location)) {
+    return;
+  }
+
+  const controller = new AbortController();
+  fullNameController = controller;
+
+  try {
+    const city = await findCity(name, lat, lon, controller.signal);
+
+    if (city && !controller.signal.aborted) {
+      fullName.value = { name, lat, lon, label: cityLabel(city) };
+    }
+  } catch {
+    // Without the search the city alone is shown, as the bar shows it.
+  }
 }
 
 async function selectCity (city: CityItem | undefined) {
@@ -197,7 +248,7 @@ async function selectCity (city: CityItem | undefined) {
     return;
   }
 
-  setFixedLocation(city.label, city.lat, city.lng);
+  setFixedLocation(city);
 
   await nextTick();
 
@@ -250,9 +301,12 @@ watch(searchTerm, query => {
   searchTimeout = setTimeout(() => findCities(query), SEARCH_DEBOUNCE_MS);
 });
 
+watch(value, () => loadFullName(), { immediate: true });
+
 onBeforeUnmount(() => {
   clearTimeout(searchTimeout);
   searchController?.abort();
   autoController?.abort();
+  fullNameController?.abort();
 });
 </script>
