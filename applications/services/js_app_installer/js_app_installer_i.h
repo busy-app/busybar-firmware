@@ -1,7 +1,7 @@
 #pragma once
 
 #include "js_app_installer.h"
-#include "js_app_installer_operation.h"
+#include "js_app_installer_queue.h"
 
 #include <toolbox/api_lock.h>
 
