@@ -264,6 +264,9 @@ static void process_headers(JsFetch* instance, SizedBuffer data) {
             js_check_and_free(jerry_promise_resolve(promise, response));
             jerry_value_free(response);
         } else {
+            instance->response.status = ChildStatusDone;
+            instance->sink.status = ChildStatusDone;
+            fetch_stop(instance->fetch.fetch);
             jerry_value_t error = jerry_exception_value(response, true);
             js_check_and_free(jerry_promise_reject(promise, error));
             jerry_value_free(error);
