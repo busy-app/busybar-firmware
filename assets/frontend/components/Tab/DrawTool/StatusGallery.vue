@@ -193,10 +193,10 @@
         data-id="modal-draw-tool-gallery-delete-confirm"
         :title="deleteConfirmTitle"
         :description="deleteConfirmDescription"
-        show-close-button
         :primary-action-props="{
           label: 'Delete',
           color: 'error',
+          variant: 'soft',
           loading: isDeletingSelected,
           onClick: confirmDeleteStatuses
         }"
@@ -265,9 +265,20 @@ const areAllStatusesSelected = computed(() => {
   return !!statusGalleryFiles.value.length && selectedStatusNames.value.length === statusGalleryFiles.value.length;
 });
 const deleteConfirmTitle = computed(() => pendingDeleteStatusNames.value.length > 1 ? 'Delete selected statuses?' : 'Delete status?');
-const deleteConfirmDescription = computed(() => pendingDeleteStatusNames.value.length > 1
-  ? `${pendingDeleteStatusNames.value.length} statuses will be deleted. This action cannot be undone.`
-  : 'Status will be deleted. This action cannot be undone.');
+const hasPendingDeleteThemes = computed(() => pendingDeleteStatusNames.value.some(name => !!statusThemeNames.value[name]));
+const deleteConfirmDescription = computed(() => {
+  const count = pendingDeleteStatusNames.value.length;
+
+  if (hasPendingDeleteThemes.value) {
+    return count > 1
+      ? `${count} statuses will be removed from BUSY Bar and the draw tool. This can’t be undone.`
+      : 'This status will be removed from BUSY Bar and the draw tool. This can’t be undone.';
+  }
+
+  return count > 1
+    ? `${count} statuses will be deleted. This action cannot be undone.`
+    : 'Status will be deleted. This action cannot be undone.';
+});
 
 function updateStatusHoverOverlayAccessibility () {
   shouldShowStatusHoverOverlaysByDefault.value = hoverInaccessibleMediaQuery.value?.matches ?? false;

@@ -110,6 +110,7 @@ export const useDrawToolStore = defineStore('drawTool', () => {
   const statusThemeNames = ref<Record<string, string>>({});
   const themeDirectoryFileNames = new Map<string, string[]>();
   const isThemeOperationRunning = ref(false);
+  const isThemeLocationHintHidden = ref(false);
 
   function normalizeDirectoryFiles (files: StorageListElement[]) {
     return files
@@ -607,6 +608,7 @@ export const useDrawToolStore = defineStore('drawTool', () => {
   return {
     isRefreshingStatusDirectory,
     isThemeOperationRunning,
+    isThemeLocationHintHidden,
     statusDirectoryFiles,
     statusGalleryFiles,
     statusThemeNames,
@@ -623,4 +625,10 @@ export const useDrawToolStore = defineStore('drawTool', () => {
     saveSavedStatusTheme,
     removeStatusTheme
   };
+}, {
+  persist: {
+    key: 'drawToolStore',
+    storage: piniaPluginPersistedstate.localStorage(),
+    pick: ['isThemeLocationHintHidden']
+  }
 });

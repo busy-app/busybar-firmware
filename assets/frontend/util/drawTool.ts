@@ -47,7 +47,8 @@ export function createStatusApiName (statusName: string) {
   const apiName = statusName
     .replace(/[^A-Za-z0-9\s_-]/g, '')
     .trim()
-    .replace(/[\s_]+/g, '_');
+    .replace(/[\s_]+/g, '_')
+    .toLowerCase();
 
   return apiName || STATUS_API_NAME_FALLBACK;
 }

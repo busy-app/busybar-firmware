@@ -576,6 +576,8 @@
           <TabDrawToolVideoUploadModal v-model:open="es.showVideoUploadModal" />
 
           <TabDrawToolRenameStatusModal v-model:open="isRenameModalOpen" />
+
+          <TabDrawToolThemeLocationModal v-model:open="isThemeLocationModalOpen" />
         </div>
       </template>
     </SectionCard>
@@ -1189,6 +1191,7 @@ let busyBarSavedStateTimeout: ReturnType<typeof setTimeout> | null = null;
 const appConfig = useAppConfig();
 const busyBarSaveState = ref<BusyBarSaveState>('idle');
 const isRenameModalOpen = ref(false);
+const isThemeLocationModalOpen = ref(false);
 const busyBarSaveLabel = computed(() => {
   const labels: Record<BusyBarSaveState, string> = {
     idle: 'Save to BUSY Bar',
@@ -2494,6 +2497,7 @@ async function saveStatusToBusyBar () {
 
     await saveBusyBarTheme(fileName, file);
     showBusyBarSavedState();
+    isThemeLocationModalOpen.value = !dts.isThemeLocationHintHidden;
   } catch (error) {
     busyBarSaveState.value = 'idle';
     await showDrawToolErrorToast('Couldn’t save to BUSY Bar. Check the connection and try again.', error);
