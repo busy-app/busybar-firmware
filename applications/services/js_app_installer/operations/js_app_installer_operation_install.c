@@ -6,20 +6,24 @@
 
 #define TAG "JsAppInstallerOperationInstall"
 
-JsAppInstallerOperationData*
+static JsAppInstallerOperationData*
     js_app_installer_operation_install_alloc(const JsAppInstallerQueueItem* item) {
     furi_assert(item);
     return NULL;
 }
 
-void js_app_installer_operation_install_free(JsAppInstallerOperationData* data) {
+static void js_app_installer_operation_install_free(JsAppInstallerOperationData* data) {
     UNUSED(data);
 }
 
-void js_app_installer_operation_install_run(JsAppInstallerOperation* instance) {
+static JsAppInstallerError
+    js_app_installer_operation_install_run(JsAppInstallerOperation* instance) {
     furi_assert(instance);
+
     FURI_LOG_W(TAG, "Installing app: %s", furi_string_get_cstr(instance->app_id));
     furi_delay_ms(3000);
+
+    return JsAppInstallerErrorNone;
 }
 
 const JsAppInstallerOperationInterface js_app_installer_operation_install = {

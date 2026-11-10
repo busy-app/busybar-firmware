@@ -15,8 +15,13 @@ typedef struct {
 } JsAppInstallerOperationEventProgress;
 
 typedef struct {
+    JsAppInstallerError error;
+} JsAppInstallerOperationEventFinished;
+
+typedef struct {
     JsAppInstallerOperationEventType type;
     union {
+        JsAppInstallerOperationEventFinished finished;
         JsAppInstallerOperationEventProgress progress;
     };
 } JsAppInstallerOperationEvent;

@@ -17,12 +17,15 @@ static int32_t js_app_operation_thread_callback(void* arg) {
     furi_assert(interface);
     furi_assert(interface->run);
 
-    interface->run(instance);
-
+    const JsAppInstallerError error = interface->run(instance);
+    /* clang-format off */
     const JsAppInstallerOperationEvent event = {
         .type = JsAppInstallerOperationEventTypeFinished,
+        .finished = {
+            .error = error,
+        },
     };
-
+    /* clang-format on */
     js_app_installer_operation_emit(instance, &event);
     return 0;
 }

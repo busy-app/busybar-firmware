@@ -12,18 +12,6 @@
 
 typedef struct JsAppInstaller JsAppInstaller;
 
-typedef enum JsAppInstallerError {
-    JsAppInstallerErrorNone = 0,
-    JsAppInstallerErrorUnpack,
-    JsAppInstallerErrorManifest,
-    JsAppInstallerErrorApiVersion,
-    JsAppInstallerErrorInstall,
-    JsAppInstallerErrorTimeout,
-    JsAppInstallerErrorNotFound,
-    JsAppInstallerErrorQueueFull,
-    JsAppInstallerErrorMax,
-} JsAppInstallerError;
-
 /**
  * @brief Stage operation result structure.
  *

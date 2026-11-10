@@ -10,6 +10,18 @@
 extern "C" {
 #endif
 
+typedef enum JsAppInstallerError {
+    JsAppInstallerErrorNone = 0,
+    JsAppInstallerErrorUnpack,
+    JsAppInstallerErrorManifest,
+    JsAppInstallerErrorApiVersion,
+    JsAppInstallerErrorInstall,
+    JsAppInstallerErrorTimeout,
+    JsAppInstallerErrorNotFound,
+    JsAppInstallerErrorQueueFull,
+    JsAppInstallerErrorMax,
+} JsAppInstallerError;
+
 typedef enum {
     JsAppInstallerOperationTypeInstall,
     JsAppInstallerOperationTypeRemove,

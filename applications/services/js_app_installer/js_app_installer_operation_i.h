@@ -9,7 +9,8 @@ typedef void JsAppInstallerOperationData;
 typedef JsAppInstallerOperationData* (*JsAppInstallerOperationInterfaceAlloc)(
     const JsAppInstallerQueueItem* item);
 typedef void (*JsAppInstallerOperationInterfaceFree)(JsAppInstallerOperationData* data);
-typedef void (*JsAppInstallerOperationInterfaceRun)(JsAppInstallerOperation* instance);
+typedef JsAppInstallerError (*JsAppInstallerOperationInterfaceRun)(
+    JsAppInstallerOperation* instance);
 
 typedef struct {
     JsAppInstallerOperationInterfaceAlloc alloc;
