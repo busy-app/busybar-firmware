@@ -3,8 +3,7 @@
     <SectionCard
       data-id="draw-tool-section-primary"
       class="overflow-visible"
-      :title="statusFileName"
-      :subtitle="isExportingAnimation ? `Rendering frames ${exportProgress} / ${es.timelineFrameCount}` : es.hasUnsavedChanges ? 'Unsaved changes' : statusFileName !== DEFAULT_STATUS_FILE_NAME ? 'Saved to file' : undefined"
+      :subtitle="isExportingAnimation ? `Rendering frames ${exportProgress} / ${es.timelineFrameCount}` : `API: ${es.statusApiName}`"
       :ui="{
         title: 'text-lg',
         subtitle: 'text-sm',
@@ -18,72 +17,29 @@
         />
       </template>
 
-      <template #actions>
-        <UTooltip
-          :delay-duration="80"
-          :text="!es.hasEditorContent ? 'Nothing to save' : undefined"
-        >
-          <UButtonGroup>
+      <template #title>
+        <span class="flex items-center gap-1">
+          <span class="truncate">{{ es.statusName }}</span>
+          <UTooltip
+            :delay-duration="80"
+            text="Rename status"
+          >
             <UButton
-              label="Save"
+              data-id="draw-tool-editor-rename"
+              icon="i-bi-edit"
               color="neutral"
-              variant="outline"
-              class="w-full justify-center sm:justify-start"
-              :disabled="!es.hasEditorContent"
-              :ui="{
-                label: 'relative -right-4 sm:static'
-              }"
-              @click="() => { saveStatus(); }"
+              variant="ghost"
+              size="sm"
+              square
+              aria-label="Rename status"
+              :disabled="isSavingStatus"
+              @click="() => { isRenameModalOpen = true; }"
             />
-            <UDropdownMenu
-              :items="[
-                ...(hasSavedStatusFile
-                  ? [
-                    {
-                      label: 'Save as new file',
-                      icon: 'i-bi-plus',
-                      disabled: !es.hasEditorContent,
-                      onClick: () => saveStatus({ saveAsNew: true })
-                    }
-                  ]
-                  : []),
-                {
-                  label: es.hasVideoShapes ? 'Download animation' : 'Download PNG',
-                  icon: 'i-bi-download',
-                  onClick: downloadImage
-                },
-                ...(es.hasVideoShapes
-                  ? [
-                    {
-                      label: 'Download GIF',
-                      icon: 'i-bi-download',
-                      onClick: downloadGif
-                    }
-                  ]
-                  : [])
-              ]"
-              :content="{
-                align: 'end',
-                side: 'bottom',
-                sideOffset: 8
-              }"
-              :ui="{
-                content: 'min-w-40 bg-elevated ring-accented/50',
-                group: 'border-accented/50',
-                item: 'data-[state=open]:before:bg-accented/50 data-highlighted:before:bg-accented/50',
-                itemLabelExternalIcon: 'hidden'
-              }"
-            >
-              <UButton
-                icon="i-bi-chevron-down"
-                color="neutral"
-                variant="outline"
-                :disabled="!es.hasEditorContent"
-              />
-            </UDropdownMenu>
-          </UButtonGroup>
-        </UTooltip>
+          </UTooltip>
+        </span>
+      </template>
 
+      <template #actions>
         <UTooltip
           :delay-duration="80"
           :text="!es.hasEditorContent ? 'Nothing to show' : undefined"
@@ -91,7 +47,7 @@
           <UButton
             label="Show on BUSY Bar"
             color="neutral"
-            variant="solid"
+            variant="outline"
             class="justify-center sm:justify-start"
             :icon="showStatusCheckmarkIcon ? 'i-bi-checkmark' : 'i-bi-play-fill'"
             :disabled="!es.hasEditorContent"
@@ -101,6 +57,55 @@
             }"
             @click="showStatusOnBusyBar"
           />
+        </UTooltip>
+
+        <UTooltip
+          :delay-duration="80"
+          :text="!es.hasEditorContent ? 'Nothing to save' : undefined"
+        >
+          <UButtonGroup>
+            <UButton
+              data-id="draw-tool-editor-save-to-busy-bar"
+              :color="busyBarSaveState === 'saved' ? 'success' : 'neutral'"
+              variant="solid"
+              class="w-full justify-center"
+              :disabled="!es.hasEditorContent || busyBarSaveState === 'saving'"
+              @click="saveStatusToBusyBar"
+            >
+              <span class="grid">
+                <span
+                  class="invisible col-start-1 row-start-1"
+                  aria-hidden="true"
+                >
+                  Save to BUSY Bar
+                </span>
+                <span class="col-start-1 row-start-1 flex items-center justify-center gap-1.5">
+                  <UIcon
+                    v-if="busyBarSaveState === 'saving'"
+                    :name="appConfig.ui.icons.loading"
+                    class="size-5 animate-spin"
+                  />
+                  <UIcon
+                    v-else-if="busyBarSaveState === 'saved'"
+                    name="i-bi-checkmark"
+                    class="size-5"
+                  />
+                  <span>{{ busyBarSaveLabel }}</span>
+                </span>
+              </span>
+            </UButton>
+            <TabDrawToolActionMenu :items="saveMenuItems">
+              <UButton
+                data-id="draw-tool-editor-save-menu"
+                icon="i-bi-chevron-down"
+                :color="busyBarSaveState === 'saved' ? 'success' : 'neutral'"
+                variant="solid"
+                class="border-s border-muted"
+                aria-label="More save options"
+                :disabled="!es.hasEditorContent || busyBarSaveState === 'saving'"
+              />
+            </TabDrawToolActionMenu>
+          </UButtonGroup>
         </UTooltip>
       </template>
 
@@ -570,6 +575,9 @@
 
           <TabDrawToolVideoUploadModal v-model:open="es.showVideoUploadModal" />
 
+          <TabDrawToolRenameStatusModal v-model:open="isRenameModalOpen" />
+
+          <TabDrawToolThemeLocationModal v-model:open="isThemeLocationModalOpen" />
         </div>
       </template>
     </SectionCard>
@@ -1049,6 +1057,7 @@ import { ANIM_FILE_EXTENSION, composeAnimationFromFrames } from '@/util/seq2anim
 import { createAnimationFromFrames } from '@/util/anim2seq';
 import { encodeAnimationToGif } from '@/util/anim2gif';
 import type { DisplayDrawParams } from '@busy-app/busy-lib';
+import type { DropdownMenuItem } from '@nuxt/ui';
 
 type DrawToolIcon = {
   id: string;
@@ -1064,6 +1073,8 @@ type ShortcutToken = {
   kind: 'key' | 'text';
   label: string;
 };
+
+type BusyBarSaveState = 'idle' | 'saving' | 'saved';
 
 const toast = useToast();
 const emit = defineEmits<{
@@ -1175,6 +1186,43 @@ const toolbarKeyboardShortcuts: Array<{ label: string; tokens: ShortcutToken[] }
 ];
 
 const isSavingStatus = ref(false);
+const BUSY_BAR_SAVED_STATE_DURATION_MS = 700;
+let busyBarSavedStateTimeout: ReturnType<typeof setTimeout> | null = null;
+const appConfig = useAppConfig();
+const busyBarSaveState = ref<BusyBarSaveState>('idle');
+const isRenameModalOpen = ref(false);
+const isThemeLocationModalOpen = ref(false);
+const busyBarSaveLabel = computed(() => {
+  const labels: Record<BusyBarSaveState, string> = {
+    idle: 'Save to BUSY Bar',
+    saving: 'Saving…',
+    saved: 'Saved'
+  };
+
+  return labels[busyBarSaveState.value];
+});
+const saveMenuItems = computed<DropdownMenuItem[]>(() => [
+  {
+    label: 'Save',
+    description: 'Find it in the draw tool.',
+    icon: 'i-bi-checkmark',
+    onClick: saveStatus
+  },
+  {
+    label: es.hasVideoShapes ? 'Download animation' : 'Download PNG',
+    description: es.hasVideoShapes ? 'Save the animation to your computer.' : 'Save the image to your computer.',
+    icon: 'i-bi-download',
+    onClick: downloadImage
+  },
+  ...(es.hasVideoShapes
+    ? [{
+      label: 'Download GIF',
+      description: 'Save the GIF to your computer.',
+      icon: 'i-bi-download',
+      onClick: downloadGif
+    }]
+    : [])
+]);
 const isShowingStatusOnDevice = ref(false);
 const isExportingAnimation = ref(false);
 const exportProgress = ref(0);
@@ -1745,7 +1793,7 @@ function handleWindowKeyDown (event: KeyboardEvent) {
   if (isPrimaryModifierPressed && normalizedKey === 's' && !event.shiftKey) {
     event.preventDefault();
 
-    if (!isSavingStatus.value) {
+    if (!isSavingStatus.value && !dts.isThemeOperationRunning) {
       saveStatus();
     }
 
@@ -2354,61 +2402,105 @@ async function writeStatusFile (path: string, file: File) {
   }, { timeout: 0 });
 }
 
-async function saveStatus (options?: { saveAsNew?: boolean }) {
-  if (!es.hasEditorContent) {
-    return false;
+async function writeStatusToDrawTool () {
+  const savedKindMatches = !!savedStatusFilePath.value && savedStatusFilePath.value.toLowerCase().endsWith(getStatusExportExtension());
+  const fileName = savedKindMatches ? statusFileName.value : createNextStatusFileName();
+  const targetPath = savedKindMatches && savedStatusFilePath.value ? savedStatusFilePath.value : `${DRAW_TOOL_SAVE_DIR}/${fileName}`;
+  const file = await createExportFile(fileName);
+
+  try {
+    await writeStatusFile(targetPath, file);
+  } catch (error) {
+    if (await tryListSaveDirectory()) {
+      throw error;
+    }
+
+    await ensureSaveDirectoryExists();
+    await writeStatusFile(targetPath, file);
   }
 
-  const hadSavedStatusFile = hasSavedStatusFile.value;
-  const savedKindMatches = !!savedStatusFilePath.value && savedStatusFilePath.value.toLowerCase().endsWith(getStatusExportExtension());
-  const saveAsNew = !!options?.saveAsNew || !savedKindMatches;
-  const fileName = saveAsNew || !savedStatusFilePath.value
-    ? createNextStatusFileName()
-    : statusFileName.value;
-  const targetPath = saveAsNew || !savedStatusFilePath.value
-    ? `${DRAW_TOOL_SAVE_DIR}/${fileName}`
-    : savedStatusFilePath.value;
+  es.markStatusSaved(fileName, targetPath);
 
-  if (!targetPath) {
+  return { fileName, file };
+}
+
+async function saveStatus () {
+  if (!es.hasEditorContent || isSavingStatus.value) {
     return false;
   }
 
   isSavingStatus.value = true;
 
   try {
-    const file = await createExportFile(fileName);
+    const { fileName, file } = await writeStatusToDrawTool();
 
-    try {
-      await writeStatusFile(targetPath, file);
-    } catch (error) {
-      const listedFiles = await tryListSaveDirectory();
-
-      if (listedFiles) {
-        await handleHTTPError(error, `Couldn't save ${fileName}`, false, 10000);
-        return false;
-      }
-
-      try {
-        await ensureSaveDirectoryExists();
-        await writeStatusFile(targetPath, file);
-      } catch (retryError) {
-        await handleHTTPError(retryError, `Couldn't save ${fileName}`, false, 10000);
-        return false;
-      }
-    }
-
-    es.markStatusSaved(fileName, targetPath);
-    toast.add({
-      id: 'draw-tool-save-success',
-      title: saveAsNew || !hadSavedStatusFile ? 'Saved as new file' : 'Saved to device',
-      description: fileName /* `${DRAW_TOOL_SAVE_DIR}/${fileName}` */,
-      color: 'success'
-    });
+    await updateSavedBusyBarTheme(fileName, file);
 
     return true;
   } catch (error) {
-    await handleHTTPError(error, `Couldn't save ${fileName}`, false, 10000);
+    await showDrawToolErrorToast('Couldn’t save to the draw tool. Check the connection and try again.', error);
+
     return false;
+  } finally {
+    isSavingStatus.value = false;
+  }
+}
+
+async function saveBusyBarTheme (statusFileName: string, file: Blob) {
+  const themeName = await dts.saveStatusTheme({
+    statusFileName,
+    file,
+    themeName: createStatusApiName(es.statusName),
+    previousThemeName: es.savedThemeName
+  });
+
+  es.markThemeSaved(themeName);
+}
+
+async function updateSavedBusyBarTheme (statusFileName: string, file: Blob) {
+  if (!es.savedThemeName) {
+    showDrawToolSuccessToast('Saved to the draw tool.');
+    return;
+  }
+
+  try {
+    await saveBusyBarTheme(statusFileName, file);
+    showDrawToolSuccessToast('Saved to the draw tool.');
+  } catch (error) {
+    await showDrawToolErrorToast('Saved to the draw tool, but couldn’t update it on BUSY Bar. Check the connection and try again.', error);
+  }
+}
+
+function showBusyBarSavedState () {
+  busyBarSaveState.value = 'saved';
+
+  if (busyBarSavedStateTimeout) {
+    clearTimeout(busyBarSavedStateTimeout);
+  }
+
+  busyBarSavedStateTimeout = setTimeout(() => {
+    busyBarSaveState.value = 'idle';
+    busyBarSavedStateTimeout = null;
+  }, BUSY_BAR_SAVED_STATE_DURATION_MS);
+}
+
+async function saveStatusToBusyBar () {
+  if (!es.hasEditorContent || isSavingStatus.value) {
+    return;
+  }
+
+  isSavingStatus.value = true;
+  busyBarSaveState.value = 'saving';
+
+  try {
+    const { fileName, file } = await writeStatusToDrawTool();
+
+    await saveBusyBarTheme(fileName, file);
+    showBusyBarSavedState();
+    isThemeLocationModalOpen.value = !dts.isThemeLocationHintHidden;
+  } catch (error) {
+    busyBarSaveState.value = 'idle';
+    await showDrawToolErrorToast('Couldn’t save to BUSY Bar. Check the connection and try again.', error);
   } finally {
     isSavingStatus.value = false;
   }
@@ -2525,6 +2617,11 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   es.registerSaveBeforeLeaveEditorHandler(null);
+
+  if (busyBarSavedStateTimeout) {
+    clearTimeout(busyBarSavedStateTimeout);
+  }
+
   es.stopSelectionHandleDrag(false);
   resizeObserver.value?.disconnect();
   window.removeEventListener('scroll', updateStageContainerViewportTop);
