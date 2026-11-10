@@ -242,7 +242,7 @@ static void run_next_operation(JsAppInstaller* instance) {
 
     FURI_LOG_D(
         TAG,
-        "Next operation: %s %s (%lu)",
+        "Operation %s %s (%lu) started",
         js_app_installer_get_operation_name(item->type),
         furi_string_get_cstr(item->app_id),
         item->id);
@@ -250,40 +250,59 @@ static void run_next_operation(JsAppInstaller* instance) {
 
 static void handle_operation_progress(
     JsAppInstaller* instance,
-    const JsAppInstallerOperationEventProgress* progress) {
+    const JsAppInstallerOperationEventProgress* event) {
     JsAppInstallerQueueItem* current_item = instance->current_item;
     furi_check(current_item != NULL);
 
-    const JsAppInstallerOperationDetail* detail = &progress->detail;
+    const JsAppInstallerOperationDetail* detail = &event->detail;
     instance->current_detail = *detail;
 
     if(detail->has_progress) {
-        FURI_LOG_D(TAG, "Operation status: step: %s (%lu)", detail->step, current_item->id);
-    } else {
         FURI_LOG_D(
             TAG,
             "Operation status: step: %s, progress: %lu%% (%lu)",
             detail->step,
             detail->progress,
             current_item->id);
+    } else {
+        FURI_LOG_D(TAG, "Operation status: step: %s (%lu)", detail->step, current_item->id);
     }
 
     // TODO: Emit update event
 }
 
-static void handle_operation_finished(JsAppInstaller* instance) {
+static void handle_operation_finished(
+    JsAppInstaller* instance,
+    const JsAppInstallerOperationEventFinished* event) {
     JsAppInstallerQueueItem* current_item = instance->current_item;
     furi_check(current_item != NULL);
 
     JsAppInstallerOperation* current_operation = instance->current_operation;
     furi_check(current_operation != NULL);
 
-    FURI_LOG_D(
-        TAG,
-        "Operation finished: %s %s (%lu)",
-        js_app_installer_get_operation_name(current_item->type),
-        furi_string_get_cstr(current_item->app_id),
-        current_item->id);
+    const JsAppInstallerError error = event->error;
+
+    const uint32_t operation_id = current_item->id;
+    const char* operation_name = js_app_installer_get_operation_name(current_item->type);
+    const char* app_id = furi_string_get_cstr(current_item->app_id);
+
+    if(error == JsAppInstallerErrorNone) {
+        FURI_LOG_D(
+            TAG,
+            "Operation %s %s (%lu) finished successfully",
+            operation_name,
+            app_id,
+            operation_id);
+
+    } else {
+        FURI_LOG_E(
+            TAG,
+            "Operation %s %s (%lu) finished with error 0x%X",
+            operation_name,
+            app_id,
+            operation_id,
+            error);
+    }
 
     js_app_installer_queue_item_free(current_item);
     js_app_installer_operation_free(current_operation);
@@ -490,7 +509,7 @@ static void event_queue_callback(FuriEventLoopObject* object, void* context) {
         if(event_type == JsAppInstallerOperationEventTypeProgress) {
             handle_operation_progress(instance, &event.progress);
         } else if(event_type == JsAppInstallerOperationEventTypeFinished) {
-            handle_operation_finished(instance);
+            handle_operation_finished(instance, &event.finished);
         }
     }
 }

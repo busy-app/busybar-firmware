@@ -17,6 +17,7 @@ typedef enum JsAppRegistryAppUninstallResult {
     JsAppRegistryAppUninstallResultOk,
     JsAppRegistryAppUninstallResultNotFound,
     JsAppRegistryAppUninstallResultStorageError,
+    JsAppRegistryAppUninstallResultMax,
 } JsAppRegistryAppUninstallResult;
 
 /**
