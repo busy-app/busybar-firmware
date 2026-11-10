@@ -12,12 +12,12 @@ static const JsAppLauncherShowStatusDesc js_app_launcher_show_status_descs[] = {
             .type = JsAppLauncherShowStatusTypeGeneralError,
             .primary =
                 {
-                    .front = "App loading failed,\nreinstall it.",
-                    .back = "App loading failed",
+                    .front = "App failed to load,\nrestart app",
+                    .back = "App failed to load",
                 },
             .auxiliary =
                 {
-                    .back = "Try to restart or reinstall it",
+                    .back = "Restart app",
                 },
         },
     [JsAppLauncherShowStatusApiVersionMismatch] =
@@ -25,12 +25,12 @@ static const JsAppLauncherShowStatusDesc js_app_launcher_show_status_descs[] = {
             .type = JsAppLauncherShowStatusTypeGeneralError,
             .primary =
                 {
-                    .front = "App incompatible,\nupdate firmware.",
-                    .back = "App not compatible",
+                    .front = "App not supported\nUpdate firmware",
+                    .back = "App not supported",
                 },
             .auxiliary =
                 {
-                    .back = "Update the firmware",
+                    .back = "Update firmware to use it",
                 },
         },
     [JsAppLauncherShowStatusSettingsSchemaMissing] =
@@ -38,12 +38,12 @@ static const JsAppLauncherShowStatusDesc js_app_launcher_show_status_descs[] = {
             .type = JsAppLauncherShowStatusTypeGeneralInfo,
             .primary =
                 {
-                    .front = "This app has\nno settings.",
+                    .front = "No settings\nto adjust",
                     .back = "No settings",
                 },
             .auxiliary =
                 {
-                    .back = "Add settings file to the app",
+                    .back = "Nothing to set up in this app",
                 },
         },
     [JsAppLauncherShowStatusSettingsSchemaInvalid] =
@@ -51,12 +51,12 @@ static const JsAppLauncherShowStatusDesc js_app_launcher_show_status_descs[] = {
             .type = JsAppLauncherShowStatusTypeGeneralError,
             .primary =
                 {
-                    .front = "Settings file\nis invalid.",
-                    .back = "Invalid settings",
+                    .front = "Invalid settings\nfile",
+                    .back = "Invalid settings file",
                 },
             .auxiliary =
                 {
-                    .back = "Fix the app settings file",
+                    .back = "Reinstall the app or fix\nthe settings.json file",
                 },
         },
     [JsAppLauncherShowStatusSettingsStorageFailure] =
@@ -64,12 +64,12 @@ static const JsAppLauncherShowStatusDesc js_app_launcher_show_status_descs[] = {
             .type = JsAppLauncherShowStatusTypeGeneralError,
             .primary =
                 {
-                    .front = "Settings storage\nerror.",
-                    .back = "Settings storage error",
+                    .front = "Storage error\nRestart device",
+                    .back = "Storage error",
                 },
             .auxiliary =
                 {
-                    .back = "Check the storage device",
+                    .back = "Restart BUSY Bar and retry",
                 },
         },
     [JsAppLauncherShowStatusSettingsLoadFailed] =
@@ -77,12 +77,12 @@ static const JsAppLauncherShowStatusDesc js_app_launcher_show_status_descs[] = {
             .type = JsAppLauncherShowStatusTypeGeneralError,
             .primary =
                 {
-                    .front = "Settings loading\nfailed.",
-                    .back = "Settings loading failed",
+                    .front = "Load error\nRestart device",
+                    .back = "Cannot load app settings",
                 },
             .auxiliary =
                 {
-                    .back = "Check the app settings file",
+                    .back = "Restart BUSY Bar and retry",
                 },
         },
     [JsAppLauncherShowStatusSyntaxError] =
@@ -90,7 +90,7 @@ static const JsAppLauncherShowStatusDesc js_app_launcher_show_status_descs[] = {
             .type = JsAppLauncherShowStatusTypeGeneralError,
             .primary =
                 {
-                    .front = "Syntax error,\ncheck script.",
+                    .front = "Syntax error",
                     .back = "Syntax error",
                 },
             .auxiliary =
@@ -103,12 +103,12 @@ static const JsAppLauncherShowStatusDesc js_app_launcher_show_status_descs[] = {
             .type = JsAppLauncherShowStatusTypeGeneralError,
             .primary =
                 {
-                    .front = "App crashed,\nsee device logs.",
+                    .front = "App crashed,\nrestart app",
                     .back = "App crashed",
                 },
             .auxiliary =
                 {
-                    .back = "See device logs",
+                    .back = "Restart app",
                 },
         },
 };
