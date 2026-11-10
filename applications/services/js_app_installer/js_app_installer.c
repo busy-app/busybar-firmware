@@ -231,7 +231,7 @@ static void run_next_operation(JsAppInstaller* instance) {
 
     JsAppInstallerQueueItem* item =
         JsAppInstallerOperationQueue_pop_front(instance->pending_queue);
-    JsAppInstallerOperation* operation = js_app_installer_operation_alloc();
+    JsAppInstallerOperation* operation = js_app_installer_operation_alloc(item);
     js_app_installer_operation_set_callback(operation, operation_event_callback, instance);
     js_app_installer_operation_start(operation);
 

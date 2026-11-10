@@ -1,6 +1,7 @@
 #pragma once
 
 #include "js_app_installer_common.h"
+#include "js_app_installer_queue.h"
 
 typedef struct JsAppInstallerOperation JsAppInstallerOperation;
 
@@ -23,8 +24,7 @@ typedef struct {
 typedef void (
     *JsAppInstallerOperationCallback)(const JsAppInstallerOperationEvent* event, void* context);
 
-// TODO: Construction parameters
-JsAppInstallerOperation* js_app_installer_operation_alloc(void);
+JsAppInstallerOperation* js_app_installer_operation_alloc(const JsAppInstallerQueueItem* item);
 
 void js_app_installer_operation_free(JsAppInstallerOperation* instance);
 
