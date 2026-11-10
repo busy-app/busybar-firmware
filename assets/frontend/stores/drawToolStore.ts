@@ -1,6 +1,11 @@
 import type { AnimationElement, DisplayElement, ImageElement, StorageListElement } from '@busy-app/busy-lib';
 import { defineStore } from 'pinia';
 import {
+  BUSY_DEFAULT_THEME_NAME,
+  BUSY_THEME_CONFIG_FILE_NAME,
+  BUSY_THEME_USER_ORDER,
+  BUSY_THEMES_DIR,
+  createStatusApiName,
   DRAW_TOOL_DISPLAY_APPLICATION_NAME,
   DRAW_TOOL_DISPLAY_PRIORITY,
   DRAW_TOOL_SAVE_DIR,
@@ -29,6 +34,20 @@ type DrawToolStatusGalleryFile = DrawToolStatusDirectoryFile & DrawToolStatusPre
   path: string;
 };
 
+type BusyThemeConfig = {
+  bg_path: string;
+  order: number;
+};
+
+type SaveStatusThemeOptions = {
+  statusFileName: string;
+  file: Blob;
+  themeName: string;
+  previousThemeName?: string | null;
+};
+
+type SaveSavedStatusThemeOptions = Pick<SaveStatusThemeOptions, 'themeName' | 'previousThemeName'>;
+
 const TEMP_FILE_NAMES = new Set([DRAW_TOOL_TEMP_FILE_NAME, DRAW_TOOL_TEMP_ANIMATION_FILE_NAME]);
 
 function getStatusFileSize (file: StorageListElement): number {
@@ -41,6 +60,28 @@ function getStatusFileSize (file: StorageListElement): number {
 
 function createStatusFilePath (fileName: string) {
   return `${DRAW_TOOL_SAVE_DIR}/${fileName}`;
+}
+
+function createThemeDirectoryPath (themeName: string) {
+  return `${BUSY_THEMES_DIR}/${themeName}`;
+}
+
+function getStatusFileBaseName (fileName: string) {
+  return fileName.replace(/\.[^.]+$/, '');
+}
+
+async function runAfter<T> (previousOperation: Promise<void>, operation: () => Promise<T>) {
+  await previousOperation;
+
+  return operation();
+}
+
+async function waitForSettled (operation: Promise<unknown>) {
+  try {
+    await operation;
+  } catch {
+    // The caller handles the error; the queue only needs to move on
+  }
 }
 
 function hasLoadedPreview (file: DrawToolStatusPreview) {
@@ -80,6 +121,9 @@ export const useDrawToolStore = defineStore('drawTool', () => {
   const statusDirectoryFiles = ref<DrawToolStatusDirectoryFile[]>([]);
   const statusGalleryFiles = ref<DrawToolStatusGalleryFile[]>([]);
   const isRefreshingStatusDirectory = ref(false);
+  const statusThemeNames = ref<Record<string, string>>({});
+  const themeDirectoryFileNames = new Map<string, string[]>();
+  let themeOperationQueue: Promise<void> = Promise.resolve();
 
   function normalizeDirectoryFiles (files: StorageListElement[]) {
     return files
@@ -181,14 +225,7 @@ export const useDrawToolStore = defineStore('drawTool', () => {
   }
 
   async function listStatusDirectory () {
-    const deviceStore = useDeviceStore();
-    const result = await deviceStore.busyBar.StorageListGet({ path: DRAW_TOOL_SAVE_DIR });
-
-    if (!result.list) {
-      throw new Error('Empty response');
-    }
-
-    return result.list;
+    return listDirectory(DRAW_TOOL_SAVE_DIR);
   }
 
   async function ensureStatusDirectoryExists () {
@@ -201,6 +238,177 @@ export const useDrawToolStore = defineStore('drawTool', () => {
     }
 
     return await listStatusDirectory();
+  }
+
+  async function listDirectory (path: string) {
+    const deviceStore = useDeviceStore();
+    const result = await deviceStore.busyBar.StorageListGet({ path });
+
+    if (!result.list) {
+      throw new Error('Empty response');
+    }
+
+    return result.list;
+  }
+
+  async function syncThemeDirectoryCache () {
+    const themeNames = (await listDirectory(BUSY_THEMES_DIR))
+      .filter(element => element.type === 'dir')
+      .map(element => element.name);
+    const themeNameSet = new Set(themeNames);
+
+    for (const cachedThemeName of [...themeDirectoryFileNames.keys()]) {
+      if (!themeNameSet.has(cachedThemeName)) {
+        themeDirectoryFileNames.delete(cachedThemeName);
+      }
+    }
+
+    for (const themeName of themeNames) {
+      if (themeDirectoryFileNames.has(themeName)) {
+        continue;
+      }
+
+      const fileNames = (await listDirectory(createThemeDirectoryPath(themeName)))
+        .filter(element => element.type === 'file')
+        .map(element => element.name);
+
+      themeDirectoryFileNames.set(themeName, fileNames);
+    }
+  }
+
+  async function enqueueThemeOperation<T> (operation: () => Promise<T>) {
+    const currentOperation = runAfter(themeOperationQueue, operation);
+
+    themeOperationQueue = waitForSettled(currentOperation);
+
+    return currentOperation;
+  }
+
+  function getThemeNamesContainingFile (statusFileName: string) {
+    return [...themeDirectoryFileNames]
+      .filter(([, fileNames]) => fileNames.includes(statusFileName))
+      .map(([themeName]) => themeName);
+  }
+
+  function updateStatusThemeNames () {
+    const statusFileNames = new Set(statusDirectoryFiles.value.map(file => file.name));
+    const nextStatusThemeNames: Record<string, string> = {};
+
+    for (const [themeName, fileNames] of themeDirectoryFileNames) {
+      if (!fileNames.includes(BUSY_THEME_CONFIG_FILE_NAME)) {
+        continue;
+      }
+
+      fileNames
+        .filter(fileName => statusFileNames.has(fileName))
+        .forEach(fileName => {
+          nextStatusThemeNames[fileName] = themeName;
+        });
+    }
+
+    statusThemeNames.value = nextStatusThemeNames;
+  }
+
+  async function refreshStatusThemes () {
+    try {
+      await enqueueThemeOperation(syncThemeDirectoryCache);
+      updateStatusThemeNames();
+    } catch (error) {
+      console.warn('Couldn\'t load BUSY Bar themes', error);
+    }
+  }
+
+  function resolveFreeThemeName (themeName: string, ownedThemeNames: Set<string>) {
+    const takenThemeNames = new Set([
+      BUSY_DEFAULT_THEME_NAME,
+      ...[...themeDirectoryFileNames.keys()]
+        .filter(name => !ownedThemeNames.has(name))
+        .map(name => name.toLowerCase())
+    ]);
+    let candidate = themeName;
+    let suffix = 2;
+
+    while (takenThemeNames.has(candidate.toLowerCase())) {
+      candidate = `${themeName}_${suffix}`;
+      suffix += 1;
+    }
+
+    return candidate;
+  }
+
+  async function removeThemeDirectory (themeName: string) {
+    const deviceStore = useDeviceStore();
+
+    await deviceStore.busyBar.StorageRemove({ path: createThemeDirectoryPath(themeName) }, { timeout: 0 });
+    themeDirectoryFileNames.delete(themeName);
+  }
+
+  async function writeThemeDirectory (themeName: string, statusFileName: string, file: Blob) {
+    const deviceStore = useDeviceStore();
+    const themeDirectoryPath = createThemeDirectoryPath(themeName);
+    const backgroundPath = `${themeDirectoryPath}/${statusFileName}`;
+    const config: BusyThemeConfig = {
+      bg_path: backgroundPath,
+      order: BUSY_THEME_USER_ORDER
+    };
+
+    await deviceStore.busyBar.StorageMkdir({ path: themeDirectoryPath });
+    await deviceStore.busyBar.StorageWrite({ path: backgroundPath, file }, { timeout: 0 });
+    await deviceStore.busyBar.StorageWrite({
+      path: `${themeDirectoryPath}/${BUSY_THEME_CONFIG_FILE_NAME}`,
+      file: new Blob([JSON.stringify(config)], { type: 'application/json' })
+    });
+    themeDirectoryFileNames.set(themeName, [statusFileName, BUSY_THEME_CONFIG_FILE_NAME]);
+  }
+
+  async function saveStatusThemeInternal (options: SaveStatusThemeOptions) {
+    await syncThemeDirectoryCache();
+
+    const ownedThemeNames = new Set(getThemeNamesContainingFile(options.statusFileName));
+
+    if (options.previousThemeName && themeDirectoryFileNames.has(options.previousThemeName)) {
+      ownedThemeNames.add(options.previousThemeName);
+    }
+
+    const themeName = resolveFreeThemeName(options.themeName, ownedThemeNames);
+
+    for (const ownedThemeName of ownedThemeNames) {
+      await removeThemeDirectory(ownedThemeName);
+    }
+
+    await writeThemeDirectory(themeName, options.statusFileName, options.file);
+    updateStatusThemeNames();
+
+    return themeName;
+  }
+
+  async function saveStatusTheme (options: SaveStatusThemeOptions) {
+    return enqueueThemeOperation(() => saveStatusThemeInternal(options));
+  }
+
+  async function saveSavedStatusTheme (statusFileName: string, options?: SaveSavedStatusThemeOptions) {
+    const file = await readStatusFile(createStatusFilePath(statusFileName));
+
+    return saveStatusTheme({
+      statusFileName,
+      file,
+      themeName: options?.themeName ?? createStatusApiName(getStatusFileBaseName(statusFileName)),
+      previousThemeName: options?.previousThemeName
+    });
+  }
+
+  async function removeStatusThemeInternal (statusFileName: string) {
+    await syncThemeDirectoryCache();
+
+    for (const themeName of getThemeNamesContainingFile(statusFileName)) {
+      await removeThemeDirectory(themeName);
+    }
+
+    updateStatusThemeNames();
+  }
+
+  async function removeStatusTheme (statusFileName: string) {
+    return enqueueThemeOperation(() => removeStatusThemeInternal(statusFileName));
   }
 
   async function refreshStatusDirectory (options?: { silent?: boolean }) {
@@ -220,6 +428,7 @@ export const useDrawToolStore = defineStore('drawTool', () => {
       }
 
       await syncStatusDirectory(directoryFiles);
+      await refreshStatusThemes();
     } catch (error) {
       if (!options?.silent) {
         await handleHTTPError(error, `Couldn't load ${DRAW_TOOL_SAVE_DIR}`, false, 10000);
@@ -381,6 +590,17 @@ export const useDrawToolStore = defineStore('drawTool', () => {
 
       if (error) {
         await handleHTTPError(error, `Couldn't delete ${fullPath}`, false, 0);
+        continue;
+      }
+
+      if (!statusThemeNames.value[fileName]) {
+        continue;
+      }
+
+      try {
+        await removeStatusTheme(fileName);
+      } catch (themeError) {
+        await handleHTTPError(themeError, `Couldn't remove ${fileName} from BUSY Bar`, false, 0);
       }
     }
 
@@ -391,6 +611,7 @@ export const useDrawToolStore = defineStore('drawTool', () => {
     isRefreshingStatusDirectory,
     statusDirectoryFiles,
     statusGalleryFiles,
+    statusThemeNames,
     syncStatusDirectory,
     refreshStatusDirectory,
     saveStatusFile,
@@ -399,6 +620,9 @@ export const useDrawToolStore = defineStore('drawTool', () => {
     showTempAnimationOnBusyBar,
     downloadStatusFile,
     downloadStatusAsGif,
-    deleteStatusFiles
+    deleteStatusFiles,
+    saveStatusTheme,
+    saveSavedStatusTheme,
+    removeStatusTheme
   };
 });

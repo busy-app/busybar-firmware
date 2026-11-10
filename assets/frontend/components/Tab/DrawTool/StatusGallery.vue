@@ -130,7 +130,7 @@
 
               <div
                 class="absolute inset-0 rounded-md bg-elevated/90 transition-opacity"
-                :class="shouldShowStatusHoverOverlaysByDefault || hasSelection || hoveredStatusName === status.name || !!statusMenuOpenStates[status.name] ? 'opacity-100' : 'pointer-events-none opacity-0'"
+                :class="shouldShowStatusHoverOverlaysByDefault || hasSelection || isStatusOverlayActive(status.name) ? 'opacity-100' : 'pointer-events-none opacity-0'"
               >
                 <div class="absolute inset-y-0 left-5 z-10 flex items-center">
                   <input
@@ -143,7 +143,7 @@
                 </div>
 
                 <div
-                  v-if="shouldShowStatusHoverOverlaysByDefault || hoveredStatusName === status.name || !!statusMenuOpenStates[status.name]"
+                  v-if="shouldShowStatusHoverOverlaysByDefault || isStatusOverlayActive(status.name)"
                   class="pointer-events-none absolute inset-0 flex items-center justify-center"
                 >
                   <UButton
@@ -163,23 +163,12 @@
                 </div>
 
                 <div
-                  v-if="shouldShowStatusHoverOverlaysByDefault || hoveredStatusName === status.name || !!statusMenuOpenStates[status.name]"
+                  v-if="shouldShowStatusHoverOverlaysByDefault || isStatusOverlayActive(status.name)"
                   class="absolute inset-y-0 right-3 flex items-center"
                 >
-                  <UDropdownMenu
+                  <TabDrawToolActionMenu
                     v-model:open="statusMenuOpenStates[status.name]"
                     :items="getStatusMenuItems(status.name)"
-                    :content="{
-                      align: 'end',
-                      side: 'bottom',
-                      sideOffset: 8
-                    }"
-                    :ui="{
-                      content: 'min-w-40 bg-elevated ring-accented/50',
-                      group: 'border-accented/50',
-                      item: 'data-[state=open]:before:bg-accented/50 data-highlighted:before:bg-accented/50',
-                      itemLabelExternalIcon: 'hidden'
-                    }"
                   >
                     <UButton
                       data-id="draw-tool-gallery-status-menu"
@@ -188,8 +177,10 @@
                       icon="i-bi-more"
                       square
                       size="sm"
+                      aria-label="Status actions"
+                      :loading="pendingThemeStatusNames.includes(status.name)"
                     />
-                  </UDropdownMenu>
+                  </TabDrawToolActionMenu>
                 </div>
               </div>
             </div>
@@ -216,6 +207,26 @@
           onClick: closeDeleteConfirmation
         }"
       />
+
+      <ModalGeneric
+        v-model:open="isRemoveThemeConfirmOpen"
+        data-id="modal-draw-tool-gallery-remove-theme-confirm"
+        title="Remove from BUSY Bar?"
+        description="This removes the status from your BUSY Bar only. It stays in the draw tool, so you can upload it again anytime."
+        :primary-action-props="{
+          label: 'Remove',
+          color: 'error',
+          variant: 'soft',
+          loading: isRemovingTheme,
+          onClick: confirmRemoveStatusTheme
+        }"
+        :secondary-action-props="{
+          label: 'Cancel',
+          variant: 'ghost',
+          disabled: isRemovingTheme,
+          onClick: () => { isRemoveThemeConfirmOpen = false; }
+        }"
+      />
     </template>
   </SectionCard>
 </template>
@@ -229,7 +240,7 @@ const emit = defineEmits<{
 }>();
 
 const dts = useDrawToolStore();
-const { statusGalleryFiles, isRefreshingStatusDirectory } = storeToRefs(dts);
+const { statusGalleryFiles, statusThemeNames, isRefreshingStatusDirectory } = storeToRefs(dts);
 
 const hoveredStatusName = ref<string | null>(null);
 const selectedStatusNames = ref<string[]>([]);
@@ -240,6 +251,10 @@ const isDownloadingSelected = ref(false);
 const isDeletingSelected = ref(false);
 const isDeleteConfirmOpen = ref(false);
 const pendingDeleteStatusNames = ref<string[]>([]);
+const isRemoveThemeConfirmOpen = ref(false);
+const isRemovingTheme = ref(false);
+const pendingRemoveThemeStatusName = ref<string | null>(null);
+const pendingThemeStatusNames = ref<string[]>([]);
 const showStatusIconResetTimeout = ref<ReturnType<typeof setTimeout> | null>(null);
 const hoverInaccessibleMediaQuery = ref<MediaQueryList | null>(null);
 const shouldShowStatusHoverOverlaysByDefault = ref(false);
@@ -296,16 +311,53 @@ function selectAllStatuses () {
   selectedStatusNames.value = statusGalleryFiles.value.map(status => status.name);
 }
 
+function isStatusOverlayActive (statusName: string) {
+  return hoveredStatusName.value === statusName
+    || !!statusMenuOpenStates.value[statusName]
+    || pendingThemeStatusNames.value.includes(statusName);
+}
+
+function setThemeStatusPending (statusName: string, isPending: boolean) {
+  pendingThemeStatusNames.value = isPending
+    ? [...pendingThemeStatusNames.value, statusName]
+    : pendingThemeStatusNames.value.filter(name => name !== statusName);
+}
+
+function getStatusThemeMenuItem (statusName: string): DropdownMenuItem {
+  if (statusThemeNames.value[statusName]) {
+    return {
+      label: 'Remove from BUSY Bar',
+      description: 'It won’t appear in BUSY/CUSTOM setup on BUSY Bar.',
+      icon: 'i-bi-cross',
+      disabled: pendingThemeStatusNames.value.includes(statusName),
+      onClick: () => openRemoveThemeConfirmation(statusName)
+    };
+  }
+
+  return {
+    label: 'Save to BUSY Bar',
+    description: 'Find it in BUSY/CUSTOM setup under Theme.',
+    icon: 'i-bi-checkmark',
+    disabled: pendingThemeStatusNames.value.includes(statusName),
+    onClick: () => saveStatusToBusyBarTheme(statusName)
+  };
+}
+
 function getStatusMenuItems (statusName: string): DropdownMenuItem[] {
+  const isAnimation = getStatusFileKind(statusName) === 'animation';
+
   return [
+    getStatusThemeMenuItem(statusName),
     {
-      label: getStatusFileKind(statusName) === 'animation' ? 'Download animation' : 'Download PNG',
+      label: isAnimation ? 'Download animation' : 'Download PNG',
+      description: isAnimation ? 'Save the animation to your computer.' : 'Save the image to your computer.',
       icon: 'i-bi-download',
       onClick: () => dts.downloadStatusFile(statusName)
     },
-    ...(getStatusFileKind(statusName) === 'animation'
+    ...(isAnimation
       ? [{
         label: 'Download GIF',
+        description: 'Save the GIF to your computer.',
         icon: 'i-bi-download',
         onClick: () => dts.downloadStatusAsGif(statusName)
       }]
@@ -320,6 +372,52 @@ function getStatusMenuItems (statusName: string): DropdownMenuItem[] {
       }
     }
   ];
+}
+
+async function saveStatusToBusyBarTheme (statusName: string) {
+  if (pendingThemeStatusNames.value.includes(statusName)) {
+    return;
+  }
+
+  setThemeStatusPending(statusName, true);
+
+  try {
+    await dts.saveSavedStatusTheme(statusName);
+    showDrawToolSuccessToast('Saved to BUSY Bar. Find it in BUSY/CUSTOM → Setup → Theme.');
+  } catch (error) {
+    await showDrawToolErrorToast('Couldn’t save to BUSY Bar. Check the connection and try again.', error);
+  } finally {
+    setThemeStatusPending(statusName, false);
+  }
+}
+
+function openRemoveThemeConfirmation (statusName: string) {
+  statusMenuOpenStates.value[statusName] = false;
+  pendingRemoveThemeStatusName.value = statusName;
+  isRemoveThemeConfirmOpen.value = true;
+}
+
+async function confirmRemoveStatusTheme () {
+  const statusName = pendingRemoveThemeStatusName.value;
+
+  if (!statusName) {
+    return;
+  }
+
+  isRemovingTheme.value = true;
+  setThemeStatusPending(statusName, true);
+
+  try {
+    await dts.removeStatusTheme(statusName);
+    showDrawToolSuccessToast('Removed from BUSY Bar. It won’t appear in BUSY/CUSTOM setup.');
+  } catch (error) {
+    await showDrawToolErrorToast('Couldn’t remove from BUSY Bar. Check the connection and try again.', error);
+  } finally {
+    setThemeStatusPending(statusName, false);
+    isRemovingTheme.value = false;
+    isRemoveThemeConfirmOpen.value = false;
+    pendingRemoveThemeStatusName.value = null;
+  }
 }
 
 async function showStatusOnBusyBar (statusName: string) {

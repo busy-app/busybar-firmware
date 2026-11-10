@@ -1,6 +1,6 @@
 import Konva from 'konva';
 import { defineStore } from 'pinia';
-import { cloneShape } from '@/util/drawTool';
+import { cloneShape, createStatusApiName, DEFAULT_STATUS_NAME } from '@/util/drawTool';
 import { getResampledFrameCount, resampleFrameSequence } from '@/util/videoFrames';
 import { VIDEO_DEFAULT_FPS, VIDEO_MAX_FRAMES } from '@/util/videoLimits';
 
@@ -77,6 +77,9 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
   const isLeavingEditor = ref(false);
   const statusFileName = ref(DEFAULT_STATUS_FILE_NAME);
   const savedStatusFilePath = ref<string | null>(null);
+  const statusName = ref(DEFAULT_STATUS_NAME);
+  const statusApiName = ref(createStatusApiName(DEFAULT_STATUS_NAME));
+  const savedThemeName = ref<string | null>(null);
   const lastSavedSnapshot = ref<EditorSnapshot | null>(null);
 
   function createDefaultEditorSnapshot (): EditorSnapshot {
@@ -204,6 +207,16 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     statusFileName.value = fileName;
     savedStatusFilePath.value = path;
     lastSavedSnapshot.value = createEditorSnapshot();
+  }
+
+  function renameStatus (name: string) {
+    statusName.value = name.trim();
+    statusApiName.value = createStatusApiName(statusName.value);
+  }
+
+  function markThemeSaved (themeName: string) {
+    savedThemeName.value = themeName;
+    statusApiName.value = themeName;
   }
 
   const handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -1047,6 +1060,9 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     isTimelinePlaying.value = false;
     statusFileName.value = DEFAULT_STATUS_FILE_NAME;
     savedStatusFilePath.value = null;
+    statusName.value = DEFAULT_STATUS_NAME;
+    statusApiName.value = createStatusApiName(DEFAULT_STATUS_NAME);
+    savedThemeName.value = null;
     lastSavedSnapshot.value = null;
     historyEntries.value = [{
       ...createDefaultEditorSnapshot(),
@@ -1265,6 +1281,9 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     statusFileName,
     savedStatusFilePath,
     hasSavedStatusFile,
+    statusName,
+    statusApiName,
+    savedThemeName,
     hasEditorContent,
     hasUnsavedChanges,
     historyEntries,
@@ -1316,6 +1335,8 @@ export const useDrawToolEditorStore = defineStore('drawToolEditor', () => {
     canSetTimelineFps,
     setTimelineFps,
     markStatusSaved,
+    renameStatus,
+    markThemeSaved,
     clearStage,
     resetEditor,
     deleteSelectedShape,
