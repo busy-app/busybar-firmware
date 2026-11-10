@@ -10,12 +10,15 @@
 
 static JsAppInstallerOperationData*
     js_app_installer_operation_remove_alloc(const JsAppInstallerQueueItem* item) {
-    UNUSED(item);
+    furi_assert(item);
+    furi_assert(item->type == JsAppInstallerOperationTypeRemove);
+    // Empty implementation
     return NULL;
 }
 
 static void js_app_installer_operation_remove_free(JsAppInstallerOperationData* data) {
     UNUSED(data);
+    // Empty implementation
 }
 
 static JsAppInstallerError
