@@ -70,20 +70,6 @@ function getStatusFileBaseName (fileName: string) {
   return fileName.replace(/\.[^.]+$/, '');
 }
 
-async function runAfter<T> (previousOperation: Promise<void>, operation: () => Promise<T>) {
-  await previousOperation;
-
-  return operation();
-}
-
-async function waitForSettled (operation: Promise<unknown>) {
-  try {
-    await operation;
-  } catch {
-    // The caller handles the error; the queue only needs to move on
-  }
-}
-
 function hasLoadedPreview (file: DrawToolStatusPreview) {
   return !!file.previewUrl || !!file.animation;
 }
@@ -123,7 +109,7 @@ export const useDrawToolStore = defineStore('drawTool', () => {
   const isRefreshingStatusDirectory = ref(false);
   const statusThemeNames = ref<Record<string, string>>({});
   const themeDirectoryFileNames = new Map<string, string[]>();
-  let themeOperationQueue: Promise<void> = Promise.resolve();
+  const isThemeOperationRunning = ref(false);
 
   function normalizeDirectoryFiles (files: StorageListElement[]) {
     return files
@@ -276,12 +262,19 @@ export const useDrawToolStore = defineStore('drawTool', () => {
     }
   }
 
-  async function enqueueThemeOperation<T> (operation: () => Promise<T>) {
-    const currentOperation = runAfter(themeOperationQueue, operation);
+  async function runThemeOperation<T> (operation: () => Promise<T>) {
+    if (isThemeOperationRunning.value) {
+      throw new Error('Another BUSY Bar theme operation is running');
+    }
 
-    themeOperationQueue = waitForSettled(currentOperation);
+    isThemeOperationRunning.value = true;
 
-    return currentOperation;
+    try {
+      return await operation();
+    } finally {
+      isThemeOperationRunning.value = false;
+      await refreshStatusThemes();
+    }
   }
 
   function getThemeNamesContainingFile (statusFileName: string) {
@@ -310,8 +303,12 @@ export const useDrawToolStore = defineStore('drawTool', () => {
   }
 
   async function refreshStatusThemes () {
+    if (isThemeOperationRunning.value) {
+      return;
+    }
+
     try {
-      await enqueueThemeOperation(syncThemeDirectoryCache);
+      await syncThemeDirectoryCache();
       updateStatusThemeNames();
     } catch (error) {
       console.warn('Couldn\'t load BUSY Bar themes', error);
@@ -383,7 +380,7 @@ export const useDrawToolStore = defineStore('drawTool', () => {
   }
 
   async function saveStatusTheme (options: SaveStatusThemeOptions) {
-    return enqueueThemeOperation(() => saveStatusThemeInternal(options));
+    return runThemeOperation(() => saveStatusThemeInternal(options));
   }
 
   async function saveSavedStatusTheme (statusFileName: string, options?: SaveSavedStatusThemeOptions) {
@@ -408,7 +405,7 @@ export const useDrawToolStore = defineStore('drawTool', () => {
   }
 
   async function removeStatusTheme (statusFileName: string) {
-    return enqueueThemeOperation(() => removeStatusThemeInternal(statusFileName));
+    return runThemeOperation(() => removeStatusThemeInternal(statusFileName));
   }
 
   async function refreshStatusDirectory (options?: { silent?: boolean }) {
@@ -609,6 +606,7 @@ export const useDrawToolStore = defineStore('drawTool', () => {
 
   return {
     isRefreshingStatusDirectory,
+    isThemeOperationRunning,
     statusDirectoryFiles,
     statusGalleryFiles,
     statusThemeNames,

@@ -240,7 +240,7 @@ const emit = defineEmits<{
 }>();
 
 const dts = useDrawToolStore();
-const { statusGalleryFiles, statusThemeNames, isRefreshingStatusDirectory } = storeToRefs(dts);
+const { statusGalleryFiles, statusThemeNames, isRefreshingStatusDirectory, isThemeOperationRunning } = storeToRefs(dts);
 
 const hoveredStatusName = ref<string | null>(null);
 const selectedStatusNames = ref<string[]>([]);
@@ -329,7 +329,7 @@ function getStatusThemeMenuItem (statusName: string): DropdownMenuItem {
       label: 'Remove from BUSY Bar',
       description: 'It won’t appear in BUSY/CUSTOM setup on BUSY Bar.',
       icon: 'i-bi-cross',
-      disabled: pendingThemeStatusNames.value.includes(statusName),
+      disabled: isThemeOperationRunning.value,
       onClick: () => openRemoveThemeConfirmation(statusName)
     };
   }
@@ -338,7 +338,7 @@ function getStatusThemeMenuItem (statusName: string): DropdownMenuItem {
     label: 'Save to BUSY Bar',
     description: 'Find it in BUSY/CUSTOM setup under Theme.',
     icon: 'i-bi-checkmark',
-    disabled: pendingThemeStatusNames.value.includes(statusName),
+    disabled: isThemeOperationRunning.value,
     onClick: () => saveStatusToBusyBarTheme(statusName)
   };
 }
@@ -375,7 +375,7 @@ function getStatusMenuItems (statusName: string): DropdownMenuItem[] {
 }
 
 async function saveStatusToBusyBarTheme (statusName: string) {
-  if (pendingThemeStatusNames.value.includes(statusName)) {
+  if (isThemeOperationRunning.value) {
     return;
   }
 

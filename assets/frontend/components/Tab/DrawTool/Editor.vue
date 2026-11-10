@@ -32,6 +32,7 @@
               size="sm"
               square
               aria-label="Rename status"
+              :disabled="isSavingStatus"
               @click="() => { isRenameModalOpen = true; }"
             />
           </UTooltip>
@@ -1789,7 +1790,7 @@ function handleWindowKeyDown (event: KeyboardEvent) {
   if (isPrimaryModifierPressed && normalizedKey === 's' && !event.shiftKey) {
     event.preventDefault();
 
-    if (!isSavingStatus.value) {
+    if (!isSavingStatus.value && !dts.isThemeOperationRunning) {
       saveStatus();
     }
 
