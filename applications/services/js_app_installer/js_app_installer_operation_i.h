@@ -12,6 +12,8 @@ typedef void (*JsAppInstallerOperationInit)(
 
 typedef void (*JsAppInstallerOperationDeinit)(JsAppInstallerOperation* instance);
 
+typedef void (*JsAppInstallerOperationCancel)(JsAppInstallerOperation* instance);
+
 typedef void (*JsAppInstallerOperationCleanup)(JsAppInstallerOperation* instance);
 
 typedef JsAppInstallerError (*JsAppInstallerOperationStepHandler)(
@@ -25,6 +27,7 @@ typedef struct {
 typedef struct {
     JsAppInstallerOperationInit init;
     JsAppInstallerOperationDeinit deinit;
+    JsAppInstallerOperationCancel cancel;
     JsAppInstallerOperationCleanup cleanup;
     size_t data_size;
     size_t step_count;
@@ -38,6 +41,7 @@ struct JsAppInstallerOperation {
     FuriString* app_id;
     JsAppInstallerOperationCallback callback;
     void* callback_context;
+    _Atomic bool is_cancel_requested;
 };
 
 void js_app_installer_operation_notify(

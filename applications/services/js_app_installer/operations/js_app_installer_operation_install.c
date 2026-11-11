@@ -29,9 +29,10 @@ typedef enum {
 
 typedef struct {
     JsAppInstallerOperation base;
+    Storage* storage;
     FuriString* url;
     FuriSemaphore* semaphore;
-    Storage* storage;
+    FetchLoader* loader;
     _Atomic FetchStatus fetch_status;
 } JsAppInstallerOperationInstall;
 
@@ -52,9 +53,10 @@ static void js_app_installer_operation_install_init(
 
     JsAppInstallerOperationInstall* instance = (JsAppInstallerOperationInstall*)base_instance;
 
+    instance->storage = furi_record_open(RECORD_STORAGE);
     instance->url = furi_string_alloc_set(item->url);
     instance->semaphore = furi_semaphore_alloc(1, 0);
-    instance->storage = furi_record_open(RECORD_STORAGE);
+    instance->loader = fetch_loader_alloc();
 }
 
 static void js_app_installer_operation_install_deinit(JsAppInstallerOperation* base_instance) {
@@ -63,7 +65,15 @@ static void js_app_installer_operation_install_deinit(JsAppInstallerOperation* b
 
     furi_string_free(instance->url);
     furi_semaphore_free(instance->semaphore);
+    fetch_loader_free(instance->loader);
+
     furi_record_close(RECORD_STORAGE);
+}
+
+static void js_app_installer_operation_install_cancel(JsAppInstallerOperation* base_instance) {
+    furi_assert(base_instance);
+    JsAppInstallerOperationInstall* instance = (JsAppInstallerOperationInstall*)base_instance;
+    fetch_loader_stop(instance->loader);
 }
 
 static void js_app_installer_operation_install_cleanup(JsAppInstallerOperation* base_instance) {
@@ -114,7 +124,7 @@ static JsAppInstallerError
     static const JsAppInstallerError error_table[] = {
         [FetchStatusOk] = JsAppInstallerErrorNone,
         [FetchStatusError] = JsAppInstallerErrorInstall,
-        [FetchStatusAborted] = JsAppInstallerErrorInstall,
+        [FetchStatusAborted] = JsAppInstallerErrorCancelled,
     };
     return error_table[status];
 }
@@ -122,7 +132,7 @@ static JsAppInstallerError
 static JsAppInstallerError
     js_app_installer_operation_install_handler_download(JsAppInstallerOperation* base_instance) {
     JsAppInstallerOperationInstall* instance = (JsAppInstallerOperationInstall*)base_instance;
-    FetchLoader* loader = fetch_loader_alloc();
+    FetchLoader* loader = instance->loader;
 
     fetch_loader_set_progress_callback(
         loader, js_app_installer_operation_install_loader_progress_callback);
@@ -132,8 +142,6 @@ static JsAppInstallerError
 
     fetch_loader_start(loader, furi_string_get_cstr(instance->url), JS_APP_DOWNLOAD_PATH);
     furi_check(furi_semaphore_acquire(instance->semaphore, FuriWaitForever) == FuriStatusOk);
-
-    fetch_loader_free(loader);
 
     return js_app_installer_operation_install_translate_fetch_status(instance->fetch_status);
 }
@@ -275,6 +283,7 @@ static JsAppInstallerError
 const JsAppInstallerOperationInterface js_app_installer_operation_install = {
     .init = js_app_installer_operation_install_init,
     .deinit = js_app_installer_operation_install_deinit,
+    .cancel = js_app_installer_operation_install_cancel,
     .cleanup = js_app_installer_operation_install_cleanup,
     .data_size = sizeof(JsAppInstallerOperationInstall),
     .step_count = JsAppInstallerOperationInstallStepIdMax,

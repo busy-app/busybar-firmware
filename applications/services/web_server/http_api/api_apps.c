@@ -125,6 +125,7 @@ static const char* const installer_errors[] = {
     [JsAppInstallerErrorTimeout] = "Operation timed out",
     [JsAppInstallerErrorNotFound] = "Operation not found",
     [JsAppInstallerErrorQueueFull] = "Too many operations",
+    [JsAppInstallerErrorCancelled] = "Operation cancelled",
 };
 
 static const char* const installer_error_codes[] = {
@@ -136,6 +137,7 @@ static const char* const installer_error_codes[] = {
     [JsAppInstallerErrorTimeout] = "timeout",
     [JsAppInstallerErrorNotFound] = "not_found",
     [JsAppInstallerErrorQueueFull] = "queue_full",
+    [JsAppInstallerErrorCancelled] = "cancelled",
 };
 
 static_assert(COUNT_OF(installer_errors) == JsAppInstallerErrorMax);

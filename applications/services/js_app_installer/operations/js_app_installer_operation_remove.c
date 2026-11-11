@@ -26,12 +26,7 @@ static void js_app_installer_operation_remove_init(
     // Empty implementation
 }
 
-static void js_app_installer_operation_remove_deinit(JsAppInstallerOperation* base_instance) {
-    UNUSED(base_instance);
-    // Empty implementation
-}
-
-static void js_app_installer_operation_remove_cleanup(JsAppInstallerOperation* base_instance) {
+static void js_app_installer_operation_remove_empty(JsAppInstallerOperation* base_instance) {
     UNUSED(base_instance);
     // Empty implementation
 }
@@ -64,8 +59,9 @@ static JsAppInstallerError
 /* clang-format off */
 const JsAppInstallerOperationInterface js_app_installer_operation_remove = {
     .init = js_app_installer_operation_remove_init,
-    .deinit = js_app_installer_operation_remove_deinit,
-    .cleanup = js_app_installer_operation_remove_cleanup,
+    .deinit = js_app_installer_operation_remove_empty,
+    .cancel = js_app_installer_operation_remove_empty,
+    .cleanup = js_app_installer_operation_remove_empty,
     .data_size = sizeof(JsAppInstallerOperationRemove),
     .step_count = JsAppInstallerOperationRemoveStepIdMax,
     .steps = {

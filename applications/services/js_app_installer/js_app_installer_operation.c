@@ -50,6 +50,12 @@ static int32_t js_app_operation_thread_callback(void* arg) {
 
         js_app_operation_notify_step_started(instance, step_name);
 
+        if(instance->is_cancel_requested) {
+            FURI_LOG_I(TAG, "Cancelled before step %d", i);
+            error = JsAppInstallerErrorCancelled;
+            break;
+        }
+
         furi_assert(step->handler);
         error = step->handler(instance);
 
@@ -120,7 +126,13 @@ void js_app_installer_operation_start(JsAppInstallerOperation* instance) {
 
 void js_app_installer_operation_cancel(JsAppInstallerOperation* instance) {
     furi_check(instance);
-    // TODO: Implementation
+
+    const JsAppInstallerOperationInterface* interface = instance->interface;
+    furi_assert(interface);
+    furi_assert(interface->cancel);
+
+    instance->is_cancel_requested = true;
+    interface->cancel(instance);
 }
 
 void js_app_installer_operation_notify(
