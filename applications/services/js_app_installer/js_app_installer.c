@@ -113,6 +113,11 @@ static JsAppInstallerError handle_stage(JsAppInstaller* instance, JsAppInstaller
 
     Storage* storage = furi_record_open(RECORD_STORAGE);
     do {
+        if(!JsAppInstallerOperationQueue_empty_p(instance->pending_queue)) {
+            error = JsAppInstallerErrorQueueFull;
+            break;
+        }
+
         if(!prepare_staging_folder(storage)) {
             error = JsAppInstallerErrorUnpack;
             break;
@@ -159,6 +164,11 @@ static JsAppInstallerError
     JsAppInstallerError error = JsAppInstallerErrorInstall;
     bool cleanup = false;
     do {
+        if(!JsAppInstallerOperationQueue_empty_p(instance->pending_queue)) {
+            error = JsAppInstallerErrorQueueFull;
+            break;
+        }
+
         if(message->install_staged.install_key == 0 ||
            message->install_staged.install_key != instance->staged_install_key) {
             break;
@@ -487,8 +497,9 @@ static void message_queue_callback(FuriEventLoopObject* object, void* context) {
     JsAppInstallerMsg msg;
     while(furi_message_queue_get(instance->msg_queue, &msg, 0) == FuriStatusOk) {
         const MessageHandler handler = msg_handlers[msg.cmd];
-        furi_check(handler);
 
+        furi_assert(handler);
+        furi_assert(msg.error);
         *msg.error = handler(instance, &msg);
 
         if(msg.api_lock != NULL) {
