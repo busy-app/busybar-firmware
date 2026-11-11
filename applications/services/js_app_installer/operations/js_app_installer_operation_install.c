@@ -7,6 +7,9 @@
 
 #include <fetch/fetch_loader.h>
 
+#include <storage_utils/dir_walk.h>
+#include <toolbox/tar/tar_archive.h>
+
 #include "../js_app_installer_paths.h"
 
 #define TAG "JsAppInstallerOperationInstall"
@@ -125,7 +128,35 @@ static JsAppInstallerError
 static JsAppInstallerError
     js_app_installer_operation_install_handler_unpack(JsAppInstallerOperation* instance) {
     UNUSED(instance);
-    return JsAppInstallerErrorNone;
+
+    JsAppInstallerError error = JsAppInstallerErrorUnpack;
+
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+    TarArchive* tar = tar_archive_alloc(storage);
+
+    do {
+        if(!storage_simply_remove_recursive(storage, JS_APP_STAGING_PATH)) {
+            FURI_LOG_E(TAG, "Failed to remove staging directory: %s", JS_APP_STAGING_PATH);
+            break;
+        }
+
+        if(!tar_archive_open(tar, JS_APP_DOWNLOAD_PATH, TarOpenModeReadAuto)) {
+            FURI_LOG_E(TAG, "Failed to open file: %s", JS_APP_DOWNLOAD_PATH);
+            break;
+        }
+
+        if(!tar_archive_unpack_to(tar, JS_APP_STAGING_PATH, NULL)) {
+            FURI_LOG_E(TAG, "Failed to unpack file: %s", JS_APP_DOWNLOAD_PATH);
+            break;
+        }
+
+        error = JsAppInstallerErrorNone;
+    } while(false);
+
+    tar_archive_free(tar);
+    furi_record_close(RECORD_STORAGE);
+
+    return error;
 }
 
 static JsAppInstallerError
@@ -138,7 +169,8 @@ static JsAppInstallerError
     js_app_installer_operation_install_run(JsAppInstallerOperation* instance) {
     furi_assert(instance);
 
-    FURI_LOG_W(TAG, "Installing app: %s", furi_string_get_cstr(instance->app_id));
+    const char* app_id = furi_string_get_cstr(instance->app_id);
+    FURI_LOG_D(TAG, "Installing app: %s", app_id);
 
     JsAppInstallerError error;
 
