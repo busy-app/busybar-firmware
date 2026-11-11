@@ -221,8 +221,14 @@ static void js_app_launcher_scene_setup_rebuild_level(JsAppLauncher* instance) {
 static void
     js_app_launcher_scene_setup_raise_error(JsAppLauncher* instance, JsAppLauncherError error) {
     instance->error = error;
+
+    with_gui(instance->gui, {
+        nav_bar_pop_locations(
+            instance->nav_bar,
+            MAX(JsAppLauncherSceneSetupLevels_size(instance->setup_levels), 1u));
+    });
+
     JsAppLauncherSceneSetupLevels_reset(instance->setup_levels);
-    with_gui(instance->gui, { nav_bar_pop_location(instance->nav_bar); });
     scene_manager_replace_current_scene(instance->scene_manager, JsAppLauncherSceneIdError);
 }
 
