@@ -43,8 +43,6 @@ typedef struct {
     JsAppInstallerOperationInstallStepHandler handler;
 } JsAppInstallerOperationInstallStep;
 
-static const JsAppInstallerOperationInstallStep js_app_installer_operation_install_steps[];
-
 static void js_app_installer_operation_install_init(
     JsAppInstallerOperation* base_instance,
     const JsAppInstallerQueueItem* item) {
@@ -59,13 +57,22 @@ static void js_app_installer_operation_install_init(
     instance->storage = furi_record_open(RECORD_STORAGE);
 }
 
-static void js_app_installer_operation_install_free(JsAppInstallerOperation* base_instance) {
+static void js_app_installer_operation_install_deinit(JsAppInstallerOperation* base_instance) {
     furi_assert(base_instance);
     JsAppInstallerOperationInstall* instance = (JsAppInstallerOperationInstall*)base_instance;
 
     furi_string_free(instance->url);
     furi_semaphore_free(instance->semaphore);
     furi_record_close(RECORD_STORAGE);
+}
+
+static void js_app_installer_operation_install_cleanup(JsAppInstallerOperation* base_instance) {
+    furi_assert(base_instance);
+    JsAppInstallerOperationInstall* instance = (JsAppInstallerOperationInstall*)base_instance;
+
+    Storage* storage = instance->storage;
+    storage_simply_remove_recursive(storage, JS_APP_STAGING_PATH);
+    storage_simply_remove(storage, JS_APP_DOWNLOAD_PATH);
 }
 
 static void js_app_installer_operation_install_loader_progress_callback(
@@ -113,7 +120,8 @@ static JsAppInstallerError
 }
 
 static JsAppInstallerError
-    js_app_installer_operation_install_handler_download(JsAppInstallerOperationInstall* instance) {
+    js_app_installer_operation_install_handler_download(JsAppInstallerOperation* base_instance) {
+    JsAppInstallerOperationInstall* instance = (JsAppInstallerOperationInstall*)base_instance;
     FetchLoader* loader = fetch_loader_alloc();
 
     fetch_loader_set_progress_callback(
@@ -131,7 +139,9 @@ static JsAppInstallerError
 }
 
 static JsAppInstallerError
-    js_app_installer_operation_install_handler_unpack(JsAppInstallerOperationInstall* instance) {
+    js_app_installer_operation_install_handler_unpack(JsAppInstallerOperation* base_instance) {
+    JsAppInstallerOperationInstall* instance = (JsAppInstallerOperationInstall*)base_instance;
+
     JsAppInstallerError error = JsAppInstallerErrorUnpack;
     TarArchive* tar = tar_archive_alloc(instance->storage);
 
@@ -206,7 +216,9 @@ static JsAppInstallerError js_app_installer_operation_install_find_staged_app(
 }
 
 static JsAppInstallerError
-    js_app_installer_operation_install_handler_install(JsAppInstallerOperationInstall* instance) {
+    js_app_installer_operation_install_handler_install(JsAppInstallerOperation* base_instance) {
+    JsAppInstallerOperationInstall* instance = (JsAppInstallerOperationInstall*)base_instance;
+
     JsAppInstallerError error;
     Storage* storage = instance->storage;
 
@@ -260,68 +272,26 @@ static JsAppInstallerError
     return error;
 }
 
-static void js_app_installer_operation_install_cleanup(JsAppInstallerOperationInstall* instance) {
-    Storage* storage = instance->storage;
-    storage_simply_remove_recursive(storage, JS_APP_STAGING_PATH);
-    storage_simply_remove(storage, JS_APP_DOWNLOAD_PATH);
-}
-
-static JsAppInstallerError
-    js_app_installer_operation_install_run(JsAppInstallerOperation* base_instance) {
-    furi_assert(base_instance);
-    JsAppInstallerOperationInstall* instance = (JsAppInstallerOperationInstall*)base_instance;
-
-    const char* app_id = furi_string_get_cstr(base_instance->app_id);
-    FURI_LOG_D(TAG, "Installing app: %s", app_id);
-
-    JsAppInstallerError error;
-
-    for(size_t i = 0; i < JsAppInstallerOperationInstallStepIdMax; ++i) {
-        const JsAppInstallerOperationInstallStep* step =
-            &js_app_installer_operation_install_steps[i];
-        /* clang-format off */
-        const JsAppInstallerOperationEvent event = {
-            .type = JsAppInstallerOperationEventTypeProgress,
-            .progress.detail = {
-                .step = step->name,
-                .has_progress = false,
-            },
-        };
-        /* clang-format on */
-        js_app_installer_operation_emit(base_instance, &event);
-
-        error = step->handler(instance);
-        if(error != JsAppInstallerErrorNone) {
-            FURI_LOG_E(TAG, "Step %s failed with error 0x%X", step->name, error);
-            break;
-        }
-    }
-
-    js_app_installer_operation_install_cleanup(instance);
-
-    return error;
-}
-
 const JsAppInstallerOperationInterface js_app_installer_operation_install = {
     .init = js_app_installer_operation_install_init,
-    .clear = js_app_installer_operation_install_free,
-    .run = js_app_installer_operation_install_run,
+    .deinit = js_app_installer_operation_install_deinit,
+    .cleanup = js_app_installer_operation_install_cleanup,
     .data_size = sizeof(JsAppInstallerOperationInstall),
+    .step_count = JsAppInstallerOperationInstallStepIdMax,
+    /* clang-format off */
+    .steps = {
+        [JsAppInstallerOperationInstallStepIdDownload] = {
+            .name = "downloading",
+            .handler = js_app_installer_operation_install_handler_download,
+        },
+        [JsAppInstallerOperationInstallStepIdUnpack] = {
+            .name = "unpacking",
+            .handler = js_app_installer_operation_install_handler_unpack,
+        },
+        [JsAppInstallerOperationInstallStepIdInstall] = {
+            .name = "installing",
+            .handler = js_app_installer_operation_install_handler_install,
+        },
+    },
+    /* clang-format on */
 };
-
-/* clang-format off */
-static const JsAppInstallerOperationInstallStep js_app_installer_operation_install_steps[] = {
-    [JsAppInstallerOperationInstallStepIdDownload] = {
-        .name = "downloading",
-        .handler = js_app_installer_operation_install_handler_download,
-    },
-    [JsAppInstallerOperationInstallStepIdUnpack] = {
-        .name = "unpacking",
-        .handler = js_app_installer_operation_install_handler_unpack,
-    },
-    [JsAppInstallerOperationInstallStepIdInstall] = {
-        .name = "installing",
-        .handler = js_app_installer_operation_install_handler_install,
-    },
-};
-/* clang-format on */

@@ -8,6 +8,11 @@
 
 #define TAG "JsAppInstallerOperationRemove"
 
+typedef enum {
+    JsAppInstallerOperationRemoveStepIdRemove,
+    JsAppInstallerOperationRemoveStepIdMax,
+} JsAppInstallerOperationRemoveStepId;
+
 typedef struct {
     JsAppInstallerOperation base;
 } JsAppInstallerOperationRemove;
@@ -21,7 +26,12 @@ static void js_app_installer_operation_remove_init(
     // Empty implementation
 }
 
-static void js_app_installer_operation_remove_clear(JsAppInstallerOperation* base_instance) {
+static void js_app_installer_operation_remove_deinit(JsAppInstallerOperation* base_instance) {
+    UNUSED(base_instance);
+    // Empty implementation
+}
+
+static void js_app_installer_operation_remove_cleanup(JsAppInstallerOperation* base_instance) {
     UNUSED(base_instance);
     // Empty implementation
 }
@@ -42,29 +52,27 @@ static JsAppInstallerError
 }
 
 static JsAppInstallerError
-    js_app_installer_operation_remove_run(JsAppInstallerOperation* base_instance) {
+    js_app_installer_operation_remove_handler(JsAppInstallerOperation* base_instance) {
     furi_assert(base_instance);
 
     const char* app_id = furi_string_get_cstr(base_instance->app_id);
-    FURI_LOG_D(TAG, "Removing app: %s", app_id);
-    /* clang-format off */
-    const JsAppInstallerOperationEvent event = {
-        .type = JsAppInstallerOperationEventTypeProgress,
-        .progress.detail = {
-            .step = "removing",
-            .has_progress = false,
-        },
-    };
-    /* clang-format on */
-    js_app_installer_operation_emit(base_instance, &event);
-
     const JsAppRegistryAppUninstallResult result = js_app_registry_uninstall_app(app_id);
+
     return js_app_installer_operation_translate_registry_result(result);
 }
 
+/* clang-format off */
 const JsAppInstallerOperationInterface js_app_installer_operation_remove = {
     .init = js_app_installer_operation_remove_init,
-    .clear = js_app_installer_operation_remove_clear,
-    .run = js_app_installer_operation_remove_run,
+    .deinit = js_app_installer_operation_remove_deinit,
+    .cleanup = js_app_installer_operation_remove_cleanup,
     .data_size = sizeof(JsAppInstallerOperationRemove),
+    .step_count = JsAppInstallerOperationRemoveStepIdMax,
+    .steps = {
+        [JsAppInstallerOperationRemoveStepIdRemove] = {
+            .name = "removing",
+            .handler = js_app_installer_operation_remove_handler,
+        },
+    },
 };
+/* clang-format on */

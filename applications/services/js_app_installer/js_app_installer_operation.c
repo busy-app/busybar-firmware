@@ -2,12 +2,37 @@
 
 #include <core/check.h>
 #include <core/kernel.h>
+#include <core/log.h>
 
 #include "operations/js_app_installer_operations.h"
 
 #define TAG "JsAppInstallerOperation"
 
 #define THREAD_STACK_SIZE (2 * 1024)
+
+static void
+    js_app_operation_emit_step_started(JsAppInstallerOperation* instance, const char* step_name) {
+    /* clang-format off */
+    const JsAppInstallerOperationEvent event = {
+        .type = JsAppInstallerOperationEventTypeProgress,
+        .progress.detail = {
+            .step = step_name,
+            .has_progress = false,
+        },
+    };
+    /* clang-format on */
+    js_app_installer_operation_emit(instance, &event);
+}
+
+static void
+    js_app_operation_emit_finished(JsAppInstallerOperation* instance, JsAppInstallerError error) {
+    const JsAppInstallerOperationEvent event = {
+        .type = JsAppInstallerOperationEventTypeFinished,
+        .finished.error = error,
+    };
+
+    js_app_installer_operation_emit(instance, &event);
+}
 
 static int32_t js_app_operation_thread_callback(void* arg) {
     furi_assert(arg);
@@ -16,17 +41,29 @@ static int32_t js_app_operation_thread_callback(void* arg) {
     const JsAppInstallerOperationInterface* interface = instance->interface;
     furi_assert(interface);
 
-    furi_assert(interface->run);
-    const JsAppInstallerError error = interface->run(instance);
-    /* clang-format off */
-    const JsAppInstallerOperationEvent event = {
-        .type = JsAppInstallerOperationEventTypeFinished,
-        .finished = {
-            .error = error,
-        },
-    };
-    /* clang-format on */
-    js_app_installer_operation_emit(instance, &event);
+    JsAppInstallerError error = JsAppInstallerErrorNone;
+
+    for(size_t i = 0; i < interface->step_count; ++i) {
+        const JsAppInstallerOperationStep* step = &interface->steps[i];
+        const char* step_name = step->name;
+        furi_assert(step_name);
+
+        js_app_operation_emit_step_started(instance, step_name);
+
+        furi_assert(step->handler);
+        error = step->handler(instance);
+
+        if(error != JsAppInstallerErrorNone) {
+            FURI_LOG_E(TAG, "Step %s failed: 0x%X", step_name, error);
+            break;
+        }
+    }
+
+    furi_assert(interface->cleanup);
+    interface->cleanup(instance);
+
+    js_app_operation_emit_finished(instance, error);
+
     return 0;
 }
 
@@ -57,8 +94,8 @@ void js_app_installer_operation_free(JsAppInstallerOperation* instance) {
     const JsAppInstallerOperationInterface* interface = instance->interface;
     furi_assert(interface);
 
-    furi_assert(interface->clear);
-    interface->clear(instance);
+    furi_assert(interface->deinit);
+    interface->deinit(instance);
 
     furi_thread_free(instance->thread);
     furi_string_free(instance->app_id);

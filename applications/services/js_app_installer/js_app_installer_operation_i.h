@@ -10,15 +10,25 @@ typedef void (*JsAppInstallerOperationInit)(
     JsAppInstallerOperation* instance,
     const JsAppInstallerQueueItem* item);
 
-typedef void (*JsAppInstallerOperationClear)(JsAppInstallerOperation* instance);
+typedef void (*JsAppInstallerOperationDeinit)(JsAppInstallerOperation* instance);
 
-typedef JsAppInstallerError (*JsAppInstallerOperationRun)(JsAppInstallerOperation* instance);
+typedef void (*JsAppInstallerOperationCleanup)(JsAppInstallerOperation* instance);
+
+typedef JsAppInstallerError (*JsAppInstallerOperationStepHandler)(
+    JsAppInstallerOperation* instance);
+
+typedef struct {
+    const char* name;
+    JsAppInstallerOperationStepHandler handler;
+} JsAppInstallerOperationStep;
 
 typedef struct {
     JsAppInstallerOperationInit init;
-    JsAppInstallerOperationClear clear;
-    JsAppInstallerOperationRun run;
+    JsAppInstallerOperationDeinit deinit;
+    JsAppInstallerOperationCleanup cleanup;
     size_t data_size;
+    size_t step_count;
+    JsAppInstallerOperationStep steps[];
 } JsAppInstallerOperationInterface;
 
 struct JsAppInstallerOperation {
