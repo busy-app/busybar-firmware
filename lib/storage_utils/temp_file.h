@@ -59,6 +59,16 @@ bool temp_file_create(TempFile* instance, const char* path);
 bool temp_file_write(TempFile* instance, const void* data, size_t data_len);
 
 /**
+ * @brief Close the underlying file.
+ *
+ * This function succeeds if the file was not open.
+ *
+ * @param[in,out] instance pointer to the instance to be closed
+ * @returns @c true if the file could be closed, @c false otherwise
+ */
+bool temp_file_close(TempFile* instance);
+
+/**
  * @brief Remove the underlying file.
  *
  * @param[in,out] instance pointer to the instance to be removed.
