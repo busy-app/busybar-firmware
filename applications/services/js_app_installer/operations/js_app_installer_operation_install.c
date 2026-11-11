@@ -166,6 +166,7 @@ static JsAppInstallerError
 
 static JsAppInstallerError js_app_installer_operation_install_find_staged_app(
     Storage* storage,
+    const FuriString* app_id,
     JsApp* out_app,
     FuriString* out_path) {
     JsAppInstallerError error = JsAppInstallerErrorManifest;
@@ -189,7 +190,13 @@ static JsAppInstallerError js_app_installer_operation_install_find_staged_app(
                 break;
             }
 
-            const SemVer* api_version = &app_info.manifest.api_version;
+            const JsAppManifestInfo* manifest = &app_info.manifest;
+
+            if(!furi_string_equal(app_id, manifest->id)) {
+                continue;
+            }
+
+            const SemVer* api_version = &manifest->api_version;
             if(!web_server_is_api_version_compatible(api_version)) {
                 error = JsAppInstallerErrorApiVersion;
                 break;
@@ -216,8 +223,8 @@ static JsAppInstallerError
     FuriString* target_path = NULL;
 
     do {
-        error =
-            js_app_installer_operation_install_find_staged_app(storage, staged_app, staged_path);
+        error = js_app_installer_operation_install_find_staged_app(
+            storage, instance->app_id, staged_app, staged_path);
         if(error != JsAppInstallerErrorNone) {
             break;
         }
