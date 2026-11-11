@@ -33,34 +33,14 @@ ARRAY_DEF(LocationStack, const char*, NAV_BAR_M_CSTR_DUP_UPR_OPLIST);
 struct NavBar {
     Widget base;
     lv_obj_t* header_image;
-    lv_obj_t* header_label;
-    lv_obj_t* breadcrumbs_label;
+    lv_obj_t* prefix_label;
+    lv_obj_t* active_label;
 
     char* header_text;
-
     LocationStack_t locations;
 };
 
 const lv_obj_class_t nav_bar_lvgl_class;
-
-static const lv_draw_rect_dsc_t nav_bar_fader_descriptor = {
-    .bg_opa = LV_OPA_COVER,
-    .bg_grad.dir = LV_GRAD_DIR_HOR,
-    .bg_grad.stops_count = 2,
-    .bg_grad.stops =
-        {
-            {
-                .color = LV_COLOR_MAKE(0x00, 0x00, 0x00),
-                .opa = LV_OPA_TRANSP,
-                .frac = 0,
-            },
-            {
-                .color = LV_COLOR_MAKE(0x00, 0x00, 0x00),
-                .opa = LV_OPA_COVER,
-                .frac = 0xFF,
-            },
-        },
-};
 
 /* implementation */
 
@@ -74,63 +54,91 @@ static void nav_bar_build_breadcrumbs_text(NavBar* instance, size_t start_idx, F
             ">");
     }
 
-    size_t last_idx = LocationStack_size(instance->locations) - 1;
-    for(size_t i = start_idx; i < last_idx; i++) {
+    for(size_t i = start_idx; i < LocationStack_size(instance->locations) - 1; i++) {
         furi_string_cat_printf(
             text,
             NAV_BAR_BREADCRUMBS_SPACER "%s" NAV_BAR_BREADCRUMBS_SPACER ">",
             *LocationStack_get(instance->locations, i));
     }
 
-    furi_string_cat_printf(
-        text,
-        NAV_BAR_BREADCRUMBS_SPACER "#" TOSTRING(COLOR_ACTIVE) " %s #",
-        *LocationStack_get(instance->locations, last_idx));
+    furi_string_cat(text, NAV_BAR_BREADCRUMBS_SPACER);
 }
 
-static int32_t nav_bar_get_available_width(NavBar* instance) {
-    int32_t width = lv_obj_get_content_width(TO_LV_OBJ(instance));
+static int32_t nav_bar_get_available_text_width(NavBar* instance) {
+    int32_t padding = lv_obj_get_style_pad_column(TO_LV_OBJ(instance), LV_PART_MAIN);
+    int32_t width = lv_obj_get_content_width(TO_LV_OBJ(instance)) - padding;
 
     if(!lv_obj_has_flag(instance->header_image, LV_OBJ_FLAG_HIDDEN)) {
-        width -= lv_obj_get_self_width(instance->header_image) +
-                 lv_obj_get_style_pad_column(TO_LV_OBJ(instance), LV_PART_MAIN);
+        width -= lv_obj_get_self_width(instance->header_image) + padding;
     }
 
     return MAX(width, 0);
 }
 
+static int32_t nav_bar_measure_label_text_width(lv_obj_t* label, const char* text) {
+    const lv_font_t* font = lv_obj_get_style_text_font(label, LV_PART_MAIN);
+    int32_t letter_space = lv_obj_get_style_text_letter_space(label, LV_PART_MAIN);
+
+    return lv_text_get_width(text, strlen(text), font, letter_space);
+}
+
 static void nav_bar_update_breadcrumbs(NavBar* instance) {
     if(LocationStack_size(instance->locations) > 0) {
-        int32_t available_width = nav_bar_get_available_width(instance);
+        int32_t available_width = nav_bar_get_available_text_width(instance);
+
+        size_t last_idx = LocationStack_size(instance->locations) - 1;
+        const char* active_text = *LocationStack_get(instance->locations, last_idx);
+        int32_t active_width =
+            nav_bar_measure_label_text_width(instance->active_label, active_text);
 
         FuriString* text_builder = furi_string_alloc();
-        for(size_t i = 0; i < LocationStack_size(instance->locations); i++) {
+        for(size_t i = 0; i <= last_idx; i++) {
             nav_bar_build_breadcrumbs_text(instance, i, text_builder);
 
-            int32_t text_width = lv_text_get_width_with_flags(
-                furi_string_get_cstr(text_builder),
-                furi_string_size(text_builder),
-                lv_obj_get_style_text_font(instance->breadcrumbs_label, LV_PART_MAIN),
-                lv_obj_get_style_text_letter_space(instance->breadcrumbs_label, LV_PART_MAIN),
-                LV_TEXT_FLAG_RECOLOR);
+            int32_t prefix_width = nav_bar_measure_label_text_width(
+                instance->prefix_label, furi_string_get_cstr(text_builder));
 
-            if(text_width <= available_width + NAV_BAR_BREADCRUMBS_OVERFLOW) {
+            if(prefix_width + active_width <= available_width + NAV_BAR_BREADCRUMBS_OVERFLOW) {
                 break;
             }
         }
 
-        lv_label_set_text(instance->breadcrumbs_label, furi_string_get_cstr(text_builder));
-        lv_obj_remove_flag(instance->breadcrumbs_label, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_add_flag(instance->header_label, LV_OBJ_FLAG_HIDDEN);
+        lv_label_set_text(instance->prefix_label, furi_string_get_cstr(text_builder));
+        lv_label_set_text(instance->active_label, active_text);
+
+        lv_obj_remove_flag(instance->prefix_label, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_remove_flag(instance->active_label, LV_OBJ_FLAG_HIDDEN);
 
         furi_string_free(text_builder);
     } else {
-        lv_obj_add_flag(instance->breadcrumbs_label, LV_OBJ_FLAG_HIDDEN);
-        lv_obj_remove_flag(instance->header_label, LV_OBJ_FLAG_HIDDEN);
+        lv_label_set_text_static(
+            instance->prefix_label, instance->header_text ? instance->header_text : "");
+
+        lv_obj_add_flag(instance->active_label, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_remove_flag(instance->prefix_label, LV_OBJ_FLAG_HIDDEN);
     }
 }
 
 static void nav_bar_draw_fader(lv_obj_t* object, lv_layer_t* layer) {
+    static const lv_draw_rect_dsc_t nav_bar_fader_descriptor = {
+        .bg_opa = LV_OPA_COVER,
+        .bg_grad.dir = LV_GRAD_DIR_HOR,
+        .bg_grad.stops_count = 2,
+        .bg_grad.stops =
+            {
+                {
+                    .color = LV_COLOR_MAKE(0x00, 0x00, 0x00),
+                    .opa = LV_OPA_TRANSP,
+                    .frac = 0,
+                },
+                {
+                    .color = LV_COLOR_MAKE(0x00, 0x00, 0x00),
+                    .opa = LV_OPA_COVER,
+                    .frac = 0xFF,
+                },
+            },
+    };
+
     lv_area_t object_coords;
     lv_obj_get_coords(object, &object_coords);
 
@@ -171,26 +179,25 @@ static void nav_bar_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* ob
     instance->header_image = lv_image_create(obj);
     lv_obj_add_flag(instance->header_image, LV_OBJ_FLAG_HIDDEN);
 
-    instance->header_label = lv_label_create(obj);
-    lv_obj_set_style_text_font(instance->header_label, lv_theme_get_font_small(obj), LV_PART_MAIN);
+    instance->prefix_label = lv_label_create(obj);
+    lv_obj_set_style_text_font(instance->prefix_label, lv_theme_get_font_small(obj), LV_PART_MAIN);
+    lv_obj_set_style_pad_top(instance->prefix_label, 1, LV_PART_MAIN);
+    lv_obj_set_style_text_letter_space(instance->prefix_label, 1, LV_PART_MAIN);
     lv_obj_set_style_text_color(
-        instance->header_label, lv_color_hex(COLOR_INACTIVE_HEX), LV_PART_MAIN);
-    lv_obj_set_style_text_letter_space(instance->header_label, 1, LV_PART_MAIN);
-    lv_obj_set_style_pad_top(instance->header_label, 1, LV_PART_MAIN);
+        instance->prefix_label, lv_color_hex(COLOR_INACTIVE_HEX), LV_PART_MAIN);
+    lv_label_set_long_mode(instance->prefix_label, LV_LABEL_LONG_CLIP);
+    lv_obj_add_flag(instance->prefix_label, LV_OBJ_FLAG_HIDDEN);
 
-    instance->breadcrumbs_label = lv_label_create(obj);
-    lv_obj_set_style_text_font(
-        instance->breadcrumbs_label, lv_theme_get_font_small(obj), LV_PART_MAIN);
+    instance->active_label = lv_label_create(obj);
+    lv_obj_set_style_text_font(instance->active_label, lv_theme_get_font_small(obj), LV_PART_MAIN);
+    lv_obj_set_style_pad_top(instance->active_label, 1, LV_PART_MAIN);
+    lv_obj_set_style_text_letter_space(instance->active_label, 1, LV_PART_MAIN);
     lv_obj_set_style_text_color(
-        instance->breadcrumbs_label, lv_color_hex(COLOR_INACTIVE_HEX), LV_PART_MAIN);
-    lv_label_set_recolor(instance->breadcrumbs_label, true);
-    lv_obj_set_style_text_letter_space(instance->breadcrumbs_label, 1, LV_PART_MAIN);
-    lv_obj_set_style_pad_top(instance->breadcrumbs_label, 1, LV_PART_MAIN);
-    lv_label_set_long_mode(instance->breadcrumbs_label, LV_LABEL_LONG_CLIP);
-    lv_obj_add_flag(instance->breadcrumbs_label, LV_OBJ_FLAG_HIDDEN);
+        instance->active_label, lv_color_hex(COLOR_ACTIVE_HEX), LV_PART_MAIN);
+    lv_label_set_long_mode(instance->active_label, LV_LABEL_LONG_CLIP);
+    lv_obj_add_flag(instance->active_label, LV_OBJ_FLAG_HIDDEN);
 
     instance->header_text = NULL;
-
     LocationStack_init(instance->locations);
 }
 
@@ -244,13 +251,8 @@ void nav_bar_set_header_text(NavBar* instance, const char* text) {
 
     free(instance->header_text);
 
-    if(text) {
-        instance->header_text = strupr(strdup(text));
-        lv_label_set_text_static(instance->header_label, instance->header_text);
-    } else {
-        instance->header_text = NULL;
-        lv_label_set_text_static(instance->header_label, "");
-    }
+    instance->header_text = text ? strupr(strdup(text)) : NULL;
+    nav_bar_update_breadcrumbs(instance);
 }
 
 void nav_bar_push_location(NavBar* instance, const char* location_name) {
