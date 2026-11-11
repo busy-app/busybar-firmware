@@ -371,14 +371,18 @@ static bool fetch_verify_response_body_size(Fetch* instance) {
     bool success = true;
 
     if(!(instance->is_stop_requested || instance->is_error_occurred)) {
-        const FetchProgress* progress = &instance->progress;
+        if(instance->chunked) {
+            success = fetch_chunked_is_complete(instance->chunked);
+        } else {
+            const FetchProgress* progress = &instance->progress;
 
-        if(progress->has_total_download_size) {
-            const size_t expected_size = progress->total_download_size;
-            const size_t actual_size = progress->received_download_size;
+            if(progress->has_total_download_size) {
+                const size_t expected_size = progress->total_download_size;
+                const size_t actual_size = progress->received_download_size;
 
-            if(expected_size != actual_size) {
-                success = false;
+                if(expected_size != actual_size) {
+                    success = false;
+                }
             }
         }
     }
@@ -398,6 +402,10 @@ Fetch* fetch_alloc(void) {
 void fetch_free(Fetch* instance) {
     furi_check(instance);
     furi_check(!instance->is_running);
+
+    if(instance->chunked) {
+        fetch_chunked_free(instance->chunked);
+    }
 
     free(instance);
 }
@@ -464,6 +472,11 @@ FetchStatus fetch_run(Fetch* instance, const FetchRequest* request) {
 
     network_deinit_current_thread(network);
     furi_record_close(RECORD_NETWORK);
+
+    if(instance->chunked) {
+        fetch_chunked_free(instance->chunked);
+        instance->chunked = NULL;
+    }
 
     return fetch_get_status(instance);
 }

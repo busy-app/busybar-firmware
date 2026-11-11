@@ -22,3 +22,5 @@ FetchChunked* fetch_chunked_alloc(
 void fetch_chunked_free(FetchChunked* instance);
 
 bool fetch_chunked_process(FetchChunked* instance, SizedBufferConst packet);
+
+bool fetch_chunked_is_complete(FetchChunked* instance);

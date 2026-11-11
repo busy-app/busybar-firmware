@@ -98,6 +98,7 @@ static size_t
     } else if(c == '\r') {
         instance->state = StateSizeLf;
     } else {
+        // Relaxed condition for extension, not checking for a semicolon
         instance->state = StateExt;
     }
     return 1;
@@ -197,4 +198,8 @@ bool fetch_chunked_process(FetchChunked* instance, SizedBufferConst packet) {
     }
 
     return instance->state >= StateTrailer;
+}
+
+bool fetch_chunked_is_complete(FetchChunked* instance) {
+    return instance->state == StateTrailer;
 }
