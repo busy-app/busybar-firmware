@@ -38,6 +38,7 @@ typedef struct {
 typedef struct {
     FuriString* url;
     FuriSemaphore* semaphore;
+    Storage* storage;
     _Atomic FetchStatus fetch_status;
 } JsAppInstallerOperationInstall;
 
@@ -52,6 +53,7 @@ static JsAppInstallerOperationData*
 
     data->url = furi_string_alloc_set(item->url);
     data->semaphore = furi_semaphore_alloc(1, 0);
+    data->storage = furi_record_open(RECORD_STORAGE);
 
     return data;
 }
@@ -62,6 +64,7 @@ static void js_app_installer_operation_install_free(JsAppInstallerOperationData*
 
     furi_string_free(data->url);
     furi_semaphore_free(data->semaphore);
+    furi_record_close(RECORD_STORAGE);
 
     free(data);
 }
@@ -133,15 +136,13 @@ static JsAppInstallerError
 
 static JsAppInstallerError
     js_app_installer_operation_install_handler_unpack(JsAppInstallerOperation* instance) {
-    UNUSED(instance);
+    const JsAppInstallerOperationInstall* data = instance->data;
 
     JsAppInstallerError error = JsAppInstallerErrorUnpack;
-
-    Storage* storage = furi_record_open(RECORD_STORAGE);
-    TarArchive* tar = tar_archive_alloc(storage);
+    TarArchive* tar = tar_archive_alloc(data->storage);
 
     do {
-        if(!storage_simply_remove_recursive(storage, JS_APP_STAGING_PATH)) {
+        if(!storage_simply_remove_recursive(data->storage, JS_APP_STAGING_PATH)) {
             FURI_LOG_E(TAG, "Failed to remove staging directory: %s", JS_APP_STAGING_PATH);
             break;
         }
@@ -160,16 +161,14 @@ static JsAppInstallerError
     } while(false);
 
     tar_archive_free(tar);
-    furi_record_close(RECORD_STORAGE);
-
     return error;
 }
 
-static JsAppInstallerError
-    js_app_installer_operation_install_find_staged_app(JsApp* out_app, FuriString* out_path) {
+static JsAppInstallerError js_app_installer_operation_install_find_staged_app(
+    Storage* storage,
+    JsApp* out_app,
+    FuriString* out_path) {
     JsAppInstallerError error = JsAppInstallerErrorManifest;
-
-    Storage* storage = furi_record_open(RECORD_STORAGE);
     DirWalk* walk = dir_walk_alloc(storage);
 
     dir_walk_set_recursive(walk, false);
@@ -201,26 +200,24 @@ static JsAppInstallerError
         }
     }
 
-    furi_record_close(RECORD_STORAGE);
     dir_walk_free(walk);
-
     return error;
 }
 
 static JsAppInstallerError
     js_app_installer_operation_install_handler_install(JsAppInstallerOperation* instance) {
-    UNUSED(instance);
-
     JsAppInstallerError error;
+
+    const JsAppInstallerOperationInstall* data = instance->data;
+    Storage* storage = data->storage;
 
     JsApp* staged_app = js_app_alloc();
     FuriString* staged_path = furi_string_alloc();
     FuriString* target_path = NULL;
 
-    Storage* storage = furi_record_open(RECORD_STORAGE);
-
     do {
-        error = js_app_installer_operation_install_find_staged_app(staged_app, staged_path);
+        error =
+            js_app_installer_operation_install_find_staged_app(storage, staged_app, staged_path);
         if(error != JsAppInstallerErrorNone) {
             break;
         }
@@ -245,7 +242,8 @@ static JsAppInstallerError
 
         const char* staged_path_str = furi_string_get_cstr(staged_path);
         if(storage_common_rename(storage, staged_path_str, target_path_str) != FSE_OK) {
-            FURI_LOG_E(TAG, "Cannot move directory");
+            FURI_LOG_E(
+                TAG, "Failed to move app directory %s -> %s", staged_path_str, target_path_str);
             error = JsAppInstallerErrorInstall;
             break;
         }
@@ -262,8 +260,6 @@ static JsAppInstallerError
 
     storage_simply_remove_recursive(storage, JS_APP_STAGING_PATH);
     storage_simply_remove(storage, JS_APP_DOWNLOAD_PATH);
-
-    furi_record_close(RECORD_STORAGE);
 
     return error;
 }
