@@ -5,9 +5,15 @@
 #include <core/semaphore.h>
 #include <core/log.h>
 
-#include <fetch/fetch_loader.h>
+#include <web_server/web_server.h>
 
+#include <js_app/js_app.h>
+#include <js_app/js_app_registry.h>
+
+#include <fetch/fetch_loader.h>
 #include <storage_utils/dir_walk.h>
+
+#include <toolbox/path.h>
 #include <toolbox/tar/tar_archive.h>
 
 #include "../js_app_installer_paths.h"
@@ -160,9 +166,106 @@ static JsAppInstallerError
 }
 
 static JsAppInstallerError
+    js_app_installer_operation_install_find_staged_app(JsApp* out_app, FuriString* out_path) {
+    JsAppInstallerError error = JsAppInstallerErrorManifest;
+
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+    DirWalk* walk = dir_walk_alloc(storage);
+
+    dir_walk_set_recursive(walk, false);
+    dir_walk_set_filter_cb(walk, dir_walk_is_dir_callback, NULL);
+
+    if(dir_walk_open(walk, JS_APP_STAGING_PATH)) {
+        while(dir_walk_read(walk, out_path, NULL) == DirWalkOK) {
+            const char* path_str = furi_string_get_cstr(out_path);
+
+            if(!js_app_load_from_directory(out_app, path_str)) {
+                continue;
+            }
+
+            FURI_LOG_D(TAG, "Found app at: %s", path_str);
+
+            JsAppInfo app_info;
+            if(!js_app_get_info(out_app, &app_info)) {
+                break;
+            }
+
+            const SemVer* api_version = &app_info.manifest.api_version;
+            if(!web_server_is_api_version_compatible(api_version)) {
+                error = JsAppInstallerErrorApiVersion;
+                break;
+            }
+
+            error = JsAppInstallerErrorNone;
+            break;
+        }
+    }
+
+    furi_record_close(RECORD_STORAGE);
+    dir_walk_free(walk);
+
+    return error;
+}
+
+static JsAppInstallerError
     js_app_installer_operation_install_handler_install(JsAppInstallerOperation* instance) {
     UNUSED(instance);
-    return JsAppInstallerErrorNone;
+
+    JsAppInstallerError error;
+
+    JsApp* staged_app = js_app_alloc();
+    FuriString* staged_path = furi_string_alloc();
+    FuriString* target_path = NULL;
+
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+
+    do {
+        error = js_app_installer_operation_install_find_staged_app(staged_app, staged_path);
+        if(error != JsAppInstallerErrorNone) {
+            break;
+        }
+
+        JsAppInfo app_info;
+        if(!js_app_get_info(staged_app, &app_info)) {
+            error = JsAppInstallerErrorManifest;
+            break;
+        }
+
+        const char* staged_app_id = app_info.manifest.id;
+
+        target_path = js_app_registry_get_app_path(staged_app_id);
+        furi_assert(target_path);
+
+        const char* target_path_str = furi_string_get_cstr(target_path);
+        if(!storage_simply_remove_recursive(storage, target_path_str)) {
+            FURI_LOG_E(TAG, "Failed to remove app with id: %s", staged_app_id);
+            error = JsAppInstallerErrorInstall;
+            break;
+        }
+
+        const char* staged_path_str = furi_string_get_cstr(staged_path);
+        if(storage_common_rename(storage, staged_path_str, target_path_str) != FSE_OK) {
+            FURI_LOG_E(TAG, "Cannot move directory");
+            error = JsAppInstallerErrorInstall;
+            break;
+        }
+
+        error = JsAppInstallerErrorNone;
+    } while(false);
+
+    js_app_free(staged_app);
+    furi_string_free(staged_path);
+
+    if(target_path != NULL) {
+        furi_string_free(target_path);
+    }
+
+    storage_simply_remove_recursive(storage, JS_APP_STAGING_PATH);
+    storage_simply_remove(storage, JS_APP_DOWNLOAD_PATH);
+
+    furi_record_close(RECORD_STORAGE);
+
+    return error;
 }
 
 static JsAppInstallerError
