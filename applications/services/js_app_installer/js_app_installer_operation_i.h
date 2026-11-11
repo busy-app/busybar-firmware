@@ -40,6 +40,6 @@ struct JsAppInstallerOperation {
     void* callback_context;
 };
 
-void js_app_installer_operation_emit(
+void js_app_installer_operation_notify(
     const JsAppInstallerOperation* instance,
     const JsAppInstallerOperationEvent* event);

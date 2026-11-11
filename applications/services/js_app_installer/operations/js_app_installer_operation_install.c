@@ -97,7 +97,7 @@ static void js_app_installer_operation_install_loader_progress_callback(
         }
     };
     /* clang-format on */
-    js_app_installer_operation_emit(base_instance, &event);
+    js_app_installer_operation_notify(base_instance, &event);
 }
 
 static void

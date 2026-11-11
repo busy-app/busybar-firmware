@@ -11,7 +11,7 @@
 #define THREAD_STACK_SIZE (2 * 1024)
 
 static void
-    js_app_operation_emit_step_started(JsAppInstallerOperation* instance, const char* step_name) {
+    js_app_operation_notify_step_started(JsAppInstallerOperation* instance, const char* step_name) {
     /* clang-format off */
     const JsAppInstallerOperationEvent event = {
         .type = JsAppInstallerOperationEventTypeProgress,
@@ -21,17 +21,17 @@ static void
         },
     };
     /* clang-format on */
-    js_app_installer_operation_emit(instance, &event);
+    js_app_installer_operation_notify(instance, &event);
 }
 
 static void
-    js_app_operation_emit_finished(JsAppInstallerOperation* instance, JsAppInstallerError error) {
+    js_app_operation_notify_finished(JsAppInstallerOperation* instance, JsAppInstallerError error) {
     const JsAppInstallerOperationEvent event = {
         .type = JsAppInstallerOperationEventTypeFinished,
         .finished.error = error,
     };
 
-    js_app_installer_operation_emit(instance, &event);
+    js_app_installer_operation_notify(instance, &event);
 }
 
 static int32_t js_app_operation_thread_callback(void* arg) {
@@ -48,7 +48,7 @@ static int32_t js_app_operation_thread_callback(void* arg) {
         const char* step_name = step->name;
         furi_assert(step_name);
 
-        js_app_operation_emit_step_started(instance, step_name);
+        js_app_operation_notify_step_started(instance, step_name);
 
         furi_assert(step->handler);
         error = step->handler(instance);
@@ -62,7 +62,7 @@ static int32_t js_app_operation_thread_callback(void* arg) {
     furi_assert(interface->cleanup);
     interface->cleanup(instance);
 
-    js_app_operation_emit_finished(instance, error);
+    js_app_operation_notify_finished(instance, error);
 
     return 0;
 }
@@ -123,7 +123,7 @@ void js_app_installer_operation_cancel(JsAppInstallerOperation* instance) {
     // TODO: Implementation
 }
 
-void js_app_installer_operation_emit(
+void js_app_installer_operation_notify(
     const JsAppInstallerOperation* instance,
     const JsAppInstallerOperationEvent* event) {
     if(instance->callback) {
