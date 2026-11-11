@@ -265,10 +265,14 @@ static JsAppInstallerError
         furi_string_free(target_path);
     }
 
+    return error;
+}
+
+static void js_app_installer_operation_install_cleanup(JsAppInstallerOperation* instance) {
+    JsAppInstallerOperationInstall* data = instance->data;
+    Storage* storage = data->storage;
     storage_simply_remove_recursive(storage, JS_APP_STAGING_PATH);
     storage_simply_remove(storage, JS_APP_DOWNLOAD_PATH);
-
-    return error;
 }
 
 static JsAppInstallerError
@@ -300,6 +304,8 @@ static JsAppInstallerError
             break;
         }
     }
+
+    js_app_installer_operation_install_cleanup(instance);
 
     return error;
 }
