@@ -153,7 +153,10 @@ static void fetch_loader_finalize(FetchLoader* instance) {
     const char* file_path = furi_string_get_cstr(instance->file_path);
 
     if(!(instance->is_error_occurred || instance->is_stop_requested)) {
-        temp_file_close(instance->file);
+        if(!temp_file_close(instance->file)) {
+            instance->is_error_occurred = true;
+        }
+
         FURI_LOG_D(TAG, "File download complete to %s", file_path);
 
     } else {
