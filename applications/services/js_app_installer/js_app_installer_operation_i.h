@@ -4,8 +4,6 @@
 
 #include <core/thread.h>
 
-typedef void JsAppInstallerOperationData;
-
 typedef void (*JsAppInstallerOperationInit)(
     JsAppInstallerOperation* instance,
     const JsAppInstallerQueueItem* item);

@@ -100,6 +100,11 @@ static JsAppInstallerError find_app_folder(
     return error;
 }
 
+static bool is_queue_active(const JsAppInstaller* instance) {
+    return (instance->current_item != NULL) ||
+           (!JsAppInstallerOperationQueue_empty_p(instance->pending_queue));
+}
+
 static JsAppInstallerError handle_stage(JsAppInstaller* instance, JsAppInstallerMsg* message) {
     furi_assert(instance);
     furi_assert(message);
@@ -113,7 +118,7 @@ static JsAppInstallerError handle_stage(JsAppInstaller* instance, JsAppInstaller
 
     Storage* storage = furi_record_open(RECORD_STORAGE);
     do {
-        if(!JsAppInstallerOperationQueue_empty_p(instance->pending_queue)) {
+        if(is_queue_active(instance)) {
             error = JsAppInstallerErrorQueueFull;
             break;
         }
@@ -164,7 +169,7 @@ static JsAppInstallerError
     JsAppInstallerError error = JsAppInstallerErrorInstall;
     bool cleanup = false;
     do {
-        if(!JsAppInstallerOperationQueue_empty_p(instance->pending_queue)) {
+        if(is_queue_active(instance)) {
             error = JsAppInstallerErrorQueueFull;
             break;
         }

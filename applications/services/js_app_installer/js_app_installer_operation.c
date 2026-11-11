@@ -48,13 +48,13 @@ static int32_t js_app_operation_thread_callback(void* arg) {
         const char* step_name = step->name;
         furi_assert(step_name);
 
-        js_app_operation_notify_step_started(instance, step_name);
-
         if(instance->is_cancel_requested) {
-            FURI_LOG_I(TAG, "Cancelled before step %d", i);
+            FURI_LOG_I(TAG, "Cancelled on step %zu", i);
             error = JsAppInstallerErrorCancelled;
             break;
         }
+
+        js_app_operation_notify_step_started(instance, step_name);
 
         furi_assert(step->handler);
         error = step->handler(instance);
@@ -81,7 +81,11 @@ JsAppInstallerOperation* js_app_installer_operation_alloc(const JsAppInstallerQu
         js_app_installer_operations[operation_type];
     furi_assert(interface);
 
-    JsAppInstallerOperation* instance = malloc(interface->data_size);
+    const size_t data_size = interface->data_size;
+    furi_assert(data_size >= sizeof(JsAppInstallerOperation));
+
+    JsAppInstallerOperation* instance = malloc(data_size);
+
     instance->interface = interface;
     instance->thread =
         furi_thread_alloc_ex(TAG, THREAD_STACK_SIZE, js_app_operation_thread_callback, instance);

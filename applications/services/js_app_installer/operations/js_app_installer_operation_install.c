@@ -39,11 +39,6 @@ typedef struct {
 typedef JsAppInstallerError (*JsAppInstallerOperationInstallStepHandler)(
     JsAppInstallerOperationInstall* instance);
 
-typedef struct {
-    const char* const name;
-    JsAppInstallerOperationInstallStepHandler handler;
-} JsAppInstallerOperationInstallStep;
-
 static void js_app_installer_operation_install_init(
     JsAppInstallerOperation* base_instance,
     const JsAppInstallerQueueItem* item) {
@@ -121,11 +116,15 @@ static void
 
 static JsAppInstallerError
     js_app_installer_operation_install_translate_fetch_status(FetchStatus status) {
+    furi_assert(status < FetchStatusMax);
+
     static const JsAppInstallerError error_table[] = {
         [FetchStatusOk] = JsAppInstallerErrorNone,
         [FetchStatusError] = JsAppInstallerErrorInstall,
         [FetchStatusAborted] = JsAppInstallerErrorCancelled,
     };
+
+    static_assert(COUNT_OF(error_table) == FetchStatusMax);
     return error_table[status];
 }
 
