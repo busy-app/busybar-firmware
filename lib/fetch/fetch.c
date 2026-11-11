@@ -16,7 +16,6 @@
     "AppleWebKit/537.36 (KHTML, like Gecko) "    \
     "Chrome/138.0.0.0 Safari/537.36"
 
-#define FETCH_DEBUG
 #ifdef FETCH_DEBUG
 #define FETCH_LOG_I(...) FURI_LOG_I(__VA_ARGS__)
 #define FETCH_LOG_E(...) FURI_LOG_E(__VA_ARGS__)
