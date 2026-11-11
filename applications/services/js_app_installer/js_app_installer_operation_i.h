@@ -6,27 +6,28 @@
 
 typedef void JsAppInstallerOperationData;
 
-typedef JsAppInstallerOperationData* (*JsAppInstallerOperationInterfaceAlloc)(
+typedef void (*JsAppInstallerOperationInit)(
+    JsAppInstallerOperation* instance,
     const JsAppInstallerQueueItem* item);
-typedef void (*JsAppInstallerOperationInterfaceFree)(JsAppInstallerOperationData* data);
-typedef JsAppInstallerError (*JsAppInstallerOperationInterfaceRun)(
-    JsAppInstallerOperation* instance);
+
+typedef void (*JsAppInstallerOperationClear)(JsAppInstallerOperation* instance);
+
+typedef JsAppInstallerError (*JsAppInstallerOperationRun)(JsAppInstallerOperation* instance);
 
 typedef struct {
-    JsAppInstallerOperationInterfaceAlloc alloc;
-    JsAppInstallerOperationInterfaceFree free;
-    JsAppInstallerOperationInterfaceRun run;
+    JsAppInstallerOperationInit init;
+    JsAppInstallerOperationClear clear;
+    JsAppInstallerOperationRun run;
+    size_t data_size;
 } JsAppInstallerOperationInterface;
 
 struct JsAppInstallerOperation {
+    const JsAppInstallerOperationInterface* interface;
+
     FuriThread* thread;
     FuriString* app_id;
-
     JsAppInstallerOperationCallback callback;
     void* callback_context;
-
-    const JsAppInstallerOperationInterface* interface;
-    JsAppInstallerOperationData* data;
 };
 
 void js_app_installer_operation_emit(

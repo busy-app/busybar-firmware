@@ -15,8 +15,8 @@ static int32_t js_app_operation_thread_callback(void* arg) {
 
     const JsAppInstallerOperationInterface* interface = instance->interface;
     furi_assert(interface);
-    furi_assert(interface->run);
 
+    furi_assert(interface->run);
     const JsAppInstallerError error = interface->run(instance);
     /* clang-format off */
     const JsAppInstallerOperationEvent event = {
@@ -31,38 +31,37 @@ static int32_t js_app_operation_thread_callback(void* arg) {
 }
 
 JsAppInstallerOperation* js_app_installer_operation_alloc(const JsAppInstallerQueueItem* item) {
-    JsAppInstallerOperation* instance = malloc(sizeof(JsAppInstallerOperation));
-
     const JsAppInstallerOperationType operation_type = item->type;
     furi_assert(operation_type < JsAppInstallerOperationTypeMax);
 
     const JsAppInstallerOperationInterface* interface =
         js_app_installer_operations[operation_type];
     furi_assert(interface);
-    furi_assert(interface->alloc);
 
-    instance->data = interface->alloc(item);
+    JsAppInstallerOperation* instance = malloc(interface->data_size);
     instance->interface = interface;
-
     instance->thread =
         furi_thread_alloc_ex(TAG, THREAD_STACK_SIZE, js_app_operation_thread_callback, instance);
     instance->app_id = furi_string_alloc_set(item->app_id);
+
+    furi_assert(interface->init);
+    interface->init(instance, item);
 
     return instance;
 }
 
 void js_app_installer_operation_free(JsAppInstallerOperation* instance) {
     furi_check(instance);
-
     furi_thread_join(instance->thread);
-    furi_thread_free(instance->thread);
-    furi_string_free(instance->app_id);
 
     const JsAppInstallerOperationInterface* interface = instance->interface;
     furi_assert(interface);
-    furi_assert(interface->free);
 
-    interface->free(instance->data);
+    furi_assert(interface->clear);
+    interface->clear(instance);
+
+    furi_thread_free(instance->thread);
+    furi_string_free(instance->app_id);
     free(instance);
 }
 

@@ -27,53 +27,52 @@ typedef enum {
     JsAppInstallerOperationInstallStepIdMax,
 } JsAppInstallerOperationInstallStepId;
 
-typedef JsAppInstallerError (*JsAppInstallerOperationInstallStepHandler)(
-    JsAppInstallerOperation* instance);
-
 typedef struct {
-    const char* const name;
-    JsAppInstallerOperationInstallStepHandler handler;
-} JsAppInstallerOperationInstallStep;
-
-typedef struct {
+    JsAppInstallerOperation base;
     FuriString* url;
     FuriSemaphore* semaphore;
     Storage* storage;
     _Atomic FetchStatus fetch_status;
 } JsAppInstallerOperationInstall;
 
+typedef JsAppInstallerError (*JsAppInstallerOperationInstallStepHandler)(
+    JsAppInstallerOperationInstall* instance);
+
+typedef struct {
+    const char* const name;
+    JsAppInstallerOperationInstallStepHandler handler;
+} JsAppInstallerOperationInstallStep;
+
 static const JsAppInstallerOperationInstallStep js_app_installer_operation_install_steps[];
 
-static JsAppInstallerOperationData*
-    js_app_installer_operation_install_alloc(const JsAppInstallerQueueItem* item) {
+static void js_app_installer_operation_install_init(
+    JsAppInstallerOperation* base_instance,
+    const JsAppInstallerQueueItem* item) {
+    furi_assert(base_instance);
     furi_assert(item);
     furi_assert(item->type == JsAppInstallerOperationTypeInstall);
 
-    JsAppInstallerOperationInstall* data = malloc(sizeof(JsAppInstallerOperationInstall));
+    JsAppInstallerOperationInstall* instance = (JsAppInstallerOperationInstall*)base_instance;
 
-    data->url = furi_string_alloc_set(item->url);
-    data->semaphore = furi_semaphore_alloc(1, 0);
-    data->storage = furi_record_open(RECORD_STORAGE);
-
-    return data;
+    instance->url = furi_string_alloc_set(item->url);
+    instance->semaphore = furi_semaphore_alloc(1, 0);
+    instance->storage = furi_record_open(RECORD_STORAGE);
 }
 
-static void js_app_installer_operation_install_free(JsAppInstallerOperationData* operation_data) {
-    furi_assert(operation_data);
-    JsAppInstallerOperationInstall* data = operation_data;
+static void js_app_installer_operation_install_free(JsAppInstallerOperation* base_instance) {
+    furi_assert(base_instance);
+    JsAppInstallerOperationInstall* instance = (JsAppInstallerOperationInstall*)base_instance;
 
-    furi_string_free(data->url);
-    furi_semaphore_free(data->semaphore);
+    furi_string_free(instance->url);
+    furi_semaphore_free(instance->semaphore);
     furi_record_close(RECORD_STORAGE);
-
-    free(data);
 }
 
 static void js_app_installer_operation_install_loader_progress_callback(
     const FetchProgress* progress,
     void* context) {
     furi_assert(context);
-    JsAppInstallerOperation* instance = context;
+    JsAppInstallerOperation* base_instance = context;
 
     uint32_t percent_complete = 0;
     const bool has_progress = progress->has_total_download_size;
@@ -91,18 +90,16 @@ static void js_app_installer_operation_install_loader_progress_callback(
         }
     };
     /* clang-format on */
-    js_app_installer_operation_emit(instance, &event);
+    js_app_installer_operation_emit(base_instance, &event);
 }
 
 static void
     js_app_installer_operation_install_loader_done_callback(FetchStatus status, void* context) {
     furi_assert(context);
+    JsAppInstallerOperationInstall* instance = context;
 
-    JsAppInstallerOperation* instance = context;
-    JsAppInstallerOperationInstall* data = instance->data;
-
-    data->fetch_status = status;
-    furi_check(furi_semaphore_release(data->semaphore) == FuriStatusOk);
+    instance->fetch_status = status;
+    furi_check(furi_semaphore_release(instance->semaphore) == FuriStatusOk);
 }
 
 static JsAppInstallerError
@@ -116,8 +113,7 @@ static JsAppInstallerError
 }
 
 static JsAppInstallerError
-    js_app_installer_operation_install_handler_download(JsAppInstallerOperation* instance) {
-    JsAppInstallerOperationInstall* data = instance->data;
+    js_app_installer_operation_install_handler_download(JsAppInstallerOperationInstall* instance) {
     FetchLoader* loader = fetch_loader_alloc();
 
     fetch_loader_set_progress_callback(
@@ -126,23 +122,21 @@ static JsAppInstallerError
         loader, js_app_installer_operation_install_loader_done_callback);
     fetch_loader_set_callback_context(loader, instance);
 
-    fetch_loader_start(loader, furi_string_get_cstr(data->url), JS_APP_DOWNLOAD_PATH);
-    furi_check(furi_semaphore_acquire(data->semaphore, FuriWaitForever) == FuriStatusOk);
+    fetch_loader_start(loader, furi_string_get_cstr(instance->url), JS_APP_DOWNLOAD_PATH);
+    furi_check(furi_semaphore_acquire(instance->semaphore, FuriWaitForever) == FuriStatusOk);
 
     fetch_loader_free(loader);
 
-    return js_app_installer_operation_install_translate_fetch_status(data->fetch_status);
+    return js_app_installer_operation_install_translate_fetch_status(instance->fetch_status);
 }
 
 static JsAppInstallerError
-    js_app_installer_operation_install_handler_unpack(JsAppInstallerOperation* instance) {
-    const JsAppInstallerOperationInstall* data = instance->data;
-
+    js_app_installer_operation_install_handler_unpack(JsAppInstallerOperationInstall* instance) {
     JsAppInstallerError error = JsAppInstallerErrorUnpack;
-    TarArchive* tar = tar_archive_alloc(data->storage);
+    TarArchive* tar = tar_archive_alloc(instance->storage);
 
     do {
-        if(!storage_simply_remove_recursive(data->storage, JS_APP_STAGING_PATH)) {
+        if(!storage_simply_remove_recursive(instance->storage, JS_APP_STAGING_PATH)) {
             FURI_LOG_E(TAG, "Failed to remove staging directory: %s", JS_APP_STAGING_PATH);
             break;
         }
@@ -212,11 +206,9 @@ static JsAppInstallerError js_app_installer_operation_install_find_staged_app(
 }
 
 static JsAppInstallerError
-    js_app_installer_operation_install_handler_install(JsAppInstallerOperation* instance) {
+    js_app_installer_operation_install_handler_install(JsAppInstallerOperationInstall* instance) {
     JsAppInstallerError error;
-
-    const JsAppInstallerOperationInstall* data = instance->data;
-    Storage* storage = data->storage;
+    Storage* storage = instance->storage;
 
     JsApp* staged_app = js_app_alloc();
     FuriString* staged_path = furi_string_alloc();
@@ -224,7 +216,7 @@ static JsAppInstallerError
 
     do {
         error = js_app_installer_operation_install_find_staged_app(
-            storage, instance->app_id, staged_app, staged_path);
+            storage, instance->base.app_id, staged_app, staged_path);
         if(error != JsAppInstallerErrorNone) {
             break;
         }
@@ -268,18 +260,18 @@ static JsAppInstallerError
     return error;
 }
 
-static void js_app_installer_operation_install_cleanup(JsAppInstallerOperation* instance) {
-    JsAppInstallerOperationInstall* data = instance->data;
-    Storage* storage = data->storage;
+static void js_app_installer_operation_install_cleanup(JsAppInstallerOperationInstall* instance) {
+    Storage* storage = instance->storage;
     storage_simply_remove_recursive(storage, JS_APP_STAGING_PATH);
     storage_simply_remove(storage, JS_APP_DOWNLOAD_PATH);
 }
 
 static JsAppInstallerError
-    js_app_installer_operation_install_run(JsAppInstallerOperation* instance) {
-    furi_assert(instance);
+    js_app_installer_operation_install_run(JsAppInstallerOperation* base_instance) {
+    furi_assert(base_instance);
+    JsAppInstallerOperationInstall* instance = (JsAppInstallerOperationInstall*)base_instance;
 
-    const char* app_id = furi_string_get_cstr(instance->app_id);
+    const char* app_id = furi_string_get_cstr(base_instance->app_id);
     FURI_LOG_D(TAG, "Installing app: %s", app_id);
 
     JsAppInstallerError error;
@@ -296,7 +288,7 @@ static JsAppInstallerError
             },
         };
         /* clang-format on */
-        js_app_installer_operation_emit(instance, &event);
+        js_app_installer_operation_emit(base_instance, &event);
 
         error = step->handler(instance);
         if(error != JsAppInstallerErrorNone) {
@@ -311,9 +303,10 @@ static JsAppInstallerError
 }
 
 const JsAppInstallerOperationInterface js_app_installer_operation_install = {
-    .alloc = js_app_installer_operation_install_alloc,
-    .free = js_app_installer_operation_install_free,
+    .init = js_app_installer_operation_install_init,
+    .clear = js_app_installer_operation_install_free,
     .run = js_app_installer_operation_install_run,
+    .data_size = sizeof(JsAppInstallerOperationInstall),
 };
 
 /* clang-format off */

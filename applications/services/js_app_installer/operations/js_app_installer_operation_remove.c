@@ -8,16 +8,21 @@
 
 #define TAG "JsAppInstallerOperationRemove"
 
-static JsAppInstallerOperationData*
-    js_app_installer_operation_remove_alloc(const JsAppInstallerQueueItem* item) {
+typedef struct {
+    JsAppInstallerOperation base;
+} JsAppInstallerOperationRemove;
+
+static void js_app_installer_operation_remove_init(
+    JsAppInstallerOperation* base_instance,
+    const JsAppInstallerQueueItem* item) {
     furi_assert(item);
     furi_assert(item->type == JsAppInstallerOperationTypeRemove);
+    UNUSED(base_instance);
     // Empty implementation
-    return NULL;
 }
 
-static void js_app_installer_operation_remove_free(JsAppInstallerOperationData* data) {
-    UNUSED(data);
+static void js_app_installer_operation_remove_clear(JsAppInstallerOperation* base_instance) {
+    UNUSED(base_instance);
     // Empty implementation
 }
 
@@ -37,10 +42,10 @@ static JsAppInstallerError
 }
 
 static JsAppInstallerError
-    js_app_installer_operation_remove_run(JsAppInstallerOperation* instance) {
-    furi_assert(instance);
+    js_app_installer_operation_remove_run(JsAppInstallerOperation* base_instance) {
+    furi_assert(base_instance);
 
-    const char* app_id = furi_string_get_cstr(instance->app_id);
+    const char* app_id = furi_string_get_cstr(base_instance->app_id);
     FURI_LOG_D(TAG, "Removing app: %s", app_id);
     /* clang-format off */
     const JsAppInstallerOperationEvent event = {
@@ -51,14 +56,15 @@ static JsAppInstallerError
         },
     };
     /* clang-format on */
-    js_app_installer_operation_emit(instance, &event);
+    js_app_installer_operation_emit(base_instance, &event);
 
     const JsAppRegistryAppUninstallResult result = js_app_registry_uninstall_app(app_id);
     return js_app_installer_operation_translate_registry_result(result);
 }
 
 const JsAppInstallerOperationInterface js_app_installer_operation_remove = {
-    .alloc = js_app_installer_operation_remove_alloc,
-    .free = js_app_installer_operation_remove_free,
+    .init = js_app_installer_operation_remove_init,
+    .clear = js_app_installer_operation_remove_clear,
     .run = js_app_installer_operation_remove_run,
+    .data_size = sizeof(JsAppInstallerOperationRemove),
 };
