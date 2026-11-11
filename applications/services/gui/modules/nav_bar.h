@@ -70,6 +70,14 @@ void nav_bar_push_location(NavBar* instance, const char* location_name);
 void nav_bar_pop_location(NavBar* instance);
 
 /**
+ * @brief Remove the last N locations from the NavBar breadcrumbs header.
+ *
+ * @param[in,out] instance pointer to the NavBar instance to be modified
+ * @param[in] count number of locations to remove
+ */
+void nav_bar_pop_locations(NavBar* instance, size_t count);
+
+/**
  * @brief Remove all locations from the NavBar.
  *
  * @param[in,out] instance pointer to the NavBar instance to be modified

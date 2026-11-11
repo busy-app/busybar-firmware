@@ -60,8 +60,6 @@ static void nav_bar_build_breadcrumbs_text(NavBar* instance, size_t start_idx, F
             NAV_BAR_BREADCRUMBS_SPACER "%s" NAV_BAR_BREADCRUMBS_SPACER ">",
             *LocationStack_get(instance->locations, i));
     }
-
-    furi_string_cat(text, NAV_BAR_BREADCRUMBS_SPACER);
 }
 
 static int32_t nav_bar_get_available_text_width(NavBar* instance) {
@@ -268,6 +266,17 @@ void nav_bar_pop_location(NavBar* instance) {
     furi_check(LocationStack_size(instance->locations) > 0);
 
     LocationStack_pop_back(NULL, instance->locations);
+    nav_bar_update_breadcrumbs(instance);
+}
+
+void nav_bar_pop_locations(NavBar* instance, size_t count) {
+    furi_check(instance);
+    furi_check(count <= LocationStack_size(instance->locations));
+
+    for(size_t i = 0; i < count; i++) {
+        LocationStack_pop_back(NULL, instance->locations);
+    }
+
     nav_bar_update_breadcrumbs(instance);
 }
 
