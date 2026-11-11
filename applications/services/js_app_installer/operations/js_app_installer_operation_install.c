@@ -1,5 +1,7 @@
 #include "../js_app_installer_operation_i.h"
 
+#include <math.h>
+
 #include <core/check.h>
 #include <core/kernel.h>
 #include <core/semaphore.h>
@@ -89,8 +91,11 @@ static void js_app_installer_operation_install_loader_progress_callback(
     uint32_t percent_complete = 0;
     const bool has_progress = progress->has_total_download_size;
     if(has_progress) {
-        percent_complete =
-            ((float)progress->received_download_size / progress->total_download_size) * 100;
+        const size_t total_size = progress->total_download_size;
+        if(total_size != 0) {
+            const float recv_size = progress->received_download_size;
+            percent_complete = MIN((uint32_t)roundf((recv_size / total_size) * 100), 100);
+        }
     }
     /* clang-format off */
     JsAppInstallerOperationEvent event = {
