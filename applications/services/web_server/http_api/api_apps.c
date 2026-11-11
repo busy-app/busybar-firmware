@@ -1,5 +1,7 @@
 #include "http_api.h"
 
+#include <math.h>
+
 #include <storage_utils/temp_file.h>
 #include <toolbox/timers.h>
 #include <toolbox/url.h>
@@ -1148,8 +1150,13 @@ static bool api_apps_queue_cancel_request_parse(
                 break;
             }
 
+            double item_id;
+            if(modf(item_id_d, &item_id) != 0.0) {
+                break;
+            }
+
             request->is_clear_all = false;
-            request->item_id = cJSON_GetNumberValue(item_id_json);
+            request->item_id = item_id;
 
         } else if(cJSON_IsTrue(all_json) && item_id_json == NULL) {
             request->is_clear_all = true;
