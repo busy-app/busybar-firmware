@@ -10,6 +10,8 @@
 
 #define RECORD_JS_APP_INSTALLER "js_app_installer"
 
+#define JS_APP_INSTALLER_MAX_QUEUE_ITEMS (100)
+
 typedef struct JsAppInstaller JsAppInstaller;
 
 /**

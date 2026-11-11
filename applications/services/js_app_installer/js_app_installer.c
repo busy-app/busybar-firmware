@@ -13,8 +13,6 @@
 #define API_QUEUE_SIZE   1
 #define EVENT_QUEUE_SIZE 1
 
-#define PENDING_QUEUE_MAX_SIZE 100
-
 typedef JsAppInstallerError (*MessageHandler)(JsAppInstaller* instance, JsAppInstallerMsg* message);
 
 static bool prepare_staging_folder(Storage* storage) {
@@ -332,7 +330,8 @@ static JsAppInstallerError
     enqueue_operation(JsAppInstaller* instance, JsAppInstallerQueueItem* item) {
     JsAppInstallerError error = JsAppInstallerErrorNone;
 
-    if(JsAppInstallerOperationQueue_size(instance->pending_queue) < PENDING_QUEUE_MAX_SIZE) {
+    const size_t items_count = JsAppInstallerOperationQueue_size(instance->pending_queue);
+    if(items_count < JS_APP_INSTALLER_MAX_QUEUE_ITEMS) {
         item->id = instance->operation_id_counter++;
         JsAppInstallerOperationQueue_push_back(instance->pending_queue, item);
 
