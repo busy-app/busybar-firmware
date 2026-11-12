@@ -218,9 +218,10 @@ static void js_app_launcher_scene_setup_rebuild_level(JsAppLauncher* instance) {
     js_app_launcher_scene_setup_build_items(data->back_menu, level, false);
 }
 
-static void
-    js_app_launcher_scene_setup_raise_error(JsAppLauncher* instance, JsAppLauncherError error) {
-    instance->error = error;
+static void js_app_launcher_scene_setup_show_status(
+    JsAppLauncher* instance,
+    JsAppLauncherShowStatus status) {
+    instance->show_status = status;
 
     with_gui(instance->gui, {
         nav_bar_pop_locations(
@@ -229,7 +230,7 @@ static void
     });
 
     JsAppLauncherSceneSetupLevels_reset(instance->setup_levels);
-    scene_manager_replace_current_scene(instance->scene_manager, JsAppLauncherSceneIdError);
+    scene_manager_replace_current_scene(instance->scene_manager, JsAppLauncherSceneIdStatus);
 }
 
 static void js_app_launcher_scene_setup_on_enter(void* context) {
@@ -245,14 +246,14 @@ static void js_app_launcher_scene_setup_on_enter(void* context) {
 
     do {
         if(!instance->settings_storage) {
-            js_app_launcher_scene_setup_raise_error(
-                instance, JsAppLauncherErrorSettingsSchemaMissing);
+            js_app_launcher_scene_setup_show_status(
+                instance, JsAppLauncherShowStatusSettingsSchemaMissing);
             break;
         }
 
         if(!js_app_settings_storage_load(instance->settings_storage)) {
-            js_app_launcher_scene_setup_raise_error(
-                instance, JsAppLauncherErrorSettingsLoadFailed);
+            js_app_launcher_scene_setup_show_status(
+                instance, JsAppLauncherShowStatusSettingsLoadFailed);
             break;
         }
 
