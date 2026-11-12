@@ -10,8 +10,12 @@
 
 #define TAG "JsAppInstaller"
 
-#define API_QUEUE_SIZE   1
-#define EVENT_QUEUE_SIZE 1
+#define API_QUEUE_SIZE 1
+
+typedef enum {
+    JsAppInstallerCustomEventOperationProgress = 1UL << 0,
+    JsAppInstallerCustomEventOperationFinished = 1UL << 1,
+} JsAppInstallerCustomEvent;
 
 typedef JsAppInstallerError (*MessageHandler)(JsAppInstaller* instance, JsAppInstallerMsg* message);
 
@@ -225,14 +229,31 @@ static void operation_event_callback(const JsAppInstallerOperationEvent* event, 
     furi_assert(event);
     furi_assert(context);
     JsAppInstaller* instance = context;
-    const FuriStatus queue_status = furi_message_queue_put(instance->event_queue, event, 10000);
-    // TODO: Come up with a better solution?
-    furi_check(queue_status == FuriStatusOk);
+
+    uint32_t custom_event;
+
+    JsAppInstallerOperationEventType event_type = event->type;
+    if(event_type == JsAppInstallerOperationEventTypeProgress) {
+        FURI_CRITICAL_ENTER();
+        // OK to overwrite previous undelivered progress
+        instance->current_work.detail = event->progress.detail;
+        FURI_CRITICAL_EXIT();
+        custom_event = JsAppInstallerCustomEventOperationProgress;
+
+    } else if(event_type == JsAppInstallerOperationEventTypeFinished) {
+        instance->current_work.error = event->finished.error;
+        custom_event = JsAppInstallerCustomEventOperationFinished;
+
+    } else {
+        furi_crash("Invalid JsAppInstallerOperationEventType value");
+    }
+
+    furi_event_loop_set_custom_event(instance->event_loop, custom_event);
 }
 
 static void run_next_operation(JsAppInstaller* instance) {
     JsAppInstallerCurrentWork* current_work = &instance->current_work;
-    furi_check(current_work->operation == NULL);
+    furi_assert(current_work->operation == NULL);
 
     if(JsAppInstallerOperationQueue_empty_p(instance->pending_queue)) {
         FURI_LOG_D(TAG, "No more pending operations");
@@ -247,10 +268,12 @@ static void run_next_operation(JsAppInstaller* instance) {
         JsAppInstallerOperationQueue_pop_front(instance->pending_queue);
     JsAppInstallerOperation* operation = js_app_installer_operation_alloc(item);
     js_app_installer_operation_set_callback(operation, operation_event_callback, instance);
-    js_app_installer_operation_start(operation);
 
     current_work->item = item;
     current_work->operation = operation;
+    current_work->error = JsAppInstallerErrorMax;
+
+    js_app_installer_operation_start(operation);
 
     // TODO: Emit update event
 
@@ -262,41 +285,39 @@ static void run_next_operation(JsAppInstaller* instance) {
         item->id);
 }
 
-static void handle_operation_progress(
-    JsAppInstaller* instance,
-    const JsAppInstallerOperationEventProgress* event) {
-    JsAppInstallerCurrentWork* current_work = &instance->current_work;
-    JsAppInstallerQueueItem* current_item = current_work->item;
-    furi_check(current_item != NULL);
+static void handle_operation_progress(JsAppInstaller* instance) {
+    const JsAppInstallerCurrentWork* current_work = &instance->current_work;
+    const JsAppInstallerQueueItem* current_item = current_work->item;
+    furi_assert(current_item != NULL);
 
-    const JsAppInstallerOperationDetail* detail = &event->detail;
-    current_work->detail = *detail;
+    FURI_CRITICAL_ENTER();
+    const JsAppInstallerOperationDetail detail = current_work->detail;
+    FURI_CRITICAL_EXIT();
 
-    if(detail->has_progress) {
+    if(detail.has_progress) {
         FURI_LOG_D(
             TAG,
             "Operation status: step: %s, progress: %lu%% (%lu)",
-            detail->step,
-            detail->progress,
+            detail.step,
+            detail.progress,
             current_item->id);
     } else {
-        FURI_LOG_D(TAG, "Operation status: step: %s (%lu)", detail->step, current_item->id);
+        FURI_LOG_D(TAG, "Operation status: step: %s (%lu)", detail.step, current_item->id);
     }
 
     // TODO: Emit update event
 }
 
-static void handle_operation_finished(
-    JsAppInstaller* instance,
-    const JsAppInstallerOperationEventFinished* event) {
+static void handle_operation_finished(JsAppInstaller* instance) {
     JsAppInstallerCurrentWork* current_work = &instance->current_work;
     JsAppInstallerQueueItem* current_item = current_work->item;
-    furi_check(current_item != NULL);
+    furi_assert(current_item != NULL);
 
     JsAppInstallerOperation* current_operation = current_work->operation;
-    furi_check(current_operation != NULL);
+    furi_assert(current_operation != NULL);
 
-    const JsAppInstallerError error = event->error;
+    const JsAppInstallerError error = current_work->error;
+    furi_assert(error < JsAppInstallerErrorMax);
 
     const uint32_t operation_id = current_item->id;
     const char* operation_name = js_app_installer_get_operation_name(current_item->type);
@@ -519,20 +540,16 @@ static void message_queue_callback(FuriEventLoopObject* object, void* context) {
     }
 }
 
-static void event_queue_callback(FuriEventLoopObject* object, void* context) {
+static void custom_event_callback(uint32_t events, void* context) {
     furi_assert(context);
 
     JsAppInstaller* instance = context;
-    furi_assert(object == instance->event_queue);
 
-    JsAppInstallerOperationEvent event;
-    while(furi_message_queue_get(instance->event_queue, &event, 0) == FuriStatusOk) {
-        const JsAppInstallerOperationEventType event_type = event.type;
-        if(event_type == JsAppInstallerOperationEventTypeProgress) {
-            handle_operation_progress(instance, &event.progress);
-        } else if(event_type == JsAppInstallerOperationEventTypeFinished) {
-            handle_operation_finished(instance, &event.finished);
-        }
+    if(events & JsAppInstallerCustomEventOperationProgress) {
+        handle_operation_progress(instance);
+    }
+    if(events & JsAppInstallerCustomEventOperationFinished) {
+        handle_operation_finished(instance);
     }
 }
 
@@ -541,8 +558,6 @@ static JsAppInstaller* js_app_installer_alloc(void) {
 
     instance->event_loop = furi_event_loop_alloc();
     instance->msg_queue = furi_message_queue_alloc(API_QUEUE_SIZE, sizeof(JsAppInstallerMsg));
-    instance->event_queue =
-        furi_message_queue_alloc(EVENT_QUEUE_SIZE, sizeof(JsAppInstallerOperationEvent));
 
     JsAppInstallerOperationQueue_init(instance->pending_queue);
 
@@ -553,12 +568,8 @@ static JsAppInstaller* js_app_installer_alloc(void) {
         message_queue_callback,
         instance);
 
-    furi_event_loop_subscribe_message_queue(
-        instance->event_loop,
-        instance->event_queue,
-        FuriEventLoopEventIn,
-        event_queue_callback,
-        instance);
+    furi_event_loop_set_custom_event_callback(
+        instance->event_loop, custom_event_callback, instance);
 
     furi_record_create(RECORD_JS_APP_INSTALLER, instance);
 

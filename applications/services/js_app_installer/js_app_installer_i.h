@@ -72,13 +72,12 @@ typedef struct {
     JsAppInstallerQueueItem* item;
     JsAppInstallerOperation* operation;
     JsAppInstallerOperationDetail detail;
-    JsAppInstallerError error;
+    _Atomic JsAppInstallerError error;
 } JsAppInstallerCurrentWork;
 
 struct JsAppInstaller {
     FuriEventLoop* event_loop;
     FuriMessageQueue* msg_queue;
-    FuriMessageQueue* event_queue;
     uint32_t staged_install_key;
     FuriString* staged_app_path;
     uint32_t operation_id_counter;
