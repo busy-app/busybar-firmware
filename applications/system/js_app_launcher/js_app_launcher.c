@@ -258,15 +258,6 @@ static void js_app_launcher_init_current_app(JsAppLauncher* instance, const char
     instance->show_status = show_status;
 }
 
-static void js_app_launcher_set_navbar_text(const JsAppLauncher* instance) {
-    const JsAppInfo* info = &instance->js_app_info;
-    FuriString* tmp = furi_string_alloc_set(info->manifest.name);
-    furi_string_to_upper_in_place(tmp);
-
-    nav_bar_push_location(instance->nav_bar, furi_string_get_cstr(tmp));
-    furi_string_free(tmp);
-}
-
 static void js_app_launcher_init_gui(JsAppLauncher* instance) {
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -287,7 +278,7 @@ static void js_app_launcher_init_gui(JsAppLauncher* instance) {
         flex_layout_set_child_widget_grow(instance->back_container, instance->back_window, 1);
 
         if(instance->js_app) {
-            js_app_launcher_set_navbar_text(instance);
+            nav_bar_push_location(instance->nav_bar, instance->js_app_info.manifest.name);
         }
     });
 }

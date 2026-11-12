@@ -51,8 +51,6 @@ static int mongoose_tls_net_send(void* ctx, const unsigned char* buf, size_t len
 
     if(bytes_sent == MG_IO_WAIT) {
         result = MBEDTLS_ERR_SSL_WANT_WRITE;
-    } else if(bytes_sent == MG_IO_RESET) {
-        result = MBEDTLS_ERR_NET_CONN_RESET;
     } else if(bytes_sent == MG_IO_ERR) {
         result = MBEDTLS_ERR_NET_SEND_FAILED;
     } else {
@@ -69,8 +67,6 @@ static int mongoose_tls_net_recv(void* ctx, unsigned char* buf, size_t len) {
 
     if(bytes_received == MG_IO_WAIT) {
         result = MBEDTLS_ERR_SSL_WANT_READ;
-    } else if(bytes_received == MG_IO_RESET) {
-        result = MBEDTLS_ERR_NET_CONN_RESET;
     } else if(bytes_received == MG_IO_ERR) {
         result = MBEDTLS_ERR_NET_RECV_FAILED;
     } else {
