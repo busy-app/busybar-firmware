@@ -213,10 +213,10 @@ static void chunked_on_data(SizedBufferConst data, void* context) {
     if(instance->data_length + data.size > sizeof(instance->data)) {
         printf("Data overflow\n");
         instance->is_error = true;
+    } else {
+        memcpy(instance->data + instance->data_length, data.buffer, data.size);
+        instance->data_length += data.size;
     }
-
-    memcpy(instance->data + instance->data_length, data.buffer, data.size);
-    instance->data_length += data.size;
 }
 
 static void chunked_on_error(void* context) {
