@@ -99,7 +99,7 @@ static JsAppInstallerError find_app_folder(
 }
 
 static bool is_queue_active(const JsAppInstaller* instance) {
-    return (instance->current_item != NULL) ||
+    return (instance->current_work.item != NULL) ||
            (!JsAppInstallerOperationQueue_empty_p(instance->pending_queue));
 }
 
@@ -231,14 +231,15 @@ static void operation_event_callback(const JsAppInstallerOperationEvent* event, 
 }
 
 static void run_next_operation(JsAppInstaller* instance) {
-    furi_check(instance->current_operation == NULL);
+    JsAppInstallerCurrentWork* current_work = &instance->current_work;
+    furi_check(current_work->operation == NULL);
 
     if(JsAppInstallerOperationQueue_empty_p(instance->pending_queue)) {
         FURI_LOG_D(TAG, "No more pending operations");
         return;
     }
 
-    JsAppInstallerOperationDetail* current_detail = &instance->current_detail;
+    JsAppInstallerOperationDetail* current_detail = &current_work->detail;
     current_detail->step = "starting";
     current_detail->has_progress = false;
 
@@ -248,8 +249,8 @@ static void run_next_operation(JsAppInstaller* instance) {
     js_app_installer_operation_set_callback(operation, operation_event_callback, instance);
     js_app_installer_operation_start(operation);
 
-    instance->current_item = item;
-    instance->current_operation = operation;
+    current_work->item = item;
+    current_work->operation = operation;
 
     // TODO: Emit update event
 
@@ -264,11 +265,12 @@ static void run_next_operation(JsAppInstaller* instance) {
 static void handle_operation_progress(
     JsAppInstaller* instance,
     const JsAppInstallerOperationEventProgress* event) {
-    JsAppInstallerQueueItem* current_item = instance->current_item;
+    JsAppInstallerCurrentWork* current_work = &instance->current_work;
+    JsAppInstallerQueueItem* current_item = current_work->item;
     furi_check(current_item != NULL);
 
     const JsAppInstallerOperationDetail* detail = &event->detail;
-    instance->current_detail = *detail;
+    current_work->detail = *detail;
 
     if(detail->has_progress) {
         FURI_LOG_D(
@@ -287,10 +289,11 @@ static void handle_operation_progress(
 static void handle_operation_finished(
     JsAppInstaller* instance,
     const JsAppInstallerOperationEventFinished* event) {
-    JsAppInstallerQueueItem* current_item = instance->current_item;
+    JsAppInstallerCurrentWork* current_work = &instance->current_work;
+    JsAppInstallerQueueItem* current_item = current_work->item;
     furi_check(current_item != NULL);
 
-    JsAppInstallerOperation* current_operation = instance->current_operation;
+    JsAppInstallerOperation* current_operation = current_work->operation;
     furi_check(current_operation != NULL);
 
     const JsAppInstallerError error = event->error;
@@ -320,8 +323,8 @@ static void handle_operation_finished(
     js_app_installer_queue_item_free(current_item);
     js_app_installer_operation_free(current_operation);
 
-    instance->current_item = NULL;
-    instance->current_operation = NULL;
+    current_work->item = NULL;
+    current_work->operation = NULL;
 
     run_next_operation(instance);
 }
@@ -335,7 +338,7 @@ static JsAppInstallerError
         item->id = instance->operation_id_counter++;
         JsAppInstallerOperationQueue_push_back(instance->pending_queue, item);
 
-        if(instance->current_operation == NULL) {
+        if(instance->current_work.operation == NULL) {
             run_next_operation(instance);
         }
 
@@ -383,10 +386,11 @@ static JsAppInstallerError handle_remove(JsAppInstaller* instance, JsAppInstalle
 }
 
 static void cancel_current_operation(JsAppInstaller* instance) {
-    JsAppInstallerOperation* current_operation = instance->current_operation;
+    JsAppInstallerCurrentWork* current_work = &instance->current_work;
+    JsAppInstallerOperation* current_operation = current_work->operation;
 
     if(current_operation != NULL) {
-        furi_assert(instance->current_item != NULL);
+        furi_assert(current_work->item != NULL);
         js_app_installer_operation_cancel(current_operation);
     }
 }
@@ -394,10 +398,11 @@ static void cancel_current_operation(JsAppInstaller* instance) {
 static bool cancel_current_operation_with_id(JsAppInstaller* instance, uint32_t item_id) {
     bool is_found = false;
 
-    JsAppInstallerOperation* current_operation = instance->current_operation;
+    JsAppInstallerCurrentWork* current_work = &instance->current_work;
+    JsAppInstallerOperation* current_operation = current_work->operation;
 
     if(current_operation != NULL) {
-        const JsAppInstallerQueueItem* current_item = instance->current_item;
+        const JsAppInstallerQueueItem* current_item = current_work->item;
         furi_assert(current_item != NULL);
 
         if(current_item->id == item_id) {
@@ -454,14 +459,16 @@ static JsAppInstallerError handle_get_queue(JsAppInstaller* instance, JsAppInsta
     furi_assert(message);
 
     const JsAppInstallerMsgGetQueue* msg = &message->get_queue;
-    const JsAppInstallerQueueItem* current_item = instance->current_item;
+
+    JsAppInstallerCurrentWork* current_work = &instance->current_work;
+    const JsAppInstallerQueueItem* current_item = current_work->item;
 
     if(current_item != NULL) {
         JsAppInstallerOperationInfo operation_info;
         js_app_installer_queue_item_get_partial_info(current_item, &operation_info);
 
         operation_info.status = JsAppInstallerOperationStatusInProgress;
-        operation_info.detail = instance->current_detail;
+        operation_info.detail = current_work->detail;
 
         msg->callback(&operation_info, msg->callback_context);
     }
@@ -536,10 +543,6 @@ static JsAppInstaller* js_app_installer_alloc(void) {
     instance->msg_queue = furi_message_queue_alloc(API_QUEUE_SIZE, sizeof(JsAppInstallerMsg));
     instance->event_queue =
         furi_message_queue_alloc(EVENT_QUEUE_SIZE, sizeof(JsAppInstallerOperationEvent));
-
-    instance->staged_install_key = 0;
-    instance->staged_app_path = NULL;
-    instance->current_operation = NULL;
 
     JsAppInstallerOperationQueue_init(instance->pending_queue);
 
