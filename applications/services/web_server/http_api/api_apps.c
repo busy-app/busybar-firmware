@@ -654,7 +654,7 @@ static bool api_apps_settings_callback(
     }
     js_app_free(app);
 
-    if(http_api_is_request_from_js(msg)) {
+    if(http_api_is_request_from_js(conn)) {
         bool is_allowed = false;
 
         FuriString* running_app_id = furi_string_alloc();

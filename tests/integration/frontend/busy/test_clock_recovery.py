@@ -21,6 +21,17 @@ from utils.busy_timer import (
 )
 
 
+pytestmark = [
+    pytest.mark.bsb_metadata(
+        suite="Integration",
+        level="Integration",
+        intent="Reliability",
+        interfaces=("Device API",),
+        transports=("LAN REST",),
+    ),
+]
+
+
 def _device_year(session, base_url):
     resp = session.get(f"{base_url}/api/time", timeout=10)
     resp.raise_for_status()
@@ -35,7 +46,8 @@ def restore_clock(api_session, web_base_url):
     ensure_device_clock_synced(api_session, web_base_url)
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("Focus Sessions")
+@allure.feature("Snapshot sync")
 @allure.story("Busy Timer")
 @allure.title("Snapshot timestamp generation recovers a year-2000 device clock")
 def test_next_timestamp_recovers_year_2000_rtc(
@@ -93,7 +105,8 @@ def test_next_timestamp_recovers_year_2000_rtc(
         )
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("Focus Sessions")
+@allure.feature("Snapshot sync")
 @allure.story("Busy Timer")
 @allure.title("Clock synchronization is a no-op when the device clock is already sane")
 def test_ensure_clock_noop_when_synced(api_session, web_base_url):

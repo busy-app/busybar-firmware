@@ -167,7 +167,9 @@ bool js_is_instance_of(jerry_value_t obj, const char* constructor_name) {
     jerry_value_t constructor = jerry_object_get_sz(global_obj, constructor_name);
     bool result = false;
     if(!jerry_value_is_exception(constructor)) {
-        result = jerry_binary_op(JERRY_BIN_OP_INSTANCEOF, obj, constructor);
+        jerry_value_t op_result = jerry_binary_op(JERRY_BIN_OP_INSTANCEOF, obj, constructor);
+        result = jerry_value_is_true(op_result);
+        jerry_value_free(op_result);
     }
     jerry_value_free(constructor);
     jerry_value_free(global_obj);
@@ -204,18 +206,7 @@ jerry_value_t js_object_get_nested_property(
 
 jerry_value_t js_rejected_promise(const char* msg) {
     jerry_value_t ret = jerry_promise();
-    // The following code will print "true" on nodejs and "false" on our implementation
-    //
-    // fetch().catch((e) => {
-    //     console.error(e instanceof TypeError);
-    // })
-    //
-    // Rejecting a promise with an exception is a special case in jerryscript (exception will propagate, the promise won't be rejected)
-    //
-    // TODO: solve this
-    //
-    // jerry_value_t msg_val = jerry_throw_sz(JERRY_ERROR_TYPE, msg);
-    jerry_value_t msg_val = jerry_string_sz(msg);
+    jerry_value_t msg_val = jerry_error_sz(JERRY_ERROR_TYPE, msg);
     jerry_value_t is_ok = jerry_promise_reject(ret, msg_val);
     jerry_value_free(is_ok);
     jerry_value_free(msg_val);
@@ -223,23 +214,17 @@ jerry_value_t js_rejected_promise(const char* msg) {
 }
 
 void js_reject_promise_with_exception(jerry_value_t promise, jerry_value_t exception) {
-    // TODO investigate and make things right
-    // See comment in js_rejected_promise
-    jerry_value_t val = jerry_exception_value(exception, false);
+    jerry_value_t val = jerry_exception_value(exception, true);
     jerry_value_free(jerry_promise_reject(promise, val));
     jerry_value_free(promise);
-    jerry_value_free(exception);
     jerry_value_free(val);
 }
 
 jerry_value_t js_rejected_promise_from_exception(jerry_value_t exception) {
-    // TODO investigate and make things right
-    // See comment in js_rejected_promise
-    jerry_value_t val = jerry_exception_value(exception, false);
+    jerry_value_t val = jerry_exception_value(exception, true);
     jerry_value_t ret = jerry_promise();
     jerry_value_free(jerry_promise_reject(ret, val));
     jerry_value_free(val);
-    jerry_value_free(exception);
     return ret;
 }
 

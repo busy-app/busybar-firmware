@@ -87,6 +87,8 @@ void js_setup_console(JsRunnerAppConsole* console) {
     add_logging_method(
         console_obj, "info", JsRunnerConsoleSeverityInfo, console_callback, console_write_context);
     add_logging_method(
+        console_obj, "warn", JsRunnerConsoleSeverityWarn, console_callback, console_write_context);
+    add_logging_method(
         console_obj,
         "error",
         JsRunnerConsoleSeverityError,

@@ -3,6 +3,7 @@
 #include "js_runner.h"
 #include <m-dict.h>
 #include <m-array.h>
+#include <m-list.h>
 #include <stdatomic.h>
 #include <furi/furi.h>
 #include <toolbox/api_lock.h>
@@ -86,6 +87,15 @@ typedef struct JsRunnerAppCommand {
     };
 } JsRunnerAppCommand;
 
+typedef void (*JsRunnerDeferredCallback)(void* context);
+
+typedef struct JsRunnerDeferred {
+    JsRunnerDeferredCallback callback;
+    void* context;
+} JsRunnerDeferred;
+
+ARRAY_DEF(DeferredList, JsRunnerDeferred, M_POD_OPLIST);
+
 typedef struct JsRunnerApp {
     const FuriString* app_id;
     FuriThread* thread;
@@ -108,6 +118,8 @@ typedef struct JsRunnerApp {
     JsRunnerAppInterval interval;
     JsRunnerAppFetch fetch;
     JsRunnerAppInput input;
+
+    DeferredList_t deferred;
 } JsRunnerApp;
 
 typedef struct JsRunner {

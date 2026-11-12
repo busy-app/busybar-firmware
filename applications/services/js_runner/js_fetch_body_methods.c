@@ -96,8 +96,6 @@ jerry_value_t js_fetch_text(
     return run_js_method(instance, text_body_collected);
 }
 
-jerry_object_native_info_t promise_native_info = {0};
-
 static jerry_value_t run_js_method(JsFetch* parent, BodyCollectedCallback on_body_collected) {
     BodyMethod* instance = malloc(sizeof(BodyMethod));
     instance->parent = parent;
@@ -105,16 +103,20 @@ static jerry_value_t run_js_method(JsFetch* parent, BodyCollectedCallback on_bod
     instance->body = malloc(sizeof(*instance->body));
     ByteArray_init(*instance->body);
     instance->on_body_collected = on_body_collected;
+
+    jerry_value_t promise = jerry_value_copy(instance->promise);
+
     if(!js_fetch_set_data_sink(parent, data_sink_callback, instance)) {
+        jerry_value_free(promise);
         jerry_value_free(instance->promise);
         ByteArray_clear(*instance->body);
         free(instance->body);
         free(instance);
         return js_rejected_promise("Body is already in use");
     } else {
-        jerry_object_set_native_ptr(instance->promise, &promise_native_info, instance);
+        JS_TRACE("js_fetch_set_data_sink ok");
         js_fetch_data_sink_ready(parent);
-        return jerry_value_copy(instance->promise);
+        return promise;
     }
 }
 
@@ -142,8 +144,7 @@ static void process_error(BodyMethod* instance, FuriString* msg) {
     js_fetch_set_data_sink(instance->parent, NULL, NULL);
     ByteArray_clear(*instance->body);
     free(instance->body);
-    // jerry_value_t exception = jerry_throw_sz(JERRY_ERROR_TYPE, furi_string_get_cstr(msg));
-    jerry_value_t exception = jerry_string_sz(furi_string_get_cstr(msg));
+    jerry_value_t exception = jerry_error_sz(JERRY_ERROR_TYPE, furi_string_get_cstr(msg));
     jerry_value_free(jerry_promise_reject(instance->promise, exception));
     jerry_value_free(instance->promise);
     jerry_value_free(exception);
@@ -188,9 +189,10 @@ static bool array_buffer_body_collected(BodyMethod* instance) {
 }
 
 static bool blob_body_collected(BodyMethod* instance) {
-    jerry_value_t exception = jerry_string_sz("unimplemented");
+    jerry_value_t exception = jerry_error_sz(JERRY_ERROR_COMMON, "unimplemented");
     jerry_value_free(jerry_promise_reject(instance->promise, exception));
     jerry_value_free(instance->promise);
+    jerry_value_free(exception);
     js_run_jobs();
     return false;
 }
@@ -233,9 +235,10 @@ static bool json_body_collected(BodyMethod* instance) {
 }
 
 static bool form_data_body_collected(BodyMethod* instance) {
-    jerry_value_t exception = jerry_string_sz("unimplemented");
+    jerry_value_t exception = jerry_error_sz(JERRY_ERROR_COMMON, "unimplemented");
     jerry_value_free(jerry_promise_reject(instance->promise, exception));
     jerry_value_free(instance->promise);
+    jerry_value_free(exception);
     js_run_jobs();
     return false;
 }
@@ -243,14 +246,27 @@ static bool form_data_body_collected(BodyMethod* instance) {
 static bool text_body_collected(BodyMethod* instance) {
     size_t body_size = ByteArray_size(*instance->body);
     jerry_value_t string;
+    bool string_valid = false;
     if(body_size > 0) {
-        string = jerry_string(ByteArray_get(*instance->body, 0), body_size, JERRY_ENCODING_UTF8);
+        string_valid = jerry_validate_string(
+            ByteArray_get(*instance->body, 0), body_size, JERRY_ENCODING_UTF8);
+        if(string_valid) {
+            string =
+                jerry_string(ByteArray_get(*instance->body, 0), body_size, JERRY_ENCODING_UTF8);
+        }
     } else {
+        string_valid = true;
         string = jerry_string_sz("");
     }
-    js_check_and_free(jerry_promise_resolve(instance->promise, string));
+    if(string_valid) {
+        js_check_and_free(jerry_promise_resolve(instance->promise, string));
+        jerry_value_free(string);
+    } else {
+        jerry_value_t exception = jerry_error_sz(JERRY_ERROR_TYPE, "Invalid UTF-8");
+        js_check_and_free(jerry_promise_reject(instance->promise, exception));
+        jerry_value_free(exception);
+    }
     jerry_value_free(instance->promise);
-    jerry_value_free(string);
     js_run_jobs();
     return false;
 }

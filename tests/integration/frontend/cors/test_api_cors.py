@@ -4,6 +4,17 @@ import yaml
 
 from clients.api import BaseAPI
 
+
+pytestmark = [
+    pytest.mark.bsb_metadata(
+        suite="Contract",
+        level="Component",
+        intent="Security",
+        interfaces=("Device API",),
+        transports=("LAN REST",),
+    ),
+]
+
 _HTTP_METHODS = {"GET", "POST", "PUT", "DELETE", "PATCH"}
 
 
@@ -123,12 +134,12 @@ def _assert_cors_preflight(response, origin, method, requested_headers=None):
             )
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Device HTTP API")
 @allure.story("CORS")
 class TestAPICors:
     """Test cases for CORS (Cross-Origin Resource Sharing) support"""
 
-    @allure.id("3833")
     @allure.title("OPTIONS preflight requests")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -168,7 +179,6 @@ class TestAPICors:
                 response, origin, method, requested_headers=["Content-Type"]
             )
 
-    @allure.id("3834")
     @allure.title("OPTIONS /api/name (CORS preflight)")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -201,7 +211,6 @@ class TestAPICors:
                 response, origin, "POST", requested_headers=["Content-Type"]
             )
 
-    @allure.id("3835")
     @allure.title("API_ENDPOINTS matches live /openapi.yaml")
     @pytest.mark.api
     @pytest.mark.frontend

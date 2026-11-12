@@ -29,11 +29,11 @@
             <template v-if="item.id === 2">
               Open Virtual LAN at
               <a
-                href="http://10.0.4.20"
+                :href="appConfig.links.barUsb"
                 target="_blank"
                 class="inline-flex items-center gap-1 text-primary font-medium"
               >
-                10.0.4.20
+                {{ barUsbHost }}
                 <UIcon
                   name="i-bi-open-in-new"
                   class="size-4"
@@ -57,6 +57,9 @@ import apiDisabled2Dark from '@/assets/images/api-disabled-2-dark.png';
 import apiDisabled3Dark from '@/assets/images/api-disabled-3-dark.png';
 
 const colorMode = useColorMode();
+const appConfig = useAppConfig();
+
+const barUsbHost = new URL(appConfig.links.barUsb).host;
 
 const items = [
   {

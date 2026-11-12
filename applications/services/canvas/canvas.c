@@ -19,8 +19,10 @@ typedef struct {
         CanvasSrvEventUpdate,
         CanvasSrvEventClear,
         CanvasSrvEventExit,
+        CanvasSrvEventBackPressed,
         CanvasSrvEventGetAppId,
         CanvasSrvEventReevaluatePriority,
+        CanvasSrvEventSetClearOnBack,
     } type;
     FuriApiLock lock;
     CanvasResult* result;
@@ -34,6 +36,7 @@ typedef struct {
         CanvasElementsArray_t elements;
         const char* const* element_ids;
     };
+    bool is_clear_on_back;
 } CanvasSrvQueueEvent;
 
 DICT_DEF2(CanvasWidgetsDict, const char*, M_CSTR_DUP_OPLIST, CanvasWidget, M_POD_OPLIST);
@@ -64,6 +67,7 @@ struct CanvasSrv {
     } deferred;
     FuriEventLoopTimer* deferred_timer;
     LowPower* low_power;
+    bool is_clear_on_back;
 };
 
 static void canvas_check_back_screen_empty(CanvasSrv* canvas) {
@@ -427,7 +431,11 @@ static void canvas_srv_queue_event_callback(FuriEventLoopObject* object, void* c
     } else if(event.type == CanvasSrvEventExit) {
         if(canvas->gui) canvas_srv_clear(canvas, NULL);
         res = CanvasResultOk;
-
+    } else if(event.type == CanvasSrvEventBackPressed) {
+        if(canvas->gui && canvas->is_clear_on_back) {
+            canvas_srv_clear(canvas, NULL);
+        }
+        res = CanvasResultOk;
     } else if(event.type == CanvasSrvEventReevaluatePriority) {
         if(canvas->gui != NULL && canvas->priority < event.loader_priority) {
             canvas_srv_clear(canvas, NULL);
@@ -442,6 +450,8 @@ static void canvas_srv_queue_event_callback(FuriEventLoopObject* object, void* c
             furi_string_reset(event.string);
         }
         res = CanvasResultOk;
+    } else if(event.type == CanvasSrvEventSetClearOnBack) {
+        canvas->is_clear_on_back = event.is_clear_on_back;
     }
 
     if(event.app_id) {
@@ -460,7 +470,11 @@ static bool canvas_srv_input_callback(const InputEvent* event, void* context) {
 
     if(event->type == InputTypeShort) {
         switch(event->key) {
-        case InputKeyBack:
+        case InputKeyBack: {
+            CanvasSrvQueueEvent evt = {.type = CanvasSrvEventBackPressed};
+            furi_message_queue_put(canvas->event_queue, &evt, 0);
+            break;
+        }
         case InputKeyBusy:
         case InputKeyCustom:
         case InputKeyOff:
@@ -589,6 +603,8 @@ static CanvasSrv* canvas_srv_alloc() {
     canvas->deferred_timer = furi_event_loop_timer_alloc(
         canvas->event_loop, canvas_deferred_timeout, FuriEventLoopTimerTypeOnce, canvas);
 
+    canvas->is_clear_on_back = true;
+
     return canvas;
 }
 
@@ -683,4 +699,14 @@ CanvasResult canvas_get_app_id(CanvasSrv* canvas, FuriString* string) {
 
     api_lock_wait_unlock_and_free(evt.lock);
     return res;
+}
+
+void canvas_set_clear_on_back(CanvasSrv* canvas, bool is_clear_on_back) {
+    furi_check(canvas);
+
+    CanvasSrvQueueEvent evt = {
+        .type = CanvasSrvEventSetClearOnBack,
+        .is_clear_on_back = is_clear_on_back,
+    };
+    furi_check(furi_message_queue_put(canvas->event_queue, &evt, FuriWaitForever) == FuriStatusOk);
 }

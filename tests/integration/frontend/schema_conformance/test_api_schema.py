@@ -32,7 +32,16 @@ from .conftest import SKIP_OPERATION_IDS, SKIP_PATHS_RE
 _base_url = os.getenv("WEB_BASE_URL", "http://10.0.4.20")
 _schema = schemathesis.openapi.from_url(f"{_base_url}/openapi.yaml")
 
-pytestmark = pytest.mark.flaky(reruns=0)
+pytestmark = [
+    pytest.mark.flaky(reruns=0),
+    pytest.mark.bsb_metadata(
+        suite="Contract",
+        level="Component",
+        intent="Product",
+        interfaces=("Device API",),
+        transports=("LAN REST",),
+    ),
+]
 
 
 def _call_schema_case(case: schemathesis.Case, web_session):
@@ -60,7 +69,8 @@ def _call_schema_case(case: schemathesis.Case, web_session):
 # ---------------------------------------------------------------------------
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Device HTTP API")
 @allure.story("Schema Conformance")
 @pytest.mark.schemathesis
 @pytest.mark.regression
@@ -76,7 +86,7 @@ def _call_schema_case(case: schemathesis.Case, web_session):
     deadline=None,
 )
 def test_get_conformance(case: schemathesis.Case, web_session) -> None:
-    allure.dynamic.title(f"GET {case.formatted_path}")
+    allure.dynamic.title("Device HTTP API · GET schema conformance")
     allure.dynamic.parameter("method", case.method.upper())
     allure.dynamic.parameter("path", case.formatted_path)
 
@@ -95,7 +105,8 @@ def test_get_conformance(case: schemathesis.Case, web_session) -> None:
 # ---------------------------------------------------------------------------
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Device HTTP API")
 @allure.story("Schema Conformance")
 @pytest.mark.schemathesis
 @pytest.mark.regression
@@ -113,7 +124,7 @@ def test_get_conformance(case: schemathesis.Case, web_session) -> None:
     deadline=None,
 )
 def test_post_conformance(case: schemathesis.Case, web_session) -> None:
-    allure.dynamic.title(f"POST {case.formatted_path}")
+    allure.dynamic.title("Device HTTP API · POST schema conformance")
     allure.dynamic.parameter("method", case.method.upper())
     allure.dynamic.parameter("path", case.formatted_path)
 
@@ -127,7 +138,8 @@ def test_post_conformance(case: schemathesis.Case, web_session) -> None:
     case.validate_response(response)
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Device HTTP API")
 @allure.story("Schema Conformance")
 @pytest.mark.api
 @pytest.mark.frontend
