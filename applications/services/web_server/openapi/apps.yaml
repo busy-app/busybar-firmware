@@ -86,7 +86,6 @@ paths:
         - Apps
       summary: Launch an installed JavaScript application
       description: Launches an installed JavaScript application by its id
-      x-local-only: true
       operationId: launchApp
       parameters:
         - name: app_id
@@ -143,7 +142,6 @@ paths:
         - Apps
       summary: Quit from a running JavaScript application
       description: Quits from a running JavaScript application, if there is one
-      x-local-only: true
       operationId: quitApp
       responses:
         "200":
@@ -170,7 +168,6 @@ paths:
         - Apps
       summary: Delete a JavaScript application
       description: Removes an installed JavaScript application, keeping its settings
-      x-local-only: true
       operationId: removeApp
       parameters:
         - name: app_id
@@ -210,7 +207,6 @@ paths:
         - Apps
       summary: List installed JavaScript applications
       description: Lists installed JavaScript applications
-      x-local-only: true
       operationId: listApps
       responses:
         "200":
@@ -230,7 +226,6 @@ paths:
       description: >
         Returns the complete settings document; the first request
         materializes it from the schema defaults.
-      x-local-only: true
       operationId: getAppSettings
       parameters:
         - name: app_id
@@ -284,7 +279,6 @@ paths:
         Replaces the settings document: every field must be present and
         valid, with a version matching the application settings; unknown keys
         are dropped.
-      x-local-only: true
       operationId: setAppSettings
       parameters:
         - name: app_id
@@ -335,7 +329,6 @@ paths:
         - Apps
       summary: Reset application settings
       description: Resets every field to its schema default.
-      x-local-only: true
       operationId: resetAppSettings
       parameters:
         - name: app_id
@@ -382,7 +375,6 @@ paths:
       summary: Get the app queue contents
       description: >
         Get the current status of the app management queue.
-      x-local-only: true
       operationId: getAppQueue
       responses:
         "200":
@@ -416,7 +408,6 @@ paths:
       summary: Add operation(s) to the app queue
       description: >
         Add specified operations to the app management queue.
-      x-local-only: true
       operationId: addToAppQueue
       requestBody:
         required: true
@@ -496,7 +487,6 @@ paths:
       summary: Cancel operation or clear the app queue
       description: >
         Cancel a queued operation by its queue ID, or clear the entire queue.
-      x-local-only: true
       operationId: cancelAppQueue
       requestBody:
         required: true
