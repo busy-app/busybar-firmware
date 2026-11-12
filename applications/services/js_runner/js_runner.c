@@ -371,8 +371,8 @@ static bool parser_halt_callback(void* user_p) {
     }
 }
 
-void js_runner_add_fetch_thread(JsRunnerApp* app, JsFetch* fetch) {
-    JS_TRACE("Add fetch thread");
+void js_runner_add_fetch_op(JsRunnerApp* app, JsFetch* fetch) {
+    JS_TRACE("Add fetch operation");
     for(size_t i = 0; i != FetchArray_size(app->fetch.fetches); ++i) {
         JsFetch** cell = FetchArray_get(app->fetch.fetches, i);
         if(*cell == NULL) {
@@ -383,9 +383,9 @@ void js_runner_add_fetch_thread(JsRunnerApp* app, JsFetch* fetch) {
     FetchArray_push_back(app->fetch.fetches, fetch);
 }
 
-void js_runner_del_fetch_thread(JsRunnerApp* app, JsFetch* fetch) {
+void js_runner_del_fetch_op(JsRunnerApp* app, JsFetch* fetch) {
     bool found = false;
-    JS_TRACE("Delete fetch thread");
+    JS_TRACE("Delete fetch operation");
     for(size_t i = 0; i != FetchArray_size(app->fetch.fetches); ++i) {
         JsFetch** cell = FetchArray_get(app->fetch.fetches, i);
         if(*cell == fetch) {

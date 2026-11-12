@@ -25,9 +25,12 @@ static size_t memory_pool_align(size_t x) {
 }
 
 static void memory_pool_check_object(MemoryPool* instance, void* object) {
-    MemoryPoolBlockHeader* header = (MemoryPoolBlockHeader*)((uint8_t*)object - sizeof(MemoryPoolBlockHeader));
+    MemoryPoolBlockHeader* header =
+        (MemoryPoolBlockHeader*)((uint8_t*)object - sizeof(MemoryPoolBlockHeader));
 
-    furi_check((uint8_t*)header >= instance->pool && (uint8_t*)header < instance->pool + instance->block_size * instance->capacity);
+    furi_check(
+        (uint8_t*)header >= instance->pool &&
+        (uint8_t*)header < instance->pool + instance->block_size * instance->capacity);
     furi_check(((uint8_t*)header - instance->pool) % instance->block_size == 0);
 }
 
@@ -42,7 +45,8 @@ MemoryPool* memory_pool_alloc(size_t object_size, size_t capacity) {
 
     MemoryPoolBlockHeader* last_block = NULL;
     for(size_t i = 0; i != capacity; ++i) {
-        MemoryPoolBlockHeader* current_block = (MemoryPoolBlockHeader*)(instance->pool + i * instance->block_size);
+        MemoryPoolBlockHeader* current_block =
+            (MemoryPoolBlockHeader*)(instance->pool + i * instance->block_size);
         if(last_block) {
             last_block->next = current_block;
         }
@@ -72,7 +76,8 @@ void* memory_pool_alloc_object(MemoryPool* instance) {
 }
 
 void memory_pool_free_object(MemoryPool* instance, void* object) {
-    MemoryPoolBlockHeader* header = (MemoryPoolBlockHeader*)((uint8_t*)object - sizeof(MemoryPoolBlockHeader));
+    MemoryPoolBlockHeader* header =
+        (MemoryPoolBlockHeader*)((uint8_t*)object - sizeof(MemoryPoolBlockHeader));
     memory_pool_check_object(instance, object);
     header->next = instance->first_free_block;
     instance->first_free_block = header;

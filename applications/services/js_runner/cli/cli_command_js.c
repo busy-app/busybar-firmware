@@ -56,10 +56,6 @@ static void js_console_cb(
     }
 }
 
-static void pipe_send_cstr(PipeSide* pipe, const char* str) {
-    pipe_send(pipe, str, strlen(str));
-}
-
 static void run_event_callback(const JsRunnerEvent* event, void* context) {
     if(event->type == JsRunnerEventTypeScriptFinished && event->error != JsRunnerErrorNone) {
         PipeSide* pipe = context;

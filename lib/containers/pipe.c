@@ -182,6 +182,14 @@ size_t pipe_send(PipeSide* pipe, const void* data, size_t length) {
     return sent;
 }
 
+size_t pipe_send_cstr(PipeSide* pipe, const char* string) {
+    return pipe_send(pipe, string, strlen(string));
+}
+
+size_t pipe_send_char(PipeSide* pipe, char c) {
+    return pipe_send(pipe, &c, sizeof(char));
+}
+
 size_t pipe_bytes_available(PipeSide* pipe) {
     furi_check(pipe);
     return furi_stream_buffer_bytes_available(pipe->receiving);

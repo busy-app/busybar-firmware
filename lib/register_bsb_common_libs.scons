@@ -35,7 +35,6 @@ for libname in [
     "zlib",
     "utz",
     "proto",
-    "fetch",
     "storage_utils",
     "js_app",
     "xpm",

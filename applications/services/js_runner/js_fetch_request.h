@@ -4,7 +4,7 @@
  */
 #pragma once
 
-#include <lib/fetch/fetch.h>
+#include <fetch/fetch_request.h>
 #include <lib/jerryscript/amalgam/jerryscript.h>
 
 /**

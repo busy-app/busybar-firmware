@@ -56,7 +56,7 @@ void fetch_loader_free(FetchLoader* instance);
 /**
  * @brief Start downloading a file.
  *
- * This function spawns a separate thread and does not block.
+ * This function does not block.
  *
  * @param[in,out] instance pointer to the instance to be started
  * @param[in] remote_url zero-terminated string with a full URL of the file to download

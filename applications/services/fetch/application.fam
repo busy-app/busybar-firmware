@@ -1,0 +1,12 @@
+App(
+    appid="fetch",
+    name="FetchSrv",
+    apptype=FlipperAppType.SERVICE,
+    entry_point="fetch_srv",
+    cdefines=["SRV_FETCH"],
+    stack_size=8 * 1024,
+    order=210,
+    targets=["f20", "f21", "f22"],
+    sources=["fetch.c", "fetch_loader.c", "fetch_chunked.c"],
+    sdk_headers=["fetch.h", "fetch_loader.h"],
+)

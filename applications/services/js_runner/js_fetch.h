@@ -15,8 +15,7 @@ typedef enum JsFetchEventType {
     JsFetchEventTypeHeaders,
     JsFetchEventTypeRxData,
     JsFetchEventTypeError,
-    JsFetchEventTypeDone,
-    JsFetchEventTypeThreadExit,
+    JsFetchEventTypeFetchDone,
 } JsFetchEventType;
 
 typedef struct JsFetchEvent {
@@ -55,8 +54,7 @@ typedef bool (
 
 typedef struct JsFetchFetch {
     ChildStatus status;
-    FuriThread* thread;
-    Fetch* fetch;
+    FetchHandle* handle;
 } JsFetchFetch;
 
 typedef struct JsFetchSink {
@@ -124,7 +122,7 @@ void js_fetch_data_sink_ready(JsFetch* instance);
 bool js_fetch_cancel(JsFetch* instance);
 
 /**
- * @brief If fetch thread is running, indicate it to stop.
+ * @brief If fetch operation is running, indicate it to stop.
  *
  * @param instance JsFetch instance
  */

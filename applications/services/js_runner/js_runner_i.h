@@ -76,8 +76,8 @@ void js_runner_handle_fatal_error(jerry_fatal_code_t code);
  * @return true if root path (and file operations) is available, false otherwise */
 bool js_runner_get_root_path(FuriString* path);
 
-void js_runner_add_fetch_thread(JsRunnerApp* app, JsFetch* fetch);
-void js_runner_del_fetch_thread(JsRunnerApp* app, JsFetch* fetch);
+void js_runner_add_fetch_op(JsRunnerApp* app, JsFetch* fetch);
+void js_runner_del_fetch_op(JsRunnerApp* app, JsFetch* fetch);
 
 const char* js_runner_app_get_id(const JsRunnerApp* app);
 

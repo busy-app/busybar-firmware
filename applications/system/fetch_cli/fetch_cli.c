@@ -30,28 +30,39 @@ typedef struct {
 
 typedef struct {
     Fetch* fetch;
+    FetchCallbacks callbacks;
     TempFile* output_file;
     int32_t progress_len;
     bool is_error;
+    FetchHandle* handle;
+    PipeSide* pipe;
 } FetchCli;
 
-static void fetch_cli_print_error(const char* error_message) {
+static void fetch_cli_print_error(PipeSide* pipe, const char* error_message) {
+    pipe_send_cstr(pipe, "Error: ");
+    pipe_send_cstr(pipe, error_message);
+    pipe_send_cstr(pipe, "\r\n");
+}
+
+static void fetch_cli_print_error_stdout(const char* error_message) {
     printf("Error: %s\r\n", error_message);
 }
 
-static void fetch_cli_console_out(const char* data, size_t data_size) {
+static void fetch_cli_console_out(PipeSide* pipe, const char* data, size_t data_size) {
     for(size_t i = 0; i < data_size; i++) {
         const char c = data[i];
 
         if(isprint(c) || isspace(c)) {
-            putchar(c);
+            pipe_send_char(pipe, c);
 
             if(c == '\n') {
-                putchar('\r');
+                pipe_send_char(pipe, '\r');
             }
 
         } else {
-            printf("\\x%02x", c);
+            char buf[5] = {0};
+            snprintf(buf, sizeof(buf), "\\x%02x", c);
+            pipe_send_cstr(pipe, buf);
         }
     }
 
@@ -59,8 +70,8 @@ static void fetch_cli_console_out(const char* data, size_t data_size) {
 }
 
 static void fetch_console_out_callback(const void* data, size_t data_size, void* context) {
-    UNUSED(context);
-    fetch_cli_console_out(data, data_size);
+    FetchCli* instance = context;
+    fetch_cli_console_out(instance->pipe, data, data_size);
 }
 
 static void fetch_file_out_callback(const void* data, size_t data_size, void* context) {
@@ -69,7 +80,7 @@ static void fetch_file_out_callback(const void* data, size_t data_size, void* co
 
     if(data_size > 0) {
         if(!temp_file_write(instance->output_file, data, data_size)) {
-            fetch_stop(instance->fetch);
+            fetch_stop(instance->handle);
             instance->is_error = true;
         }
 
@@ -79,20 +90,21 @@ static void fetch_file_out_callback(const void* data, size_t data_size, void* co
 }
 
 static void fetch_headers_callback(const void* data, size_t data_size, void* context) {
-    UNUSED(context);
-    fetch_cli_console_out(data, data_size);
+    FetchCli* instance = context;
+    fetch_cli_console_out(instance->pipe, data, data_size);
 }
 
 static void fetch_error_callback(const char* error, void* context) {
     furi_assert(context);
     FetchCli* instance = context;
 
-    fetch_cli_print_error(error);
+    fetch_cli_print_error(instance->pipe, error);
     instance->is_error = true;
 }
 
-static int32_t fetch_cli_print_download_progress(const FetchProgress* progress) {
+static int32_t fetch_cli_print_download_progress(PipeSide* pipe, const FetchProgress* progress) {
     int32_t print_len = 0;
+    char printf_buf[64];
 
     if(progress->total_download_size == 0) {
         return print_len;
@@ -115,38 +127,50 @@ static int32_t fetch_cli_print_download_progress(const FetchProgress* progress) 
 
     const size_t download_percent = (download_size * 100) / total_size;
 
-    print_len += printf("\rDownloaded: %3zu%% [", download_percent);
+    snprintf(printf_buf, sizeof(printf_buf), "\rDownloaded: %3zu%% [", download_percent);
+    print_len += pipe_send_cstr(pipe, printf_buf);
 
     const size_t num_segments = (download_size * PROGRESS_BAR_SEGMENT_COUNT) / total_size;
 
     for(size_t i = 0; i < num_segments; i++) {
-        putchar('=');
+        pipe_send_char(pipe, '=');
     }
 
     for(size_t i = num_segments; i < PROGRESS_BAR_SEGMENT_COUNT; i++) {
-        putchar(' ');
+        pipe_send_char(pipe, ' ');
     }
 
     print_len += num_segments;
 
     const float download_speed = progress->speed_bytes_per_sec / 1024.0f;
 
-    print_len += printf(
+    snprintf(
+        printf_buf,
+        sizeof(printf_buf),
         "] %8.2f KiB/s, %zu %s/%zu %s",
         download_speed,
         download_size,
         units_str,
         total_size,
         units_str);
+    print_len += pipe_send_cstr(pipe, printf_buf);
 
     return print_len;
 }
 
-static int32_t fetch_cli_print_download_progress_simple(const FetchProgress* progress) {
+static int32_t
+    fetch_cli_print_download_progress_simple(PipeSide* pipe, const FetchProgress* progress) {
     const float download_speed = progress->speed_bytes_per_sec / 1024.0f;
     const size_t download_size = progress->received_download_size / 1024;
+    char printf_buf[64];
 
-    return printf("\rDownloaded: %8.2fKiB/s, %zuKiB/?KiB", download_speed, download_size);
+    snprintf(
+        printf_buf,
+        sizeof(printf_buf),
+        "\rDownloaded: %8.2fKiB/s, %zuKiB/?KiB",
+        download_speed,
+        download_size);
+    return pipe_send_cstr(pipe, printf_buf);
 }
 
 static void fetch_cli_print_download_progress_space(FetchCli* instance, int32_t print_len) {
@@ -158,7 +182,7 @@ static void fetch_cli_print_download_progress_space(FetchCli* instance, int32_t 
 
     if(delta > 0) {
         for(int32_t i = 0; i < delta; ++i) {
-            putchar(' ');
+            pipe_send_char(instance->pipe, ' ');
         }
     }
 
@@ -172,9 +196,9 @@ static void fetch_progress_callback(const FetchProgress* progress, void* context
     int32_t print_len;
 
     if(progress->has_total_download_size) {
-        print_len = fetch_cli_print_download_progress(progress);
+        print_len = fetch_cli_print_download_progress(instance->pipe, progress);
     } else {
-        print_len = fetch_cli_print_download_progress_simple(progress);
+        print_len = fetch_cli_print_download_progress_simple(instance->pipe, progress);
     }
 
     fetch_cli_print_download_progress_space(instance, print_len);
@@ -182,22 +206,25 @@ static void fetch_progress_callback(const FetchProgress* progress, void* context
     fflush(stdout);
 }
 
-static FetchCli* fetch_cli_alloc() {
+static FetchCli* fetch_cli_alloc(PipeSide* pipe) {
     FetchCli* instance = malloc(sizeof(FetchCli));
 
-    instance->fetch = fetch_alloc();
+    instance->fetch = furi_record_open(RECORD_FETCH);
+    instance->handle = NULL;
     instance->output_file = temp_file_alloc(furi_record_open(RECORD_STORAGE));
     instance->is_error = false;
 
-    fetch_set_callback_context(instance->fetch, instance);
-    fetch_set_error_callback(instance->fetch, fetch_error_callback);
+    instance->callbacks.callback_context = instance;
+    instance->callbacks.error_callback = fetch_error_callback;
+
+    instance->pipe = pipe;
 
     return instance;
 }
 
 static void fetch_cli_free(FetchCli* instance) {
     temp_file_free(instance->output_file);
-    fetch_free(instance->fetch);
+    furi_record_close(RECORD_FETCH);
 
     free(instance);
 
@@ -208,18 +235,17 @@ static bool fetch_cli_prepare_file_output(FetchCli* instance, const char* file_p
     const bool success = temp_file_create(instance->output_file, file_path);
 
     if(success) {
-        fetch_set_rx_data_callback(instance->fetch, fetch_file_out_callback);
-        fetch_set_progress_callback(instance->fetch, fetch_progress_callback);
-
+        instance->callbacks.rx_data_callback = fetch_file_out_callback;
+        instance->callbacks.progress_callback = fetch_progress_callback;
     } else {
-        fetch_cli_print_error("Failed to open output file for writing");
+        fetch_cli_print_error(instance->pipe, "Failed to open output file for writing");
     }
 
     return success;
 }
 
 static void fetch_cli_prepare_standard_output(FetchCli* instance) {
-    fetch_set_rx_data_callback(instance->fetch, fetch_console_out_callback);
+    instance->callbacks.rx_data_callback = fetch_console_out_callback;
 }
 
 static void fetch_cli_finalize_file_ouput(FetchCli* instance) {
@@ -232,7 +258,7 @@ static bool fetch_cli_prepare(FetchCli* instance, const FetchCliParams* params) 
     bool success = true;
 
     if(params->is_full_output) {
-        fetch_set_header_callback(instance->fetch, fetch_headers_callback);
+        instance->callbacks.header_callback = fetch_headers_callback;
     }
 
     if(params->output_path != NULL) {
@@ -250,11 +276,19 @@ static void fetch_cli_finalize(FetchCli* instance, const FetchCliParams* params)
     }
 }
 
-static void fetch_cli_run(const FetchCliParams* params) {
-    FetchCli* instance = fetch_cli_alloc();
+static void fetch_cli_run(PipeSide* pipe, const FetchCliParams* params) {
+    FetchCli* instance = fetch_cli_alloc(pipe);
 
     if(fetch_cli_prepare(instance, params)) {
-        fetch_run(instance->fetch, &params->request);
+        instance->handle = fetch_run(instance->fetch, &params->request, &instance->callbacks);
+        if(instance->handle) {
+            FetchStatus status = fetch_join(instance->handle, FuriWaitForever);
+            if(status != FetchStatusOk) {
+                printf("Fetch failed (status code %d)\r\n", status);
+            }
+        } else {
+            printf("Fetch error\r\n");
+        }
     }
 
     fetch_cli_finalize(instance, params);
@@ -363,13 +397,13 @@ static bool fetch_cli_tls_config_validate(const TlsConfig* tls_config) {
 
         if(tls_status != TlsConfigValidationStatusOk) {
             if(tls_status == TlsConfigValidationStatusInvalidType) {
-                fetch_cli_print_error("Invalid client auth type");
+                fetch_cli_print_error_stdout("Invalid client auth type");
             } else if(tls_status == TlsConfigValidationStatusClientCertNotSpecified) {
-                fetch_cli_print_error("No certificate file specified");
+                fetch_cli_print_error_stdout("No certificate file specified");
             } else if(tls_status == TlsConfigValidationStatusPrivateKeyNotSpecified) {
-                fetch_cli_print_error("No private key file specified");
+                fetch_cli_print_error_stdout("No private key file specified");
             } else {
-                fetch_cli_print_error("Unknown TLS error");
+                fetch_cli_print_error_stdout("Unknown TLS error");
             }
 
             break;
@@ -381,12 +415,12 @@ static bool fetch_cli_tls_config_validate(const TlsConfig* tls_config) {
             const TlsClientCertPaths* paths = &client_cert_info->paths;
 
             if(storage_common_stat(storage, paths->certificate, NULL) != FSE_OK) {
-                fetch_cli_print_error("Certificate file does not exist");
+                fetch_cli_print_error_stdout("Certificate file does not exist");
                 break;
             }
 
             if(storage_common_stat(storage, paths->private_key, NULL) != FSE_OK) {
-                fetch_cli_print_error("Private key file does not exist");
+                fetch_cli_print_error_stdout("Private key file does not exist");
                 break;
             }
         }
@@ -405,7 +439,7 @@ static bool fetch_cli_params_validate(const FetchCliParams* params) {
 
     do {
         if(params->request.url == NULL) {
-            fetch_cli_print_error("No URL specified");
+            fetch_cli_print_error_stdout("No URL specified");
             break;
         }
 
@@ -430,14 +464,14 @@ void fetch_cli_command(PipeSide* pipe, FuriString* args, void* context) {
 
     do {
         if(!parse_args(args, "o:d:H:X:a:C:K:kv", fetch_cli_option_callback, params)) {
-            fetch_cli_print_error("Invalid arguments");
+            fetch_cli_print_error_stdout("Invalid arguments");
             break;
         }
         if(!fetch_cli_params_validate(params)) {
             break;
         }
 
-        fetch_cli_run(params);
+        fetch_cli_run(pipe, params);
         success = true;
 
     } while(false);
