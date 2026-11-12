@@ -1,7 +1,8 @@
 export default defineAppConfig({
   links: {
     barUsb: 'http://10.0.4.20',
-    homeAssistantDocs: 'https://go.busy.app/docs-home-assistant'
+    homeAssistantDocs: 'https://go.busy.app/docs-home-assistant',
+    appsCatalog: 'https://apps.busy.app'
   },
   ui: {
     icons: {
