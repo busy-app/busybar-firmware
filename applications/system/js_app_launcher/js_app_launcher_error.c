@@ -1,88 +1,96 @@
 #include "js_app_launcher_i.h"
 
-static const JsAppLauncherErrorDesc js_app_launcher_error_descs[JsAppLauncherErrorMax] = {
-    [JsAppLauncherErrorNone] =
+static const JsAppLauncherShowStatusDesc js_app_launcher_show_status_descs[] = {
+    [JsAppLauncherShowStatusNone] =
         {
-            {0}, /* Empty, no error message to display */
-            {0}, /* Empty, no error message to display */
+            .type = JsAppLauncherShowStatusTypeGeneralError,
+            .primary = {0}, /* Empty, no error message to display */
+            .auxiliary = {0}, /* Empty, no error message to display */
         },
-    [JsAppLauncherErrorLoadFailed] =
+    [JsAppLauncherShowStatusLoadFailed] =
         {
+            .type = JsAppLauncherShowStatusTypeGeneralError,
             .primary =
                 {
-                    .front = "App loading failed,\nreinstall it.",
-                    .back = "App loading failed",
+                    .front = "App failed to load,\nrestart app",
+                    .back = "App failed to load",
                 },
             .auxiliary =
                 {
-                    .back = "Try to restart or reinstall it",
+                    .back = "Restart app",
                 },
         },
-    [JsAppLauncherErrorApiVersionMismatch] =
+    [JsAppLauncherShowStatusApiVersionMismatch] =
         {
+            .type = JsAppLauncherShowStatusTypeGeneralError,
             .primary =
                 {
-                    .front = "App incompatible,\nupdate firmware.",
-                    .back = "App not compatible",
+                    .front = "App not supported\nUpdate firmware",
+                    .back = "App not supported",
                 },
             .auxiliary =
                 {
-                    .back = "Update the firmware",
+                    .back = "Update firmware to use it",
                 },
         },
-    [JsAppLauncherErrorSettingsSchemaMissing] =
+    [JsAppLauncherShowStatusSettingsSchemaMissing] =
         {
+            .type = JsAppLauncherShowStatusTypeGeneralInfo,
             .primary =
                 {
-                    .front = "This app has\nno settings.",
+                    .front = "No settings\nto adjust",
                     .back = "No settings",
                 },
             .auxiliary =
                 {
-                    .back = "Add settings file to the app",
+                    .back = "Nothing to set up in this app",
                 },
         },
-    [JsAppLauncherErrorSettingsSchemaInvalid] =
+    [JsAppLauncherShowStatusSettingsSchemaInvalid] =
         {
+            .type = JsAppLauncherShowStatusTypeGeneralError,
             .primary =
                 {
-                    .front = "Settings file\nis invalid.",
-                    .back = "Invalid settings",
+                    .front = "Invalid settings\nfile",
+                    .back = "Invalid settings file",
                 },
             .auxiliary =
                 {
-                    .back = "Fix the app settings file",
+                    .back = "Reinstall the app or fix\nthe settings.json file",
                 },
         },
-    [JsAppLauncherErrorSettingsStorageFailure] =
+    [JsAppLauncherShowStatusSettingsStorageFailure] =
         {
+            .type = JsAppLauncherShowStatusTypeGeneralError,
             .primary =
                 {
-                    .front = "Settings storage\nerror.",
-                    .back = "Settings storage error",
+                    .front = "Storage error\nRestart device",
+                    .back = "Storage error",
                 },
             .auxiliary =
                 {
-                    .back = "Check the storage device",
+                    .back = "Restart BUSY Bar and retry",
                 },
         },
-    [JsAppLauncherErrorSettingsLoadFailed] =
+    [JsAppLauncherShowStatusSettingsLoadFailed] =
         {
+            .type = JsAppLauncherShowStatusTypeGeneralError,
             .primary =
                 {
-                    .front = "Settings loading\nfailed.",
-                    .back = "Settings loading failed",
+                    .front = "Load error\nRestart device",
+                    .back = "Cannot load app settings",
                 },
             .auxiliary =
                 {
-                    .back = "Check the app settings file",
+                    .back = "Restart BUSY Bar and retry",
                 },
         },
-    [JsAppLauncherErrorSyntaxError] =
+    [JsAppLauncherShowStatusSyntaxError] =
         {
+            .type = JsAppLauncherShowStatusTypeGeneralError,
             .primary =
                 {
-                    .front = "Syntax error,\ncheck script.",
+                    .front = "Syntax error",
                     .back = "Syntax error",
                 },
             .auxiliary =
@@ -90,39 +98,44 @@ static const JsAppLauncherErrorDesc js_app_launcher_error_descs[JsAppLauncherErr
                     .back = "Check the app script file",
                 },
         },
-    [JsAppLauncherErrorProgramCrashed] =
+    [JsAppLauncherShowStatusProgramCrashed] =
         {
+            .type = JsAppLauncherShowStatusTypeGeneralError,
             .primary =
                 {
-                    .front = "App crashed,\nsee device logs.",
+                    .front = "App crashed,\nrestart app",
                     .back = "App crashed",
                 },
             .auxiliary =
                 {
-                    .back = "See device logs",
+                    .back = "Restart app",
                 },
         },
 };
 
-const JsAppLauncherErrorDesc* js_app_launcher_get_error_desc(const JsAppLauncher* instance) {
-    furi_assert(instance->error < JsAppLauncherErrorMax);
-    furi_assert(instance->error != JsAppLauncherErrorNone);
-    return &js_app_launcher_error_descs[instance->error];
+static_assert(COUNT_OF(js_app_launcher_show_status_descs) == JsAppLauncherShowStatusMax);
+
+const JsAppLauncherShowStatusDesc*
+    js_app_launcher_get_show_status_desc(const JsAppLauncher* instance) {
+    furi_assert(instance->show_status < JsAppLauncherShowStatusMax);
+    furi_assert(instance->show_status != JsAppLauncherShowStatusNone);
+    return &js_app_launcher_show_status_descs[instance->show_status];
 }
 
-JsAppLauncherError js_app_launcher_translate_from_js_runner_error(JsRunnerError js_runner_error) {
+JsAppLauncherShowStatus
+    js_app_launcher_translate_from_js_runner_error(JsRunnerError js_runner_error) {
     furi_assert(js_runner_error < JsRunnerErrorMax);
-    JsAppLauncherError translated_error;
+    JsAppLauncherShowStatus translated_status;
 
     if(js_runner_error == JsRunnerErrorNone) {
-        translated_error = JsAppLauncherErrorNone;
+        translated_status = JsAppLauncherShowStatusNone;
     } else if(js_runner_error == JsRunnerErrorParseException) {
-        translated_error = JsAppLauncherErrorSyntaxError;
+        translated_status = JsAppLauncherShowStatusSyntaxError;
     } else if(js_runner_error == JsRunnerErrorOutOfMemory) {
-        translated_error = JsAppLauncherErrorProgramCrashed;
+        translated_status = JsAppLauncherShowStatusProgramCrashed;
     } else {
-        translated_error = JsAppLauncherErrorLoadFailed;
+        translated_status = JsAppLauncherShowStatusLoadFailed;
     }
 
-    return translated_error;
+    return translated_status;
 }

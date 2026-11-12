@@ -209,7 +209,7 @@ static bool js_app_launcher_scene_run_start_app(JsAppLauncher* instance) {
         success = true;
     } while(false);
 
-    instance->error = js_app_launcher_translate_from_js_runner_error(data->js_error);
+    instance->show_status = js_app_launcher_translate_from_js_runner_error(data->js_error);
 
     return success;
 }
@@ -237,7 +237,7 @@ static void js_app_launcher_scene_run_on_enter(void* context) {
     furi_check(instance->js_app);
 
     if(!js_app_launcher_scene_run_start_app(instance)) {
-        scene_manager_next_scene(instance->scene_manager, JsAppLauncherSceneIdError);
+        scene_manager_next_scene(instance->scene_manager, JsAppLauncherSceneIdStatus);
     } else {
         js_app_launcher_scene_run_set_canvas_clear_on_back(false);
     }
@@ -292,8 +292,8 @@ static void js_app_launcher_scene_run_handle_script_finished(JsAppLauncher* inst
     if(data->js_error == JsRunnerErrorNone) {
         scene_manager_previous_scene(instance->scene_manager);
     } else {
-        instance->error = js_app_launcher_translate_from_js_runner_error(data->js_error);
-        scene_manager_next_scene(instance->scene_manager, JsAppLauncherSceneIdError);
+        instance->show_status = js_app_launcher_translate_from_js_runner_error(data->js_error);
+        scene_manager_next_scene(instance->scene_manager, JsAppLauncherSceneIdStatus);
     }
 }
 
