@@ -5,21 +5,13 @@
     class="relative w-full min-h-20 flex items-center pl-2 pr-4 overflow-hidden rounded-3xl ring-1 ring-glass bg-brand-950"
   >
     <div class="absolute inset-0 pointer-events-none bg-linear-to-l from-brand-500/31 to-transparent to-35%" />
-    <img
-      src="~/assets/images/apps-catalog-banner/glow-top.svg"
-      alt=""
-      class="absolute -left-26.75 -top-68.25 max-w-none pointer-events-none"
-    >
+    <div class="absolute left-9.25 -top-32.25 w-40.5 h-39 rounded-full bg-brand-500 blur-3xl pointer-events-none" />
     <img
       src="~/assets/images/apps-catalog-banner/star.svg"
       alt=""
       class="absolute left-3.75 top-1 max-w-none mix-blend-overlay pointer-events-none"
     >
-    <img
-      src="~/assets/images/apps-catalog-banner/glow-bottom.svg"
-      alt=""
-      class="absolute -left-23.75 top-3.5 max-w-none pointer-events-none"
-    >
+    <div class="absolute -left-7.75 top-19.5 w-46.5 h-26.5 rounded-full bg-sky-400/80 blur-2xl pointer-events-none" />
 
     <img
       src="~/assets/images/apps-catalog-banner/illustration.svg"
