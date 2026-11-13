@@ -37,8 +37,8 @@ paths:
           required: false
           schema:
             type: string
-            pattern: "^[0-9]{4,10}$"
-          description: Access key (4-10 digits length). Required when mode is "key".
+            pattern: "^[A-Za-z0-9]{4,32}$"
+          description: Access key (4-32 characters). Required when mode is "key".
           example: "12345678"
       responses:
         "200":
