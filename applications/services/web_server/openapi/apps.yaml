@@ -86,7 +86,6 @@ paths:
         - Apps
       summary: Launch an installed JavaScript application
       description: Launches an installed JavaScript application by its id
-      x-local-only: true
       operationId: launchApp
       parameters:
         - name: app_id
@@ -143,7 +142,6 @@ paths:
         - Apps
       summary: Quit from a running JavaScript application
       description: Quits from a running JavaScript application, if there is one
-      x-local-only: true
       operationId: quitApp
       responses:
         "200":
@@ -170,7 +168,6 @@ paths:
         - Apps
       summary: Delete a JavaScript application
       description: Removes an installed JavaScript application, keeping its settings
-      x-local-only: true
       operationId: removeApp
       parameters:
         - name: app_id
@@ -210,7 +207,6 @@ paths:
         - Apps
       summary: List installed JavaScript applications
       description: Lists installed JavaScript applications
-      x-local-only: true
       operationId: listApps
       responses:
         "200":
@@ -230,7 +226,6 @@ paths:
       description: >
         Returns the complete settings document; the first request
         materializes it from the schema defaults.
-      x-local-only: true
       operationId: getAppSettings
       parameters:
         - name: app_id
@@ -284,7 +279,6 @@ paths:
         Replaces the settings document: every field must be present and
         valid, with a version matching the application settings; unknown keys
         are dropped.
-      x-local-only: true
       operationId: setAppSettings
       parameters:
         - name: app_id
@@ -335,7 +329,6 @@ paths:
         - Apps
       summary: Reset application settings
       description: Resets every field to its schema default.
-      x-local-only: true
       operationId: resetAppSettings
       parameters:
         - name: app_id
@@ -375,12 +368,194 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /api/apps/queue:
+    get:
+      tags:
+        - Apps
+      summary: Get the app queue contents
+      description: >
+        Get the current status of the app management queue.
+      operationId: getAppQueue
+      responses:
+        "200":
+          description: >
+            Got status successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppQueueGetResponse"
+        "500":
+          description: >
+            Unknown internal error has occurred.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "Internal Error"
+        "503":
+          description: >
+            Operation is taking too long.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "Operation Timeout"
+    post:
+      tags:
+        - Apps
+      summary: Add operation(s) to the app queue
+      description: >
+        Add specified operations to the app management queue.
+      operationId: addToAppQueue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppQueueAddRequest"
+            examples:
+              install:
+                summary: Install application
+                value:
+                  operations:
+                    - app_id: "com.author.example-app"
+                      operation:
+                        type: "install"
+                        url: "https://author.com/apps/example-app.tgz"
+                        version: "1.2.3"
+              remove:
+                summary: Remove application
+                value:
+                  operations:
+                    - app_id: "com.author.example-app"
+                      operation:
+                        type: "remove"
+      responses:
+        "202":
+          description: Enqueue results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppQueueAddResponse"
+              examples:
+                success:
+                  summary: Add to queue success
+                  value:
+                    result:
+                      - app_id: "com.author.example-app"
+                        operation:
+                          type: "install"
+                          version: "1.2.3"
+                        item_id: 42
+                      - app_id: "com.author.example-app"
+                        operation:
+                          type: "remove"
+                          item_id: 67
+                failure:
+                  summary: Failed to add some elements
+                  value:
+                    result:
+                      - app_id: "com.author.example-app"
+                        operation:
+                          type: "install"
+                          version: "1.2.3"
+                        item_id: 42
+                      - app_id: "com.author.other-app"
+                        operation:
+                          type: "install"
+                          version: "3.4.5"
+                        error: "queue_full"
+                      - app_id: "com.author.one-more-app"
+                        operation:
+                          type: "remove"
+                        error: "skipped"
+        "400":
+          description: Failed to parse request or invalid value
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "Bad Request"
+
+  /api/apps/queue/cancel:
+    post:
+      tags:
+        - Apps
+      summary: Cancel operation or clear the app queue
+      description: >
+        Cancel a queued operation by its queue ID, or clear the entire queue.
+      operationId: cancelAppQueue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: "#/components/schemas/AppQueueCancelRequest"
+                - $ref: "#/components/schemas/AppQueueClearRequest"
+            examples:
+              cancelOne:
+                summary: Cancel a single operation
+                value:
+                  item_id: 42
+              clearAll:
+                summary: Clear the entire queue
+                value:
+                  all: true
+      responses:
+        "202":
+          description: >
+            Item(s) removed from queue or entire queue cleared.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "404":
+          description: >
+            Item with requested ID is not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "Not Found"
+        "500":
+          description: >
+            Unknown internal error has occurred.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "Internal Error"
+        "503":
+          description: >
+            Operation is taking too long.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "Operation Timeout"
 schemas:
   AppId:
     type: string
-    pattern: "^[a-zA-Z0-9_\\-][a-zA-Z0-9_\\-.]{0,31}$"
+    pattern: "^[a-z0-9_\\-][a-z0-9_\\-.]{0,31}$"
     description: JavaScript application id
-    example: "app.author.example_app"
+    example: "com.author.example-app"
+
+  AppUrl:
+    type: string
+    format: url
+    example: "https://author.com/apps/example-app.tar.gz"
+
+  AppVersion:
+    type: string
+    description: Version in SemVer (x.y.z) format
+    example: "1.2.3"
 
   AppStageResult:
     type: object
@@ -473,3 +648,173 @@ schemas:
     required:
       - version
       - values
+
+  AppQueueItemId:
+    type: integer
+    description: Numeric identifier of the item in the queue
+    examples:
+      startValue:
+        summary: Starting value for the first queue operation after reset
+        value: 0
+      anyValue:
+        summary: Any value during operation (wraps back to 0)
+        value: 42
+
+  AppQueueOperationType:
+    type: string
+    enum:
+      - "install"
+      - "remove"
+
+  AppQueueOperation:
+    type: object
+    properties:
+      type:
+        $ref: "#/components/schemas/AppQueueOperationType"
+      version:
+        $ref: "#/components/schemas/AppVersion"
+    required:
+      - type
+
+  AppQueueStatus:
+    type: string
+    description: Status of the queued operation
+    enum:
+      - "pending"
+      - "in_progress"
+
+  AppQueueError:
+    type: string
+    description: Error message if item failed to be enqueued
+    enum:
+      - "timeout"
+      - "queue_full"
+      - "skipped"
+
+  AppQueueDetail:
+    type: object
+    description: Additional status of the ongoing operation
+    properties:
+      step:
+        type: string
+        example: "unpacking"
+      progress:
+        type: integer
+        minimum: 0
+        maximum: 100
+        example: 34
+    required:
+      - step
+
+  AppQueueItem:
+    type: object
+    description: Single item of the app operation queue
+    properties:
+      item_id:
+        $ref: "#/components/schemas/AppQueueItemId"
+      app_id:
+        $ref: "#/components/schemas/AppId"
+      operation:
+        $ref: "#/components/schemas/AppQueueOperation"
+      status:
+        $ref: "#/components/schemas/AppQueueStatus"
+      detail:
+        $ref: "#/components/schemas/AppQueueDetail"
+    required:
+      - item_id
+      - app_id
+      - operation
+      - status
+
+  AppQueueRequestOperation:
+    type: object
+    properties:
+      type:
+        $ref: "#/components/schemas/AppQueueOperationType"
+      url:
+        $ref: "#/components/schemas/AppUrl"
+      version:
+        $ref: "#/components/schemas/AppVersion"
+    required:
+      - type
+
+  AppQueueRequestItem:
+    type: object
+    description: Single item to be sent as an app operation queue command
+    properties:
+      app_id:
+        $ref: "#/components/schemas/AppId"
+      operation:
+        $ref: "#/components/schemas/AppQueueRequestOperation"
+    required:
+      - app_id
+      - operation
+
+  AppQueueResponseItem:
+    type: object
+    description: Single item of the app operation queue response
+    properties:
+      app_id:
+        $ref: "#/components/schemas/AppId"
+      operation:
+        $ref: "#/components/schemas/AppQueueOperation"
+      item_id:
+        $ref: "#/components/schemas/AppQueueItemId"
+      error:
+        $ref: "#/components/schemas/AppQueueError"
+    oneOf:
+    - required:
+      - app_id
+      - operation
+      - item_id
+    - required:
+      - app_id
+      - operation
+      - error
+
+  AppQueueGetResponse:
+    type: object
+    properties:
+      result:
+        type: array
+        items:
+          $ref: "#/components/schemas/AppQueueItem"
+    required:
+      - result
+
+  AppQueueAddRequest:
+    type: object
+    properties:
+      operations:
+        type: array
+        items:
+          $ref: "#/components/schemas/AppQueueRequestItem"
+    required:
+      - operations
+
+  AppQueueAddResponse:
+    type: object
+    properties:
+      result:
+        type: array
+        items:
+          $ref: "#/components/schemas/AppQueueResponseItem"
+    required:
+      - result
+
+  AppQueueCancelRequest:
+    type: object
+    properties:
+      item_id:
+        $ref: "#/components/schemas/AppQueueItemId"
+    required:
+      - item_id
+
+  AppQueueClearRequest:
+    type: object
+    properties:
+      all:
+        type: boolean
+        const: true
+    required:
+      - all

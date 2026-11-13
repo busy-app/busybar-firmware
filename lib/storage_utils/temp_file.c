@@ -102,6 +102,11 @@ bool temp_file_write(TempFile* instance, const void* data, size_t data_len) {
     return success;
 }
 
+bool temp_file_close(TempFile* instance) {
+    furi_check(instance);
+    return temp_file_close_internal(instance);
+}
+
 bool temp_file_remove(TempFile* instance) {
     furi_check(instance);
     return temp_file_close_internal(instance) && temp_file_remove_internal(instance);

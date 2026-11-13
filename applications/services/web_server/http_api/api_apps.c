@@ -1,7 +1,10 @@
 #include "http_api.h"
 
+#include <math.h>
+
 #include <storage_utils/temp_file.h>
 #include <toolbox/timers.h>
+#include <toolbox/url.h>
 
 #include <js_app_installer/js_app_installer_paths.h>
 #include <js_app_installer/js_app_installer.h>
@@ -21,6 +24,31 @@
 #define INSTALL_KEY_LEN_MAX 11
 #define APP_ID_LEN_MAX      (JS_APP_ID_LEN_MAX + 2)
 
+#define RESULT_KEY     "result"
+#define OPERATIONS_KEY "operations"
+#define CANCEL_ALL_KEY "all"
+
+#define STATUS_KEY               "status"
+#define STATUS_PENDING_VALUE     "pending"
+#define STATUS_IN_PROGRESS_VALUE "in_progress"
+
+#define DETAIL_KEY          "detail"
+#define DETAIL_STEP_KEY     "step"
+#define DETAIL_PROGRESS_KEY "progress"
+
+#define APP_ID_KEY            "app_id"
+#define ITEM_ID_KEY           "item_id"
+#define ERROR_KEY             "error"
+#define OPERATION_KEY         "operation"
+#define OPERATION_TYPE_KEY    "type"
+#define OPERATION_URL_KEY     "url"
+#define OPERATION_VERSION_KEY "version"
+
+#define ERROR_SKIPPED_VALUE "skipped"
+
+#define OPERATION_TYPE_INSTALL_VALUE "install"
+#define OPERATION_TYPE_REMOVE_VALUE  "remove"
+
 typedef struct {
     Storage* storage;
     TempFile* update_file;
@@ -32,6 +60,28 @@ typedef struct {
 
     CoarseTimer timeout_timer;
 } HttpInstallHandlerCtx;
+
+typedef struct {
+    JsAppInstallerOperationType operation_type;
+    JsAppInstallerSourceInfo source;
+} ApiAppsQueueOperationInfo;
+
+typedef struct {
+    const char* app_id;
+    JsAppInstallerOperationResult result;
+    ApiAppsQueueOperationInfo info;
+    bool is_processed;
+} ApiAppsQueueOperation;
+
+typedef struct {
+    ApiAppsQueueOperation* operations;
+    size_t operations_count;
+} ApiAppsQueueAddRequest;
+
+typedef struct {
+    uint32_t item_id;
+    bool is_clear_all;
+} ApiAppsQueueCancelRequest;
 
 static void api_apps_on_data_cb(struct mg_connection* conn, struct mg_iobuf* io);
 static void api_apps_on_close_cb(struct mg_connection* conn);
@@ -69,18 +119,34 @@ static void free_install_context(HttpInstallHandlerCtx* ctx) {
 
 static const char* const installer_errors[] = {
     [JsAppInstallerErrorNone] = "OK",
+    [JsAppInstallerErrorDownload] = "File download failed",
     [JsAppInstallerErrorUnpack] = "Cannot unpack",
-    [JsAppInstallerErrorManifest] = "Wrong app manifest",
+    [JsAppInstallerErrorManifest] = "Invalid or missing app manifest",
     [JsAppInstallerErrorApiVersion] = "API version mismatch",
-    [JsAppInstallerErrorInstall] = "Installation failed",
+    [JsAppInstallerErrorStorage] = "Storage error",
+    [JsAppInstallerErrorTimeout] = "Operation timed out",
+    [JsAppInstallerErrorNotFound] = "Item not found",
+    [JsAppInstallerErrorQueueFull] = "Too many operations",
+    [JsAppInstallerErrorCancelled] = "Operation cancelled",
+    [JsAppInstallerErrorAppRunning] = "Application is running",
+    [JsAppInstallerErrorParameter] = "Invalid parameter",
+    [JsAppInstallerErrorInternal] = "Unknown internal error",
 };
 
 static const char* const installer_error_codes[] = {
     [JsAppInstallerErrorNone] = "ok",
+    [JsAppInstallerErrorDownload] = "download_error",
     [JsAppInstallerErrorUnpack] = "unpack_error",
     [JsAppInstallerErrorManifest] = "manifest_error",
     [JsAppInstallerErrorApiVersion] = "api_mismatch",
-    [JsAppInstallerErrorInstall] = "installation_failed",
+    [JsAppInstallerErrorStorage] = "storage_error",
+    [JsAppInstallerErrorTimeout] = "timeout",
+    [JsAppInstallerErrorNotFound] = "not_found",
+    [JsAppInstallerErrorQueueFull] = "queue_full",
+    [JsAppInstallerErrorCancelled] = "cancelled",
+    [JsAppInstallerErrorAppRunning] = "app_running",
+    [JsAppInstallerErrorParameter] = "invalid_parameter",
+    [JsAppInstallerErrorInternal] = "internal_error",
 };
 
 static_assert(COUNT_OF(installer_errors) == JsAppInstallerErrorMax);
@@ -346,7 +412,7 @@ static bool api_apps_install_request_callback(
         }
 
         JsAppInstaller* installer = furi_record_open(RECORD_JS_APP_INSTALLER);
-        JsAppInstallerError error = js_app_installer_install(installer, install_key);
+        JsAppInstallerError error = js_app_installer_install_staged(installer, install_key);
         success = error == JsAppInstallerErrorNone;
         furi_record_close(RECORD_JS_APP_INSTALLER);
     } while(false);
@@ -700,6 +766,463 @@ static bool api_apps_settings_callback(
     return true;
 }
 
+static void api_apps_queue_item_operation_format(
+    cJSON* item_json,
+    JsAppInstallerOperationType operation_type,
+    const JsAppInstallerAppVersion* app_version) {
+    cJSON* operation_json = cJSON_AddObjectToObject(item_json, OPERATION_KEY);
+
+    if(operation_type == JsAppInstallerOperationTypeInstall) {
+        cJSON_AddStringToObject(operation_json, OPERATION_TYPE_KEY, OPERATION_TYPE_INSTALL_VALUE);
+
+        if(app_version->is_present) {
+            FuriString* version_string = furi_string_alloc();
+            semver_to_string(&app_version->value, version_string);
+            cJSON_AddStringToObject(
+                operation_json, OPERATION_VERSION_KEY, furi_string_get_cstr(version_string));
+            furi_string_free(version_string);
+        }
+
+    } else if(operation_type == JsAppInstallerOperationTypeRemove) {
+        cJSON_AddStringToObject(operation_json, OPERATION_TYPE_KEY, OPERATION_TYPE_REMOVE_VALUE);
+    } else {
+        furi_crash("Invalid JsAppInstallerOperationType value");
+    }
+}
+
+static void api_apps_queue_item_detail_format(
+    cJSON* item_json,
+    const JsAppInstallerOperationDetail* detail) {
+    cJSON* detail_json = cJSON_AddObjectToObject(item_json, DETAIL_KEY);
+
+    furi_check(detail->step);
+    cJSON_AddStringToObject(detail_json, DETAIL_STEP_KEY, detail->step);
+
+    if(detail->has_progress) {
+        cJSON_AddNumberToObject(detail_json, DETAIL_PROGRESS_KEY, detail->progress);
+    }
+}
+
+static void api_apps_queue_item_status_format(
+    cJSON* item_json,
+    JsAppInstallerOperationStatus operation_status,
+    const JsAppInstallerOperationDetail* detail) {
+    if(operation_status == JsAppInstallerOperationStatusInProgress) {
+        cJSON_AddStringToObject(item_json, STATUS_KEY, STATUS_IN_PROGRESS_VALUE);
+        api_apps_queue_item_detail_format(item_json, detail);
+    } else if(operation_status == JsAppInstallerOperationStatusPending) {
+        cJSON_AddStringToObject(item_json, STATUS_KEY, STATUS_PENDING_VALUE);
+    } else {
+        furi_crash("Invalid JsAppInstallerOperationStatus value");
+    }
+}
+
+static void api_apps_queue_item_callback(const JsAppInstallerOperationInfo* info, void* context) {
+    furi_assert(info);
+    furi_assert(context);
+
+    cJSON* items_json = context;
+    cJSON* item_json = cJSON_CreateObject();
+    cJSON_AddItemToArray(items_json, item_json);
+
+    const JsAppInstallerAppInfo* app_info = &info->app_info;
+    cJSON_AddNumberToObject(item_json, ITEM_ID_KEY, info->item_id);
+    cJSON_AddStringToObject(item_json, APP_ID_KEY, app_info->app_id);
+
+    api_apps_queue_item_operation_format(item_json, info->type, &app_info->version);
+    api_apps_queue_item_status_format(item_json, info->status, &info->detail);
+}
+
+static void api_apps_queue_get(struct mg_connection* conn, struct mg_http_message* msg) {
+    UNUSED(msg);
+
+    cJSON* response_json = cJSON_CreateObject();
+    cJSON* result_json = cJSON_AddArrayToObject(response_json, RESULT_KEY);
+
+    JsAppInstaller* installer = furi_record_open(RECORD_JS_APP_INSTALLER);
+    const JsAppInstallerError error =
+        js_app_installer_get_operation_queue(installer, api_apps_queue_item_callback, result_json);
+    furi_record_close(RECORD_JS_APP_INSTALLER);
+
+    if(error == JsAppInstallerErrorNone) {
+        char* response_body = cJSON_PrintUnformatted(response_json);
+        MG_REPLY_OK_BODY(conn, "%s", response_body);
+        free(response_body);
+
+    } else if(error == JsAppInstallerErrorTimeout) {
+        MG_REPLY_ERROR(conn, 503, "Operation Timeout");
+    } else {
+        MG_REPLY_ERROR(conn, 500, "Internal Error");
+    }
+
+    cJSON_Delete(response_json);
+}
+
+static bool api_apps_queue_operation_source_info_parse(
+    JsAppInstallerSourceInfo* source,
+    const cJSON* json) {
+    bool success = false;
+
+    do {
+        const cJSON* item;
+
+        item = cJSON_GetObjectItemCaseSensitive(json, OPERATION_URL_KEY);
+        if(!cJSON_IsString(item)) {
+            break;
+        }
+
+        const char* url_str = cJSON_GetStringValue(item);
+        Url* url = url_alloc();
+        const bool is_url_valid = url_parse(url, url_str);
+        url_free(url);
+
+        if(!is_url_valid) {
+            break;
+        }
+
+        source->url = url_str;
+
+        JsAppInstallerAppVersion* version = &source->version;
+
+        item = cJSON_GetObjectItemCaseSensitive(json, OPERATION_VERSION_KEY);
+        if(item != NULL) {
+            if(!cJSON_IsString(item)) {
+                break;
+            }
+
+            if(!semver_parse(&version->value, cJSON_GetStringValue(item))) {
+                break;
+            }
+
+            version->is_present = true;
+        } else {
+            version->is_present = false;
+        }
+
+        success = true;
+    } while(false);
+
+    return success;
+}
+
+static bool api_apps_queue_operation_info_parse(
+    ApiAppsQueueOperationInfo* operation_info,
+    const cJSON* json) {
+    bool success = false;
+
+    do {
+        if(!cJSON_IsObject(json)) {
+            break;
+        }
+
+        const cJSON* item;
+
+        item = cJSON_GetObjectItemCaseSensitive(json, OPERATION_TYPE_KEY);
+        if(!cJSON_IsString(item)) {
+            break;
+        }
+
+        const char* type_str = cJSON_GetStringValue(item);
+        if(strcmp(type_str, OPERATION_TYPE_INSTALL_VALUE) == 0) {
+            if(!api_apps_queue_operation_source_info_parse(&operation_info->source, json)) {
+                break;
+            }
+            operation_info->operation_type = JsAppInstallerOperationTypeInstall;
+        } else if(strcmp(type_str, OPERATION_TYPE_REMOVE_VALUE) == 0) {
+            operation_info->operation_type = JsAppInstallerOperationTypeRemove;
+        } else {
+            break;
+        }
+
+        success = true;
+    } while(false);
+
+    return success;
+}
+
+static bool api_apps_queue_operation_parse(ApiAppsQueueOperation* operation, const cJSON* json) {
+    bool success = false;
+
+    do {
+        if(!cJSON_IsObject(json)) {
+            break;
+        }
+
+        const cJSON* item;
+
+        item = cJSON_GetObjectItemCaseSensitive(json, APP_ID_KEY);
+        if(!cJSON_IsString(item)) {
+            break;
+        }
+
+        const char* app_id_str = cJSON_GetStringValue(item);
+        if(!js_app_is_valid_id(app_id_str)) {
+            break;
+        }
+
+        operation->app_id = app_id_str;
+
+        item = cJSON_GetObjectItemCaseSensitive(json, OPERATION_KEY);
+        if(!api_apps_queue_operation_info_parse(&operation->info, item)) {
+            break;
+        }
+
+        success = true;
+    } while(false);
+
+    return success;
+}
+
+static bool api_apps_queue_add_request_parse(ApiAppsQueueAddRequest* request, const cJSON* json) {
+    bool success = false;
+
+    do {
+        if(!cJSON_IsObject(json)) {
+            break;
+        }
+
+        const cJSON* operations = cJSON_GetObjectItemCaseSensitive(json, OPERATIONS_KEY);
+        if(!cJSON_IsArray(operations)) {
+            break;
+        }
+
+        const uint32_t count = cJSON_GetArraySize(operations);
+        if((count == 0) || (count > JS_APP_INSTALLER_MAX_QUEUE_ITEMS)) {
+            break;
+        }
+
+        ApiAppsQueueOperation* data = calloc(count, sizeof(ApiAppsQueueOperation));
+
+        cJSON* item = NULL;
+        uint32_t parsed_count = 0;
+
+        cJSON_ArrayForEach(item, operations) {
+            if(!api_apps_queue_operation_parse(&data[parsed_count], item)) {
+                break;
+            }
+            ++parsed_count;
+        }
+
+        if(parsed_count != count) {
+            free(data);
+            break;
+        }
+
+        request->operations = data;
+        request->operations_count = count;
+
+        success = true;
+    } while(false);
+
+    return success;
+}
+
+static void
+    api_apps_queue_result_format(cJSON* item_json, const ApiAppsQueueOperation* operation) {
+    if(operation->is_processed) {
+        const JsAppInstallerOperationResult* result = &operation->result;
+        const JsAppInstallerError error = result->error;
+
+        if(error == JsAppInstallerErrorNone) {
+            cJSON_AddNumberToObject(item_json, ITEM_ID_KEY, result->item_id);
+        } else {
+            cJSON_AddStringToObject(item_json, ERROR_KEY, installer_error_codes[error]);
+        }
+
+    } else {
+        cJSON_AddStringToObject(item_json, ERROR_KEY, ERROR_SKIPPED_VALUE);
+    }
+}
+
+static char* api_apps_queue_add_response_format(const ApiAppsQueueAddRequest* request) {
+    char* response_body = NULL;
+
+    cJSON* response_json = cJSON_CreateObject();
+    cJSON* result_json = cJSON_AddArrayToObject(response_json, RESULT_KEY);
+
+    for(size_t i = 0; i < request->operations_count; ++i) {
+        const ApiAppsQueueOperation* operation = &request->operations[i];
+
+        cJSON* item_json = cJSON_CreateObject();
+        cJSON_AddStringToObject(item_json, APP_ID_KEY, operation->app_id);
+
+        const ApiAppsQueueOperationInfo* info = &operation->info;
+        api_apps_queue_item_operation_format(
+            item_json, info->operation_type, &info->source.version);
+        api_apps_queue_result_format(item_json, operation);
+
+        cJSON_AddItemToArray(result_json, item_json);
+    }
+
+    response_body = cJSON_PrintUnformatted(response_json);
+    cJSON_Delete(response_json);
+
+    return response_body;
+}
+
+static void api_apps_queue_post(struct mg_connection* conn, struct mg_http_message* msg) {
+    ApiAppsQueueAddRequest request = {0};
+
+    cJSON* json = cJSON_ParseWithLength(msg->body.buf, msg->body.len);
+
+    do {
+        if(json == NULL) {
+            MG_REPLY_BAD_REQUEST(conn);
+            break;
+        }
+
+        if(!api_apps_queue_add_request_parse(&request, json)) {
+            MG_REPLY_BAD_REQUEST(conn);
+            break;
+        }
+
+        JsAppInstaller* installer = furi_record_open(RECORD_JS_APP_INSTALLER);
+
+        for(size_t i = 0; i < request.operations_count; ++i) {
+            ApiAppsQueueOperation* operation = &request.operations[i];
+
+            const ApiAppsQueueOperationInfo* info = &operation->info;
+            const JsAppInstallerOperationType operation_type = info->operation_type;
+
+            if(operation_type == JsAppInstallerOperationTypeInstall) {
+                operation->result =
+                    js_app_installer_install(installer, operation->app_id, &info->source);
+            } else if(operation_type == JsAppInstallerOperationTypeRemove) {
+                operation->result = js_app_installer_remove(installer, operation->app_id);
+            } else {
+                furi_crash("Invalid JsAppInstallerOperationType value");
+            }
+
+            operation->is_processed = true;
+
+            if(operation->result.error != JsAppInstallerErrorNone) {
+                break;
+            }
+        }
+
+        furi_record_close(RECORD_JS_APP_INSTALLER);
+
+        char* response_body = api_apps_queue_add_response_format(&request);
+        MG_REPLY_OK_ASYNC_BODY(conn, "%s", response_body);
+        free(response_body);
+
+    } while(false);
+
+    free(request.operations);
+
+    cJSON_Delete(json);
+}
+
+static bool api_apps_queue_request_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) {
+        return false;
+    }
+
+    if(method == HttpMethodGet) {
+        api_apps_queue_get(conn, msg);
+    } else if(method == HttpMethodPost) {
+        api_apps_queue_post(conn, msg);
+    } else {
+        furi_crash("Unexpected method");
+    }
+
+    return true;
+}
+
+static bool api_apps_queue_cancel_request_parse(
+    ApiAppsQueueCancelRequest* request,
+    const struct mg_str source) {
+    bool success = false;
+
+    cJSON* request_json = cJSON_ParseWithLength(source.buf, source.len);
+
+    do {
+        if(!cJSON_IsObject(request_json)) {
+            break;
+        }
+
+        const cJSON* item_id_json = cJSON_GetObjectItemCaseSensitive(request_json, ITEM_ID_KEY);
+        const cJSON* all_json = cJSON_GetObjectItemCaseSensitive(request_json, CANCEL_ALL_KEY);
+
+        if(cJSON_IsNumber(item_id_json) && all_json == NULL) {
+            const double item_id_d = cJSON_GetNumberValue(item_id_json);
+            if((item_id_d < 0.0) || (item_id_d > UINT32_MAX)) {
+                break;
+            }
+
+            double item_id;
+            if(modf(item_id_d, &item_id) != 0.0) {
+                break;
+            }
+
+            request->is_clear_all = false;
+            request->item_id = item_id;
+
+        } else if(cJSON_IsTrue(all_json) && item_id_json == NULL) {
+            request->is_clear_all = true;
+
+        } else {
+            break;
+        }
+
+        success = true;
+    } while(false);
+
+    cJSON_Delete(request_json);
+
+    return success;
+}
+
+static bool api_apps_queue_cancel_request_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(ctx);
+    UNUSED(method);
+
+    if(!IS_HTTP_ENDPOINT(path)) {
+        return false;
+    }
+
+    ApiAppsQueueCancelRequest request;
+    if(!api_apps_queue_cancel_request_parse(&request, msg->body)) {
+        MG_REPLY_BAD_REQUEST(conn);
+        return true;
+    }
+
+    JsAppInstaller* installer = furi_record_open(RECORD_JS_APP_INSTALLER);
+    JsAppInstallerError error;
+
+    if(request.is_clear_all) {
+        error = js_app_installer_cancel_all(installer);
+    } else {
+        error = js_app_installer_cancel_operation(installer, request.item_id);
+    }
+
+    furi_record_close(RECORD_JS_APP_INSTALLER);
+
+    if(error == JsAppInstallerErrorNone) {
+        MG_REPLY_OK_ASYNC(conn);
+    } else if(error == JsAppInstallerErrorTimeout) {
+        MG_REPLY_ERROR(conn, 503, "Operation Timeout");
+    } else if(error == JsAppInstallerErrorNotFound) {
+        MG_REPLY_NOT_FOUND(conn);
+    } else {
+        MG_REPLY_ERROR(conn, 500, "Internal Error");
+    }
+
+    return true;
+}
+
 static const HttpHandler api_apps_handlers[] = {
     {
         .uri = "",
@@ -743,6 +1266,18 @@ static const HttpHandler api_apps_handlers[] = {
         .method = HttpMethodGet | HttpMethodPut | HttpMethodDelete,
         .type = HttpHandlerCustom,
         .on_request = api_apps_settings_callback,
+    },
+    {
+        .uri = "queue/cancel",
+        .method = HttpMethodPost,
+        .type = HttpHandlerCustom,
+        .on_request = api_apps_queue_cancel_request_callback,
+    },
+    {
+        .uri = "queue",
+        .method = HttpMethodGet | HttpMethodPost,
+        .type = HttpHandlerCustom,
+        .on_request = api_apps_queue_request_callback,
     },
 };
 
