@@ -188,7 +188,7 @@ static JsAppInstallerError js_app_installer_operation_install_find_staged_app(
     const FuriString* app_id,
     JsApp* out_app,
     FuriString* out_path) {
-    JsAppInstallerError error = JsAppInstallerErrorStorage;
+    JsAppInstallerError error = JsAppInstallerErrorManifest;
     DirWalk* walk = dir_walk_alloc(storage);
 
     dir_walk_set_recursive(walk, false);
@@ -196,6 +196,7 @@ static JsAppInstallerError js_app_installer_operation_install_find_staged_app(
 
     do {
         if(!dir_walk_open(walk, JS_APP_STAGING_PATH)) {
+            error = JsAppInstallerErrorStorage;
             break;
         }
 
@@ -203,7 +204,6 @@ static JsAppInstallerError js_app_installer_operation_install_find_staged_app(
             const char* path_str = furi_string_get_cstr(out_path);
 
             if(!js_app_load_from_directory(out_app, path_str)) {
-                error = JsAppInstallerErrorManifest;
                 continue;
             }
 
@@ -211,7 +211,6 @@ static JsAppInstallerError js_app_installer_operation_install_find_staged_app(
 
             JsAppInfo app_info;
             if(!js_app_get_info(out_app, &app_info)) {
-                error = JsAppInstallerErrorManifest;
                 break;
             }
 

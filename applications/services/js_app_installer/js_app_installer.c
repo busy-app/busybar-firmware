@@ -44,7 +44,7 @@ static JsAppInstallerError find_app_folder(
     JsAppInstaller* instance,
     Storage* storage,
     JsAppInstallerStageInfo* stage_info) {
-    JsAppInstallerError error = JsAppInstallerErrorStorage;
+    JsAppInstallerError error = JsAppInstallerErrorManifest;
     DirWalk* walk = dir_walk_alloc(storage);
 
     dir_walk_set_recursive(walk, false);
@@ -53,6 +53,7 @@ static JsAppInstallerError find_app_folder(
     do {
         if(!dir_walk_open(walk, JS_APP_STAGING_PATH)) {
             FURI_LOG_E(TAG, "Cannot open " JS_APP_STAGING_PATH);
+            error = JsAppInstallerErrorStorage;
             break;
         }
 
@@ -61,7 +62,6 @@ static JsAppInstallerError find_app_folder(
 
         while(dir_walk_read(walk, path, NULL) == DirWalkOK) {
             if(!js_app_load_from_directory(app, furi_string_get_cstr(path))) {
-                error = JsAppInstallerErrorManifest;
                 continue;
             }
 
@@ -69,7 +69,6 @@ static JsAppInstallerError find_app_folder(
 
             JsAppInfo app_info;
             if(!js_app_get_info(app, &app_info)) {
-                error = JsAppInstallerErrorManifest;
                 break;
             }
 
