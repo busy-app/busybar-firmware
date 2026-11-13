@@ -30,7 +30,10 @@ void busy_timer_get_run_info(const BusyTimer* instance, BusyTimerRunInfo* info) 
     busy_timer_api_blocking_request(instance, &message);
 }
 
-void busy_timer_start(BusyTimer* instance, BusyTimerProfileId profile_id) {
+void busy_timer_start(
+    BusyTimer* instance,
+    BusyTimerProfileId profile_id,
+    BusyTimerSessionSource source) {
     furi_assert(instance);
 
     BusyTimerApiMessage message = {
@@ -38,6 +41,7 @@ void busy_timer_start(BusyTimer* instance, BusyTimerProfileId profile_id) {
         .data.start =
             {
                 .profile_id = profile_id,
+                .source = source,
             },
     };
 
@@ -113,7 +117,10 @@ void busy_timer_get_snapshot(BusyTimer* instance, BusyTimerSnapshot* snapshot) {
     busy_timer_api_blocking_request(instance, &message);
 }
 
-void busy_timer_set_snapshot(BusyTimer* instance, const BusyTimerSnapshot* snapshot) {
+void busy_timer_set_snapshot(
+    BusyTimer* instance,
+    const BusyTimerSnapshot* snapshot,
+    BusyTimerSessionSource source) {
     furi_check(instance);
     furi_check(snapshot);
 
@@ -122,6 +129,7 @@ void busy_timer_set_snapshot(BusyTimer* instance, const BusyTimerSnapshot* snaps
         .data.set_snapshot =
             {
                 .snapshot = *snapshot,
+                .source = source,
             },
     };
 

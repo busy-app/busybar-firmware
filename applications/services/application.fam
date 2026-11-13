@@ -65,6 +65,7 @@ App(
         "js_runner",
         "ca_storage",
         "js_app_installer",
+        "telemetry",
     ],
     targets=["f20", "f21", "f22"],
 )

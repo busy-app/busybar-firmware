@@ -169,6 +169,36 @@ bool mqtt_publish_ex(
     return is_success;
 }
 
+bool mqtt_publish_device_scope(
+    Mqtt* instance,
+    MqttQos qos,
+    const char* topic,
+    const void* data,
+    size_t data_size) {
+    furi_check(instance);
+    furi_check(topic);
+    furi_check(data);
+    furi_check(data_size);
+    furi_check(qos < MqttQosMax);
+
+    bool is_success = false;
+
+    MqttApiMessage message = {
+        .type = MqttApiMessageTypePublishDevice,
+        .data.publish =
+            {
+                .topic = topic,
+                .data = data,
+                .data_size = data_size,
+                .qos = qos,
+                .is_success = &is_success,
+            },
+    };
+
+    mqtt_send_message(instance, &message);
+    return is_success;
+}
+
 MqttSubscription* mqtt_subscribe(
     Mqtt* instance,
     MqttQos qos,
@@ -352,6 +382,25 @@ static void mqtt_publish_api_message_handler(Mqtt* instance, const MqttApiMessag
         publish->props_count);
 }
 
+static void
+    mqtt_publish_device_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
+    furi_assert(instance);
+    furi_assert(data);
+
+    const MqttApiMessagePublish* publish = &data->publish;
+    furi_assert(publish->is_success);
+
+    *publish->is_success = mqtt_publish_internal(
+        instance,
+        MqttScopeDevice,
+        publish->qos,
+        publish->topic,
+        publish->data,
+        publish->data_size,
+        publish->props,
+        publish->props_count);
+}
+
 static void mqtt_subscribe_api_message_handler(Mqtt* instance, const MqttApiMessageData* data) {
     furi_assert(instance);
     furi_assert(data);
@@ -403,6 +452,7 @@ static const MqttApiMessageHandler mqtt_api_message_handlers[MqttApiMessageTypeM
     [MqttApiMessageTypeGetConfig] = mqtt_get_config_api_message_handler,
     [MqttApiMessageTypeSetConfig] = mqtt_set_config_api_message_handler,
     [MqttApiMessageTypePublish] = mqtt_publish_api_message_handler,
+    [MqttApiMessageTypePublishDevice] = mqtt_publish_device_api_message_handler,
     [MqttApiMessageTypeSubscribe] = mqtt_subscribe_api_message_handler,
     [MqttApiMessageTypeUnsubscribe] = mqtt_unsubscribe_api_message_handler,
     [MqttApiMessageTypeWifiState] = mqtt_wifi_state_api_message_handler,
