@@ -61,6 +61,13 @@ typedef enum {
     WifiStateMax, /**< Special value, internal use */
 } WifiState;
 
+/** Enumeration of user-initiated configuration actions. */
+typedef enum {
+    WifiActionConnect, /**< Connect to an access point using explicit credentials */
+    WifiActionForget, /**< Forget the saved network */
+    WifiActionMax, /**< Special value, internal use */
+} WifiAction;
+
 /** Enumeration of supported security modes. */
 typedef enum {
     WifiSecurityModeOpen, /**< No password, the network is open for everyone */

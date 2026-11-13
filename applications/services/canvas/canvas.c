@@ -55,6 +55,7 @@ struct CanvasSrv {
     MirrorCard* display_mirror;
     Loader* loader;
     FuriPubSubSubscription* loader_subscription;
+    FuriState* ownership_state;
     char* app_id;
     size_t priority;
     struct {
@@ -325,26 +326,51 @@ static bool canvas_draw_rejected(CanvasSrv* canvas, const char* app_id, size_t p
                                                (priority <= current_priority);
 }
 
+static void canvas_publish_ownership(CanvasSrv* canvas) {
+    CanvasOwnershipInfo info = {0};
+
+    info.is_active = (canvas->gui != NULL);
+    if(info.is_active && canvas->app_id) {
+        strlcpy(info.app_id, canvas->app_id, sizeof(info.app_id));
+        info.priority = canvas->priority;
+    }
+
+    furi_state_set(canvas->ownership_state, &info);
+}
+
 static CanvasResult canvas_srv_do_draw(
     CanvasSrv* canvas,
     const char* app_id,
     size_t priority,
     CanvasElementsArray_t elements) {
+    const bool acquired = (canvas->gui == NULL);
+
     if(canvas->gui == NULL) {
         if(!canvas_srv_check_elements_visible(elements)) return CanvasResultEmptyScreen;
         canvas_screen_open(canvas);
     }
+
+    bool owner_changed = false;
     if(canvas->app_id) {
         if(strcmp(app_id, canvas->app_id) != 0) {
             canvas_element_destroy_multi(canvas, NULL);
             free(canvas->app_id);
             canvas->app_id = strdup(app_id);
+            owner_changed = true;
         }
     } else {
         canvas->app_id = strdup(app_id);
+        owner_changed = true;
     }
+    const bool priority_changed = (canvas->priority != priority);
     canvas->priority = priority;
-    return canvas_update_all(canvas, elements);
+
+    CanvasResult result = canvas_update_all(canvas, elements);
+
+    if(acquired || owner_changed || priority_changed) {
+        canvas_publish_ownership(canvas);
+    }
+    return result;
 }
 
 static void canvas_deferred_drop(CanvasSrv* canvas) {
@@ -560,6 +586,8 @@ static void canvas_screen_close(CanvasSrv* canvas) {
     canvas->gui = NULL;
     canvas->priority = 0;
     low_power_unlock(canvas->low_power);
+
+    canvas_publish_ownership(canvas);
 }
 
 static void canvas_loader_pubsub_callback(const void* message, void* context) {
@@ -591,6 +619,8 @@ static CanvasSrv* canvas_srv_alloc() {
 
     canvas->loader = furi_record_open(RECORD_LOADER);
     canvas->priority = 0;
+
+    canvas->ownership_state = furi_state_alloc(sizeof(CanvasOwnershipInfo));
 
     canvas->low_power = furi_record_open(RECORD_LOW_POWER);
 
@@ -709,4 +739,9 @@ void canvas_set_clear_on_back(CanvasSrv* canvas, bool is_clear_on_back) {
         .is_clear_on_back = is_clear_on_back,
     };
     furi_check(furi_message_queue_put(canvas->event_queue, &evt, FuriWaitForever) == FuriStatusOk);
+}
+
+FuriState* canvas_get_ownership_state(CanvasSrv* canvas) {
+    furi_check(canvas);
+    return canvas->ownership_state;
 }

@@ -824,6 +824,12 @@ static const HttpHandler handlers_api_root[] = {
         .on_request = http_api_apps_callback,
         .on_headers = http_api_apps_hdr_callback_root,
     },
+    {
+        .uri = "telemetry",
+        .method = HttpMethodGet | HttpMethodPut,
+        .type = HttpHandlerCustom,
+        .on_request = http_api_telemetry_callback,
+    },
 };
 
 void* http_api_root_alloc(void) {

@@ -65,6 +65,7 @@ struct Matter {
     Intercom* intercom;
     IntercomChannel* intercom_ch;
     MatterCommissionedFabrics fabrics;
+    bool is_fabric_count_known; // first report after boot is a baseline, not a change
     MatterCertificationConfig cert_config;
 };
 

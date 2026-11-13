@@ -30,6 +30,17 @@ extern "C" {
 FuriState* wifi_get_state(Wifi* instance);
 
 /**
+ * @brief Get the pubsub that reports user-initiated configuration actions.
+ *
+ * The received FuriPubSub object publishes a WifiAction value whenever a
+ * connect or forget request made through this API completes successfully.
+ *
+ * @param[in,out] instance pointer to the Wifi instance
+ * @returns pointer to the FuriPubSub object
+ */
+FuriPubSub* wifi_get_action_pubsub(Wifi* instance);
+
+/**
  * @brief Scan for available Wifi access points nearby.
  *
  * The array pointed to by the results parameter MUST be allocated by the user code.

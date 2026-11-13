@@ -259,6 +259,7 @@ static void loader_start_internal_app(
     FURI_LOG_I(TAG, "Starting %s", app->name);
     LoaderEvent event = {
         .type = LoaderEventTypeApplicationBeforeLoad,
+        .appid = app->appid,
     };
     furi_pubsub_publish(loader->pubsub, &event);
 
@@ -268,6 +269,7 @@ static void loader_start_internal_app(
         loader->app.args = strdup(args);
     }
 
+    loader->app.appid = app->appid;
     loader->app.thread =
         furi_thread_alloc_ex(app->name, app->stack_size, app->app, loader->app.args);
     loader->app.priority = LOADER_DEFAULT_APP_PRIORITY;
@@ -412,9 +414,11 @@ static void loader_app_closed_handler(Loader* loader, const LoaderMessage* messa
 
     LoaderEvent event = {
         .type = LoaderEventTypeApplicationStopped,
+        .appid = loader->app.appid,
     };
 
     furi_pubsub_publish(loader->pubsub, &event);
+    loader->app.appid = NULL;
 }
 
 static void loader_lock_handler(Loader* loader, const LoaderMessage* message) {

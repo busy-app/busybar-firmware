@@ -30,7 +30,10 @@ void busy_timer_get_run_info(const BusyTimer* instance, BusyTimerRunInfo* info) 
     busy_timer_api_blocking_request(instance, &message);
 }
 
-void busy_timer_start(BusyTimer* instance, BusyTimerProfileId profile_id) {
+void busy_timer_start(
+    BusyTimer* instance,
+    BusyTimerProfileId profile_id,
+    BusyTimerSessionSource source) {
     furi_assert(instance);
 
     BusyTimerApiMessage message = {
@@ -38,6 +41,7 @@ void busy_timer_start(BusyTimer* instance, BusyTimerProfileId profile_id) {
         .data.start =
             {
                 .profile_id = profile_id,
+                .source = source,
             },
     };
 
@@ -49,6 +53,17 @@ void busy_timer_stop(BusyTimer* instance) {
 
     BusyTimerApiMessage message = {
         .type = BusyTimerApiMessageTypeStop,
+    };
+
+    busy_timer_api_asynchronous_request(instance, &message);
+}
+
+void busy_timer_interrupt(BusyTimer* instance) {
+    furi_assert(instance);
+
+    BusyTimerApiMessage message = {
+        .type = BusyTimerApiMessageTypeStop,
+        .data.stop.is_interrupted = true,
     };
 
     busy_timer_api_asynchronous_request(instance, &message);
@@ -113,7 +128,10 @@ void busy_timer_get_snapshot(BusyTimer* instance, BusyTimerSnapshot* snapshot) {
     busy_timer_api_blocking_request(instance, &message);
 }
 
-void busy_timer_set_snapshot(BusyTimer* instance, const BusyTimerSnapshot* snapshot) {
+void busy_timer_set_snapshot(
+    BusyTimer* instance,
+    const BusyTimerSnapshot* snapshot,
+    BusyTimerSessionSource source) {
     furi_check(instance);
     furi_check(snapshot);
 
@@ -122,6 +140,7 @@ void busy_timer_set_snapshot(BusyTimer* instance, const BusyTimerSnapshot* snaps
         .data.set_snapshot =
             {
                 .snapshot = *snapshot,
+                .source = source,
             },
     };
 
@@ -152,6 +171,14 @@ void busy_timer_set_profile(
     BusyTimer* instance,
     BusyTimerProfileId profile_id,
     const BusyTimerProfile* profile) {
+    busy_timer_set_profile_from(instance, profile_id, profile, BusyTimerSessionSourceHttpApi);
+}
+
+void busy_timer_set_profile_from(
+    BusyTimer* instance,
+    BusyTimerProfileId profile_id,
+    const BusyTimerProfile* profile,
+    BusyTimerSessionSource source) {
     furi_check(instance);
     furi_check(profile_id < BusyTimerProfileIdMax);
     furi_check(profile);
@@ -162,6 +189,7 @@ void busy_timer_set_profile(
             {
                 .profile_id = profile_id,
                 .profile = *profile,
+                .source = source,
             },
     };
 
