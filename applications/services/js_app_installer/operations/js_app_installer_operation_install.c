@@ -94,7 +94,7 @@ static void js_app_installer_operation_install_loader_progress_callback(
         const size_t total_size = progress->total_download_size;
         if(total_size != 0) {
             const float recv_size = progress->received_download_size;
-            percent_complete = MIN((uint32_t)roundf((recv_size / total_size) * 100), 100UL);
+            percent_complete = MIN(roundf((recv_size / total_size) * 100), 100.F);
         }
     }
     /* clang-format off */

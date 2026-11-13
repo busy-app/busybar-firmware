@@ -56,7 +56,7 @@ typedef enum {
 typedef struct {
     const char* step;
     bool has_progress;
-    uint32_t progress;
+    uint8_t progress;
 } JsAppInstallerOperationDetail;
 
 typedef struct {

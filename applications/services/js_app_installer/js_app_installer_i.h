@@ -78,6 +78,7 @@ typedef struct {
 struct JsAppInstaller {
     FuriEventLoop* event_loop;
     FuriMessageQueue* msg_queue;
+    FuriPubSub* event_pubsub;
     uint32_t staged_install_key;
     FuriString* staged_app_path;
     uint32_t operation_id_counter;

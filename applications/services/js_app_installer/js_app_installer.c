@@ -267,9 +267,9 @@ static void run_next_operation(JsAppInstaller* instance) {
         return;
     }
 
-    JsAppInstallerOperationDetail* current_detail = &current_work->detail;
-    current_detail->step = "starting";
-    current_detail->has_progress = false;
+    JsAppInstallerOperationDetail* detail = &current_work->detail;
+    detail->step = "starting";
+    detail->has_progress = false;
 
     JsAppInstallerQueueItem* item =
         JsAppInstallerOperationQueue_pop_front(instance->pending_queue);
@@ -280,9 +280,15 @@ static void run_next_operation(JsAppInstaller* instance) {
     current_work->operation = operation;
     current_work->error = JsAppInstallerErrorMax;
 
-    js_app_installer_operation_start(operation);
+    JsAppInstallerEvent event = {
+        .type = JsAppInstallerEventTypeOperationDetail,
+        .item_id = item->id,
+        .detail.value = *detail,
+    };
 
-    // TODO: Emit update event
+    furi_pubsub_publish(instance->event_pubsub, &event);
+
+    js_app_installer_operation_start(operation);
 
     FURI_LOG_D(
         TAG,
@@ -294,25 +300,31 @@ static void run_next_operation(JsAppInstaller* instance) {
 
 static void handle_operation_progress(JsAppInstaller* instance) {
     const JsAppInstallerCurrentWork* current_work = &instance->current_work;
-    const JsAppInstallerQueueItem* current_item = current_work->item;
-    furi_assert(current_item != NULL);
+    const JsAppInstallerQueueItem* item = current_work->item;
+    furi_assert(item != NULL);
 
     FURI_CRITICAL_ENTER();
     const JsAppInstallerOperationDetail detail = current_work->detail;
     FURI_CRITICAL_EXIT();
 
+    JsAppInstallerEvent event = {
+        .type = JsAppInstallerEventTypeOperationDetail,
+        .item_id = item->id,
+        .detail.value = detail,
+    };
+
+    furi_pubsub_publish(instance->event_pubsub, &event);
+
     if(detail.has_progress) {
         FURI_LOG_D(
             TAG,
-            "Operation status: step: %s, progress: %lu%% (%lu)",
+            "Operation status: step: %s, progress: %hhu%% (%lu)",
             detail.step,
             detail.progress,
-            current_item->id);
+            item->id);
     } else {
-        FURI_LOG_D(TAG, "Operation status: step: %s (%lu)", detail.step, current_item->id);
+        FURI_LOG_D(TAG, "Operation status: step: %s (%lu)", detail.step, item->id);
     }
-
-    // TODO: Emit update event
 }
 
 static void handle_operation_finished(JsAppInstaller* instance) {
@@ -326,26 +338,24 @@ static void handle_operation_finished(JsAppInstaller* instance) {
     const JsAppInstallerError error = current_work->error;
     furi_assert(error < JsAppInstallerErrorMax);
 
-    const uint32_t operation_id = current_item->id;
-    const char* operation_name = js_app_installer_get_operation_name(current_item->type);
+    const uint32_t item_id = current_item->id;
+    const char* name = js_app_installer_get_operation_name(current_item->type);
     const char* app_id = furi_string_get_cstr(current_item->app_id);
 
+    JsAppInstallerEvent event = {
+        .type = JsAppInstallerEventTypeOperationFinished,
+        .item_id = item_id,
+        .finished.error = error,
+    };
+
+    furi_pubsub_publish(instance->event_pubsub, &event);
+
     if(error == JsAppInstallerErrorNone) {
-        FURI_LOG_D(
-            TAG,
-            "Operation %s %s (%lu) finished successfully",
-            operation_name,
-            app_id,
-            operation_id);
+        FURI_LOG_D(TAG, "Operation %s %s (%lu) finished successfully", name, app_id, item_id);
 
     } else {
         FURI_LOG_E(
-            TAG,
-            "Operation %s %s (%lu) finished with error 0x%X",
-            operation_name,
-            app_id,
-            operation_id,
-            error);
+            TAG, "Operation %s %s (%lu) finished with error 0x%X", name, app_id, item_id, error);
     }
 
     js_app_installer_queue_item_free(current_item);
@@ -565,6 +575,7 @@ static JsAppInstaller* js_app_installer_alloc(void) {
 
     instance->event_loop = furi_event_loop_alloc();
     instance->msg_queue = furi_message_queue_alloc(API_QUEUE_SIZE, sizeof(JsAppInstallerMsg));
+    instance->event_pubsub = furi_pubsub_alloc();
 
     JsAppInstallerOperationQueue_init(instance->pending_queue);
 

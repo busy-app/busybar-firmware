@@ -4,6 +4,8 @@
  */
 #pragma once
 
+#include <core/pubsub.h>
+
 #include <js_app/js_app.h>
 
 #include "js_app_installer_common.h"
@@ -33,6 +35,30 @@ typedef struct {
 
 typedef void (
     *JsAppInstallerOperationInfoCallback)(const JsAppInstallerOperationInfo* info, void* context);
+
+typedef enum {
+    JsAppInstallerEventTypeOperationDetail,
+    JsAppInstallerEventTypeOperationFinished,
+} JsAppInstallerEventType;
+
+typedef struct {
+    JsAppInstallerOperationDetail value;
+} JsAppInstallerEventOperationDetail;
+
+typedef struct {
+    JsAppInstallerError error;
+} JsAppInstallerEventOperationFinished;
+
+typedef struct {
+    JsAppInstallerEventType type;
+    uint32_t item_id;
+    union {
+        JsAppInstallerEventOperationDetail detail;
+        JsAppInstallerEventOperationFinished finished;
+    };
+} JsAppInstallerEvent;
+
+FuriPubSub* js_app_installer_get_pubsub(JsAppInstaller* instance);
 
 /**
  * @brief Unpack and check downloaded app package.
