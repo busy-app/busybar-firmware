@@ -1,4 +1,5 @@
 #include "http_api.h"
+#include <ctype.h>
 #include <version.h>
 #include <json_helper.h>
 #include <lwip/tcpip.h>
@@ -235,8 +236,8 @@ static bool validate_access_key(const char* key) {
         return false;
     }
     for(size_t i = 0; i < key_len; i++) {
-        char c = key[i];
-        if((c < '0') || (c > '9')) {
+        unsigned char c = key[i];
+        if(!isalnum(c)) {
             return false;
         }
     }
