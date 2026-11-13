@@ -4,14 +4,17 @@
 #include <core/kernel.h>
 #include <core/log.h>
 
+#include <js_app_launcher/js_app_launcher.h>
+
 #include "operations/js_app_installer_operations.h"
 
 #define TAG "JsAppInstallerOperation"
 
 #define THREAD_STACK_SIZE (2 * 1024)
 
-static void
-    js_app_operation_notify_step_started(JsAppInstallerOperation* instance, const char* step_name) {
+static void js_app_installer_operation_notify_step_started(
+    JsAppInstallerOperation* instance,
+    const char* step_name) {
     /* clang-format off */
     const JsAppInstallerOperationEvent event = {
         .type = JsAppInstallerOperationEventTypeProgress,
@@ -24,8 +27,9 @@ static void
     js_app_installer_operation_notify(instance, &event);
 }
 
-static void
-    js_app_operation_notify_finished(JsAppInstallerOperation* instance, JsAppInstallerError error) {
+static void js_app_installer_operation_notify_finished(
+    JsAppInstallerOperation* instance,
+    JsAppInstallerError error) {
     const JsAppInstallerOperationEvent event = {
         .type = JsAppInstallerOperationEventTypeFinished,
         .finished.error = error,
@@ -34,14 +38,38 @@ static void
     js_app_installer_operation_notify(instance, &event);
 }
 
-static int32_t js_app_operation_thread_callback(void* arg) {
-    furi_assert(arg);
-    JsAppInstallerOperation* instance = arg;
+static JsAppInstallerError
+    js_app_installer_operation_can_proceed(const JsAppInstallerOperation* instance) {
+    JsAppInstallerError error;
+    FuriString* app_id = furi_string_alloc();
+
+    do {
+        const JsAppLauncherStatus status = js_app_launcher_get_running_app_id(app_id);
+        if(status != JsAppLauncherStatusNotRunning) {
+            if(status != JsAppLauncherStatusOk) {
+                error = JsAppInstallerErrorInternal;
+                break;
+            }
+
+            if(furi_string_equal(app_id, instance->app_id)) {
+                error = JsAppInstallerErrorAppRunning;
+                break;
+            }
+        }
+
+        error = JsAppInstallerErrorNone;
+    } while(false);
+
+    furi_string_free(app_id);
+    return error;
+}
+
+static JsAppInstallerError
+    js_app_installer_operation_run_steps(JsAppInstallerOperation* instance) {
+    JsAppInstallerError error = JsAppInstallerErrorNone;
 
     const JsAppInstallerOperationInterface* interface = instance->interface;
     furi_assert(interface);
-
-    JsAppInstallerError error = JsAppInstallerErrorNone;
 
     for(size_t i = 0; i < interface->step_count; ++i) {
         const JsAppInstallerOperationStep* step = &interface->steps[i];
@@ -54,7 +82,7 @@ static int32_t js_app_operation_thread_callback(void* arg) {
             break;
         }
 
-        js_app_operation_notify_step_started(instance, step_name);
+        js_app_installer_operation_notify_step_started(instance, step_name);
 
         furi_assert(step->handler);
         error = step->handler(instance);
@@ -68,8 +96,24 @@ static int32_t js_app_operation_thread_callback(void* arg) {
     furi_assert(interface->cleanup);
     interface->cleanup(instance);
 
-    js_app_operation_notify_finished(instance, error);
+    return error;
+}
 
+static int32_t js_app_installer_operation_thread_callback(void* arg) {
+    furi_assert(arg);
+    JsAppInstallerOperation* instance = arg;
+    JsAppInstallerError error;
+
+    do {
+        error = js_app_installer_operation_can_proceed(instance);
+        if(error != JsAppInstallerErrorNone) {
+            break;
+        }
+
+        error = js_app_installer_operation_run_steps(instance);
+    } while(false);
+
+    js_app_installer_operation_notify_finished(instance, error);
     return 0;
 }
 
@@ -87,8 +131,8 @@ JsAppInstallerOperation* js_app_installer_operation_alloc(const JsAppInstallerQu
     JsAppInstallerOperation* instance = malloc(data_size);
 
     instance->interface = interface;
-    instance->thread =
-        furi_thread_alloc_ex(TAG, THREAD_STACK_SIZE, js_app_operation_thread_callback, instance);
+    instance->thread = furi_thread_alloc_ex(
+        TAG, THREAD_STACK_SIZE, js_app_installer_operation_thread_callback, instance);
     instance->app_id = furi_string_alloc_set(item->app_id);
 
     furi_assert(interface->init);

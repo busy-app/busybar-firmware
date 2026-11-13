@@ -125,11 +125,12 @@ static const char* const installer_errors[] = {
     [JsAppInstallerErrorApiVersion] = "API version mismatch",
     [JsAppInstallerErrorStorage] = "Storage error",
     [JsAppInstallerErrorTimeout] = "Operation timed out",
-    [JsAppInstallerErrorNotFound] = "Operation not found",
+    [JsAppInstallerErrorNotFound] = "Item not found",
     [JsAppInstallerErrorQueueFull] = "Too many operations",
     [JsAppInstallerErrorCancelled] = "Operation cancelled",
     [JsAppInstallerErrorAppRunning] = "Application is running",
     [JsAppInstallerErrorParameter] = "Invalid parameter",
+    [JsAppInstallerErrorInternal] = "Unknown internal error",
 };
 
 static const char* const installer_error_codes[] = {
@@ -145,6 +146,7 @@ static const char* const installer_error_codes[] = {
     [JsAppInstallerErrorCancelled] = "cancelled",
     [JsAppInstallerErrorAppRunning] = "app_running",
     [JsAppInstallerErrorParameter] = "invalid_parameter",
+    [JsAppInstallerErrorInternal] = "internal_error",
 };
 
 static_assert(COUNT_OF(installer_errors) == JsAppInstallerErrorMax);

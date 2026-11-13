@@ -23,6 +23,7 @@ typedef enum JsAppInstallerError {
     JsAppInstallerErrorCancelled,
     JsAppInstallerErrorAppRunning,
     JsAppInstallerErrorParameter,
+    JsAppInstallerErrorInternal,
     JsAppInstallerErrorMax,
 } JsAppInstallerError;
 
