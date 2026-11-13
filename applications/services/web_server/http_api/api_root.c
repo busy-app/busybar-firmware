@@ -126,7 +126,7 @@ void http_api_log_access(struct mg_connection* conn, struct mg_http_message* msg
 
 #define ACCESS_CFG_FILE    APP_DATA_PATH("access.json")
 #define ACCESS_KEY_LEN_MIN 4
-#define ACCESS_KEY_LEN_MAX 10
+#define ACCESS_KEY_LEN_MAX 32
 
 typedef enum {
     HttpApiAccessMatchTypeExact,
