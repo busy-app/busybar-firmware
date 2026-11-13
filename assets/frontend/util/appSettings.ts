@@ -1,6 +1,9 @@
 import type { AppSettingsNode } from '@/stores/appsStore';
 
 type StringSettingNode = Extract<AppSettingsNode, { type: 'string' }>;
+type IntegerSettingNode = Extract<AppSettingsNode, { type: 'integer' }>;
+
+const INTEGER_SETTING_DEFAULT_STEP = 1;
 
 // Firmware measures string settings in UTF-8 bytes and defaults max_length to 64 (lib/js_app/js_app_settings.c).
 const STRING_SETTING_DEFAULT_MAX_LENGTH = 64;
@@ -31,6 +34,18 @@ export function getStringSettingError (field: StringSettingNode, value: unknown)
   }
 
   return undefined;
+}
+
+export function stepIntegerSetting (field: IntegerSettingNode, value: number, direction: 1 | -1) {
+  const step = field.step ?? INTEGER_SETTING_DEFAULT_STEP;
+  const min = field.min ?? -Infinity;
+  const max = field.max ?? Infinity;
+
+  const next = direction > 0
+    ? (Math.floor(value / step) + 1) * step
+    : (Math.ceil(value / step) - 1) * step;
+
+  return Math.min(max, Math.max(min, next));
 }
 
 export function hasInvalidAppSettings (fields: Record<string, AppSettingsNode>, values: Record<string, unknown>): boolean {
