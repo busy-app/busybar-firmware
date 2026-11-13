@@ -138,6 +138,7 @@ export default defineNuxtConfig({
         'ri:arrow-left-s-fill',
         'ri:arrow-right-double-fill',
         'ri:arrow-right-line',
+        'ri:arrow-right-up-line',
         'ri:arrow-right-s-fill',
         'ri:arrow-right-s-line',
         'ri:arrow-up-s-fill',
