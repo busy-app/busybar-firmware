@@ -119,26 +119,32 @@ static void free_install_context(HttpInstallHandlerCtx* ctx) {
 
 static const char* const installer_errors[] = {
     [JsAppInstallerErrorNone] = "OK",
+    [JsAppInstallerErrorDownload] = "File download failed",
     [JsAppInstallerErrorUnpack] = "Cannot unpack",
-    [JsAppInstallerErrorManifest] = "Wrong app manifest",
+    [JsAppInstallerErrorManifest] = "Invalid or missing app manifest",
     [JsAppInstallerErrorApiVersion] = "API version mismatch",
-    [JsAppInstallerErrorInstall] = "Installation failed",
+    [JsAppInstallerErrorStorage] = "Storage error",
     [JsAppInstallerErrorTimeout] = "Operation timed out",
     [JsAppInstallerErrorNotFound] = "Operation not found",
     [JsAppInstallerErrorQueueFull] = "Too many operations",
     [JsAppInstallerErrorCancelled] = "Operation cancelled",
+    [JsAppInstallerErrorAppRunning] = "Application is running",
+    [JsAppInstallerErrorParameter] = "Invalid parameter",
 };
 
 static const char* const installer_error_codes[] = {
     [JsAppInstallerErrorNone] = "ok",
+    [JsAppInstallerErrorDownload] = "download_error",
     [JsAppInstallerErrorUnpack] = "unpack_error",
     [JsAppInstallerErrorManifest] = "manifest_error",
     [JsAppInstallerErrorApiVersion] = "api_mismatch",
-    [JsAppInstallerErrorInstall] = "installation_failed",
+    [JsAppInstallerErrorStorage] = "storage_error",
     [JsAppInstallerErrorTimeout] = "timeout",
     [JsAppInstallerErrorNotFound] = "not_found",
     [JsAppInstallerErrorQueueFull] = "queue_full",
     [JsAppInstallerErrorCancelled] = "cancelled",
+    [JsAppInstallerErrorAppRunning] = "app_running",
+    [JsAppInstallerErrorParameter] = "invalid_parameter",
 };
 
 static_assert(COUNT_OF(installer_errors) == JsAppInstallerErrorMax);

@@ -38,8 +38,7 @@ static JsAppInstallerError
     static const JsAppInstallerError error_table[] = {
         [JsAppRegistryAppUninstallResultOk] = JsAppInstallerErrorNone,
         [JsAppRegistryAppUninstallResultNotFound] = JsAppInstallerErrorNotFound,
-        // TODO: fitting error
-        [JsAppRegistryAppUninstallResultStorageError] = JsAppInstallerErrorInstall,
+        [JsAppRegistryAppUninstallResultStorageError] = JsAppInstallerErrorStorage,
     };
 
     static_assert(COUNT_OF(error_table) == JsAppRegistryAppUninstallResultMax);

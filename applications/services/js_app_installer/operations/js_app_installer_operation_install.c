@@ -125,7 +125,7 @@ static JsAppInstallerError
 
     static const JsAppInstallerError error_table[] = {
         [FetchStatusOk] = JsAppInstallerErrorNone,
-        [FetchStatusError] = JsAppInstallerErrorInstall,
+        [FetchStatusError] = JsAppInstallerErrorDownload,
         [FetchStatusAborted] = JsAppInstallerErrorCancelled,
     };
 
@@ -154,22 +154,25 @@ static JsAppInstallerError
     js_app_installer_operation_install_handler_unpack(JsAppInstallerOperation* base_instance) {
     JsAppInstallerOperationInstall* instance = (JsAppInstallerOperationInstall*)base_instance;
 
-    JsAppInstallerError error = JsAppInstallerErrorUnpack;
+    JsAppInstallerError error;
     TarArchive* tar = tar_archive_alloc(instance->storage);
 
     do {
         if(!storage_simply_remove_recursive(instance->storage, JS_APP_STAGING_PATH)) {
             FURI_LOG_E(TAG, "Failed to remove staging directory: %s", JS_APP_STAGING_PATH);
+            error = JsAppInstallerErrorStorage;
             break;
         }
 
         if(!tar_archive_open(tar, JS_APP_DOWNLOAD_PATH, TarOpenModeReadAuto)) {
             FURI_LOG_E(TAG, "Failed to open file: %s", JS_APP_DOWNLOAD_PATH);
+            error = JsAppInstallerErrorUnpack;
             break;
         }
 
         if(!tar_archive_unpack_to(tar, JS_APP_STAGING_PATH, NULL)) {
             FURI_LOG_E(TAG, "Failed to unpack file: %s", JS_APP_DOWNLOAD_PATH);
+            error = JsAppInstallerErrorUnpack;
             break;
         }
 
@@ -185,17 +188,22 @@ static JsAppInstallerError js_app_installer_operation_install_find_staged_app(
     const FuriString* app_id,
     JsApp* out_app,
     FuriString* out_path) {
-    JsAppInstallerError error = JsAppInstallerErrorManifest;
+    JsAppInstallerError error = JsAppInstallerErrorStorage;
     DirWalk* walk = dir_walk_alloc(storage);
 
     dir_walk_set_recursive(walk, false);
     dir_walk_set_filter_cb(walk, dir_walk_is_dir_callback, NULL);
 
-    if(dir_walk_open(walk, JS_APP_STAGING_PATH)) {
+    do {
+        if(!dir_walk_open(walk, JS_APP_STAGING_PATH)) {
+            break;
+        }
+
         while(dir_walk_read(walk, out_path, NULL) == DirWalkOK) {
             const char* path_str = furi_string_get_cstr(out_path);
 
             if(!js_app_load_from_directory(out_app, path_str)) {
+                error = JsAppInstallerErrorManifest;
                 continue;
             }
 
@@ -203,6 +211,7 @@ static JsAppInstallerError js_app_installer_operation_install_find_staged_app(
 
             JsAppInfo app_info;
             if(!js_app_get_info(out_app, &app_info)) {
+                error = JsAppInstallerErrorManifest;
                 break;
             }
 
@@ -221,7 +230,8 @@ static JsAppInstallerError js_app_installer_operation_install_find_staged_app(
             error = JsAppInstallerErrorNone;
             break;
         }
-    }
+
+    } while(false);
 
     dir_walk_free(walk);
     return error;
@@ -259,7 +269,7 @@ static JsAppInstallerError
         const char* target_path_str = furi_string_get_cstr(target_path);
         if(!storage_simply_remove_recursive(storage, target_path_str)) {
             FURI_LOG_E(TAG, "Failed to remove app with id: %s", staged_app_id);
-            error = JsAppInstallerErrorInstall;
+            error = JsAppInstallerErrorStorage;
             break;
         }
 
@@ -267,7 +277,7 @@ static JsAppInstallerError
         if(storage_common_rename(storage, staged_path_str, target_path_str) != FSE_OK) {
             FURI_LOG_E(
                 TAG, "Failed to move app directory %s -> %s", staged_path_str, target_path_str);
-            error = JsAppInstallerErrorInstall;
+            error = JsAppInstallerErrorStorage;
             break;
         }
 

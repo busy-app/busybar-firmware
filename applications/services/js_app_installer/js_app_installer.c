@@ -44,7 +44,7 @@ static JsAppInstallerError find_app_folder(
     JsAppInstaller* instance,
     Storage* storage,
     JsAppInstallerStageInfo* stage_info) {
-    JsAppInstallerError error = JsAppInstallerErrorManifest;
+    JsAppInstallerError error = JsAppInstallerErrorStorage;
     DirWalk* walk = dir_walk_alloc(storage);
 
     dir_walk_set_recursive(walk, false);
@@ -61,6 +61,7 @@ static JsAppInstallerError find_app_folder(
 
         while(dir_walk_read(walk, path, NULL) == DirWalkOK) {
             if(!js_app_load_from_directory(app, furi_string_get_cstr(path))) {
+                error = JsAppInstallerErrorManifest;
                 continue;
             }
 
@@ -68,6 +69,7 @@ static JsAppInstallerError find_app_folder(
 
             JsAppInfo app_info;
             if(!js_app_get_info(app, &app_info)) {
+                error = JsAppInstallerErrorManifest;
                 break;
             }
 
@@ -168,7 +170,7 @@ static JsAppInstallerError
     furi_assert(message);
 
     Storage* storage = furi_record_open(RECORD_STORAGE);
-    JsAppInstallerError error = JsAppInstallerErrorInstall;
+    JsAppInstallerError error;
     bool cleanup = false;
     do {
         if(is_queue_active(instance)) {
@@ -178,6 +180,7 @@ static JsAppInstallerError
 
         if(message->install_staged.install_key == 0 ||
            message->install_staged.install_key != instance->staged_install_key) {
+            error = JsAppInstallerErrorParameter;
             break;
         }
 
@@ -186,10 +189,12 @@ static JsAppInstallerError
         do {
             if(!js_app_load_from_directory(
                    new_app, furi_string_get_cstr(instance->staged_app_path))) {
+                error = JsAppInstallerErrorManifest;
                 break;
             }
             JsAppInfo new_app_info;
             if(!js_app_get_info(new_app, &new_app_info)) {
+                error = JsAppInstallerErrorManifest;
                 break;
             }
             FuriString* target_path = js_app_registry_get_app_path(new_app_info.manifest.id);
@@ -198,6 +203,7 @@ static JsAppInstallerError
             do {
                 if(!storage_simply_remove_recursive(storage, furi_string_get_cstr(target_path))) {
                     FURI_LOG_E(TAG, "Cannot delete app with id = %s", new_app_info.manifest.id);
+                    error = JsAppInstallerErrorStorage;
                     break;
                 }
                 if(storage_common_rename(
@@ -205,6 +211,7 @@ static JsAppInstallerError
                        furi_string_get_cstr(instance->staged_app_path),
                        furi_string_get_cstr(target_path)) != FSE_OK) {
                     FURI_LOG_E(TAG, "Cannot move directory");
+                    error = JsAppInstallerErrorStorage;
                     break;
                 }
                 error = JsAppInstallerErrorNone;
