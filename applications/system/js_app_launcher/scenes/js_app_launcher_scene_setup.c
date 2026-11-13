@@ -218,12 +218,19 @@ static void js_app_launcher_scene_setup_rebuild_level(JsAppLauncher* instance) {
     js_app_launcher_scene_setup_build_items(data->back_menu, level, false);
 }
 
-static void
-    js_app_launcher_scene_setup_raise_error(JsAppLauncher* instance, JsAppLauncherError error) {
-    instance->error = error;
+static void js_app_launcher_scene_setup_show_status(
+    JsAppLauncher* instance,
+    JsAppLauncherShowStatus status) {
+    instance->show_status = status;
+
+    with_gui(instance->gui, {
+        nav_bar_pop_locations(
+            instance->nav_bar,
+            MAX(JsAppLauncherSceneSetupLevels_size(instance->setup_levels), 1u));
+    });
+
     JsAppLauncherSceneSetupLevels_reset(instance->setup_levels);
-    with_gui(instance->gui, { nav_bar_pop_location(instance->nav_bar); });
-    scene_manager_replace_current_scene(instance->scene_manager, JsAppLauncherSceneIdError);
+    scene_manager_replace_current_scene(instance->scene_manager, JsAppLauncherSceneIdStatus);
 }
 
 static void js_app_launcher_scene_setup_on_enter(void* context) {
@@ -239,14 +246,14 @@ static void js_app_launcher_scene_setup_on_enter(void* context) {
 
     do {
         if(!instance->settings_storage) {
-            js_app_launcher_scene_setup_raise_error(
-                instance, JsAppLauncherErrorSettingsSchemaMissing);
+            js_app_launcher_scene_setup_show_status(
+                instance, JsAppLauncherShowStatusSettingsSchemaMissing);
             break;
         }
 
         if(!js_app_settings_storage_load(instance->settings_storage)) {
-            js_app_launcher_scene_setup_raise_error(
-                instance, JsAppLauncherErrorSettingsLoadFailed);
+            js_app_launcher_scene_setup_show_status(
+                instance, JsAppLauncherShowStatusSettingsLoadFailed);
             break;
         }
 
@@ -318,7 +325,9 @@ static bool js_app_launcher_scene_setup_on_item_selected(JsAppLauncher* instance
         level->selected_setting = setting;
 
         if(setting->type == SettingProviderSettingTypeStruct) {
+            const JsAppSettingsNode* node = js_app_settings_storage_get_node(setting);
             const SettingProviderStructInterface* interface = setting->interface;
+
             JsAppLauncherSceneSetupLevels_push_back(
                 instance->setup_levels,
                 (JsAppLauncherSceneSetupLevel){
@@ -327,7 +336,10 @@ static bool js_app_launcher_scene_setup_on_item_selected(JsAppLauncher* instance
                     .selected_setting = NULL,
                 });
 
-            with_gui(instance->gui, { js_app_launcher_scene_setup_rebuild_level(instance); });
+            with_gui(instance->gui, {
+                js_app_launcher_scene_setup_rebuild_level(instance);
+                nav_bar_push_location(instance->nav_bar, node->label);
+            });
         } else {
             scene_manager_next_scene(instance->scene_manager, JsAppLauncherSceneIdWebSetup);
         }
@@ -341,7 +353,10 @@ static bool js_app_launcher_scene_setup_on_back(JsAppLauncher* instance) {
 
     bool is_consumed = false;
     if(JsAppLauncherSceneSetupLevels_size(instance->setup_levels) > 0) {
-        with_gui(instance->gui, { js_app_launcher_scene_setup_rebuild_level(instance); });
+        with_gui(instance->gui, {
+            js_app_launcher_scene_setup_rebuild_level(instance);
+            nav_bar_pop_location(instance->nav_bar);
+        });
 
         is_consumed = true;
     } else {
