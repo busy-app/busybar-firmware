@@ -159,6 +159,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "409":
+          description: Display is held by a higher-priority application; nothing was cleared
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /api/audio/play:
     post:

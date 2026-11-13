@@ -855,10 +855,12 @@ class TestDeleteDisplay:
         resp = assets_api.draw_response("app_b", b_elem, priority=_PRI)
         assets_api.assert_status(resp, 200)
 
-    @allure.title("DELETE is idempotent (double delete → 200)")
+    @allure.title(
+        "DELETE is idempotent when the timer is stopped (double delete → 200)"
+    )
     @pytest.mark.api
     @pytest.mark.frontend
-    def test_delete_idempotent(self, assets_api: AssetsAPI):
+    def test_delete_idempotent(self, assets_api: AssetsAPI, busy_timer_stopped):
         assets_api.clear_display()
         resp = assets_api.clear_display_by_app("nonexistent")
         assets_api.assert_status(resp, 200)
