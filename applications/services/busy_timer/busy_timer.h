@@ -41,7 +41,9 @@ typedef enum {
  */
 typedef enum {
     BusyTimerSessionOutcomeCompleted = 0, /**< Timer ran to its natural end */
-    BusyTimerSessionOutcomeStopped, /**< Timer was stopped manually */
+    BusyTimerSessionOutcomeStopped, /**< Timer was stopped manually on the bar */
+    BusyTimerSessionOutcomeStoppedExternal, /**< Timer was stopped by a companion, the cloud or an integration */
+    BusyTimerSessionOutcomeInterrupted, /**< Timer was cut short, e.g. the BUSY app was closed by the selector */
     BusyTimerSessionOutcomeMax, /**< Special value, internal use */
 } BusyTimerSessionOutcome;
 
@@ -55,6 +57,7 @@ typedef enum {
     BusyTimerEventTypeSnapshotCreated,
     BusyTimerEventTypeSessionStarted,
     BusyTimerEventTypeSessionEnded,
+    BusyTimerEventTypeProfileSaved,
     BusyTimerEventTypeMax,
 } BusyTimerEventType;
 
@@ -94,13 +97,26 @@ typedef struct {
     BusyAppConfig app_config;
     BusyTimerConfig timer_config;
     bool is_demo_mode_enabled;
+    char card_id[BUSY_TIMER_CARD_ID_LEN + 1]; /**< Id of the timer card the session runs */
 } BusyTimerEventSessionStarted;
+
+/**
+ * @brief Event of type `BusyTimerEventTypeProfileSaved`.
+ *
+ * Published once per accepted profile save (not on re-publish or echo).
+ */
+typedef struct {
+    BusyTimerProfileId profile_id;
+    BusyTimerProfile profile;
+    BusyTimerSessionSource source; /**< Who saved the profile */
+} BusyTimerEventProfileSaved;
 
 typedef struct {
     BusyTimerSessionOutcome outcome;
     BusyTimerSessionSource source;
     uint32_t time_elapsed_s;
     uint32_t cycles_completed;
+    BusyTimerState state; /**< Work or rest at the moment the session ended */
 } BusyTimerEventSessionEnded;
 
 typedef struct {
@@ -115,6 +131,7 @@ typedef struct {
         BusyTimerEventSnapshotCreated snapshot_created;
         BusyTimerEventSessionStarted session_started;
         BusyTimerEventSessionEnded session_ended;
+        BusyTimerEventProfileSaved profile_saved;
     };
 } BusyTimerEvent;
 
@@ -141,6 +158,11 @@ void busy_timer_start(
     BusyTimerSessionSource source);
 
 void busy_timer_stop(BusyTimer* instance);
+
+/**
+ * @brief Stop the timer because it was cut short (not by the user's stop action).
+ */
+void busy_timer_interrupt(BusyTimer* instance);
 
 void busy_timer_toggle(BusyTimer* instance);
 
@@ -170,6 +192,15 @@ void busy_timer_set_profile(
     BusyTimer* instance,
     BusyTimerProfileId profile_id,
     const BusyTimerProfile* profile);
+
+/**
+ * @brief Same as busy_timer_set_profile(), with an explicit source of the change.
+ */
+void busy_timer_set_profile_from(
+    BusyTimer* instance,
+    BusyTimerProfileId profile_id,
+    const BusyTimerProfile* profile,
+    BusyTimerSessionSource source);
 
 void busy_timer_get_preset(
     BusyTimer* instance,

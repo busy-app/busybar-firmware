@@ -46,6 +46,10 @@ typedef struct {
 } BusyTimerApiMessageAddTime;
 
 typedef struct {
+    bool is_interrupted;
+} BusyTimerApiMessageStop;
+
+typedef struct {
     BusyTimerSnapshot* snapshot;
 } BusyTimerApiMessageGetSnapshot;
 
@@ -66,6 +70,7 @@ typedef struct {
 typedef struct {
     BusyTimerProfileId profile_id;
     BusyTimerProfile profile;
+    BusyTimerSessionSource source;
 } BusyTimerApiMessageSetProfile;
 
 typedef struct {
@@ -84,6 +89,7 @@ typedef struct {
 
 typedef union {
     BusyTimerApiMessageStart start;
+    BusyTimerApiMessageStop stop;
     BusyTimerApiMessageAddTime add_time;
     BusyTimerApiMessageGetSnapshot get_snapshot;
     BusyTimerApiMessageSetSnapshot set_snapshot;
@@ -153,6 +159,7 @@ bool busy_timer_is_running(const BusyTimer* instance);
 void busy_timer_start_internal(BusyTimer* instance);
 
 void busy_timer_stop_internal(BusyTimer* instance);
+void busy_timer_stop_internal_with_outcome(BusyTimer* instance, BusyTimerSessionOutcome outcome);
 
 void busy_timer_toggle_internal(BusyTimer* instance);
 

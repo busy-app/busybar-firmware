@@ -36,9 +36,14 @@ bool http_api_telemetry_callback(
                 break;
             }
 
-            // Reject bodies with unexpected properties (schema: additionalProperties: false)
+            // Optional consent context: where the user changed it and which text they saw
             cJSON* enabled_item = cJSON_GetObjectItem(json_root, "enabled");
-            if(!cJSON_IsBool(enabled_item) || cJSON_GetArraySize(json_root) != 1) {
+            cJSON* source_item = cJSON_GetObjectItem(json_root, "source");
+            cJSON* text_version_item = cJSON_GetObjectItem(json_root, "text_version");
+            const int expected_size = 1 + (source_item ? 1 : 0) + (text_version_item ? 1 : 0);
+            if(!cJSON_IsBool(enabled_item) || cJSON_GetArraySize(json_root) != expected_size ||
+               (source_item && !cJSON_IsString(source_item)) ||
+               (text_version_item && !cJSON_IsString(text_version_item))) {
                 cJSON_Delete(json_root);
                 MG_REPLY_BAD_REQUEST(conn);
                 break;
@@ -47,7 +52,11 @@ bool http_api_telemetry_callback(
             enabled = cJSON_IsTrue(enabled_item);
 
             Telemetry* telemetry = furi_record_open(RECORD_TELEMETRY);
-            telemetry_set_enabled(telemetry, enabled);
+            telemetry_set_enabled_with_source(
+                telemetry,
+                enabled,
+                source_item ? source_item->valuestring : "companion",
+                text_version_item ? text_version_item->valuestring : NULL);
             enabled = telemetry_is_enabled(telemetry);
             furi_record_close(RECORD_TELEMETRY);
 

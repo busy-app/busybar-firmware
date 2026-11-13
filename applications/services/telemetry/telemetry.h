@@ -47,11 +47,15 @@ typedef enum {
 typedef enum {
     TelemetryEventDeviceBoot, /**< Device boot / firmware info (p2) */
     TelemetryEventFwUpdate, /**< Firmware update installation started (p2) */
-    TelemetryEventTimerSessionStart, /**< Busy timer session started (p1) */
-    TelemetryEventTimerSessionEnd, /**< Busy timer session ended / interrupted (p2) */
-    TelemetryEventTimerTheme, /**< BUSY/CUSTOM timer theme changed (p0) */
+    TelemetryEventTimerStart, /**< Busy timer session started: start_timer (p1) */
+    TelemetryEventTimerComplete, /**< Busy timer ran to its end: timer_complete (p2) */
+    TelemetryEventTimerStop, /**< Busy timer stopped or interrupted: timer_stop (p2) */
+    TelemetryEventChangeTimerSettings, /**< BUSY/CUSTOM profile saved: change_timer_settings (p0) */
     TelemetryEventAppStart, /**< Application started (p1) */
     TelemetryEventAppStop, /**< Application stopped (p1) */
+    TelemetryEventAppInstall, /**< JS application installed (p1) */
+    TelemetryEventAppUpdate, /**< JS application updated (p1) */
+    TelemetryEventAppUninstall, /**< JS application uninstalled (p1) */
     TelemetryEventSettingBrightness, /**< Display brightness changed (p0) */
     TelemetryEventSettingVolume, /**< Audio volume changed (p0) */
     TelemetryEventInputSwitch, /**< Mode switch position changed (p0) */
@@ -66,6 +70,10 @@ typedef enum {
     TelemetryEventAccountUnlink, /**< Account unlinked (p2) */
     TelemetryEventCanvasAcquire, /**< Canvas acquired by an HTTP API app (p1) */
     TelemetryEventCanvasRelease, /**< Canvas released (no HTTP API content) (p1) */
+    TelemetryEventIntegrationConnect, /**< Integration connected (p2) */
+    TelemetryEventIntegrationDisconnect, /**< Integration disconnected (p2) */
+    TelemetryEventTelemetryEnable, /**< User gave consent (p2) */
+    TelemetryEventTelemetryDisable, /**< User revoked consent, last event (p2) */
     TelemetryEventMax, /**< Special value, internal use */
 } TelemetryEventType;
 
@@ -128,6 +136,22 @@ bool telemetry_is_enabled(Telemetry* instance);
  * @param[in] enabled @c true to enable, @c false to disable
  */
 void telemetry_set_enabled(Telemetry* instance, bool enabled);
+
+#define TELEMETRY_CONSENT_FIELD_LEN (31)
+
+/**
+ * @brief Enable or disable telemetry collection, recording where consent was changed.
+ *
+ * @param[in] instance telemetry service instance
+ * @param[in] enabled @c true to enable, @c false to disable
+ * @param[in] source where the user changed it (e.g. "device", "companion"), may be NULL
+ * @param[in] text_version version of the consent text the user saw, may be NULL
+ */
+void telemetry_set_enabled_with_source(
+    Telemetry* instance,
+    bool enabled,
+    const char* source,
+    const char* text_version);
 
 #ifdef __cplusplus
 }

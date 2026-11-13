@@ -15,6 +15,7 @@ extern "C" {
 
 typedef struct {
     bool is_enabled; /**< Telemetry collection enabled (default false) */
+    bool is_disable_pending; /**< telemetry.disable not yet delivered to the backend */
 } TelemetrySettings;
 
 void telemetry_settings_load(TelemetrySettings* settings);

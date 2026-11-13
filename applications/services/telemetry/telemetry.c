@@ -1,6 +1,9 @@
 #include "telemetry_i.h"
 #include "telemetry_settings.h"
 
+#include <storage/storage.h>
+#include <toolbox/update_lib/common_vals.h>
+
 #include <time/time.h>
 #include <version.h>
 #include <furi_hal_version.h>
@@ -19,15 +22,19 @@ typedef struct {
 static const TelemetryEventInfo telemetry_event_info[TelemetryEventMax] = {
     [TelemetryEventDeviceBoot] = {"device.boot", TelemetryPriorityPush},
     [TelemetryEventFwUpdate] = {"fw.update", TelemetryPriorityPush},
-    [TelemetryEventTimerSessionStart] = {"timer.session.start", TelemetryPriorityBatch},
-    [TelemetryEventTimerSessionEnd] = {"timer.session.end", TelemetryPriorityPush},
-    [TelemetryEventTimerTheme] = {"timer.theme", TelemetryPriorityLow},
+    [TelemetryEventTimerStart] = {"start_timer", TelemetryPriorityBatch},
+    [TelemetryEventTimerComplete] = {"timer_complete", TelemetryPriorityPush},
+    [TelemetryEventTimerStop] = {"timer_stop", TelemetryPriorityPush},
+    [TelemetryEventChangeTimerSettings] = {"change_timer_settings", TelemetryPriorityLow},
     [TelemetryEventAppStart] = {"app.start", TelemetryPriorityBatch},
     [TelemetryEventAppStop] = {"app.stop", TelemetryPriorityBatch},
+    [TelemetryEventAppInstall] = {"app.install", TelemetryPriorityBatch},
+    [TelemetryEventAppUpdate] = {"app.update", TelemetryPriorityBatch},
+    [TelemetryEventAppUninstall] = {"app.uninstall", TelemetryPriorityBatch},
     [TelemetryEventSettingBrightness] = {"setting.brightness", TelemetryPriorityLow},
     [TelemetryEventSettingVolume] = {"setting.volume", TelemetryPriorityLow},
     [TelemetryEventInputSwitch] = {"input.switch", TelemetryPriorityLow},
-    [TelemetryEventPowerTransition] = {"power.transition", TelemetryPriorityBatch},
+    [TelemetryEventPowerTransition] = {"power.transition", TelemetryPriorityPush},
     [TelemetryEventNetOnline] = {"net.online", TelemetryPriorityPush},
     [TelemetryEventNetOffline] = {"net.offline", TelemetryPriorityPush},
     [TelemetryEventNetOfflineDuration] = {"net.offline_duration", TelemetryPriorityPush},
@@ -38,6 +45,10 @@ static const TelemetryEventInfo telemetry_event_info[TelemetryEventMax] = {
     [TelemetryEventAccountUnlink] = {"account.unlink", TelemetryPriorityPush},
     [TelemetryEventCanvasAcquire] = {"canvas.acquire", TelemetryPriorityBatch},
     [TelemetryEventCanvasRelease] = {"canvas.release", TelemetryPriorityBatch},
+    [TelemetryEventIntegrationConnect] = {"integration.connect", TelemetryPriorityPush},
+    [TelemetryEventIntegrationDisconnect] = {"integration.disconnect", TelemetryPriorityPush},
+    [TelemetryEventTelemetryEnable] = {"telemetry.enable", TelemetryPriorityPush},
+    [TelemetryEventTelemetryDisable] = {"telemetry.disable", TelemetryPriorityPush},
 };
 
 static_assert(COUNT_OF(telemetry_event_info) == TelemetryEventMax);
@@ -99,6 +110,7 @@ static void telemetry_add_device_state(Telemetry* instance, cJSON* events) {
     power_get_info(instance->power, &power_info);
     cJSON_AddNumberToObject(d, "charge", power_info.charge);
     cJSON_AddBoolToObject(d, "charging", power_info.is_charging);
+    cJSON_AddBoolToObject(d, "usb_connected", power_is_usb_connected(instance->power));
     cJSON_AddNumberToObject(d, "charge_limit", power_info.charge_level_limit);
 
     MatterCommissionedFabrics fabrics;
@@ -305,6 +317,9 @@ static void
     telemetry_enqueue(instance, report->type, report->data, true);
 }
 
+static void telemetry_save_settings(Telemetry* instance);
+static bool telemetry_publish_disable_now(Telemetry* instance);
+
 static void telemetry_handle_mqtt_status(Telemetry* instance, MqttStatus status) {
     const bool connected = (status == MqttStatusConnectedLinked) ||
                            (status == MqttStatusConnectedNotLinked);
@@ -324,6 +339,12 @@ static void telemetry_handle_mqtt_status(Telemetry* instance, MqttStatus status)
         telemetry_enqueue(instance, TelemetryEventNetOnline, NULL, false);
         telemetry_flush(instance, true);
 
+        if(!instance->is_enabled && instance->is_disable_pending &&
+           telemetry_publish_disable_now(instance)) {
+            instance->is_disable_pending = false;
+            telemetry_save_settings(instance);
+        }
+
     } else if(!connected && was_connected) {
         instance->offline_start_ms = time_get_timestamp_ms();
         instance->has_offline_start = true;
@@ -336,6 +357,7 @@ static void telemetry_handle_power_event(Telemetry* instance) {
     power_get_info(instance->power, &info);
 
     cJSON* d = cJSON_CreateObject();
+    cJSON_AddBoolToObject(d, "usb_connected", power_is_usb_connected(instance->power));
     cJSON_AddBoolToObject(d, "charging", info.is_charging);
     cJSON_AddNumberToObject(d, "charge", info.charge);
     cJSON_AddNumberToObject(d, "charge_limit", info.charge_level_limit);
@@ -352,21 +374,77 @@ static void telemetry_handle_audio_event(Telemetry* instance) {
     telemetry_enqueue(instance, TelemetryEventSettingVolume, d, true);
 }
 
-static void telemetry_handle_set_enabled(Telemetry* instance, bool enabled) {
+static void telemetry_save_settings(Telemetry* instance) {
+    TelemetrySettings settings = {
+        .is_enabled = instance->is_enabled,
+        .is_disable_pending = instance->is_disable_pending,
+    };
+    telemetry_settings_save(&settings);
+}
+
+// Publishes telemetry.disable on its own, regardless of the consent state
+static bool telemetry_publish_disable_now(Telemetry* instance) {
+    if(!instance->is_connected) {
+        return false;
+    }
+
+    cJSON* batch = cJSON_CreateObject();
+    cJSON_AddNumberToObject(batch, "schema", TELEMETRY_SCHEMA);
+    cJSON_AddNumberToObject(batch, "ts", (double)time_get_timestamp_ms());
+    cJSON* events = cJSON_AddArrayToObject(batch, "events");
+    cJSON_AddItemToArray(events, telemetry_event_create(TelemetryEventTelemetryDisable, NULL));
+
+    char* json = cJSON_PrintUnformatted(batch);
+    bool published = false;
+    if(json) {
+        published = mqtt_publish_device_scope(
+            instance->mqtt, TELEMETRY_MQTT_QOS, TELEMETRY_MQTT_TOPIC, json, strlen(json));
+        free(json);
+    }
+    cJSON_Delete(batch);
+
+    if(published) {
+        instance->batches_sent++;
+        instance->events_sent++;
+    }
+    return published;
+}
+
+static void telemetry_handle_set_enabled(
+    Telemetry* instance,
+    const TelemetryApiMessageSetEnabled* request) {
+    const bool enabled = request->is_enabled;
     if(instance->is_enabled == enabled) {
         return;
     }
 
-    instance->is_enabled = enabled;
+    if(!enabled) {
+        // Send what is buffered, then telemetry.disable as the last event. Without a
+        // connection the buffer is dropped and telemetry.disable waits for the next one.
+        instance->last_push_ms = 0;
+        telemetry_flush(instance, true);
+        instance->is_disable_pending = !telemetry_publish_disable_now(instance);
+    } else if(instance->is_disable_pending) {
+        // Consent given again before the revocation was delivered: deliver it first
+        telemetry_publish_disable_now(instance);
+        instance->is_disable_pending = false;
+    }
 
-    TelemetrySettings settings = {
-        .is_enabled = enabled,
-    };
-    telemetry_settings_save(&settings);
+    instance->is_enabled = enabled;
+    telemetry_save_settings(instance);
 
     if(!enabled) {
         telemetry_ring_clear(instance);
         telemetry_input_counts_clear(instance);
+    } else {
+        cJSON* d = cJSON_CreateObject();
+        if(request->source[0]) {
+            cJSON_AddStringToObject(d, "source", request->source);
+        }
+        if(request->text_version[0]) {
+            cJSON_AddStringToObject(d, "text_version", request->text_version);
+        }
+        telemetry_enqueue(instance, TelemetryEventTelemetryEnable, d, true);
     }
 }
 
@@ -390,6 +468,8 @@ static void telemetry_flush_timer_callback(void* context) {
     telemetry_flush(instance, false);
 }
 
+static void telemetry_detect_interrupted_timer(Telemetry* instance);
+
 static void telemetry_message_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_assert(context);
     Telemetry* instance = context;
@@ -411,13 +491,16 @@ static void telemetry_message_queue_callback(FuriEventLoopObject* object, void* 
             telemetry_handle_audio_event(instance);
             break;
         case TelemetryApiMessageTypeSetEnabled:
-            telemetry_handle_set_enabled(instance, message.data.is_enabled);
+            telemetry_handle_set_enabled(instance, &message.data.set_enabled);
             break;
         case TelemetryApiMessageTypeGetStats:
             telemetry_handle_get_stats(instance, &message);
             break;
         case TelemetryApiMessageTypeFlush:
             telemetry_flush(instance, false);
+            break;
+        case TelemetryApiMessageTypeTimerRestored:
+            telemetry_detect_interrupted_timer(instance);
             break;
         default:
             furi_crash("Unknown telemetry API message type");
@@ -459,12 +542,29 @@ bool telemetry_is_enabled(Telemetry* instance) {
 }
 
 void telemetry_set_enabled(Telemetry* instance, bool enabled) {
+    telemetry_set_enabled_with_source(instance, enabled, "device", NULL);
+}
+
+void telemetry_set_enabled_with_source(
+    Telemetry* instance,
+    bool enabled,
+    const char* source,
+    const char* text_version) {
     furi_check(instance);
 
     TelemetryApiMessage message = {
         .type = TelemetryApiMessageTypeSetEnabled,
-        .data.is_enabled = enabled,
+        .data.set_enabled.is_enabled = enabled,
     };
+    if(source) {
+        strlcpy(message.data.set_enabled.source, source, sizeof(message.data.set_enabled.source));
+    }
+    if(text_version) {
+        strlcpy(
+            message.data.set_enabled.text_version,
+            text_version,
+            sizeof(message.data.set_enabled.text_version));
+    }
     message.lock = api_lock_alloc_locked();
 
     furi_check(
@@ -524,23 +624,142 @@ static void telemetry_report_device_boot(Telemetry* instance) {
     telemetry_enqueue(instance, TelemetryEventDeviceBoot, d, true);
 }
 
+// Absolute path: written from the updater thread, read on the telemetry thread
+#define TELEMETRY_FW_UPDATE_MARKER_PATH  EXT_PATH("apps_data/telemetry/fw_update_pending.txt")
+#define TELEMETRY_FW_UPDATE_SESSION_PATH EXT_PATH(SESSION_CONFIG_FILE_NAME)
+
+void telemetry_fw_update_marker_save(const char* from_version) {
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+    storage_common_mkdir(storage, EXT_PATH("apps_data/telemetry"));
+    File* file = storage_file_alloc(storage);
+    if(storage_file_open(file, TELEMETRY_FW_UPDATE_MARKER_PATH, FSAM_WRITE, FSOM_CREATE_ALWAYS)) {
+        storage_file_write(file, from_version, strlen(from_version));
+    }
+    storage_file_close(file);
+    storage_file_free(file);
+    furi_record_close(RECORD_STORAGE);
+}
+
+static void telemetry_report_fw_update_result(Telemetry* instance) {
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+
+    char from_version[64] = {0};
+    bool has_marker = false;
+    File* file = storage_file_alloc(storage);
+    if(storage_file_open(file, TELEMETRY_FW_UPDATE_MARKER_PATH, FSAM_READ, FSOM_OPEN_EXISTING)) {
+        storage_file_read(file, from_version, sizeof(from_version) - 1);
+        has_marker = true;
+    }
+    storage_file_close(file);
+    storage_file_free(file);
+
+    if(has_marker) {
+        storage_simply_remove(storage, TELEMETRY_FW_UPDATE_MARKER_PATH);
+
+        // The update executor deletes its session config only when the update succeeded
+        const bool failed = storage_file_exists(storage, TELEMETRY_FW_UPDATE_SESSION_PATH);
+
+        cJSON* d = cJSON_CreateObject();
+        cJSON_AddStringToObject(d, "from_version", from_version);
+        if(!failed) {
+            const Version* version = version_get();
+            cJSON_AddStringToObject(d, "to_version", version ? version_get_version(version) : "");
+        }
+        cJSON_AddStringToObject(d, "outcome", failed ? "failure" : "success");
+        telemetry_enqueue(instance, TelemetryEventFwUpdate, d, true);
+    }
+
+    furi_record_close(RECORD_STORAGE);
+}
+
 static void telemetry_detect_interrupted_timer(Telemetry* instance) {
     // A timer running at boot with an "unknown" source was restored from the
-    // persisted snapshot — its original session was interrupted by reboot.
+    // persisted snapshot: its original session was interrupted by the reboot,
+    // and the restored one continues under a new session id.
     BusyTimerRunInfo info;
     busy_timer_get_run_info(instance->busy_timer, &info);
 
-    if(info.state != BusyTimerStateIdle && info.session_source == BusyTimerSessionSourceUnknown) {
-        FURI_LOG_I(TAG, "Detected interrupted timer session at boot");
-
-        cJSON* d = cJSON_CreateObject();
-        cJSON_AddStringToObject(d, "outcome", "interrupted");
-        cJSON_AddStringToObject(d, "source", "restored");
-        cJSON_AddNumberToObject(d, "duration_s", info.time_elapsed_s);
-        cJSON_AddNumberToObject(d, "cycles", info.cycles_completed);
-
-        telemetry_enqueue(instance, TelemetryEventTimerSessionEnd, d, true);
+    // Runs at boot and again when busy_timer restores the session after this service
+    // subscribed; whichever sees the restored session first reports it, once.
+    if(instance->timer_restore_reported || info.state == BusyTimerStateIdle ||
+       info.session_source != BusyTimerSessionSourceUnknown) {
+        return;
     }
+    instance->timer_restore_reported = true;
+
+    FURI_LOG_I(TAG, "Detected interrupted timer session at boot");
+
+    BusyTimerSnapshot snapshot;
+    busy_timer_get_snapshot(instance->busy_timer, &snapshot);
+
+    // Close the session that was running before the reboot under its own id, source and
+    // planned duration (the saved snapshot carries only the time left)
+    char interrupted_session_id[37];
+    char interrupted_source[32] = "UNKNOWN";
+    uint32_t interrupted_total_ms = 0;
+    if(!telemetry_timer_session_load(
+           interrupted_session_id,
+           interrupted_source,
+           sizeof(interrupted_source),
+           &interrupted_total_ms)) {
+        telemetry_generate_uuid(interrupted_session_id);
+    }
+    if(info.config.mode == BusyTimerModeSimple) {
+        info.config.simple.total_time_ms =
+            interrupted_total_ms ? interrupted_total_ms :
+            snapshot.type == BusyTimerSnapshotTypeSimple ?
+                                   info.time_elapsed_s * 1000 + snapshot.simple.time_left_ms :
+                                   0;
+    }
+
+    cJSON* d = cJSON_CreateObject();
+    cJSON_AddStringToObject(d, "uuid", snapshot.common.card_id);
+    cJSON_AddStringToObject(d, "timer_session_id", interrupted_session_id);
+    telemetry_add_timer_config(d, &info.config);
+    cJSON_AddStringToObject(d, "reason", "INTERRUPTED");
+    cJSON_AddStringToObject(d, "timer_source", interrupted_source);
+    cJSON_AddNumberToObject(d, "duration_s", info.time_elapsed_s);
+    cJSON_AddNumberToObject(d, "cycles", info.cycles_completed);
+    if(info.config.mode == BusyTimerModeInterval) {
+        cJSON_AddStringToObject(d, "phase", info.state == BusyTimerStateRest ? "rest" : "work");
+    }
+    telemetry_enqueue(instance, TelemetryEventTimerStop, d, true);
+
+    instance->timer_session_active = true;
+    telemetry_generate_uuid(instance->timer_session_id);
+    strlcpy(instance->timer_card_id, snapshot.common.card_id, sizeof(instance->timer_card_id));
+    instance->timer_session_config = info.config;
+    instance->timer_last_active_state = info.state;
+    instance->timer_session_start_ms = time_get_timestamp_ms();
+
+    const char* profile_name = "none";
+    bool is_demo = false;
+    for(BusyTimerProfileId id = 0; id < BusyTimerProfileIdMax; ++id) {
+        BusyTimerProfile profile;
+        busy_timer_get_profile(instance->busy_timer, id, &profile);
+        if(strcmp(profile.metadata.card_id, snapshot.common.card_id) == 0) {
+            profile_name = busy_timer_get_profile_name(id);
+            BusyTimerPreset preset;
+            busy_timer_get_preset(instance->busy_timer, id, &preset);
+            is_demo = preset.is_demo_mode_enabled;
+            break;
+        }
+    }
+
+    d = cJSON_CreateObject();
+    cJSON_AddStringToObject(d, "uuid", instance->timer_card_id);
+    cJSON_AddStringToObject(d, "timer_session_id", instance->timer_session_id);
+    cJSON_AddStringToObject(d, "timer_source", "UNKNOWN");
+    cJSON_AddStringToObject(d, "profile", profile_name);
+    cJSON_AddStringToObject(d, "theme", snapshot.app_config.theme_name);
+    telemetry_add_timer_config(d, &info.config);
+    cJSON_AddBoolToObject(d, "demo", is_demo);
+    cJSON_AddBoolToObject(d, "restored", true);
+    telemetry_timer_session_persist(
+        instance->timer_session_id,
+        "UNKNOWN",
+        info.config.mode == BusyTimerModeSimple ? info.config.simple.total_time_ms : 0);
+    telemetry_enqueue(instance, TelemetryEventTimerStart, d, true);
 }
 
 static Telemetry* telemetry_alloc(void) {
@@ -549,6 +768,7 @@ static Telemetry* telemetry_alloc(void) {
     TelemetrySettings settings;
     telemetry_settings_load(&settings);
     instance->is_enabled = settings.is_enabled;
+    instance->is_disable_pending = settings.is_disable_pending;
 
     instance->event_loop = furi_event_loop_alloc();
     instance->api_queue =
@@ -581,6 +801,7 @@ static Telemetry* telemetry_alloc(void) {
     furi_record_create(RECORD_TELEMETRY, instance);
 
     telemetry_report_device_boot(instance);
+    telemetry_report_fw_update_result(instance);
     telemetry_detect_interrupted_timer(instance);
 
     return instance;

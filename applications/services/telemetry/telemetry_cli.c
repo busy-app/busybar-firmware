@@ -50,10 +50,10 @@ void cli_command_telemetry(PipeSide* pipe, FuriString* args, void* context) {
                 "Telemetry collection is %s\r\n",
                 telemetry_is_enabled(instance) ? "enabled" : "disabled");
         } else if(furi_string_equal(cmd, "on")) {
-            telemetry_set_enabled(instance, true);
+            telemetry_set_enabled_with_source(instance, true, "cli", NULL);
             printf("Telemetry collection enabled\r\n");
         } else if(furi_string_equal(cmd, "off")) {
-            telemetry_set_enabled(instance, false);
+            telemetry_set_enabled_with_source(instance, false, "cli", NULL);
             printf("Telemetry collection disabled\r\n");
         } else if(furi_string_equal(cmd, "stats")) {
             if(furi_hal_nvm_is_flag_set(FuriHalNvmFlagDebug)) {

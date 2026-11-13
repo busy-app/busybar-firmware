@@ -58,6 +58,17 @@ void busy_timer_stop(BusyTimer* instance) {
     busy_timer_api_asynchronous_request(instance, &message);
 }
 
+void busy_timer_interrupt(BusyTimer* instance) {
+    furi_assert(instance);
+
+    BusyTimerApiMessage message = {
+        .type = BusyTimerApiMessageTypeStop,
+        .data.stop.is_interrupted = true,
+    };
+
+    busy_timer_api_asynchronous_request(instance, &message);
+}
+
 void busy_timer_toggle(BusyTimer* instance) {
     furi_assert(instance);
 
@@ -160,6 +171,14 @@ void busy_timer_set_profile(
     BusyTimer* instance,
     BusyTimerProfileId profile_id,
     const BusyTimerProfile* profile) {
+    busy_timer_set_profile_from(instance, profile_id, profile, BusyTimerSessionSourceHttpApi);
+}
+
+void busy_timer_set_profile_from(
+    BusyTimer* instance,
+    BusyTimerProfileId profile_id,
+    const BusyTimerProfile* profile,
+    BusyTimerSessionSource source) {
     furi_check(instance);
     furi_check(profile_id < BusyTimerProfileIdMax);
     furi_check(profile);
@@ -170,6 +189,7 @@ void busy_timer_set_profile(
             {
                 .profile_id = profile_id,
                 .profile = *profile,
+                .source = source,
             },
     };
 

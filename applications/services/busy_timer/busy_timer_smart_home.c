@@ -120,7 +120,7 @@ static MatterSwitchState busy_timer_smart_home_process_switch_on(BusyTimer* inst
 
 static MatterSwitchState busy_timer_smart_home_process_switch_off(BusyTimer* instance) {
     if(instance->state != BusyTimerStateIdle) {
-        busy_timer_stop_internal(instance);
+        busy_timer_stop_internal_with_outcome(instance, BusyTimerSessionOutcomeStoppedExternal);
         busy_timer_exit_app();
     }
 

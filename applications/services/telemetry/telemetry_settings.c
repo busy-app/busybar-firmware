@@ -6,6 +6,7 @@
 
 typedef enum {
     TelemetrySettingsV1IdxEnabled,
+    TelemetrySettingsV1IdxDisablePending,
     TelemetrySettingsV1IdxMax,
 } TelemetrySettingsV1Idx;
 
@@ -18,6 +19,16 @@ static const SettingProviderSetting telemetry_settings_v1[] = {
                     .default_value = false,
                 },
             .field_offset = offsetof(TelemetrySettings, is_enabled),
+            .type = SettingProviderSettingTypeBool,
+        },
+    [TelemetrySettingsV1IdxDisablePending] =
+        {
+            .name = "disable_pending",
+            .interface =
+                &(const SettingProviderBoolInterface){
+                    .default_value = false,
+                },
+            .field_offset = offsetof(TelemetrySettings, is_disable_pending),
             .type = SettingProviderSettingTypeBool,
         },
 };

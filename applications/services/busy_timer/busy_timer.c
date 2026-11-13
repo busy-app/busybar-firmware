@@ -204,12 +204,38 @@ static void busy_timer_notify_session_started(const BusyTimer* instance) {
                 .is_demo_mode_enabled = instance->is_demo_mode_enabled,
             },
     };
+    strlcpy(
+        event.session_started.card_id, instance->card_id, sizeof(event.session_started.card_id));
+    if(instance->timer_config.mode == BusyTimerModeSimple) {
+        // A snapshot carries only the time left, so the profile duration may be stale
+        event.session_started.timer_config.simple.total_time_ms =
+            (instance->time_elapsed_s + instance->time_remaining_s) * 1000;
+    }
 
     furi_pubsub_publish(instance->event_pubsub, &event);
 }
 
-static void
-    busy_timer_notify_session_ended(const BusyTimer* instance, BusyTimerSessionOutcome outcome) {
+static void busy_timer_notify_profile_saved(
+    const BusyTimer* instance,
+    BusyTimerProfileId profile_id,
+    BusyTimerSessionSource source) {
+    BusyTimerEvent event = {
+        .type = BusyTimerEventTypeProfileSaved,
+        .profile_saved =
+            {
+                .profile_id = profile_id,
+                .profile = instance->settings[profile_id].profile,
+                .source = source,
+            },
+    };
+
+    furi_pubsub_publish(instance->event_pubsub, &event);
+}
+
+static void busy_timer_notify_session_ended(
+    const BusyTimer* instance,
+    BusyTimerSessionOutcome outcome,
+    BusyTimerState state) {
     FURI_LOG_I(
         TAG,
         "Session ended: %s",
@@ -223,6 +249,7 @@ static void
                 .source = instance->session_source,
                 .time_elapsed_s = instance->session_time_elapsed_s + instance->time_elapsed_s,
                 .cycles_completed = instance->session_cycles_completed,
+                .state = state,
             },
     };
 
@@ -429,7 +456,7 @@ static void
         busy_timer_stop_timer(instance);
         busy_timer_notify_state_changed(instance);
         busy_timer_notify_interval_ended(instance, is_forced);
-        busy_timer_notify_session_ended(instance, outcome);
+        busy_timer_notify_session_ended(instance, outcome, old_state);
     }
 }
 
@@ -619,11 +646,42 @@ static void busy_timer_apply_snapshot(
     }
 
     const BusyTimerState old_state = instance->state;
+    const BusyTimerMode old_mode = instance->timer_config.mode;
+    const uint32_t old_time_elapsed_s = instance->time_elapsed_s;
+
+    // A snapshot of the same running card and timer type (pause, resume, added time
+    // from a companion) continues the session instead of ending it and starting a new one
+    // A restart of the same card shows up as time going back: that is a new session
+    const BusyTimerSnapshotType incoming_type = snapshot->type;
+    bool is_continuation = old_state != BusyTimerStateIdle &&
+                           incoming_type != BusyTimerSnapshotTypeNotStarted &&
+                           strcmp(instance->card_id, snapshot->common.card_id) == 0;
+    if(is_continuation) {
+        if(incoming_type == BusyTimerSnapshotTypeInfinite) {
+            is_continuation = old_mode == BusyTimerModeInfinite;
+        } else if(incoming_type == BusyTimerSnapshotTypeSimple) {
+            is_continuation = old_mode == BusyTimerModeSimple &&
+                              snapshot->simple.time_left_ms <=
+                                  (instance->time_remaining_s + 5) * 1000;
+        } else if(incoming_type == BusyTimerSnapshotTypeInterval) {
+            const BusyTimerIntervalConfig* old_config = &instance->timer_config.interval;
+            const BusyTimerIntervalConfig* new_config = &snapshot->interval.config;
+            is_continuation = old_mode == BusyTimerModeInterval &&
+                              snapshot->interval.state.index >= instance->current_interval_index &&
+                              new_config->work_time_ms == old_config->work_time_ms &&
+                              new_config->rest_time_ms == old_config->rest_time_ms &&
+                              new_config->cycles_count == old_config->cycles_count;
+        } else {
+            is_continuation = false;
+        }
+    }
 
     busy_timer_stop_timer(instance);
 
-    if(old_state != BusyTimerStateIdle) {
-        busy_timer_notify_session_ended(instance, BusyTimerSessionOutcomeStopped);
+    if(old_state != BusyTimerStateIdle && !is_continuation) {
+        // Replaced or stopped by a snapshot from a companion or the cloud
+        busy_timer_notify_session_ended(
+            instance, BusyTimerSessionOutcomeStoppedExternal, old_state);
     }
 
     BusyTimerMode new_mode;
@@ -638,6 +696,9 @@ static void busy_timer_apply_snapshot(
     } else if(type == BusyTimerSnapshotTypeInfinite) {
         new_mode = BusyTimerModeInfinite;
         new_state = BusyTimerStateWork;
+
+        // An infinite snapshot carries no elapsed time: count from the moment it is applied
+        instance->time_elapsed_s = 0;
 
     } else if(type == BusyTimerSnapshotTypeSimple) {
         const BusyTimerSnapshotSimple* simple = &snapshot->simple;
@@ -674,9 +735,11 @@ static void busy_timer_apply_snapshot(
     instance->app_config = snapshot->app_config;
 
     if(new_state != BusyTimerStateIdle) {
-        instance->session_source = source;
-        instance->active_profile_id =
-            busy_timer_find_profile_id(instance, snapshot->common.card_id);
+        if(!is_continuation) {
+            instance->session_source = source;
+            instance->active_profile_id =
+                busy_timer_find_profile_id(instance, snapshot->common.card_id);
+        }
 
         if(type == BusyTimerSnapshotTypeInterval) {
             const BusyTimerSnapshotInterval* interval = &snapshot->interval;
@@ -687,6 +750,9 @@ static void busy_timer_apply_snapshot(
                 MS_TO_S((index / 2) * pair_ms + (index % 2 ? interval->config.work_time_ms : 0));
             instance->session_cycles_completed = (index + 1) / 2;
 
+        } else if(is_continuation) {
+            // The snapshot restarts the per-snapshot counter: keep what already ran
+            instance->session_time_elapsed_s += old_time_elapsed_s;
         } else {
             instance->session_time_elapsed_s = 0;
             instance->session_cycles_completed = 0;
@@ -700,7 +766,9 @@ static void busy_timer_apply_snapshot(
 
         busy_timer_start_app(&snapshot->app_config);
         busy_timer_notify_initial_state(instance);
-        busy_timer_notify_session_started(instance);
+        if(!is_continuation) {
+            busy_timer_notify_session_started(instance);
+        }
 
     } else {
         busy_timer_notify_state_changed(instance);
@@ -830,7 +898,8 @@ static void busy_timer_mqtt_profile_busy_callback(const MqttMessage* message, vo
 
     BusyTimerProfile profile;
     if(busy_timer_profile_deserialize(&profile, json_text, json_text_len)) {
-        busy_timer_set_profile(instance, BusyTimerProfileIdBusy, &profile);
+        busy_timer_set_profile_from(
+            instance, BusyTimerProfileIdBusy, &profile, BusyTimerSessionSourceIntegrationMqtt);
     } else {
         FURI_LOG_W(TAG, "Invalid busy profile data");
     }
@@ -846,7 +915,8 @@ static void busy_timer_mqtt_profile_custom_callback(const MqttMessage* message, 
 
     BusyTimerProfile profile;
     if(busy_timer_profile_deserialize(&profile, json_text, json_text_len)) {
-        busy_timer_set_profile(instance, BusyTimerProfileIdCustom, &profile);
+        busy_timer_set_profile_from(
+            instance, BusyTimerProfileIdCustom, &profile, BusyTimerSessionSourceIntegrationMqtt);
     } else {
         FURI_LOG_W(TAG, "Invalid custom profile data");
     }
@@ -886,11 +956,16 @@ void busy_timer_start_internal(BusyTimer* instance) {
 }
 
 void busy_timer_stop_internal(BusyTimer* instance) {
+    busy_timer_stop_internal_with_outcome(instance, BusyTimerSessionOutcomeStopped);
+}
+
+void busy_timer_stop_internal_with_outcome(BusyTimer* instance, BusyTimerSessionOutcome outcome) {
     if(instance->state != BusyTimerStateIdle) {
+        const BusyTimerState old_state = instance->state;
         instance->state = BusyTimerStateIdle;
         busy_timer_stop_timer(instance);
         busy_timer_notify_state_changed(instance);
-        busy_timer_notify_session_ended(instance, BusyTimerSessionOutcomeStopped);
+        busy_timer_notify_session_ended(instance, outcome, old_state);
 
         FURI_LOG_I(TAG, "Stopped");
 
@@ -950,8 +1025,10 @@ static void
 
 static void
     busy_timer_stop_api_message_handler(BusyTimer* instance, BusyTimerApiMessageData* data) {
-    UNUSED(data);
-    busy_timer_stop_internal(instance);
+    busy_timer_stop_internal_with_outcome(
+        instance,
+        data->stop.is_interrupted ? BusyTimerSessionOutcomeInterrupted :
+                                    BusyTimerSessionOutcomeStopped);
 }
 
 static void
@@ -1085,6 +1162,7 @@ static void
 
     if(result == BusyTimerSetProfileResultAccepted) {
         busy_timer_settings_save(&instance->settings[profile_id], profile_id);
+        busy_timer_notify_profile_saved(instance, profile_id, set_profile->source);
     }
     // Do not re-publish upon receiving invalid or own (same) profile
     if(result != BusyTimerSetProfileResultRejectedInvalid &&
@@ -1127,6 +1205,7 @@ static void
     profile->timestamp_ms = furi_hal_rtc_get_timestamp_ms();
 
     busy_timer_settings_save(&instance->settings[profile_id], profile_id);
+    busy_timer_notify_profile_saved(instance, profile_id, BusyTimerSessionSourceDevice);
     busy_timer_schedule_publish_profile(instance, profile_id);
 }
 
