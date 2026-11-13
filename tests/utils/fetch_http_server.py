@@ -6,6 +6,7 @@ import queue
 import socketserver
 import ssl
 import threading
+from http import HTTPStatus
 from urllib.parse import parse_qs, urlsplit
 
 
@@ -18,6 +19,7 @@ NON_BMP_UNICODE_TEXT_PAYLOAD = NON_BMP_UNICODE_TEXT.encode("utf-8")
 EMPTY_PAYLOAD = b""
 JSON_PAYLOAD = b'{"message":"busybar-js-fetch","value":42}'
 INVALID_JSON_PAYLOAD = b'{"message":"unterminated"'
+INVALID_UTF8_PAYLOAD = b"busybar-\xff\n"
 HEADERS_PAYLOAD = b"headers-ok\n"
 CREATED_PAYLOAD = b'{"created":true}'
 SERVER_ERROR_PAYLOAD = b'{"error":"server-error"}'
@@ -25,6 +27,21 @@ TRUNCATED_PAYLOAD = b"truncated-fetch-test\n" * 3
 UNKNOWN_LENGTH_PAYLOAD = b"close-delimited-fetch-payload\n" * 7
 NOT_FOUND_PAYLOAD = b"fetch-route-not-found\n"
 REQUEST_RESPONSE = b"request-captured\n"
+EMPTY_HEADER_RESPONSE_STATUSES = {
+    "/empty-headers": 200,
+    "/empty-headers-unauthorized": 401,
+    "/empty-headers-no-content": 204,
+}
+EMPTY_RESPONSE_HEADERS = (
+    b"Server: \r\n" b"X-Empty:\r\n" b"X-Tab:\t\r\n" b"X-Whitespace: \t \r\n"
+)
+MALFORMED_RESPONSE_HEADERS = {
+    "/invalid-headers-empty-name": b": value\r\n",
+    "/invalid-headers-empty-value-lf": b"X-Bad:\n",
+    "/invalid-headers-whitespace-value-lf": b"X-Bad: \t\n",
+    "/invalid-headers-stall": b"X-Bad:\n",
+}
+HEADER_DISCONNECT_TIMEOUT_S = 5
 
 
 class FetchHTTPServer(http.server.ThreadingHTTPServer):
@@ -35,6 +52,7 @@ class FetchHTTPServer(http.server.ThreadingHTTPServer):
     def __init__(self, server_address, handler_class):
         self.requests = queue.Queue()
         self.release_stall = threading.Event()
+        self.stalled_request_closed = threading.Event()
         super().__init__(server_address, handler_class)
 
     def server_bind(self):
@@ -124,12 +142,33 @@ class FetchRequestHandler(http.server.BaseHTTPRequestHandler):
             self._send_payload(500, SERVER_ERROR_PAYLOAD, "application/json")
         elif request_path == "/invalid-json":
             self._send_payload(200, INVALID_JSON_PAYLOAD, "application/json")
+        elif request_path == "/invalid-utf8":
+            self._send_payload(200, INVALID_UTF8_PAYLOAD, "text/plain; charset=utf-8")
         elif request_path == "/headers":
             self._send_payload(
                 200,
                 HEADERS_PAYLOAD,
                 headers={"X-Fetch-Alpha": "alpha", "X-Fetch-Number": "42"},
             )
+        elif request_path in EMPTY_HEADER_RESPONSE_STATUSES:
+            status = EMPTY_HEADER_RESPONSE_STATUSES[request_path]
+            payload = EMPTY_PAYLOAD if status == 204 else HEADERS_PAYLOAD
+            self._send_raw_headers(status, EMPTY_RESPONSE_HEADERS, payload)
+        elif request_path in MALFORMED_RESPONSE_HEADERS:
+            is_stalled = request_path == "/invalid-headers-stall"
+            self._send_raw_headers(
+                200,
+                MALFORMED_RESPONSE_HEADERS[request_path],
+                HEADERS_PAYLOAD,
+                send_body=not is_stalled,
+            )
+            if is_stalled:
+                self.connection.settimeout(HEADER_DISCONNECT_TIMEOUT_S)
+                try:
+                    if self.rfile.read(1) == b"":
+                        self.server.stalled_request_closed.set()
+                except TimeoutError:
+                    pass
         elif request_path == "/truncated.bin":
             self.send_response(200)
             self.send_header("Content-Type", "application/octet-stream")
@@ -171,6 +210,23 @@ class FetchRequestHandler(http.server.BaseHTTPRequestHandler):
             self.close_connection = True
         else:
             self._send_payload(404, NOT_FOUND_PAYLOAD)
+
+    def _send_raw_headers(self, status, raw_headers, payload, *, send_body=True):
+        # These cases require exact bytes, including missing spaces and bare LF.
+        response = (
+            f"HTTP/1.1 {status} {HTTPStatus(status).phrase}\r\n"
+            "Content-Type: text/plain\r\n"
+            f"Content-Length: {len(payload)}\r\n"
+            "Connection: close\r\n"
+            "X-Before: before\r\n"
+        ).encode("ascii")
+        self.wfile.write(
+            response + raw_headers + b"X-After: after\r\nX-Last-Empty:\r\n\r\n"
+        )
+        if send_body:
+            self.wfile.write(payload)
+        self.wfile.flush()
+        self.close_connection = True
 
     def _send_payload(
         self,

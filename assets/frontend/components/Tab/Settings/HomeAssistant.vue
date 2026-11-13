@@ -2,6 +2,7 @@
   <SectionCard
     data-id="settings-section-home-assistant"
     title="Home Assistant"
+    :ui="{ titleWrapper: 'gap-2' }"
   >
     <template #leading-actions>
       <SectionBackButton
@@ -34,7 +35,7 @@
           v-for="token in accessTokensStore.tokens"
           :key="token.short_id"
           :data-id="`home-assistant-token-${token.short_id}`"
-          class="flex flex-col gap-1 rounded-group"
+          class="flex flex-col gap-1 rounded-group [&>*:first-child]:rounded-b-sm! [&>*:last-child]:rounded-t-sm!"
         >
           <div class="bg-accented/25 dark:bg-elevated/75 p-4 flex items-center gap-6">
             <div class="grow min-w-0 flex flex-col gap-1">

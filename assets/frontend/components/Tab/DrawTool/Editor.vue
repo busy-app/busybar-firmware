@@ -579,7 +579,7 @@
       :class="toolbarContainerClass"
       :style="toolbarContainerStyle"
     >
-      <div class="flex max-w-[calc(100vw-2rem)] items-center gap-4 overflow-x-auto rounded-2xl p-2 ring-1 ring-glass bg-surface-container backdrop-blur-sm">
+      <div class="flex w-full items-center gap-4 overflow-x-auto rounded-2xl p-2 ring-1 ring-glass bg-surface-container backdrop-blur-sm">
         <UPopover
           :content="{
             side: 'top',
@@ -879,7 +879,12 @@
           </UButton>
         </UTooltip>
 
-        <div class="h-[calc(100%_-_1em)] w-0.5 shrink-0 bg-accented" />
+        <USeparator
+          decorative
+          orientation="vertical"
+          class="my-2 h-auto shrink-0 self-stretch"
+          :ui="{ border: 'h-auto w-0.5 grow border-0 bg-accented' }"
+        />
 
         <UTooltip
           :delay-duration="80"
@@ -929,7 +934,12 @@
           </UButton>
         </UTooltip>
 
-        <div class="h-[calc(100%_-_1em)] w-0.5 shrink-0 bg-accented" />
+        <USeparator
+          decorative
+          orientation="vertical"
+          class="my-2 h-auto shrink-0 self-stretch"
+          :ui="{ border: 'h-auto w-0.5 grow border-0 bg-accented' }"
+        />
 
         <UTooltip
           :delay-duration="80"
@@ -953,7 +963,12 @@
           </UButton>
         </UTooltip>
 
-        <div class="h-[calc(100%_-_1em)] w-0.5 shrink-0 bg-accented" />
+        <USeparator
+          decorative
+          orientation="vertical"
+          class="my-2 h-auto shrink-0 self-stretch"
+          :ui="{ border: 'h-auto w-0.5 grow border-0 bg-accented' }"
+        />
 
         <UTooltip
           :delay-duration="80"
@@ -1228,8 +1243,8 @@ const activeIcons = computed<ResolvedDrawToolIcon[]>(() => {
 
 const toolbarContainerClass = computed(() => {
   return toolbarShouldStickToViewport.value
-    ? 'fixed inset-x-0 z-40 flex justify-center px-4'
-    : 'mt-6 flex justify-center px-4';
+    ? 'fixed inset-x-0 z-40'
+    : 'mt-6';
 });
 const toolbarContainerStyle = computed(() => {
   if (!toolbarShouldStickToViewport.value) {

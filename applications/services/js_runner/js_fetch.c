@@ -222,11 +222,16 @@ static jerry_value_t create_response(JsFetch* instance, SizedBuffer headers) {
         FURI_LOG_E(TAG, "Failed to parse response");
     }
 
+    jerry_value_t headers_val = js_headers_alloc(http_response.headers);
+    if(jerry_value_is_exception(headers_val)) {
+        return headers_val;
+    }
+
     jerry_value_t response = js_response_alloc(http_response.status, http_response.status_text);
     jerry_object_set_native_ptr(response, &js_fetch_response_native_info, instance);
 
-    jerry_value_t headers_val = js_headers_alloc(http_response.headers);
     jerry_value_t readable_stream = js_readable_stream_alloc(instance);
+    furi_assert(!jerry_value_is_exception(readable_stream));
 
     js_set_property(response, "headers", headers_val);
     js_set_property(response, "body", readable_stream);
@@ -251,18 +256,27 @@ static void process_headers(JsFetch* instance, SizedBuffer data) {
 
         furi_check(jerry_object_delete_native_ptr(promise, &promise_native_info));
         instance->promise.status = ChildStatusDone;
-        instance->response.status = ChildStatusRunning;
 
         jerry_value_t response = create_response(instance, data);
-        furi_check(!jerry_value_is_exception(response));
-        furi_check(jerry_value_is_promise(promise));
-        js_check_and_free(jerry_promise_resolve(promise, response));
+        if(!jerry_value_is_exception(response)) {
+            instance->response.status = ChildStatusRunning;
+            furi_check(jerry_value_is_promise(promise));
+            js_check_and_free(jerry_promise_resolve(promise, response));
+            jerry_value_free(response);
+        } else {
+            instance->response.status = ChildStatusDone;
+            instance->sink.status = ChildStatusDone;
+            fetch_stop(instance->fetch.fetch);
+            jerry_value_t error = jerry_exception_value(response, true);
+            js_check_and_free(jerry_promise_reject(promise, error));
+            jerry_value_free(error);
+        }
         jerry_value_free(promise);
-        jerry_value_free(response);
     } else {
         FURI_LOG_E(TAG, "Unexpected headers");
     }
     free(data.buffer);
+    free_if_not_running(instance);
 }
 
 static void process_error(JsFetch* instance, FuriString* msg) {
@@ -272,7 +286,7 @@ static void process_error(JsFetch* instance, FuriString* msg) {
         jerry_value_t promise = instance->promise.promise;
         furi_check(jerry_object_delete_native_ptr(promise, &promise_native_info));
 
-        jerry_value_t error = jerry_string_sz(furi_string_get_cstr(msg));
+        jerry_value_t error = jerry_error_sz(JERRY_ERROR_TYPE, furi_string_get_cstr(msg));
         jerry_value_free(jerry_promise_reject(promise, error));
         jerry_value_free(error);
         jerry_value_free(promise);
