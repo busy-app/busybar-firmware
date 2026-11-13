@@ -221,3 +221,13 @@ bool http_api_apps_hdr_callback_root(
     struct mg_connection* conn,
     struct mg_http_message* msg,
     void* ctx);
+
+// Power
+void* http_api_power_alloc(void);
+void http_api_power_free(void* ctx);
+bool http_api_power_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx);

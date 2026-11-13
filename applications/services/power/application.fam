@@ -21,6 +21,21 @@ App(
 )
 
 App(
+    appid="power_srv",
+    name="PowerSrv",
+    apptype=FlipperAppType.STARTUP,
+    entry_point="power_startup",
+    stack_size=2 * 1024,
+    cdefines=["SRV_POWER"],
+    sources=[
+        "power_service_917/power.c",
+    ],
+    sdk_headers=["power_service_917/power.h"],
+    order=40,
+    targets=["f64", "f65"],
+)
+
+App(
     appid="power_cmd",
     name="power",
     apptype=FlipperAppType.CLICMD,
