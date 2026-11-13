@@ -444,7 +444,7 @@ static HttpApiAccessStatusEx http_api_access_status(
         bool token_provided = strlen(status_ex.token);
 
         if(token_provided) {
-            if(token_length <= API_TOKENS_LENGTH) {
+            if((token_length > 0) && (token_length <= API_TOKENS_LENGTH)) {
                 if(context->access_key &&
                    (furi_string_cmp_str(context->access_key, status_ex.token) == 0)) {
                     status_ex.status = HttpApiAccessStatusGrantedViaUserPassword;
