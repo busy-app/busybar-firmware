@@ -39,6 +39,7 @@ typedef void (
 typedef enum {
     JsAppInstallerEventTypeOperationDetail,
     JsAppInstallerEventTypeOperationFinished,
+    JsAppInstallerEventTypeMax,
 } JsAppInstallerEventType;
 
 typedef struct {

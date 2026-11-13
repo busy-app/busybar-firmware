@@ -13,6 +13,7 @@
 #include <updater/updater.h>
 #include <ble/ble.h>
 #include <device_name/device_name.h>
+#include <js_app_installer/js_app_installer.h>
 
 #include <mlib/m-array.h>
 #include <mlib/m-shared.h>
@@ -77,6 +78,7 @@ struct StatePublisher {
     Gui* gui;
     Ble* ble;
     DeviceName* device_name;
+    JsAppInstaller* js_app_installer;
 
     FuriState* state_brightness;
     FuriState* state_time_settings;

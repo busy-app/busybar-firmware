@@ -18,6 +18,11 @@ static void
     }
 }
 
+FuriPubSub* js_app_installer_get_pubsub(JsAppInstaller* instance) {
+    furi_check(instance);
+    return instance->event_pubsub;
+}
+
 JsAppInstallerStageResult js_app_installer_stage(JsAppInstaller* instance) {
     furi_check(instance);
 
