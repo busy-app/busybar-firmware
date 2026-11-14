@@ -127,41 +127,86 @@ class TestSettingsAPI:
     @allure.issue("FW-406")
     @pytest.mark.api
     @pytest.mark.frontend
-    @pytest.mark.parametrize("key", [
-        "1234",
-        "12345",
-        "0000",
-        "9999999999",
-        "1234567890",
-    ])
+    @pytest.mark.parametrize(
+        "key",
+        [
+            "1234",
+            "12345",
+            "0000",
+            "9999999999",
+            "1234567890",
+            "abcd",
+            "ABCD",
+            "1a45",
+            "12345678901",
+            pytest.param("aB3" * 10 + "Z", id="31-characters"),
+            pytest.param("aB3" * 10 + "Z9", id="32-characters"),
+        ],
+    )
     def test_api_access_post_valid_key(self, settings_api: SettingsAPI, key):
-        """Test POST /api/access endpoint with valid digit-only keys (4-10 digits)"""
+        """Accept 4-32 ASCII letters/digits and authenticate with the full key."""
         settings_api.set_access("key", key)
 
-        verify = settings_api.get_access()
-        assert verify.mode == "key"
-        assert verify.key_valid is True
+        with allure.step("Verify the key is configured and authenticates requests"):
+            verify = settings_api.get_access()
+            assert verify.mode == "key", f"Unexpected access mode: {verify}"
+            assert verify.key_valid, f"Key was not accepted: {verify}"
+            response = settings_api.get_raw("/api/status", headers={"X-API-Token": key})
+            assert response.status_code == 200, (
+                f"Expected valid key to return HTTP 200, got "
+                f"{response.status_code}: {response.text!r}"
+            )
 
     @allure.title("Settings. POST /api/access (invalid keys)")
     @allure.issue("FW-406")
     @pytest.mark.api
     @pytest.mark.frontend
-    @pytest.mark.parametrize("key", [
-        "asfd",          # non-numeric
-        "asfde",         # non-numeric
-        "blablabla",     # non-numeric
-        "1a45",          # mixed
-        "abcd",          # non-numeric
-        "123",           # too short
-        "12345678901",   # too long
-        "12a34",         # mixed
-        "",              # empty
-        "     ",         # spaces only
-    ])
+    @pytest.mark.parametrize(
+        "key",
+        [
+            "",
+            "123",
+            "Ab3",
+            pytest.param("A" * 33, id="33-letters"),
+            pytest.param("1" * 33, id="33-digits"),
+            "     ",
+            "ab cd",
+            "abcd!",
+            "abcd_",
+            "abc-9",
+            "abc.9",
+            "abc+9",
+            "abc/9",
+            pytest.param("A" * 31 + "!", id="invalid-last-character"),
+            pytest.param("абвг", id="cyrillic"),
+            pytest.param("éabc", id="accented-letter"),
+            "ab\ncd",
+            "ab\tcd",
+        ],
+    )
     def test_api_access_post_invalid_key(self, settings_api: SettingsAPI, key):
-        """Test POST /api/access endpoint rejects invalid keys"""
-        response = settings_api.set_access_raw("key", key)
-        assert response.status_code == 400
+        """Reject invalid keys without changing the current access credential."""
+        original_key = "PriorKey42"
+        settings_api.set_access("key", original_key)
+        original_access = settings_api.get_access()
+
+        with allure.step("Attempt to configure an invalid key"):
+            response = settings_api.set_access_raw("key", key)
+            assert response.status_code == 400, (
+                f"Expected invalid key to return HTTP 400, got "
+                f"{response.status_code}: {response.text!r}"
+            )
+
+        with allure.step("Verify the existing access key remains active"):
+            actual = settings_api.get_access()
+            assert actual == original_access, f"Access settings changed: {actual}"
+            response = settings_api.get_raw(
+                "/api/status", headers={"X-API-Token": original_key}
+            )
+            assert response.status_code == 200, (
+                f"Original key stopped authenticating: "
+                f"HTTP {response.status_code}, body={response.text!r}"
+            )
 
     @allure.title("Settings. GET /api/display/brightness")
     @pytest.mark.api

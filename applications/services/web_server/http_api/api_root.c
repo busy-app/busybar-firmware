@@ -1,4 +1,5 @@
 #include "http_api.h"
+#include <ctype.h>
 #include <version.h>
 #include <json_helper.h>
 #include <lwip/tcpip.h>
@@ -126,7 +127,7 @@ void http_api_log_access(struct mg_connection* conn, struct mg_http_message* msg
 
 #define ACCESS_CFG_FILE    APP_DATA_PATH("access.json")
 #define ACCESS_KEY_LEN_MIN 4
-#define ACCESS_KEY_LEN_MAX 10
+#define ACCESS_KEY_LEN_MAX 32
 
 typedef enum {
     HttpApiAccessMatchTypeExact,
@@ -235,8 +236,8 @@ static bool validate_access_key(const char* key) {
         return false;
     }
     for(size_t i = 0; i < key_len; i++) {
-        char c = key[i];
-        if((c < '0') || (c > '9')) {
+        unsigned char c = key[i];
+        if(!isalnum(c)) {
             return false;
         }
     }
@@ -443,7 +444,7 @@ static HttpApiAccessStatusEx http_api_access_status(
         bool token_provided = strlen(status_ex.token);
 
         if(token_provided) {
-            if(token_length <= API_TOKENS_LENGTH) {
+            if((token_length > 0) && (token_length <= API_TOKENS_LENGTH)) {
                 if(context->access_key &&
                    (furi_string_cmp_str(context->access_key, status_ex.token) == 0)) {
                     status_ex.status = HttpApiAccessStatusGrantedViaUserPassword;
