@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Iterator
+from urllib.parse import urlencode
 from uuid import uuid4
 
 import allure
@@ -10,6 +11,7 @@ import pytest
 import requests
 
 from clients.api import MintedAccessToken, SettingsAPI
+from utils.simple_websocket import websocket_upgrade, websocket_url
 from utils.wait import wait_for
 
 
@@ -25,7 +27,8 @@ pytestmark = [
 
 
 _ADMIN_ACCESS_KEY = "73916482"
-_CHANGED_ACCESS_KEY = "28461739"
+_CHANGED_ACCESS_KEY = "NewKeyA9" * 4
+_MAX_LENGTH_ACCESS_KEY = "AbCd0123" * 4
 _TOKEN_HEADER = "X-API-Token"
 
 
@@ -35,6 +38,12 @@ def _name(prefix: str) -> str:
 
 def _headers(token: str) -> dict[str, str]:
     return {_TOKEN_HEADER: token}
+
+
+def _websocket_status(web_base_url: str, credential: str) -> int:
+    url = websocket_url(web_base_url, "/api/status/ws")
+    query = urlencode({"x-api-token": credential})
+    return websocket_upgrade(f"{url}?{query}").status_code
 
 
 def _assert_forbidden(response: requests.Response, case: str) -> None:
@@ -147,6 +156,72 @@ class TestAPITokenAuthentication:
             )
 
         _assert_forbidden(response, "valid token with appended suffix")
+
+    @allure.title(
+        "32-character credentials require an exact match over HTTP and WebSocket"
+    )
+    @pytest.mark.parametrize("transport", ["http", "websocket"])
+    @pytest.mark.parametrize("credential_kind", ["access-key", "token"])
+    @pytest.mark.parametrize(
+        "suffix", ["", "X", "X" * 32], ids=["exact-32", "suffix-33", "suffix-64"]
+    )
+    def test_credential_length_is_not_truncated(
+        self,
+        local_token_api: SettingsAPI,
+        access_token_factory: Callable[[str], MintedAccessToken],
+        web_base_url: str,
+        transport: str,
+        credential_kind: str,
+        suffix: str,
+    ):
+        with allure.step("Configure a valid 32-character credential"):
+            if credential_kind == "access-key":
+                credential = _MAX_LENGTH_ACCESS_KEY
+                local_token_api.set_access("key", credential)
+            else:
+                credential = access_token_factory(_name("length-boundary")).token
+            assert (
+                len(credential) == 32
+            ), f"Unexpected credential length: {len(credential)}"
+
+        with allure.step(
+            "Authenticate with the exact credential or an appended suffix"
+        ):
+            supplied = credential + suffix
+            if transport == "websocket":
+                status = _websocket_status(web_base_url, supplied)
+                success_status = 101
+            else:
+                response = local_token_api.get_raw(
+                    "/api/status", headers=_headers(supplied)
+                )
+                status = response.status_code
+                success_status = 200
+
+        with allure.step("Verify that only the exact credential is accepted"):
+            expected_status = 403 if suffix else success_status
+            assert status == expected_status, (
+                f"Expected {credential_kind} of length {len(supplied)} over "
+                f"{transport} to return HTTP {expected_status}, got {status}"
+            )
+
+    @allure.title("Alphanumeric access keys are case-sensitive")
+    def test_access_key_is_case_sensitive(self, local_token_api: SettingsAPI):
+        with allure.step("Configure a mixed-case key and verify it works"):
+            local_token_api.set_access("key", _MAX_LENGTH_ACCESS_KEY)
+            response = local_token_api.get_raw(
+                "/api/status", headers=_headers(_MAX_LENGTH_ACCESS_KEY)
+            )
+            assert response.status_code == 200, (
+                f"Expected the original key to authenticate, got "
+                f"HTTP {response.status_code}: {response.text!r}"
+            )
+
+        with allure.step("Reject the same key with its letter case changed"):
+            response = local_token_api.get_raw(
+                "/api/status", headers=_headers(_MAX_LENGTH_ACCESS_KEY.swapcase())
+            )
+            _assert_forbidden(response, "access key with changed letter case")
 
     @allure.title("Token may list token metadata")
     def test_token_can_list_tokens(
@@ -306,21 +381,28 @@ class TestAPITokenAuthentication:
             ), f"Self-revoked token is still listed: {listed_ids!r}"
 
     @allure.title("Administrator access key can manage tokens through local API")
+    @pytest.mark.parametrize(
+        "access_key",
+        [_ADMIN_ACCESS_KEY, _MAX_LENGTH_ACCESS_KEY],
+        ids=["legacy-numeric", "maximum-alphanumeric"],
+    )
     def test_admin_access_key_can_manage_tokens(
         self,
         settings_api: SettingsAPI,
         local_token_api: SettingsAPI,
+        access_key: str,
     ):
-        admin_headers = _headers(_ADMIN_ACCESS_KEY)
+        local_token_api.set_access("key", access_key)
+        admin_headers = _headers(access_key)
         minted: MintedAccessToken | None = None
         try:
-            with allure.step("Mint a token using the numeric access key"):
+            with allure.step("Mint a token using the access key"):
                 minted = local_token_api.mint_access_token(
                     _name("admin"),
                     headers=admin_headers,
                 )
 
-            with allure.step("List tokens using the numeric access key"):
+            with allure.step("List tokens using the access key"):
                 listed = local_token_api.list_access_tokens(
                     headers=admin_headers
                 ).tokens
@@ -330,7 +412,7 @@ class TestAPITokenAuthentication:
                     f"{listed_ids!r}"
                 )
 
-            with allure.step("Revoke the token using the numeric access key"):
+            with allure.step("Revoke the token using the access key"):
                 revoke = local_token_api.revoke_access_token(
                     minted.short_id,
                     headers=admin_headers,
@@ -342,7 +424,9 @@ class TestAPITokenAuthentication:
             if minted is not None:
                 settings_api.revoke_access_token_raw(minted.short_id)
 
-    @allure.title("Changing the numeric key does not invalidate a token")
+    @allure.title(
+        "Changing to a 32-character alphanumeric key does not invalidate a token"
+    )
     def test_key_change_keeps_token_valid(
         self,
         settings_api: SettingsAPI,
@@ -352,7 +436,7 @@ class TestAPITokenAuthentication:
         with allure.step("Create a token under the initial numeric key"):
             token = access_token_factory(_name("key-change"))
 
-        with allure.step("Change the numeric access key"):
+        with allure.step("Change to a 32-character alphanumeric access key"):
             settings_api.set_access("key", _CHANGED_ACCESS_KEY)
 
         with allure.step("Authorize using the token created before the key change"):
@@ -364,3 +448,45 @@ class TestAPITokenAuthentication:
                 f"Expected token to survive key change, got HTTP "
                 f"{response.status_code}: {response.text!r}"
             )
+
+
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Device HTTP API")
+@allure.story("API access-key persistence")
+@pytest.mark.api
+@pytest.mark.frontend
+class TestAPIAccessKeyPersistence:
+    @allure.title("A 32-character alphanumeric key survives a reboot")
+    def test_maximum_length_key_survives_reboot(
+        self,
+        local_token_api: SettingsAPI,
+        persistent_cli_connection,
+        web_base_url: str,
+    ):
+        with allure.step("Configure the maximum-length alphanumeric access key"):
+            local_token_api.set_access("key", _MAX_LENGTH_ACCESS_KEY)
+
+        with allure.step("Reboot and wait for the API"):
+            recovered = persistent_cli_connection.reboot_and_wait_for_api(
+                web_base_url, timeout=60
+            )
+            assert (
+                recovered
+            ), "Device did not recover after the access-key persistence reboot"
+
+        with allure.step("Verify the persisted key remains valid"):
+            access = local_token_api.get_access()
+            assert (
+                access.mode == "key" and access.key_valid
+            ), f"The persisted access key was discarded: {access}"
+            response = local_token_api.get_raw(
+                "/api/status", headers=_headers(_MAX_LENGTH_ACCESS_KEY)
+            )
+            assert response.status_code == 200, (
+                f"Persisted key failed HTTP authentication: "
+                f"HTTP {response.status_code}, body={response.text!r}"
+            )
+            status = _websocket_status(web_base_url, _MAX_LENGTH_ACCESS_KEY)
+            assert (
+                status == 101
+            ), f"Persisted key failed WebSocket authentication: HTTP {status}"
