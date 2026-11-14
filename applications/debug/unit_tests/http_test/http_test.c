@@ -4,6 +4,8 @@
 #include <http/http_headers.h>
 #include <http/http_method.h>
 
+#include <fetch/fetch_chunked.h>
+
 #define CHECK_HEADER_BY_INDEX(index, k, v)                                      \
     do {                                                                        \
         const HttpHeader* __header = http_headers_get_by_index(headers, index); \
@@ -199,6 +201,117 @@ MU_TEST(http_method_normalize_test) {
     }
 }
 
+typedef struct ChunkedReceiver {
+    char data[64];
+    size_t data_length;
+    bool is_error;
+} ChunkedReceiver;
+
+static void chunked_on_data(SizedBufferConst data, void* context) {
+    ChunkedReceiver* instance = context;
+
+    if(instance->data_length + data.size > sizeof(instance->data)) {
+        printf("Data overflow\n");
+        instance->is_error = true;
+    }
+
+    memcpy(instance->data + instance->data_length, data.buffer, data.size);
+    instance->data_length += data.size;
+}
+
+static void chunked_on_error(void* context) {
+    ChunkedReceiver* instance = context;
+    instance->is_error = true;
+}
+
+typedef struct ChunkedPacket {
+    const char* data;
+    bool is_done;
+    bool is_error;
+} ChunkedPacket;
+
+static void test_chunked(const ChunkedPacket* packets, size_t packets_count, const char* result) {
+    ChunkedReceiver receiver = {0};
+    FetchChunked* chunked = fetch_chunked_alloc(chunked_on_data, chunked_on_error, &receiver);
+
+    for(size_t i = 0; i != packets_count; ++i) {
+        bool done = fetch_chunked_process(
+            chunked,
+            (SizedBufferConst){.buffer = packets[i].data, .size = strlen(packets[i].data)});
+
+        mu_assert_int_eq(packets[i].is_done, done);
+        mu_assert_int_eq(packets[i].is_error, receiver.is_error);
+    }
+
+    if(result) {
+        size_t result_len = strlen(result);
+        mu_assert_int_eq(result_len, receiver.data_length);
+        mu_assert_mem_eq(result, receiver.data, result_len);
+        mu_check(fetch_chunked_is_complete(chunked));
+    }
+    fetch_chunked_free(chunked);
+}
+
+MU_TEST(http_chunked_test_simple) {
+    ChunkedPacket packets[] = {{"5\r\nhello\r\n0\r\n\r\n", true, false}};
+    test_chunked(packets, COUNT_OF(packets), "hello");
+}
+
+MU_TEST(http_chunked_test_broken_data) {
+    ChunkedPacket packets[] = {{"5\r\nhel", false, false}, {"lo\r\n0\r\n\r\n", true, false}};
+    test_chunked(packets, COUNT_OF(packets), "hello");
+}
+
+MU_TEST(http_chunked_test_two_chunks) {
+    ChunkedPacket packets[] = {
+        {"5\r\nhel", false, false},
+        {"lo\r\n6\r\n ", false, false},
+        {"world\r\n0\r", false, false},
+        {"\n\r\n", true, false},
+    };
+    test_chunked(packets, COUNT_OF(packets), "hello world");
+}
+
+MU_TEST(http_chunked_test_overflow) {
+    ChunkedPacket packets[] = {
+        {"5\r\nhello\r\n", false, false},
+        {"123456789abcdef012345\r\nhello\r\n", true, true},
+        {"0\r\n\r\n", true, true}};
+    test_chunked(packets, COUNT_OF(packets), NULL);
+}
+
+MU_TEST(http_chunked_test_no_size) {
+    ChunkedPacket packets[] = {
+        {"hello\r\n", true, true},
+    };
+    test_chunked(packets, COUNT_OF(packets), NULL);
+}
+
+MU_TEST(http_chunked_test_double_digit) {
+    ChunkedPacket packets[] = {
+        {"1b\r\nhello from chunked transfer\r\n0\r\n\r\n", true, false},
+    };
+    test_chunked(packets, COUNT_OF(packets), "hello from chunked transfer");
+}
+
+MU_TEST(http_chunked_test_ext) {
+    ChunkedPacket packets[] = {
+        {"5; flipper=cool\r\nhello\r\n", false, false},
+        {"0\r\n\r\n", true, false},
+    };
+    test_chunked(packets, COUNT_OF(packets), "hello");
+}
+
+MU_TEST(http_chunked_test_incomplete) {
+    ChunkedReceiver receiver = {0};
+    FetchChunked* chunked = fetch_chunked_alloc(chunked_on_data, chunked_on_error, &receiver);
+
+    bool done = fetch_chunked_process(chunked, (SizedBufferConst){"5\r\nhel", 6});
+    mu_check(!done);
+    mu_check(!fetch_chunked_is_complete(chunked));
+    fetch_chunked_free(chunked);
+}
+
 MU_TEST_SUITE(http_test_suite) {
     MU_RUN_TEST(http_headers_parse_test);
     MU_RUN_TEST(http_headers_min_parse_test);
@@ -207,6 +320,15 @@ MU_TEST_SUITE(http_test_suite) {
     MU_RUN_TEST(http_method_valid_test);
     MU_RUN_TEST(http_method_invalid_test);
     MU_RUN_TEST(http_method_normalize_test);
+
+    MU_RUN_TEST(http_chunked_test_simple);
+    MU_RUN_TEST(http_chunked_test_broken_data);
+    MU_RUN_TEST(http_chunked_test_two_chunks);
+    MU_RUN_TEST(http_chunked_test_overflow);
+    MU_RUN_TEST(http_chunked_test_no_size);
+    MU_RUN_TEST(http_chunked_test_double_digit);
+    MU_RUN_TEST(http_chunked_test_ext);
+    MU_RUN_TEST(http_chunked_test_incomplete);
 }
 
 int run_minunit_http_test(void) {
