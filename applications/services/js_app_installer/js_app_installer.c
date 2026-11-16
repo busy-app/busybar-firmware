@@ -452,7 +452,7 @@ static JsAppInstallerError
             break;
         }
 
-        error = js_app_installer_remove_app(message->remove_immediate.app_id);
+        error = js_app_installer_common_remove_app(message->remove_immediate.app_id);
     } while(false);
 
     return error;

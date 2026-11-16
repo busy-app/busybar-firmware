@@ -37,7 +37,7 @@ static JsAppInstallerError
     furi_assert(base_instance);
 
     const char* app_id = furi_string_get_cstr(base_instance->app_id);
-    return js_app_installer_remove_app(app_id);
+    return js_app_installer_common_remove_app(app_id);
 }
 
 /* clang-format off */
