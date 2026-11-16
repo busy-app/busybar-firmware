@@ -38,7 +38,7 @@ pytestmark = [
 ]
 
 
-APP_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_\-][a-zA-Z0-9_\-.]{0,31}$")
+APP_ID_PATTERN = re.compile(r"^[a-z0-9_\-][a-z0-9_\-.]{0,31}$")
 APP_EXIT_RENDER_TIMEOUT = 15
 JS_APP_LAUNCHER_APP_ID = "js_app_launcher"
 
