@@ -775,7 +775,7 @@ static void api_apps_queue_item_operation_format(
     if(operation_type == JsAppInstallerOperationTypeInstall) {
         cJSON_AddStringToObject(operation_json, OPERATION_TYPE_KEY, OPERATION_TYPE_INSTALL_VALUE);
 
-        if(app_version->is_present) {
+        if(app_version->has_value) {
             FuriString* version_string = furi_string_alloc();
             semver_to_string(&app_version->value, version_string);
             cJSON_AddStringToObject(
@@ -894,9 +894,9 @@ static bool api_apps_queue_operation_source_info_parse(
                 break;
             }
 
-            version->is_present = true;
+            version->has_value = true;
         } else {
-            version->is_present = false;
+            version->has_value = false;
         }
 
         success = true;
