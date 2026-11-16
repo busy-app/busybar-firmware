@@ -29,7 +29,7 @@ export const DRAW_TOOL_DISPLAY_APPLICATION_NAME = 'draw_tool';
 export const DRAW_TOOL_TEMP_FILE_NAME = 'temp.png';
 export const DRAW_TOOL_TEMP_ANIMATION_FILE_NAME = 'temp.anim';
 export const DRAW_TOOL_SAVE_DIR = `${USER_ASSETS_DIR}/${DRAW_TOOL_DISPLAY_APPLICATION_NAME}`;
-export const DRAW_TOOL_DISPLAY_PRIORITY = 40;
+export const DRAW_TOOL_DISPLAY_PRIORITY = 55;
 export type DrawToolStatusKind = 'image' | 'animation';
 
 export function getStatusFileKind (fileName: string): DrawToolStatusKind {
