@@ -74,6 +74,7 @@ JsAppInstallerOperationResult js_app_installer_install(
     JsAppInstaller* instance,
     const char* app_id,
     const JsAppInstallerSourceInfo* source_info) {
+    furi_check(instance);
     furi_check(app_id);
     furi_check(source_info);
 
