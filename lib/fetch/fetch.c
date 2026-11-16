@@ -121,6 +121,10 @@ static void fetch_switch_to_raw_protocol(
         FetchProgress* progress = &instance->progress;
         progress->total_download_size = content_length;
         progress->has_total_download_size = true;
+    } else if(is_bodyless && !is_chunked) {
+        FetchProgress* progress = &instance->progress;
+        progress->total_download_size = 0;
+        progress->has_total_download_size = true;
     }
 
     fetch_consume_rx_data(conn, msg->head.len);
