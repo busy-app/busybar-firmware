@@ -584,16 +584,20 @@ static void telemetry_matter_pubsub_callback(const void* message, void* context)
     const size_t last = event->previous_fabric_count;
     instance->last_matter_fabrics = count;
 
-    if(count == last) {
+    // Report the integration being turned on or off, not every controller (fabric):
+    // one commissioning from a phone can add several fabrics, and one removal can drop them all
+    TelemetryEventType type;
+    if(last == 0 && count > 0) {
+        type = TelemetryEventIntegrationConnect;
+    } else if(last > 0 && count == 0) {
+        type = TelemetryEventIntegrationDisconnect;
+    } else {
         return;
     }
 
     cJSON* d = cJSON_CreateObject();
     cJSON_AddStringToObject(d, "integration", "matter");
-    telemetry_report_event(
-        instance,
-        count > last ? TelemetryEventIntegrationConnect : TelemetryEventIntegrationDisconnect,
-        d);
+    telemetry_report_event(instance, type, d);
 }
 
 void telemetry_collectors_init(Telemetry* instance) {
