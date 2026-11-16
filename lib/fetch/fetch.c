@@ -241,19 +241,6 @@ static void fetch_on_data(SizedBufferConst data, void* context) {
     instance->progress.received_download_size += data.size;
     instance->delta_received_bytes += data.size;
 
-    if((instance->count_receive_packets % (12 * 8)) == 0) {
-        instance->progress.speed_bytes_per_sec =
-            fetch_calc_download_speed(instance->delta_received_bytes, instance->started_raw_ticks);
-
-        instance->started_raw_ticks = furi_get_tick();
-
-        if(instance->progress_callback) {
-            instance->progress_callback(&instance->progress, instance->callback_context);
-        }
-
-        instance->delta_received_bytes = 0;
-    }
-
     if(instance->rx_data_callback) {
         instance->rx_data_callback(data.buffer, data.size, instance->callback_context);
     }
@@ -286,15 +273,27 @@ static FURI_ALWAYS_INLINE void fetch_read_event(Fetch* instance, struct mg_conne
 
     FETCH_LOG_I(TAG, "Received %zu bytes", recv_len);
 
-    instance->activity_timer = coarse_timer_create(FETCH_INACTIVITY_TIMEOUT_MS);
-    instance->count_receive_packets++;
-
     bool is_complete = fetch_process_packet(
         instance,
         (SizedBufferConst){
             .buffer = recv->buf,
             .size = recv_len,
         });
+
+    instance->activity_timer = coarse_timer_create(FETCH_INACTIVITY_TIMEOUT_MS);
+    instance->count_receive_packets++;
+    if((instance->count_receive_packets % (12 * 8)) == 0) {
+        instance->progress.speed_bytes_per_sec =
+            fetch_calc_download_speed(instance->delta_received_bytes, instance->started_raw_ticks);
+
+        instance->started_raw_ticks = furi_get_tick();
+
+        if(instance->progress_callback) {
+            instance->progress_callback(&instance->progress, instance->callback_context);
+        }
+
+        instance->delta_received_bytes = 0;
+    }
 
     fetch_consume_rx_data(conn, recv_len);
 
