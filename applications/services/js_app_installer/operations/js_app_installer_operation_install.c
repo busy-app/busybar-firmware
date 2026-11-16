@@ -22,6 +22,9 @@
 
 #define TAG "JsAppInstallerOperationInstall"
 
+#define TEMP_DOWNLOAD_PATH  JS_APP_INSTALLER_ROOT_PATH "/download.tgz"
+#define TEMP_EXTRACTED_PATH JS_APP_INSTALLER_ROOT_PATH "/extracted"
+
 typedef enum {
     JsAppInstallerOperationInstallStepIdDownload,
     JsAppInstallerOperationInstallStepIdUnpack,
@@ -78,8 +81,8 @@ static void js_app_installer_operation_install_cleanup(JsAppInstallerOperation* 
     JsAppInstallerOperationInstall* instance = (JsAppInstallerOperationInstall*)base_instance;
 
     Storage* storage = instance->storage;
-    storage_simply_remove_recursive(storage, JS_APP_STAGING_PATH);
-    storage_simply_remove(storage, JS_APP_DOWNLOAD_PATH);
+    storage_simply_remove_recursive(storage, TEMP_EXTRACTED_PATH);
+    storage_simply_remove(storage, TEMP_DOWNLOAD_PATH);
 }
 
 static void js_app_installer_operation_install_loader_progress_callback(
@@ -144,7 +147,7 @@ static JsAppInstallerError
         loader, js_app_installer_operation_install_loader_done_callback);
     fetch_loader_set_callback_context(loader, instance);
 
-    fetch_loader_start(loader, furi_string_get_cstr(instance->url), JS_APP_DOWNLOAD_PATH);
+    fetch_loader_start(loader, furi_string_get_cstr(instance->url), TEMP_DOWNLOAD_PATH);
     furi_check(furi_semaphore_acquire(instance->semaphore, FuriWaitForever) == FuriStatusOk);
 
     return js_app_installer_operation_install_translate_fetch_status(instance->fetch_status);
@@ -158,20 +161,20 @@ static JsAppInstallerError
     TarArchive* tar = tar_archive_alloc(instance->storage);
 
     do {
-        if(!storage_simply_remove_recursive(instance->storage, JS_APP_STAGING_PATH)) {
-            FURI_LOG_E(TAG, "Failed to remove staging directory: %s", JS_APP_STAGING_PATH);
+        if(!storage_simply_remove_recursive(instance->storage, TEMP_EXTRACTED_PATH)) {
+            FURI_LOG_E(TAG, "Failed to remove temp directory: %s", TEMP_EXTRACTED_PATH);
             error = JsAppInstallerErrorStorage;
             break;
         }
 
-        if(!tar_archive_open(tar, JS_APP_DOWNLOAD_PATH, TarOpenModeReadAuto)) {
-            FURI_LOG_E(TAG, "Failed to open file: %s", JS_APP_DOWNLOAD_PATH);
+        if(!tar_archive_open(tar, TEMP_DOWNLOAD_PATH, TarOpenModeReadAuto)) {
+            FURI_LOG_E(TAG, "Failed to open file: %s", TEMP_DOWNLOAD_PATH);
             error = JsAppInstallerErrorUnpack;
             break;
         }
 
-        if(!tar_archive_unpack_to(tar, JS_APP_STAGING_PATH, NULL)) {
-            FURI_LOG_E(TAG, "Failed to unpack file: %s", JS_APP_DOWNLOAD_PATH);
+        if(!tar_archive_unpack_to(tar, TEMP_EXTRACTED_PATH, NULL)) {
+            FURI_LOG_E(TAG, "Failed to unpack file: %s", TEMP_DOWNLOAD_PATH);
             error = JsAppInstallerErrorUnpack;
             break;
         }
@@ -195,7 +198,7 @@ static JsAppInstallerError js_app_installer_operation_install_find_staged_app(
     dir_walk_set_filter_cb(walk, dir_walk_is_dir_callback, NULL);
 
     do {
-        if(!dir_walk_open(walk, JS_APP_STAGING_PATH)) {
+        if(!dir_walk_open(walk, TEMP_EXTRACTED_PATH)) {
             error = JsAppInstallerErrorStorage;
             break;
         }
