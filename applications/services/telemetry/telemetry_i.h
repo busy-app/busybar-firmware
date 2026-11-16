@@ -76,6 +76,7 @@ struct Telemetry {
     FuriEventLoop* event_loop;
     FuriMessageQueue* api_queue;
     FuriEventLoopTimer* flush_timer;
+    FuriEventLoopTimer* push_retry_timer;
     Mqtt* mqtt;
 
     cJSON* events[TELEMETRY_RING_CAPACITY];

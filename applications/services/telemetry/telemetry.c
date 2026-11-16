@@ -22,7 +22,7 @@ typedef struct {
 static const TelemetryEventInfo telemetry_event_info[TelemetryEventMax] = {
     [TelemetryEventDeviceBoot] = {"device.boot", TelemetryPriorityPush},
     [TelemetryEventFwUpdate] = {"fw.update", TelemetryPriorityPush},
-    [TelemetryEventTimerStart] = {"start_timer", TelemetryPriorityBatch},
+    [TelemetryEventTimerStart] = {"start_timer", TelemetryPriorityPush},
     [TelemetryEventTimerComplete] = {"timer_complete", TelemetryPriorityPush},
     [TelemetryEventTimerStop] = {"timer_stop", TelemetryPriorityPush},
     [TelemetryEventChangeTimerSettings] = {"change_timer_settings", TelemetryPriorityLow},
@@ -196,9 +196,18 @@ static void
 
 static bool telemetry_push_allowed(Telemetry* instance) {
     const time_t now_ms = time_get_timestamp_ms();
-    if(now_ms - instance->last_push_ms >= TELEMETRY_PUSH_MIN_INTERVAL_MS) {
+    const time_t since_last_ms = now_ms - instance->last_push_ms;
+    if(since_last_ms >= TELEMETRY_PUSH_MIN_INTERVAL_MS) {
         instance->last_push_ms = now_ms;
         return true;
+    }
+
+    // Rate-limited: push again once the interval has passed instead of waiting for the
+    // periodic flush, so a push event is not held back (and lost on reboot) for minutes
+    if(!furi_event_loop_timer_is_running(instance->push_retry_timer)) {
+        const time_t wait_ms =
+            TELEMETRY_PUSH_MIN_INTERVAL_MS - (since_last_ms > 0 ? since_last_ms : 0);
+        furi_event_loop_timer_start(instance->push_retry_timer, furi_ms_to_ticks(wait_ms + 10));
     }
     return false;
 }
@@ -219,7 +228,7 @@ static void telemetry_flush(Telemetry* instance, bool is_push) {
             return;
         }
         if(!telemetry_push_allowed(instance)) {
-            // Rate-limited; the batch will be sent by the next periodic flush.
+            // Rate-limited; the retry timer pushes it shortly
             return;
         }
     }
@@ -466,6 +475,13 @@ static void telemetry_flush_timer_callback(void* context) {
     Telemetry* instance = context;
 
     telemetry_flush(instance, false);
+}
+
+static void telemetry_push_retry_timer_callback(void* context) {
+    furi_assert(context);
+    Telemetry* instance = context;
+
+    telemetry_flush(instance, true);
 }
 
 static void telemetry_detect_interrupted_timer(Telemetry* instance);
@@ -783,6 +799,12 @@ static Telemetry* telemetry_alloc(void) {
         instance);
     furi_event_loop_timer_start(
         instance->flush_timer, furi_ms_to_ticks(TELEMETRY_FLUSH_INTERVAL_MS));
+
+    instance->push_retry_timer = furi_event_loop_timer_alloc(
+        instance->event_loop,
+        telemetry_push_retry_timer_callback,
+        FuriEventLoopTimerTypeOnce,
+        instance);
 
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
