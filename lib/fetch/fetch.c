@@ -94,22 +94,32 @@ static void fetch_switch_to_raw_protocol(
     Fetch* instance,
     struct mg_connection* conn,
     const struct mg_http_message* msg) {
-    const int32_t body_length = (int32_t)msg->body.len;
-    FETCH_LOG_I(TAG, "body size: %ld", body_length);
+    const bool is_head = instance->request->method &&
+                         strcmp(instance->request->method, "HEAD") == 0;
+    const bool is_bodyless = is_head || mg_http_status(msg) == 304 ||
+                             mg_http_status(msg) == 204; // RFC 9112 6.1
+
+    const int32_t content_length = (int32_t)msg->body.len;
+    FETCH_LOG_I(TAG, "is_bodyless: %d", is_bodyless);
+    FETCH_LOG_I(TAG, "body size: %ld", content_length);
 
     struct mg_str* transfer_encoding =
         mg_http_get_header((struct mg_http_message*)msg, "transfer-encoding");
-    if(transfer_encoding && mg_strcasecmp(*transfer_encoding, mg_str("chunked")) == 0) {
+    const bool is_chunked = transfer_encoding &&
+                            mg_strcasecmp(*transfer_encoding, mg_str("chunked")) == 0;
+    // status == 204 and transfer-encoding: chunked is a violation of the RFC, but we accept that
+    if(is_chunked && !is_bodyless) {
         furi_assert(instance->chunked == NULL);
         instance->chunked = fetch_chunked_alloc(fetch_on_data, fetch_on_data_error, instance);
+        FETCH_LOG_I(TAG, "chunked");
     }
 
     instance->started_raw_ticks = furi_get_tick();
     instance->started_download_ticks = instance->started_raw_ticks;
 
-    if(body_length != -1) {
+    if(!is_bodyless && content_length != -1) {
         FetchProgress* progress = &instance->progress;
-        progress->total_download_size = body_length;
+        progress->total_download_size = content_length;
         progress->has_total_download_size = true;
     }
 
