@@ -19,6 +19,22 @@ typedef enum {
 
 typedef JsAppInstallerError (*MessageHandler)(JsAppInstaller* instance, JsAppInstallerMsg* message);
 
+static void set_current_work_operation_detail(
+    JsAppInstallerCurrentWork* current_work,
+    const JsAppInstallerOperationDetail* detail) {
+    FURI_CRITICAL_ENTER();
+    current_work->detail = *detail;
+    FURI_CRITICAL_EXIT();
+}
+
+static void get_current_work_operation_detail(
+    const JsAppInstallerCurrentWork* current_work,
+    JsAppInstallerOperationDetail* detail) {
+    FURI_CRITICAL_ENTER();
+    *detail = current_work->detail;
+    FURI_CRITICAL_EXIT();
+}
+
 static bool prepare_staging_folder(Storage* storage) {
     if(!storage_simply_remove_recursive(storage, JS_APP_STAGING_PATH)) {
         FURI_LOG_E(TAG, "Cannot remove " JS_APP_STAGING_PATH);
@@ -237,17 +253,16 @@ static void operation_event_callback(const JsAppInstallerOperationEvent* event, 
     JsAppInstaller* instance = context;
 
     uint32_t custom_event;
+    JsAppInstallerCurrentWork* current_work = &instance->current_work;
 
     JsAppInstallerOperationEventType event_type = event->type;
     if(event_type == JsAppInstallerOperationEventTypeProgress) {
-        FURI_CRITICAL_ENTER();
         // OK to overwrite previous undelivered progress
-        instance->current_work.detail = event->progress.detail;
-        FURI_CRITICAL_EXIT();
+        set_current_work_operation_detail(current_work, &event->progress.detail);
         custom_event = JsAppInstallerCustomEventOperationProgress;
 
     } else if(event_type == JsAppInstallerOperationEventTypeFinished) {
-        instance->current_work.error = event->finished.error;
+        current_work->error = event->finished.error;
         custom_event = JsAppInstallerCustomEventOperationFinished;
 
     } else {
@@ -266,23 +281,25 @@ static void run_next_operation(JsAppInstaller* instance) {
         return;
     }
 
-    JsAppInstallerOperationDetail* detail = &current_work->detail;
-    detail->step = "starting";
-    detail->has_progress = false;
-
     JsAppInstallerQueueItem* item =
         JsAppInstallerOperationQueue_pop_front(instance->pending_queue);
     JsAppInstallerOperation* operation = js_app_installer_operation_alloc(item);
     js_app_installer_operation_set_callback(operation, operation_event_callback, instance);
 
+    const JsAppInstallerOperationDetail detail = {
+        .step = "starting",
+        .has_progress = false,
+    };
+
     current_work->item = item;
     current_work->operation = operation;
+    current_work->detail = detail;
     current_work->error = JsAppInstallerErrorMax;
 
     JsAppInstallerEvent event = {
         .type = JsAppInstallerEventTypeOperationDetail,
         .item_id = item->id,
-        .detail.value = *detail,
+        .detail.value = detail,
     };
 
     furi_pubsub_publish(instance->event_pubsub, &event);
@@ -302,9 +319,8 @@ static void handle_operation_progress(JsAppInstaller* instance) {
     const JsAppInstallerQueueItem* item = current_work->item;
     furi_assert(item != NULL);
 
-    FURI_CRITICAL_ENTER();
-    const JsAppInstallerOperationDetail detail = current_work->detail;
-    FURI_CRITICAL_EXIT();
+    JsAppInstallerOperationDetail detail;
+    get_current_work_operation_detail(current_work, &detail);
 
     JsAppInstallerEvent event = {
         .type = JsAppInstallerEventTypeOperationDetail,
@@ -527,7 +543,7 @@ static JsAppInstallerError handle_get_queue(JsAppInstaller* instance, JsAppInsta
         js_app_installer_queue_item_get_partial_info(current_item, &operation_info);
 
         operation_info.status = JsAppInstallerOperationStatusInProgress;
-        operation_info.detail = current_work->detail;
+        get_current_work_operation_detail(current_work, &operation_info.detail);
 
         msg->callback(&operation_info, msg->callback_context);
     }
