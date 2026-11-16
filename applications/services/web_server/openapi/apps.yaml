@@ -680,14 +680,12 @@ schemas:
 
   AppQueueItemId:
     type: integer
-    description: Numeric identifier of the item in the queue
+    description: >
+      Numeric identifier of the item in the queue. Starts at 0 for the first queue
+      operation after reset and wraps back to 0 on overflow.
     examples:
-      startValue:
-        summary: Starting value for the first queue operation after reset
-        value: 0
-      anyValue:
-        summary: Any value during operation (wraps back to 0)
-        value: 42
+      - 0
+      - 42
 
   AppQueueOperationType:
     type: string
