@@ -125,11 +125,11 @@ paths:
                 versionIncompatible:
                   summary: Incompatible API version
                   value:
-                    message: "API version required by the application is not compatible with the firmware"
+                    error: "API version required by the application is not compatible with the firmware"
                 higherPriorityRunning:
                   summary: Higher-priority app running
                   value:
-                    message: "A higher-priority application is already running"
+                    error: "A higher-priority application is already running"
         "503":
           description: Failed to launch the application
           content:
@@ -194,9 +194,38 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "409":
+          description: Queued operations are present
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Unknown internal error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "503":
           description: |
-            Failed to quit from the application that needs to be uninstalled.
+            Internal error. Possible causes:
+            - Failed to quit from the application that needs to be uninstalled.
+            - Installer system service is not responding.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                failedToQuit:
+                  summary: Failed to quit from running application
+                  value:
+                    error: "Failed to quit from application before uninstalling, try again"
+                serviceTimeout:
+                  summary: Installer system service is not responding
+                  value:
+                    error: "Operation Timeout"
+        "508":
+          description: Filesystem error
           content:
             application/json:
               schema:
