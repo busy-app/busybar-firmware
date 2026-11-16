@@ -881,6 +881,131 @@ class TestJSFetch:
 
         js_case_runner(case_name, body)
 
+    @allure.title("JavaScript fetch preserves empty response headers and HTTP status.")
+    @allure.issue("https://flipper.atlassian.net/browse/FW-1287")
+    @pytest.mark.parametrize(
+        "path,status,status_text,payload",
+        [
+            ("/empty-headers", 200, "OK", HEADERS_PAYLOAD),
+            ("/empty-headers-unauthorized", 401, "Unauthorized", HEADERS_PAYLOAD),
+            ("/empty-headers-no-content", 204, "No Content", b""),
+        ],
+        ids=["ok", "home-assistant-unauthorized", "no-content"],
+    )
+    def test_empty_response_headers(
+        self, js_case_runner, http_server, path, status, status_text, payload
+    ):
+        url = json.dumps(http_server.url(path))
+        expected_text = json.dumps(payload.decode("utf-8"))
+        body = dedent(
+            f"""
+                const response = await fetch({url});
+                assert(response.status === {status}, "status=" + response.status);
+                assert(response.statusText === {json.dumps(status_text)},
+                    "statusText=" + response.statusText);
+                assert(response.ok === {json.dumps(status < 400)},
+                    "ok=" + response.ok);
+                for (const name of [
+                    "Server", "X-Empty", "X-Tab", "X-Whitespace", "X-Last-Empty"
+                ]) {{
+                    assert(response.headers.has(name), name + " is missing");
+                    const value = response.headers.get(name);
+                    assert(value === "", name + "=" + JSON.stringify(value));
+                    let found = false;
+                    for (const entry of response.headers.entries()) {{
+                        if (entry[0] === name) {{
+                            assert(entry[1] === "",
+                                name + " entry=" + JSON.stringify(entry[1]));
+                            found = true;
+                        }}
+                    }}
+                    assert(found, name + " is missing from entries()");
+                }}
+                assert(!response.headers.has("X-Missing"), "missing header exists");
+                assert(response.headers.get("X-Missing") === null,
+                    "missing header=" + response.headers.get("X-Missing"));
+                assert(response.headers.get("X-Before") === "before",
+                    "preceding header=" + response.headers.get("X-Before"));
+                assert(response.headers.get("X-After") === "after",
+                    "following header=" + response.headers.get("X-After"));
+                const text = await response.text();
+                assert(text === {expected_text}, "body=" + JSON.stringify(text));
+                assert(response.bodyUsed === true, "bodyUsed after text()");
+            """
+        ).strip()
+
+        output = js_case_runner(f"empty_response_headers_{status}", body)
+
+        with allure.step("Verify the host received the request with the JS marker"):
+            captured = captured_request(http_server, output, "empty-header request")
+            assert captured["path"] == path, f"captured={captured!r}"
+            assert_js_fetch_header(captured)
+
+    @allure.title("Malformed response headers reject fetch and allow another request.")
+    @allure.issue("https://flipper.atlassian.net/browse/FW-1287")
+    @pytest.mark.parametrize(
+        "path,error_type,error_message,attempts",
+        [
+            ("/invalid-headers-empty-name", "TypeError", None, 1),
+            ("/invalid-headers-empty-value-lf", "Error", "Error parsing headers", 1),
+            (
+                "/invalid-headers-whitespace-value-lf",
+                "Error",
+                "Error parsing headers",
+                1,
+            ),
+            ("/invalid-headers-stall", "Error", "Error parsing headers", 1),
+            ("/invalid-headers-empty-value-lf", "Error", "Error parsing headers", 5),
+        ],
+        ids=[
+            "empty-name",
+            "empty-value-bare-lf",
+            "whitespace-value-bare-lf",
+            "stalled-body",
+            "repeated-rejections",
+        ],
+    )
+    def test_malformed_response_headers_reject_fetch(
+        self, js_case_runner, http_server, path, error_type, error_message, attempts
+    ):
+        url = json.dumps(http_server.url(path))
+        recovery_url = json.dumps(http_server.url("/text"))
+        rejection_check = build_promise_rejection_check(
+            f"fetch({url})", error_type, error_message
+        )
+        body = (
+            rejection_check
+            + "\n"
+            + dedent(
+                f"""
+                const response = await fetch({recovery_url});
+                assert(response.status === 200, "recovery status=" + response.status);
+                const text = await response.text();
+                assert(text === {json.dumps(TEXT_PAYLOAD.decode("utf-8"))},
+                    "recovery body=" + JSON.stringify(text));
+            """
+            ).strip()
+        )
+
+        body = f"for (let attempt = 0; attempt < {attempts}; attempt++) {{\n{body}\n}}"
+        case_name = f"{path.strip('/').replace('-', '_')}_{attempts}"
+        output = js_case_runner(case_name, body)
+
+        with allure.step("Verify both requests reached the host in order"):
+            for expected_path in (path, "/text") * attempts:
+                captured = captured_request(http_server, output, expected_path)
+                assert captured["path"] == expected_path, f"captured={captured!r}"
+                assert_js_fetch_header(captured)
+
+        if path == "/invalid-headers-stall":
+            with allure.step(
+                "Verify fetch closed the connection without waiting for a body"
+            ):
+                assert http_server.stalled_request_closed.wait(timeout=1), (
+                    "fetch left the connection open after rejecting malformed headers; "
+                    f"output={output!r}"
+                )
+
     @allure.title("JavaScript Headers.has is case-insensitive.")
     def test_headers_has_is_case_insensitive(self, js_case_runner, http_server):
         case_name = "headers_has_case_insensitive"
@@ -1231,7 +1356,7 @@ class TestJSFetch:
             timeout=35,
         )
 
-    @allure.title("JavaScript API whitelist rejects dot-segment traversal.")
+    @allure.title("Double-encoded dot segments pass the JavaScript API whitelist.")
     def test_local_api_whitelist_results_error_on_double_encoded_dot_segment_traversal(
         self, js_case_runner
     ):

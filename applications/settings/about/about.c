@@ -194,5 +194,7 @@ void about_pop_location(About* instance) {
 void about_show_location(About* instance, bool visible) {
     furi_assert(instance);
 
-    with_gui(instance->gui, { nav_bar_set_visible(instance->back_nav_bar, visible); });
+    with_gui(instance->gui, {
+        widget_set_visible(nav_bar_get_base(instance->back_nav_bar), visible);
+    });
 }
