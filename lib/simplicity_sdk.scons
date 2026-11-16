@@ -10,9 +10,9 @@ SDK_PLATFORM_CORE_DIR = f"{SDK_DIR}/platform_core"
 SDK_PLATFORM_CORE_INCDIR = f"#/lib/{SDK_PLATFORM_CORE_DIR}"
 SDK_CMSIS_COMMON_DIR = f"{SDK_DIR}/cmsis_common"
 SDK_CMSIS_COMMON_INCDIR = f"#/lib/{SDK_CMSIS_COMMON_DIR}"
-SDK_SECURITY_MBEDTLS_DIR = f"{SDK_DIR}/security_mbedtls"
+SDK_SECURITY_MBEDTLS_DIR = f"{SDK_DIR}/mbedtls"
 SDK_SECURITY_MBEDTLS_INCDIR = f"#/lib/{SDK_SECURITY_MBEDTLS_DIR}"
-SDK_SECURITY_MBEDTLS_SRC_DIR = f"{SDK_DIR}/security_mbedtls_source"
+SDK_SECURITY_MBEDTLS_SRC_DIR = f"{SDK_DIR}/mbedtls"
 SDK_SECURITY_MBEDTLS_SRC_INCDIR = f"#/lib/{SDK_SECURITY_MBEDTLS_SRC_DIR}"
 SDK_SECURITY_SE_MANAGER_DIR = f"{SDK_DIR}/security_se_manager"
 SDK_SECURITY_SE_MANAGER_INCDIR = f"#/lib/{SDK_SECURITY_SE_MANAGER_DIR}"
@@ -30,6 +30,8 @@ env.Append(
         Dir(f"{SDK_PLATFORM_COMMON_INCDIR}/platform/common/inc").rdir(),
         Dir(f"{SDK_PLATFORM_CORE_INCDIR}/platform/common/inc").rdir(),
         Dir(f"{SDK_CMSIS_COMMON_INCDIR}/platform/common/inc").rdir(),
+        Dir(f"{SDK_PLATFORM_CORE_INCDIR}/platform/service/sl_log/inc").rdir(),
+        Dir(f"{SDK_PLATFORM_CORE_INCDIR}/platform/service/sl_log/config").rdir(),
         # SDK Wifi Silabs
         Dir(f"{SDK_PLATFORM_CORE_INCDIR}/platform/emlib/inc").rdir(),
         Dir(f"{SDK_PLATFORM_CORE_INCDIR}/platform/service/mem_pool/inc").rdir(),
@@ -75,22 +77,28 @@ env.Append(
             f"{WISECONNECT_INCDIR}/device/silabs/si91x/wireless/crypto/trng/inc"
         ).rdir(),
         Dir(
-            f"{SDK_SECURITY_MBEDTLS_INCDIR}/platform/security/sl_component/sl_mbedtls_support/inc"
+            f"{WISECONNECT_INCDIR}/device/silabs/si91x/wireless/sli_si91x_wifi_command_engine/inc/"
         ).rdir(),
         Dir(
-            f"{SDK_SECURITY_MBEDTLS_INCDIR}/platform/security/sl_component/sl_mbedtls_support/config"
+            f"{SDK_PLATFORM_CORE_INCDIR}/platform/security/sl_component/sl_mbedtls_support/inc"
+        ).rdir(),
+        Dir(
+            f"{SDK_PLATFORM_CORE_INCDIR}/platform/security/sl_component/sl_mbedtls_support/config"
         ).rdir(),
         Dir(f"{SDK_SECURITY_MBEDTLS_SRC_INCDIR}/include/").rdir(),
         Dir(f"{SDK_OPENTHREAD_INCDIR}/util/third_party/openthread/include").rdir(),
         Dir(f"{SDK_SECURITY_MBEDTLS_SRC_INCDIR}/library").rdir(),
         Dir(
-            f"{SDK_SECURITY_MBEDTLS_INCDIR}/platform/security/sl_component/sl_mbedtls_support/config/preset"
+            f"{SDK_PLATFORM_CORE_INCDIR}/platform/security/sl_component/sl_mbedtls_support/config/preset"
         ).rdir(),
         Dir(
-            f"{SDK_SECURITY_MBEDTLS_INCDIR}/platform/security/sl_component/sl_psa_driver/inc"
+            f"{SDK_PLATFORM_CORE_INCDIR}/platform/security/sl_component/sl_psa_driver/inc"
         ).rdir(),
         Dir(
-            f"{SDK_SECURITY_SE_MANAGER_INCDIR}/platform/security/sl_component/sli_psec_osal/inc"
+            f"{SDK_PLATFORM_CORE_INCDIR}/platform/security/sl_component/sli_psec_osal/inc"
+        ).rdir(),
+        Dir(
+            f"{SDK_PLATFORM_CORE_INCDIR}/platform/security/sl_component/sli_psec_common/inc"
         ).rdir(),
     ],
     CPPDEFINES=[
@@ -129,9 +137,9 @@ libenv = env.Clone(FW_LIB_NAME="simplicity_sdk")
 libenv.ApplyLibFlags()
 
 sources = [
-    f"{SDK_CMSIS_COMMON_DIR}/platform/common/src/sli_cmsis_os2_ext_task_register.c",
+    f"{SDK_PLATFORM_CORE_DIR}/platform/common/src/sli_cmsis_os2_ext_task_register.c",
     f"{SDK_PLATFORM_CORE_DIR}/platform/common/src/sl_core_cortexm.c",
-    f"{SDK_PLATFORM_COMMON_DIR}/platform/common/src/sl_string.c",
+    f"{SDK_PLATFORM_CORE_DIR}/platform/common/src/sl_string.c",
     f"{SDK_PLATFORM_CORE_DIR}/platform/service/mem_pool/src/sl_mem_pool.c",
     f"{SDK_PLATFORM_CORE_DIR}/platform/emdrv/nvm3/src/nvm3_default_common_linker.c",
     f"{SDK_PLATFORM_CORE_DIR}/platform/emdrv/nvm3/src/nvm3.c",
@@ -141,17 +149,17 @@ sources = [
     f"{SDK_PLATFORM_CORE_DIR}/platform/emdrv/nvm3/src/nvm3_page.c",
     f"{SDK_PLATFORM_CORE_DIR}/platform/emdrv/nvm3/src/nvm3_utils.c",
     # Mbed TLS
-    f"{SDK_SECURITY_MBEDTLS_DIR}/platform/security/sl_component/sl_mbedtls_support/src/error.c",
-    f"{SDK_SECURITY_MBEDTLS_DIR}/platform/security/sl_component/sl_mbedtls_support/src/mbedtls_ccm.c",
-    f"{SDK_SECURITY_MBEDTLS_DIR}/platform/security/sl_component/sl_mbedtls_support/src/sl_mbedtls.c",
-    f"{SDK_SECURITY_MBEDTLS_DIR}/platform/security/sl_component/sl_mbedtls_support/src/sl_psa_crypto.c",
-    f"{SDK_SECURITY_MBEDTLS_DIR}/platform/security/sl_component/sl_mbedtls_support/src/sli_psa_crypto.c",
-    f"{SDK_SECURITY_MBEDTLS_DIR}/platform/security/sl_component/sl_mbedtls_support/src/version_features.c",
-    f"{SDK_SECURITY_MBEDTLS_DIR}/platform/security/sl_component/sl_psa_driver/src/sli_psa_driver_common.c",
-    f"{SDK_SECURITY_MBEDTLS_DIR}/platform/security/sl_component/sl_psa_driver/src/sli_psa_driver_init.c",
-    f"{SDK_SECURITY_MBEDTLS_DIR}/platform/security/sl_component/sl_psa_driver/src/sli_psa_trng.c",
-    f"{SDK_SECURITY_MBEDTLS_DIR}/platform/security/sl_component/sl_psa_driver/src/sli_se_version_dependencies.c",
-    f"{SDK_SECURITY_SE_MANAGER_DIR}/platform/security/sl_component/sli_psec_osal/src/sli_psec_osal_cmsis_rtos2.c",
+    f"{SDK_PLATFORM_CORE_DIR}/platform/security/sl_component/sl_mbedtls_support/src/error.c",
+    f"{SDK_PLATFORM_CORE_DIR}/platform/security/sl_component/sl_mbedtls_support/src/mbedtls_ccm.c",
+    f"{SDK_PLATFORM_CORE_DIR}/platform/security/sl_component/sl_mbedtls_support/src/sl_mbedtls.c",
+    f"{SDK_PLATFORM_CORE_DIR}/platform/security/sl_component/sl_mbedtls_support/src/sl_psa_crypto.c",
+    f"{SDK_PLATFORM_CORE_DIR}/platform/security/sl_component/sl_mbedtls_support/src/sli_psa_crypto.c",
+    f"{SDK_PLATFORM_CORE_DIR}/platform/security/sl_component/sl_mbedtls_support/src/version_features.c",
+    f"{SDK_PLATFORM_CORE_DIR}/platform/security/sl_component/sl_psa_driver/src/sli_psa_driver_common.c",
+    f"{SDK_PLATFORM_CORE_DIR}/platform/security/sl_component/sl_psa_driver/src/sli_psa_driver_init.c",
+    f"{SDK_PLATFORM_CORE_DIR}/platform/security/sl_component/sl_psa_driver/src/sli_psa_trng.c",
+    f"{SDK_PLATFORM_CORE_DIR}/platform/security/sl_component/sl_psa_driver/src/sli_se_version_dependencies.c",
+    f"{SDK_PLATFORM_CORE_DIR}/platform/security/sl_component/sli_psec_osal/src/sli_psec_osal_cmsis_rtos2.c",
     f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/aes.c",
     f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/asn1parse.c",
     f"{SDK_SECURITY_MBEDTLS_SRC_DIR}/library/asn1write.c",

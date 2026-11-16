@@ -501,7 +501,11 @@ static FURI_ALWAYS_INLINE osThreadId_t osThreadGetId(void) {
 // /// Get current priority of a thread.
 // /// \param[in]     thread_id     thread ID obtained by \ref osThreadNew or \ref osThreadGetId.
 // /// \return current priority value of the specified thread.
-// osPriority_t osThreadGetPriority (osThreadId_t thread_id);
+static FURI_ALWAYS_INLINE osPriority_t osThreadGetPriority (osThreadId_t thread_id) {
+    FuriThreadAdapter* adapter = (FuriThreadAdapter*)thread_id;
+    const FuriThreadPriority prio = furi_thread_get_priority(adapter->thread);
+    return (osPriority_t)prio;
+}
 
 /// Pass control to next thread that is in state \b READY.
 /// \return status code that indicates the execution status of the function.
