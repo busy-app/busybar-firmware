@@ -128,6 +128,31 @@ MU_TEST(http_headers_min_parse_test) {
     http_headers_free(headers);
 }
 
+MU_TEST(http_headers_empty_value_parse_test) {
+    // Home Assistant (aiohttp) sends "Server: " with an empty value
+    const char* request = "HTTP/1.1 401 Unauthorized\r\n"
+                          "Content-Type: text/plain; charset=utf-8\r\n"
+                          "Server: \r\n"
+                          "X-Empty:\r\n"
+                          "Content-Length: 17\r\n"
+                          "\r\n";
+    HttpResponse response;
+    mu_check(http_response_parse(&response, request, strlen(request)));
+    mu_assert_int_eq(401, response.status);
+
+    HttpHeaders* headers = http_headers_alloc();
+    mu_check(headers);
+    mu_check(http_headers_parse(headers, response.headers.first_char, response.headers.length));
+    mu_assert_int_eq(4, http_headers_get_count(headers));
+
+    CHECK_HEADER_BY_INDEX(0, "Content-Type", "text/plain; charset=utf-8");
+    CHECK_HEADER_BY_INDEX(1, "Server", "");
+    CHECK_HEADER_BY_INDEX(2, "X-Empty", "");
+    CHECK_HEADER_BY_INDEX(3, "Content-Length", "17");
+
+    http_headers_free(headers);
+}
+
 MU_TEST(http_headers_set_test) {
     HttpHeaders* headers = http_headers_alloc();
 
@@ -177,6 +202,7 @@ MU_TEST(http_method_normalize_test) {
 MU_TEST_SUITE(http_test_suite) {
     MU_RUN_TEST(http_headers_parse_test);
     MU_RUN_TEST(http_headers_min_parse_test);
+    MU_RUN_TEST(http_headers_empty_value_parse_test);
     MU_RUN_TEST(http_headers_set_test);
     MU_RUN_TEST(http_method_valid_test);
     MU_RUN_TEST(http_method_invalid_test);

@@ -86,7 +86,7 @@ def _call_schema_case(case: schemathesis.Case, web_session):
     deadline=None,
 )
 def test_get_conformance(case: schemathesis.Case, web_session) -> None:
-    allure.dynamic.title(f"GET {case.formatted_path}")
+    allure.dynamic.title("Device HTTP API · GET schema conformance")
     allure.dynamic.parameter("method", case.method.upper())
     allure.dynamic.parameter("path", case.formatted_path)
 
@@ -124,7 +124,7 @@ def test_get_conformance(case: schemathesis.Case, web_session) -> None:
     deadline=None,
 )
 def test_post_conformance(case: schemathesis.Case, web_session) -> None:
-    allure.dynamic.title(f"POST {case.formatted_path}")
+    allure.dynamic.title("Device HTTP API · POST schema conformance")
     allure.dynamic.parameter("method", case.method.upper())
     allure.dynamic.parameter("path", case.formatted_path)
 
