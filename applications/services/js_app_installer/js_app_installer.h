@@ -217,7 +217,7 @@ JsAppInstallerError js_app_installer_get_operation_queue(
  * @param[in] item_id numeric ID of the operation to be cancelled
  * @returns @c JsAppInstallerErrorNone operation cancelled successfully
  * @returns @c JsAppInstallerErrorTimeout service was taking too long to respond
- * @returnc @c JsAppInstallerErrorNotFound operation with the given ID was not found
+ * @returns @c JsAppInstallerErrorNotFound operation with the given ID was not found
  */
 JsAppInstallerError js_app_installer_cancel_operation(JsAppInstaller* instance, uint32_t item_id);
 
