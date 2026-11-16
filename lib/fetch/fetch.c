@@ -108,24 +108,23 @@ static void fetch_switch_to_raw_protocol(
     const bool is_chunked = transfer_encoding &&
                             mg_strcasecmp(*transfer_encoding, mg_str("chunked")) == 0;
     // status == 204 and transfer-encoding: chunked is a violation of the RFC, but we accept that
-    if(is_chunked && !is_bodyless) {
-        furi_assert(instance->chunked == NULL);
-        instance->chunked = fetch_chunked_alloc(fetch_on_data, fetch_on_data_error, instance);
-        FETCH_LOG_I(TAG, "chunked");
-    }
-
-    instance->started_raw_ticks = furi_get_tick();
-    instance->started_download_ticks = instance->started_raw_ticks;
-
-    if(!is_bodyless && content_length != -1) {
-        FetchProgress* progress = &instance->progress;
-        progress->total_download_size = content_length;
-        progress->has_total_download_size = true;
-    } else if(is_bodyless && !is_chunked) {
+    if(!is_bodyless) {
+        if(is_chunked) {
+            furi_assert(instance->chunked == NULL);
+            instance->chunked = fetch_chunked_alloc(fetch_on_data, fetch_on_data_error, instance);
+            FETCH_LOG_I(TAG, "chunked");
+        } else if(content_length != -1) {
+            FetchProgress* progress = &instance->progress;
+            progress->total_download_size = content_length;
+            progress->has_total_download_size = true;
+        }
+    } else {
         FetchProgress* progress = &instance->progress;
         progress->total_download_size = 0;
         progress->has_total_download_size = true;
     }
+    instance->started_raw_ticks = furi_get_tick();
+    instance->started_download_ticks = instance->started_raw_ticks;
 
     fetch_consume_rx_data(conn, msg->head.len);
     /* Mongoose will detach the protocol handler function automatically
