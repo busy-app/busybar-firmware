@@ -2,7 +2,7 @@
 
 #include <gui/widget_i.h>
 
-#include <lvgl/src/core/lv_obj_class_private.h>
+#include <lvgl_addons/extensions/lv_label_ext.h>
 
 #define MY_CLASS          (&dialog_lvgl_class)
 #define MY_TEXT_CLASS     (&dialog_text_lvgl_class)
@@ -96,13 +96,9 @@ static void dialog_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj
 
     instance->text_sub = lv_obj_class_create_obj(MY_TEXT_SUB_CLASS, instance->text_cont);
     lv_obj_class_init_obj(instance->text_sub);
+    lv_label_ext_set_max_lines(instance->text_sub, 1);
     lv_label_set_long_mode(instance->text_sub, LV_LABEL_LONG_MODE_DOTS);
     lv_label_set_text(instance->text_sub, "");
-
-    // Force single line
-    lv_coord_t line_height =
-        lv_font_get_line_height(lv_obj_get_style_text_font(instance->text_sub, LV_PART_MAIN));
-    lv_obj_set_style_max_height(instance->text_sub, line_height, LV_PART_MAIN);
 
     lv_obj_add_flag(instance->text_sub, LV_OBJ_FLAG_HIDDEN);
 
