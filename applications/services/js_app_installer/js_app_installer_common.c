@@ -1,16 +1,19 @@
-#include "js_app_installer_common.h"
+#include "js_app_installer_common_i.h"
 
 #include <core/check.h>
 
-const char* js_app_installer_get_operation_name(JsAppInstallerOperationType type) {
-    furi_check(type < JsAppInstallerOperationTypeMax);
+#include <js_app/js_app_registry.h>
 
-    static const char* const operation_names[] = {
-        [JsAppInstallerOperationTypeInstall] = "install",
-        [JsAppInstallerOperationTypeRemove] = "remove",
+JsAppInstallerError js_app_installer_remove_app(const char* app_id) {
+    const JsAppRegistryAppUninstallResult result = js_app_registry_uninstall_app(app_id);
+
+    static const JsAppInstallerError error_lookup[] = {
+        [JsAppRegistryAppUninstallResultOk] = JsAppInstallerErrorNone,
+        [JsAppRegistryAppUninstallResultNotFound] = JsAppInstallerErrorNotFound,
+        [JsAppRegistryAppUninstallResultStorageError] = JsAppInstallerErrorStorage,
     };
 
-    static_assert(COUNT_OF(operation_names) == JsAppInstallerOperationTypeMax);
+    static_assert(COUNT_OF(error_lookup) == JsAppRegistryAppUninstallResultMax);
 
-    return operation_names[type];
+    return error_lookup[result];
 }

@@ -23,6 +23,7 @@ typedef struct {
 } JsAppInstallerOperationStep;
 
 typedef struct {
+    const char* name;
     JsAppInstallerOperationInit init;
     JsAppInstallerOperationDeinit deinit;
     JsAppInstallerOperationCancel cancel;

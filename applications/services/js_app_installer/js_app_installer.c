@@ -1,5 +1,6 @@
 #include "js_app_installer_i.h"
 #include "js_app_installer_paths.h"
+#include "js_app_installer_common_i.h"
 
 #include <toolbox/tar/tar_archive.h>
 #include <storage/storage.h>
@@ -309,7 +310,7 @@ static void run_next_operation(JsAppInstaller* instance) {
     FURI_LOG_D(
         TAG,
         "Operation %s %s (%lu) started",
-        js_app_installer_get_operation_name(item->type),
+        js_app_installer_operation_get_name(operation),
         furi_string_get_cstr(item->app_id),
         item->id);
 }
@@ -354,7 +355,7 @@ static void handle_operation_finished(JsAppInstaller* instance) {
     furi_assert(error < JsAppInstallerErrorMax);
 
     const uint32_t item_id = current_item->id;
-    const char* name = js_app_installer_get_operation_name(current_item->type);
+    const char* name = js_app_installer_operation_get_name(current_operation);
     const char* app_id = furi_string_get_cstr(current_item->app_id);
 
     JsAppInstallerEvent event = {
@@ -443,21 +444,18 @@ static JsAppInstallerError
     furi_assert(instance);
     furi_assert(message);
 
-    if(is_queue_active(instance)) {
-        return JsAppInstallerErrorQueueFull;
-    }
+    JsAppInstallerError error;
 
-    const JsAppInstallerMsgRemoveImmediate* msg = &message->remove_immediate;
-    const JsAppRegistryAppUninstallResult res = js_app_registry_uninstall_app(msg->app_id);
+    do {
+        if(is_queue_active(instance)) {
+            error = JsAppInstallerErrorQueueFull;
+            break;
+        }
 
-    static const JsAppInstallerError error_lookup[] = {
-        [JsAppRegistryAppUninstallResultOk] = JsAppInstallerErrorNone,
-        [JsAppRegistryAppUninstallResultNotFound] = JsAppInstallerErrorNotFound,
-        [JsAppRegistryAppUninstallResultStorageError] = JsAppInstallerErrorStorage,
-    };
+        error = js_app_installer_remove_app(message->remove_immediate.app_id);
+    } while(false);
 
-    static_assert(COUNT_OF(error_lookup) == JsAppRegistryAppUninstallResultMax);
-    return error_lookup[res];
+    return error;
 }
 
 static void cancel_current_operation(JsAppInstaller* instance) {

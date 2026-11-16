@@ -1,4 +1,5 @@
 #include "../js_app_installer_operation_i.h"
+#include "../js_app_installer_common_i.h"
 
 #include <core/check.h>
 #include <core/kernel.h>
@@ -32,31 +33,16 @@ static void js_app_installer_operation_remove_empty(JsAppInstallerOperation* bas
 }
 
 static JsAppInstallerError
-    js_app_installer_operation_translate_registry_result(JsAppRegistryAppUninstallResult result) {
-    furi_assert(result < JsAppRegistryAppUninstallResultMax);
-
-    static const JsAppInstallerError error_table[] = {
-        [JsAppRegistryAppUninstallResultOk] = JsAppInstallerErrorNone,
-        [JsAppRegistryAppUninstallResultNotFound] = JsAppInstallerErrorNotFound,
-        [JsAppRegistryAppUninstallResultStorageError] = JsAppInstallerErrorStorage,
-    };
-
-    static_assert(COUNT_OF(error_table) == JsAppRegistryAppUninstallResultMax);
-    return error_table[result];
-}
-
-static JsAppInstallerError
     js_app_installer_operation_remove_handler(JsAppInstallerOperation* base_instance) {
     furi_assert(base_instance);
 
     const char* app_id = furi_string_get_cstr(base_instance->app_id);
-    const JsAppRegistryAppUninstallResult result = js_app_registry_uninstall_app(app_id);
-
-    return js_app_installer_operation_translate_registry_result(result);
+    return js_app_installer_remove_app(app_id);
 }
 
 /* clang-format off */
 const JsAppInstallerOperationInterface js_app_installer_operation_remove = {
+    .name = "remove",
     .init = js_app_installer_operation_remove_init,
     .deinit = js_app_installer_operation_remove_empty,
     .cancel = js_app_installer_operation_remove_empty,

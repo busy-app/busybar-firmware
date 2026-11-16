@@ -297,6 +297,7 @@ static JsAppInstallerError
 }
 
 const JsAppInstallerOperationInterface js_app_installer_operation_install = {
+    .name = "install",
     .init = js_app_installer_operation_install_init,
     .deinit = js_app_installer_operation_install_deinit,
     .cancel = js_app_installer_operation_install_cancel,

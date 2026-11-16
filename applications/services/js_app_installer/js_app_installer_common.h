@@ -95,8 +95,6 @@ typedef struct {
     JsAppInstallerOperationDetail detail; /**< Detailed progress information */
 } JsAppInstallerOperationInfo;
 
-const char* js_app_installer_get_operation_name(JsAppInstallerOperationType type);
-
 #ifdef __cplusplus
 }
 #endif

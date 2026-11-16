@@ -186,7 +186,16 @@ void js_app_installer_operation_cancel(JsAppInstallerOperation* instance) {
 void js_app_installer_operation_notify(
     const JsAppInstallerOperation* instance,
     const JsAppInstallerOperationEvent* event) {
+    furi_check(instance);
     if(instance->callback) {
         instance->callback(event, instance->callback_context);
     }
+}
+
+const char* js_app_installer_operation_get_name(const JsAppInstallerOperation* instance) {
+    furi_check(instance);
+
+    const JsAppInstallerOperationInterface* interface = instance->interface;
+    furi_assert(interface);
+    return interface->name;
 }
