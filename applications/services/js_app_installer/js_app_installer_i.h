@@ -14,6 +14,7 @@ typedef enum JsAppInstallerCmd {
     JsAppInstallerCmdInstall,
     JsAppInstallerCmdInstallStaged,
     JsAppInstallerCmdRemove,
+    JsAppInstallerCmdRemoveImmediate,
     JsAppInstallerCmdCancel,
     JsAppInstallerCmdGetQueue,
     JsAppInstallerCmdMax,
@@ -45,6 +46,10 @@ typedef struct {
 } JsAppInstallerMsgRemove;
 
 typedef struct {
+    const char* app_id;
+} JsAppInstallerMsgRemoveImmediate;
+
+typedef struct {
     uint32_t item_id;
     bool is_clear_all;
 } JsAppInstallerMsgCancel;
@@ -63,6 +68,7 @@ typedef struct {
         JsAppInstallerMsgInstall install;
         JsAppInstallerMsgInstallStaged install_staged;
         JsAppInstallerMsgRemove remove;
+        JsAppInstallerMsgRemoveImmediate remove_immediate;
         JsAppInstallerMsgCancel cancel;
         JsAppInstallerMsgGetQueue get_queue;
     };

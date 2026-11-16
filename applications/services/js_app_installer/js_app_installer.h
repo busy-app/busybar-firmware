@@ -113,6 +113,9 @@ FuriPubSub* js_app_installer_get_pubsub(JsAppInstaller* instance);
 
 /**
  * @brief Unpack and check downloaded app package.
+ * @todo Clients must be ported to @c js_app_installer_install in the future.
+ *
+ * This call will fail if there are any pending or active operations in the queue.
  *
  * The package to unpack is located at JS_APP_DOWNLOAD_PATH.
  * The package is unpacked to the staging folder (JS_APP_STAGING_PATH).
@@ -124,10 +127,18 @@ JsAppInstallerStageResult js_app_installer_stage(JsAppInstaller* instance);
 
 /**
  * @brief Install previously staged app.
+ * @todo Clients must be ported to @c js_app_installer_install in the future.
+ *
+ * This call will fail if there are any pending or active operations in the queue.
  *
  * @param instance service instance.
  * @param install_key installation key previously returned with js_app_installer_stage.
- * @return operation result.
+ * @returns @c JsAppInstallerErrorNone application installed successfully
+ * @returns @c JsAppInstallerErrorTimeout service was taking too long to respond
+ * @returns @c JsAppInstallerErrorQueueFull application management queue is not empty
+ * @returns @c JsAppInstallerErrorParameter @p install_key is invalid
+ * @returns @c JsAppInstallerErrorManifest application manifest is invalid or missing
+ * @returns @c JsAppInstallerErrorStorage failed to perform a storage operation
  */
 JsAppInstallerError
     js_app_installer_install_staged(JsAppInstaller* instance, uint32_t install_key);
@@ -162,6 +173,23 @@ JsAppInstallerOperationResult js_app_installer_install(
  */
 JsAppInstallerOperationResult
     js_app_installer_remove(JsAppInstaller* instance, const char* app_id);
+
+/**
+ * @brief Remove an app immediately.
+ * @todo Clients must be ported to @c js_app_installer_remove in the future.
+ *
+ * This call will fail if there are any pending or active operations in the queue.
+ *
+ * @param[in,out] instance pointer to the service instance
+ * @param[in] app_id application ID of the app to be removed
+ * @returns @c JsAppInstallerErrorNone application removed successfully
+ * @returns @c JsAppInstallerErrorTimeout service was taking too long to respond
+ * @returns @c JsAppInstallerErrorNotFound application with requested @p app_id was not found
+ * @returns @c JsAppInstallerErrorQueueFull application management queue is not empty
+ * @returns @c JsAppInstallerErrorStorage failed to perform a storage operation
+ */
+JsAppInstallerError
+    js_app_installer_remove_immediate(JsAppInstaller* instance, const char* app_id);
 
 /**
  * @brief List all pending and active operations in the application management queue.

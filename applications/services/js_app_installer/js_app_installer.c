@@ -422,6 +422,28 @@ static JsAppInstallerError handle_remove(JsAppInstaller* instance, JsAppInstalle
     return error;
 }
 
+static JsAppInstallerError
+    handle_remove_immediate(JsAppInstaller* instance, JsAppInstallerMsg* message) {
+    furi_assert(instance);
+    furi_assert(message);
+
+    if(is_queue_active(instance)) {
+        return JsAppInstallerErrorQueueFull;
+    }
+
+    const JsAppInstallerMsgRemoveImmediate* msg = &message->remove_immediate;
+    const JsAppRegistryAppUninstallResult res = js_app_registry_uninstall_app(msg->app_id);
+
+    static const JsAppInstallerError error_lookup[] = {
+        [JsAppRegistryAppUninstallResultOk] = JsAppInstallerErrorNone,
+        [JsAppRegistryAppUninstallResultNotFound] = JsAppInstallerErrorNotFound,
+        [JsAppRegistryAppUninstallResultStorageError] = JsAppInstallerErrorStorage,
+    };
+
+    static_assert(COUNT_OF(error_lookup) == JsAppRegistryAppUninstallResultMax);
+    return error_lookup[res];
+}
+
 static void cancel_current_operation(JsAppInstaller* instance) {
     JsAppInstallerCurrentWork* current_work = &instance->current_work;
     JsAppInstallerOperation* current_operation = current_work->operation;
@@ -530,6 +552,7 @@ static const MessageHandler msg_handlers[] = {
     [JsAppInstallerCmdInstall] = handle_install,
     [JsAppInstallerCmdInstallStaged] = handle_install_staged,
     [JsAppInstallerCmdRemove] = handle_remove,
+    [JsAppInstallerCmdRemoveImmediate] = handle_remove_immediate,
     [JsAppInstallerCmdCancel] = handle_cancel,
     [JsAppInstallerCmdGetQueue] = handle_get_queue,
 };

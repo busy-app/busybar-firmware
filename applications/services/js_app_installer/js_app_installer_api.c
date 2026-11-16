@@ -115,6 +115,26 @@ JsAppInstallerOperationResult
     return result;
 }
 
+JsAppInstallerError
+    js_app_installer_remove_immediate(JsAppInstaller* instance, const char* app_id) {
+    furi_check(instance);
+    furi_check(app_id);
+
+    JsAppInstallerError error;
+    /* clang-format off */
+    JsAppInstallerMsg msg = {
+        .cmd = JsAppInstallerCmdRemoveImmediate,
+        .error = &error,
+        .remove_immediate = {
+            .app_id = app_id,
+        },
+    };
+    /* clang-format on */
+
+    js_app_installer_api_send_message(instance, &msg);
+    return error;
+}
+
 JsAppInstallerError js_app_installer_get_operation_queue(
     JsAppInstaller* instance,
     JsAppInstallerOperationInfoCallback callback,

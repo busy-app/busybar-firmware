@@ -625,19 +625,22 @@ static bool api_apps_delete_callback(
         return true;
     }
 
-    JsAppRegistryAppUninstallResult uninstall_result = js_app_registry_uninstall_app(app_id);
-    switch(uninstall_result) {
-    case JsAppRegistryAppUninstallResultOk:
+    JsAppInstaller* installer = furi_record_open(RECORD_JS_APP_INSTALLER);
+    const JsAppInstallerError error = js_app_installer_remove_immediate(installer, app_id);
+    furi_record_close(RECORD_JS_APP_INSTALLER);
+
+    if(error == JsAppInstallerErrorNone) {
         MG_REPLY_OK(conn);
-        break;
-    case JsAppRegistryAppUninstallResultNotFound:
+    } else if(error == JsAppInstallerErrorTimeout) {
+        MG_REPLY_ERROR(conn, 503, "Operation Timeout");
+    } else if(error == JsAppInstallerErrorNotFound) {
         MG_REPLY_NOT_FOUND(conn);
-        break;
-    case JsAppRegistryAppUninstallResultStorageError:
-        MG_REPLY_ERROR(conn, 508, "Filesystem error");
-        break;
-    default:
-        furi_crash();
+    } else if(error == JsAppInstallerErrorStorage) {
+        MG_REPLY_ERROR(conn, 508, "Filesystem Error");
+    } else if(error == JsAppInstallerErrorQueueFull) {
+        MG_REPLY_CONFLICT(conn, "Operations Queued");
+    } else {
+        MG_REPLY_ERROR(conn, 500, "Internal Error");
     }
 
     return true;
