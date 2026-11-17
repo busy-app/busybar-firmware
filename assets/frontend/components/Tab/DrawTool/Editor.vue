@@ -579,7 +579,7 @@
       :class="toolbarContainerClass"
       :style="toolbarContainerStyle"
     >
-      <div class="flex w-full items-center gap-4 overflow-x-auto rounded-2xl p-2 ring-1 ring-glass bg-surface-container backdrop-blur-sm">
+      <div class="flex w-full flex-wrap items-center justify-center gap-4 rounded-2xl max-[725px]:flex-nowrap max-[725px]:justify-start max-[725px]:overflow-x-auto p-2 ring-1 ring-glass bg-surface-container backdrop-blur-sm">
         <UPopover
           :content="{
             side: 'top',
@@ -1097,6 +1097,8 @@ const preserveSelectionUntilClick = ref(false);
 const isResizeAspectRatioUnlocked = ref(false);
 const toolbarContainerRef = ref<HTMLDivElement | null>(null);
 const toolbarFixedTop = ref(0);
+const toolbarFixedLeft = ref(0);
+const toolbarFixedWidth = ref(0);
 const toolbarShouldStickToViewport = ref(true);
 const showGrid = ref(true);
 
@@ -1243,7 +1245,7 @@ const activeIcons = computed<ResolvedDrawToolIcon[]>(() => {
 
 const toolbarContainerClass = computed(() => {
   return toolbarShouldStickToViewport.value
-    ? 'fixed inset-x-0 z-40'
+    ? 'fixed z-40'
     : 'mt-6';
 });
 const toolbarContainerStyle = computed(() => {
@@ -1252,7 +1254,9 @@ const toolbarContainerStyle = computed(() => {
   }
 
   return {
-    top: `${toolbarFixedTop.value}px`
+    top: `${toolbarFixedTop.value}px`,
+    left: `${toolbarFixedLeft.value}px`,
+    width: `${toolbarFixedWidth.value}px`
   };
 });
 
@@ -1676,11 +1680,15 @@ function updateStageContainerViewportTop () {
 
   if (!stageContainerRect || !componentRootRect) {
     toolbarFixedTop.value = Math.max(0, desiredToolbarTop);
+    toolbarFixedLeft.value = 0;
+    toolbarFixedWidth.value = window.innerWidth;
     toolbarShouldStickToViewport.value = true;
     return;
   }
 
   toolbarFixedTop.value = Math.max(componentRootRect.top, desiredToolbarTop);
+  toolbarFixedLeft.value = componentRootRect.left;
+  toolbarFixedWidth.value = componentRootRect.width;
   toolbarShouldStickToViewport.value = toolbarFixedTop.value - stageContainerRect.bottom <= TOOLBAR_MAX_CANVAS_GAP;
 }
 
@@ -2522,6 +2530,10 @@ onMounted(() => {
 
   if (es.stageContainerRef) {
     resizeObserver.value.observe(es.stageContainerRef);
+  }
+
+  if (drawToolRootRef.value) {
+    resizeObserver.value.observe(drawToolRootRef.value);
   }
 
   window.addEventListener('scroll', updateStageContainerViewportTop, { passive: true });
