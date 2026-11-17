@@ -273,6 +273,58 @@ static void operation_event_callback(const JsAppInstallerOperationEvent* event, 
     furi_event_loop_set_custom_event(instance->event_loop, custom_event);
 }
 
+static void notify_operation_detail(
+    JsAppInstaller* instance,
+    const JsAppInstallerQueueItem* item,
+    const JsAppInstallerOperationDetail* detail) {
+    const uint32_t item_id = item->id;
+
+    JsAppInstallerEvent event = {
+        .type = JsAppInstallerEventTypeOperationDetail,
+        .item_id = item_id,
+        .detail.value = *detail,
+    };
+
+    furi_pubsub_publish(instance->event_pubsub, &event);
+
+    if(detail->has_progress) {
+        FURI_LOG_D(
+            TAG,
+            "Operation status: step: %s, progress: %hhu%% (%lu)",
+            detail->step,
+            detail->progress,
+            item_id);
+    } else {
+        FURI_LOG_D(TAG, "Operation status: step: %s (%lu)", detail->step, item_id);
+    }
+}
+
+static void notify_operation_finished(
+    JsAppInstaller* instance,
+    const JsAppInstallerQueueItem* item,
+    JsAppInstallerError error) {
+    furi_assert(error < JsAppInstallerErrorMax);
+
+    const uint32_t item_id = item->id;
+    const char* name = js_app_installer_operation_get_name(item->type);
+    const char* app_id = furi_string_get_cstr(item->app_id);
+
+    JsAppInstallerEvent event = {
+        .type = JsAppInstallerEventTypeOperationFinished,
+        .item_id = item_id,
+        .finished.error = error,
+    };
+
+    furi_pubsub_publish(instance->event_pubsub, &event);
+
+    if(error == JsAppInstallerErrorNone) {
+        FURI_LOG_D(TAG, "Operation %s %s (%lu) finished successfully", name, app_id, item_id);
+    } else {
+        FURI_LOG_E(
+            TAG, "Operation %s %s (%lu) finished with error 0x%X", name, app_id, item_id, error);
+    }
+}
+
 static void run_next_operation(JsAppInstaller* instance) {
     JsAppInstallerCurrentWork* current_work = &instance->current_work;
     furi_assert(current_work->operation == NULL);
@@ -297,22 +349,8 @@ static void run_next_operation(JsAppInstaller* instance) {
     current_work->detail = detail;
     current_work->error = JsAppInstallerErrorMax;
 
-    JsAppInstallerEvent event = {
-        .type = JsAppInstallerEventTypeOperationDetail,
-        .item_id = item->id,
-        .detail.value = detail,
-    };
-
-    furi_pubsub_publish(instance->event_pubsub, &event);
-
+    notify_operation_detail(instance, item, &detail);
     js_app_installer_operation_start(operation);
-
-    FURI_LOG_D(
-        TAG,
-        "Operation %s %s (%lu) started",
-        js_app_installer_operation_get_name(item->type),
-        furi_string_get_cstr(item->app_id),
-        item->id);
 }
 
 static void handle_operation_progress(JsAppInstaller* instance) {
@@ -323,51 +361,7 @@ static void handle_operation_progress(JsAppInstaller* instance) {
     JsAppInstallerOperationDetail detail;
     get_current_work_operation_detail(current_work, &detail);
 
-    JsAppInstallerEvent event = {
-        .type = JsAppInstallerEventTypeOperationDetail,
-        .item_id = item->id,
-        .detail.value = detail,
-    };
-
-    furi_pubsub_publish(instance->event_pubsub, &event);
-
-    if(detail.has_progress) {
-        FURI_LOG_D(
-            TAG,
-            "Operation status: step: %s, progress: %hhu%% (%lu)",
-            detail.step,
-            detail.progress,
-            item->id);
-    } else {
-        FURI_LOG_D(TAG, "Operation status: step: %s (%lu)", detail.step, item->id);
-    }
-}
-
-static void notify_operation_finished(
-    JsAppInstaller* instance,
-    const JsAppInstallerQueueItem* item,
-    JsAppInstallerError error) {
-    furi_assert(error < JsAppInstallerErrorMax);
-
-    const uint32_t item_id = item->id;
-    const char* name = js_app_installer_operation_get_name(item->type);
-    const char* app_id = furi_string_get_cstr(item->app_id);
-
-    JsAppInstallerEvent event = {
-        .type = JsAppInstallerEventTypeOperationFinished,
-        .item_id = item_id,
-        .finished.error = error,
-    };
-
-    furi_pubsub_publish(instance->event_pubsub, &event);
-
-    if(error == JsAppInstallerErrorNone) {
-        FURI_LOG_D(TAG, "Operation %s %s (%lu) finished successfully", name, app_id, item_id);
-
-    } else {
-        FURI_LOG_E(
-            TAG, "Operation %s %s (%lu) finished with error 0x%X", name, app_id, item_id, error);
-    }
+    notify_operation_detail(instance, item, &detail);
 }
 
 static void handle_operation_finished(JsAppInstaller* instance) {
