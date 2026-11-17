@@ -5,6 +5,10 @@ import {
   VIDEO_SEEK_TIMEOUT_MS
 } from './videoLimits';
 
+// Grid times and summed frame durations drift apart in floating point (5/15*1000 < 5*(1000/15)).
+const FRAME_TIME_EPSILON_MS = 1e-6;
+const FRAME_COUNT_EPSILON = 1e-6;
+
 export type VideoFitMode = 'cover' | 'contain' | 'stretch';
 
 export interface VideoCropRect {
@@ -90,7 +94,7 @@ export function getFrameGrid (fps: number, startTime: number, endTime: number, m
   const safeFps = Math.max(1, Math.round(Number.isFinite(fps) ? fps : 1));
   const safeStart = Math.max(0, Number.isFinite(startTime) ? startTime : 0);
   const safeEnd = Math.max(safeStart, Number.isFinite(endTime) ? endTime : safeStart);
-  const frameCount = Math.max(1, Math.min(maxFrames, Math.floor((safeEnd - safeStart) * safeFps)));
+  const frameCount = Math.max(1, Math.min(maxFrames, Math.floor(((safeEnd - safeStart) * safeFps) + FRAME_COUNT_EPSILON)));
 
   return { fps: safeFps, startTime: safeStart, endTime: safeStart + frameCount / safeFps, frameCount };
 }
@@ -140,7 +144,7 @@ export function resampleTimedFrames (
   for (let index = 0; index < grid.frameCount; index++) {
     const timeMs = (grid.startTime + index / grid.fps) * 1000;
 
-    while (timeMs >= sourceEndMs && sourceIndex < frames.length - 1) {
+    while (timeMs + FRAME_TIME_EPSILON_MS >= sourceEndMs && sourceIndex < frames.length - 1) {
       sourceIndex += 1;
       sourceEndMs += Math.max(1, frames[sourceIndex].durationMs);
     }
