@@ -24,8 +24,10 @@
 #define FETCH_LOG_E(...)
 #endif
 
-#define HTTP_STATUS_NO_CONTENT   (204)
-#define HTTP_STATUS_NOT_MODIFIED (304)
+#define HTTP_STATUS_INFORMATIONAL_MIN (100)
+#define HTTP_STATUS_INFORMATIONAL_MAX (199)
+#define HTTP_STATUS_NO_CONTENT        (204)
+#define HTTP_STATUS_NOT_MODIFIED      (304)
 
 typedef enum {
     FetchTransferEncodingNone,
@@ -122,12 +124,18 @@ static bool fetch_is_bodyless_response(const struct mg_http_message* msg) {
     bool is_bodyless = false;
 
     const int status = mg_http_status(msg);
-    // RFC 9112 6.1
+    // RFC 9112 6.1 Responses with the following
+    // status codes are not expected to have a body
     if(status == HTTP_STATUS_NO_CONTENT || status == HTTP_STATUS_NOT_MODIFIED) {
         is_bodyless = true;
     }
 
     return is_bodyless;
+}
+
+static bool fetch_is_informational_response(const struct mg_http_message* msg) {
+    const int status = mg_http_status(msg);
+    return (status >= HTTP_STATUS_INFORMATIONAL_MIN) && (status <= HTTP_STATUS_INFORMATIONAL_MAX);
 }
 
 static FetchTransferEncoding fetch_get_transfer_encoding(const struct mg_http_message* msg) {
@@ -153,7 +161,8 @@ static bool fetch_setup_body_framing(Fetch* instance, const struct mg_http_messa
     const bool is_bodyless = fetch_is_bodyless_method(instance->request) ||
                              fetch_is_bodyless_response(msg);
     if(is_bodyless) {
-        // Status == 204 and Transfer-Encoding: chunked is a violation of the RFC, but we accept that
+        // RFC 9112 6.1 forbids sending Transfer-Encoding with status code 204.
+        // This implementation allows such responses for simplicity.
         fetch_set_total_download_size(instance, 0);
     } else {
         const FetchTransferEncoding transfer_encoding = fetch_get_transfer_encoding(msg);
@@ -178,6 +187,11 @@ static bool fetch_setup_body_framing(Fetch* instance, const struct mg_http_messa
     return success;
 }
 
+static void fetch_discard_response(struct mg_connection* conn) {
+    fetch_consume_rx_data(conn, conn->recv.len);
+    conn->is_draining = 1;
+}
+
 static void fetch_switch_to_raw_protocol(
     Fetch* instance,
     struct mg_connection* conn,
@@ -188,14 +202,8 @@ static void fetch_switch_to_raw_protocol(
     if(fetch_setup_body_framing(instance, msg)) {
         fetch_consume_rx_data(conn, msg->head.len);
     } else {
-        fetch_consume_rx_data(conn, conn->recv.len);
-        conn->is_draining = 1;
+        fetch_discard_response(conn);
     }
-
-    /* Mongoose will detach the protocol handler function automatically
-     * after the received data has been altered in the header callback.
-     * Here it is done preemptively for good measure. */
-    conn->pfn = NULL;
 }
 
 static bool fetch_init_connection(const FetchRequest* request, struct mg_connection* conn) {
@@ -282,11 +290,23 @@ static FURI_ALWAYS_INLINE void
     FETCH_LOG_I(TAG, "MG_EV_HTTP_HDRS: %.*s", msg->message.len, msg->message.buf);
     FETCH_LOG_I(TAG, "Path: %.*s", msg->uri.len, msg->uri.buf);
 
-    if(instance->header_callback) {
-        instance->header_callback(msg->head.buf, msg->head.len, instance->callback_context);
+    if(fetch_is_informational_response(msg)) {
+        // RFC 9110 15.2: Informational responses (1xx) are not supported
+        fetch_raise_error(instance, "Unsupported informational response");
+        fetch_discard_response(conn);
+
+    } else {
+        if(instance->header_callback) {
+            instance->header_callback(msg->head.buf, msg->head.len, instance->callback_context);
+        }
+
+        fetch_switch_to_raw_protocol(instance, conn, msg);
     }
 
-    fetch_switch_to_raw_protocol(instance, conn, msg);
+    /* Mongoose will detach the protocol handler function automatically
+     * after the received data has been altered in the header callback.
+     * Here it is done preemptively for good measure. */
+    conn->pfn = NULL;
 }
 
 static void fetch_on_data(SizedBufferConst data, void* context) {
