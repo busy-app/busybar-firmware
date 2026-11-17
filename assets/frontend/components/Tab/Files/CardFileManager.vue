@@ -4,7 +4,7 @@
     class="relative overflow-visible"
     @mouseup="stopSelection"
   >
-    <div class="w-full grid grid-cols-[32px_1fr_auto] gap-2 items-center pr-1">
+    <div class="grid w-full grid-cols-[32px_1fr_auto] items-center gap-2 pr-1">
       <div>
         <UTooltip
           :delay-duration="0"
@@ -22,7 +22,7 @@
         </UTooltip>
       </div>
 
-      <div class="flex-1 min-w-0 relative">
+      <div class="relative min-w-0 flex-1">
         <UInput
           ref="filesInputMenu"
           v-model="inputMenuModel"
@@ -40,13 +40,13 @@
           <div
             v-if="inputMenuModel.length > 0 && inputMenuItems.length > 0"
             class="fim-focus-visible
-              w-full absolute top-8 flex flex-col gap-0.5 p-1.5
-              rounded-md text-sm bg-default ring ring-inset ring-accented z-30"
+              absolute top-8 z-30 flex w-full flex-col gap-0.5
+              rounded-md bg-default p-1.5 text-sm ring ring-accented ring-inset"
           >
             <div
               v-for="(item, index) in inputMenuItems"
               :key="item.path"
-              class="flex items-center gap-1.5 p-1.5 px-2 rounded-md cursor-pointer hover:bg-elevated/50"
+              class="flex cursor-pointer items-center gap-1.5 rounded-md p-1.5 px-2 hover:bg-elevated/50"
               :class="highlightedItemIndex === index ? 'bg-elevated/85' : ''"
               @mousedown="inputMenuList(item)"
             >
@@ -82,9 +82,9 @@
           </template>
         </UInput>
 
-        <div class="absolute text-sm top-1.5 left-9">
+        <div class="absolute top-1.5 left-9 text-sm">
           <span>/</span><span
-            class="cursor-pointer hover:underline mr-[0.5px]"
+            class="mr-[0.5px] cursor-pointer hover:underline"
             @click="list('/ext')"
           >ext</span>
           <template
@@ -146,7 +146,7 @@
 
     <div
       ref="fileListContainer"
-      class="w-full flex flex-col"
+      class="flex w-full flex-col"
     >
       <UContextMenu
         v-for="(item, index) in currentDir"
@@ -154,7 +154,7 @@
         :items="getContextMenuItems(item)"
       >
         <div
-          class="fm-item relative min-h-10 grid grid-cols-[1fr_auto] items-center py-1 px-2 gap-2 rounded break-all select-none"
+          class="fm-item relative grid min-h-10 grid-cols-[1fr_auto] items-center gap-2 rounded px-2 py-1 break-all select-none"
           :class="[
             item.type === 'dir' ? 'cursor-pointer' : '',
             getItemClass(item, index)
@@ -164,9 +164,7 @@
           @mousedown="onMouseDown(item, index, $event)"
           @mouseenter="onMouseEnter(index)"
         >
-          <div
-            class="grid grid-cols-[24px_1fr] gap-4 items-center"
-          >
+          <div class="grid grid-cols-[24px_1fr] items-center gap-4">
             <UIcon
               class="size-5"
               :name="item.type === 'dir' ? 'i-bi-folder' : 'i-bi-file'"
@@ -183,8 +181,8 @@
 
           <div
             v-if="dropTargetDir === item.name && item.type === 'dir'"
-            class="absolute inset-0 z-10 flex items-center justify-center gap-2 px-2
-              rounded-md border-2 border-dashed border-accented bg-elevated text-sm pointer-events-none"
+            class="pointer-events-none absolute inset-0 z-10 flex items-center justify-center gap-2
+              rounded-md border-2 border-dashed border-accented bg-elevated px-2 text-sm"
           >
             <UIcon
               class="size-4 shrink-0"
@@ -205,15 +203,15 @@
       <div
         v-if="isDragging && isDragOverCard && !showUploadModal && !dropTargetDir"
         data-id="files-drop-overlay"
-        class="absolute inset-0 z-40 flex flex-col items-center justify-center gap-3
-          rounded-3xl border-2 border-dashed border-accented bg-default/75 pointer-events-none"
+        class="pointer-events-none absolute inset-0 z-40 flex flex-col items-center justify-center
+          gap-3 rounded-3xl border-2 border-dashed border-accented bg-default/75"
       >
         <UIcon
           class="size-10"
           name="i-bi-upload"
         />
         <p class="text-xl">Drop files to upload</p>
-        <p class="text-muted break-all px-4 text-center">to {{ currentPath }}</p>
+        <p class="px-4 text-center break-all text-muted">to {{ currentPath }}</p>
       </div>
 
       <ModalGeneric
@@ -298,7 +296,7 @@
             <template #files-top="{ files }">
               <div
                 v-if="files?.length"
-                class="w-full my-2 flex items-center justify-between"
+                class="my-2 flex w-full items-center justify-between"
               >
                 <p class="font-bold">Files ({{ files?.length }})</p>
 
@@ -315,15 +313,15 @@
             </template>
 
             <template #files>
-              <div class="max-h-[175px] flex flex-col gap-1.5 overflow-y-auto">
+              <div class="flex max-h-[175px] flex-col gap-1.5 overflow-y-auto">
                 <div
                   v-for="(file, index) in filesModel"
                   :key="index"
-                  class="min-h-8 flex justify-between gap-2 items-center p-2 rounded"
+                  class="flex min-h-8 items-center justify-between gap-2 rounded p-2"
                 >
                   <div class="flex items-center gap-2">
                     <UIcon
-                      class="size-5 mx-1"
+                      class="mx-1 size-5"
                       name="i-bi-file"
                     />
                     <div>{{ getUploadPath(file) }}</div>
@@ -355,7 +353,7 @@
                       class="flex items-center gap-2 text-sm text-red-500"
                     >
                       <UIcon
-                        class="size-4 relative top-[1px]"
+                        class="relative top-px size-4"
                         name="i-bi-alert"
                       />
                       Failed
@@ -470,7 +468,7 @@ const isDragOverCard = ref(false);
 const dropTargetDir = ref<string | null>(null);
 const uploadDirectory = ref<string | null>(null);
 
-const fileListContainer = ref<HTMLElement | null>(null);
+const fileListContainer = useTemplateRef<HTMLElement>('fileListContainer');
 
 const showUploadModal = ref(false);
 const filesModel = ref<File[] | null>(null);

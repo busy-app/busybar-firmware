@@ -14,7 +14,7 @@
     <template #actions>
       <UButton
         variant="link"
-        class="p-0 gap-0.5 font-normal whitespace-nowrap"
+        class="gap-0.5 p-0 font-normal whitespace-nowrap"
         :href="appConfig.links.homeAssistantDocs"
         target="_blank"
       >
@@ -35,23 +35,23 @@
           v-for="token in accessTokensStore.tokens"
           :key="token.short_id"
           :data-id="`home-assistant-token-${token.short_id}`"
-          class="flex flex-col gap-1 rounded-group [&>*:first-child]:rounded-b-sm! [&>*:last-child]:rounded-t-sm!"
+          class="rounded-group flex flex-col gap-1 [&>*:first-child]:rounded-b-sm! [&>*:last-child]:rounded-t-sm!"
         >
-          <div class="bg-accented/25 dark:bg-elevated/75 p-4 flex items-center gap-6">
-            <div class="grow min-w-0 flex flex-col gap-1">
+          <div class="flex items-center gap-6 bg-accented/25 p-4 dark:bg-elevated/75">
+            <div class="flex min-w-0 grow flex-col gap-1">
               <p class="truncate">{{ token.name }}</p>
-              <p class="text-sm text-muted truncate">{{ token.display_id }}</p>
+              <p class="truncate text-sm text-muted">{{ token.display_id }}</p>
             </div>
             <UButton
               icon="i-bi-trash-fill"
               label="Delete token"
               variant="soft"
               color="neutral"
-              class="rounded-full shrink-0 bg-accented/50 text-toned"
+              class="shrink-0 rounded-full bg-accented/50 text-toned"
               @click="() => { tokenToDelete = token; }"
             />
           </div>
-          <div class="bg-accented/25 dark:bg-elevated/75 p-4">
+          <div class="bg-accented/25 p-4 dark:bg-elevated/75">
             <ContentList
               :items="[
                 [{ title: 'Date created', value: token.created_at ? formatDateDMY(Number(token.created_at)) : undefined }],

@@ -16,7 +16,7 @@
         v-model="file"
         data-id="modal-uploader-app-file-upload"
         accept=".tgz"
-        class="h-[396px] w-full"
+        class="h-99 w-full"
         label="Add app file (.tgz)"
         description="Drag and drop to upload"
         :ui="{

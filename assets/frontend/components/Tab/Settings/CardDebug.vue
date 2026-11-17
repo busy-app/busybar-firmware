@@ -1,7 +1,7 @@
 <template>
   <div
     data-id="settings-section-debug"
-    class="w-full flex flex-col md:flex-row items-start md:items-center justify-between p-6 ring-1 ring-glass rounded-3xl bg-elevated/50 gap-6 md:gap-3"
+    class="flex w-full flex-col items-start justify-between gap-6 rounded-3xl bg-elevated/50 p-6 ring-1 ring-glass md:flex-row md:items-center md:gap-3"
   >
     <div class="flex items-start gap-2.5">
       <UIcon
@@ -22,7 +22,7 @@
       </div>
     </div>
 
-    <div class="w-full md:w-fit flex flex-col md:flex-row items-stretch md:items-end gap-2">
+    <div class="flex w-full flex-col items-stretch gap-2 md:w-fit md:flex-row md:items-end">
       <UButton
         data-id="settings-section-debug-download-button"
         class="justify-center"

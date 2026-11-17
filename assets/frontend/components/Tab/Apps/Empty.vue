@@ -14,7 +14,7 @@
           class="max-w-full rounded-xl bg-[#171717] dark:bg-transparent"
         >
 
-        <div class="flex max-w-[336px] flex-col gap-2 text-center">
+        <div class="flex max-w-84 flex-col gap-2 text-center">
           <div
             data-id="apps-section-empty-title"
             class="text-xl font-medium text-highlighted"

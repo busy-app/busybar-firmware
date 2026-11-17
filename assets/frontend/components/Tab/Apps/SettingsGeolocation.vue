@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col gap-1 rounded-group">
+  <div class="rounded-group flex flex-col gap-1">
     <div
       class="flex flex-col gap-4 bg-accented/25 p-4 dark:bg-[var(--ui-surface-card)]"
       :class="manual ? 'rounded-[12px_12px_4px_4px]!' : 'rounded-[12px]'"

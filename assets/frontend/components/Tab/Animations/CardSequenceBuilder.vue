@@ -1,6 +1,6 @@
 <template>
   <SectionCard data-id="animations-section-primary">
-    <div class="w-full flex flex-col gap-4">
+    <div class="flex w-full flex-col gap-4">
       <UFileUpload
         v-model="filesModel"
         multiple
@@ -31,7 +31,7 @@
         <template #files-top="{ files }">
           <div
             v-if="files?.length"
-            class="w-full my-2 flex items-center justify-between"
+            class="my-2 flex w-full items-center justify-between"
           >
             <p class="font-bold">Files ({{ files?.length }})</p>
 
@@ -65,7 +65,7 @@
         </p>
       </div>
 
-      <div class="w-full flex flex-wrap items-end justify-between gap-4">
+      <div class="flex w-full flex-wrap items-end justify-between gap-4">
         <div class="flex flex-wrap gap-4">
           <UFormField label="FPS">
             <UInput

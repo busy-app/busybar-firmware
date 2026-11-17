@@ -459,9 +459,9 @@ export const useFirmwareStore = defineStore('firmware', () => {
   watch(
     () => [autoUpdate.value.stage, fileUpdate.value.stage],
     ([autoStage, fileStage], [prevAutoStage, prevFileStage]) => {
-      const justSucceeded
-        = (autoStage === UpdateStage.SUCCESS && prevAutoStage !== UpdateStage.SUCCESS)
-          || (fileStage === UpdateStage.SUCCESS && prevFileStage !== UpdateStage.SUCCESS);
+      const justSucceeded =
+        (autoStage === UpdateStage.SUCCESS && prevAutoStage !== UpdateStage.SUCCESS)
+        || (fileStage === UpdateStage.SUCCESS && prevFileStage !== UpdateStage.SUCCESS);
 
       if (justSucceeded) {
         completeSuccessfulUpdate();

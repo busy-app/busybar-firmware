@@ -32,7 +32,7 @@
       </UTooltip>
     </template>
 
-    <div class="flex justify-between items-center">
+    <div class="flex items-center justify-between">
       <div class="flex flex-col gap-1">
         <span>Auto-update</span>
         <span class="text-sm text-muted">Updates will be downloaded and installed automatically during the night</span>
