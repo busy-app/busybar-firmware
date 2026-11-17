@@ -60,6 +60,10 @@ struct Fetch {
 static void fetch_on_data(SizedBufferConst data, void* context);
 static void fetch_on_data_error(void* context);
 
+static bool fetch_is_expecting_headers(const struct mg_connection* conn) {
+    return conn->pfn != NULL;
+}
+
 static uint32_t fetch_calc_download_speed(size_t size_delta, uint32_t start_timestamp_ticks) {
     const uint32_t delta_ticks = furi_get_tick() - start_timestamp_ticks + 1;
     const float delta_s = (float)delta_ticks / furi_kernel_get_tick_frequency();
@@ -313,8 +317,8 @@ static bool fetch_process_packet(Fetch* instance, SizedBufferConst packet) {
 static FURI_ALWAYS_INLINE void fetch_read_event(Fetch* instance, struct mg_connection* conn) {
     FETCH_LOG_I(TAG, "MG_EV_READ");
 
-    if(conn->pfn) {
-        // Ignore read events if the protocol handler function is still set
+    if(fetch_is_expecting_headers(conn)) {
+        // Ignore read events before having processed the headers
         return;
     }
 
@@ -360,10 +364,12 @@ static FURI_ALWAYS_INLINE void fetch_read_event(Fetch* instance, struct mg_conne
 static FURI_ALWAYS_INLINE void fetch_close_event(Fetch* instance, struct mg_connection* conn) {
     FETCH_LOG_I(TAG, "MG_EV_CLOSE");
 
-    /* Mongoose closes the connection upon receiving a malformed
-     * response header without emitting the MG_EV_ERROR event. */
-    if((conn->pfn != NULL) && !instance->is_error_occurred && !instance->is_stop_requested) {
-        fetch_raise_error(instance, "Invalid or missing response header");
+    if(fetch_is_expecting_headers(conn)) {
+        /* Mongoose closes the connection upon receiving a malformed
+        * response header without emitting the MG_EV_ERROR event. */
+        if(!instance->is_error_occurred && !instance->is_stop_requested) {
+            fetch_raise_error(instance, "Invalid or missing response header");
+        }
     }
 
     instance->progress.speed_bytes_per_sec = fetch_calc_download_speed(
