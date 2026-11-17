@@ -764,6 +764,14 @@ schemas:
         $ref: "#/components/schemas/AppVersion"
     required:
       - type
+    if:
+      properties:
+        type:
+          const: install
+    then:
+      required:
+        - url
+
 
   AppQueueRequestItem:
     type: object
