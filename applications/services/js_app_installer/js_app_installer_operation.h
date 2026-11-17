@@ -42,4 +42,4 @@ void js_app_installer_operation_start(JsAppInstallerOperation* instance);
 
 void js_app_installer_operation_cancel(JsAppInstallerOperation* instance);
 
-const char* js_app_installer_operation_get_name(const JsAppInstallerOperation* instance);
+const char* js_app_installer_operation_get_name(JsAppInstallerOperationType type);

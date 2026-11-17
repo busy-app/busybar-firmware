@@ -192,10 +192,10 @@ void js_app_installer_operation_notify(
     }
 }
 
-const char* js_app_installer_operation_get_name(const JsAppInstallerOperation* instance) {
-    furi_check(instance);
+const char* js_app_installer_operation_get_name(JsAppInstallerOperationType type) {
+    furi_check(type < JsAppInstallerOperationTypeMax);
 
-    const JsAppInstallerOperationInterface* interface = instance->interface;
+    const JsAppInstallerOperationInterface* interface = js_app_installer_operations[type];
     furi_assert(interface);
     return interface->name;
 }

@@ -310,7 +310,7 @@ static void run_next_operation(JsAppInstaller* instance) {
     FURI_LOG_D(
         TAG,
         "Operation %s %s (%lu) started",
-        js_app_installer_operation_get_name(operation),
+        js_app_installer_operation_get_name(item->type),
         furi_string_get_cstr(item->app_id),
         item->id);
 }
@@ -343,20 +343,15 @@ static void handle_operation_progress(JsAppInstaller* instance) {
     }
 }
 
-static void handle_operation_finished(JsAppInstaller* instance) {
-    JsAppInstallerCurrentWork* current_work = &instance->current_work;
-    JsAppInstallerQueueItem* current_item = current_work->item;
-    furi_assert(current_item != NULL);
-
-    JsAppInstallerOperation* current_operation = current_work->operation;
-    furi_assert(current_operation != NULL);
-
-    const JsAppInstallerError error = current_work->error;
+static void notify_operation_finished(
+    JsAppInstaller* instance,
+    const JsAppInstallerQueueItem* item,
+    JsAppInstallerError error) {
     furi_assert(error < JsAppInstallerErrorMax);
 
-    const uint32_t item_id = current_item->id;
-    const char* name = js_app_installer_operation_get_name(current_operation);
-    const char* app_id = furi_string_get_cstr(current_item->app_id);
+    const uint32_t item_id = item->id;
+    const char* name = js_app_installer_operation_get_name(item->type);
+    const char* app_id = furi_string_get_cstr(item->app_id);
 
     JsAppInstallerEvent event = {
         .type = JsAppInstallerEventTypeOperationFinished,
@@ -373,6 +368,17 @@ static void handle_operation_finished(JsAppInstaller* instance) {
         FURI_LOG_E(
             TAG, "Operation %s %s (%lu) finished with error 0x%X", name, app_id, item_id, error);
     }
+}
+
+static void handle_operation_finished(JsAppInstaller* instance) {
+    JsAppInstallerCurrentWork* current_work = &instance->current_work;
+    JsAppInstallerQueueItem* current_item = current_work->item;
+    furi_assert(current_item != NULL);
+
+    JsAppInstallerOperation* current_operation = current_work->operation;
+    furi_assert(current_operation != NULL);
+
+    notify_operation_finished(instance, current_item, current_work->error);
 
     js_app_installer_queue_item_free(current_item);
     js_app_installer_operation_free(current_operation);
@@ -498,6 +504,7 @@ static bool cancel_pending_operation(JsAppInstaller* instance, uint32_t item_id)
         const JsAppInstallerQueueItem* item = JsAppInstallerOperationQueue_cref(it);
 
         if(item->id == item_id) {
+            notify_operation_finished(instance, item, JsAppInstallerErrorCancelled);
             JsAppInstallerOperationQueue_remove(instance->pending_queue, it);
             is_found = true;
             break;
@@ -505,6 +512,19 @@ static bool cancel_pending_operation(JsAppInstaller* instance, uint32_t item_id)
     }
 
     return is_found;
+}
+
+static void cancel_all_pending_operations(JsAppInstaller* instance) {
+    JsAppInstallerOperationQueue_it_t it;
+
+    for(JsAppInstallerOperationQueue_it(it, instance->pending_queue);
+        !JsAppInstallerOperationQueue_end_p(it);
+        JsAppInstallerOperationQueue_next(it)) {
+        const JsAppInstallerQueueItem* item = JsAppInstallerOperationQueue_cref(it);
+        notify_operation_finished(instance, item, JsAppInstallerErrorCancelled);
+    }
+
+    JsAppInstallerOperationQueue_reset(instance->pending_queue);
 }
 
 static JsAppInstallerError handle_cancel(JsAppInstaller* instance, JsAppInstallerMsg* message) {
@@ -516,7 +536,7 @@ static JsAppInstallerError handle_cancel(JsAppInstaller* instance, JsAppInstalle
 
     if(msg->is_clear_all) {
         cancel_current_operation(instance);
-        JsAppInstallerOperationQueue_reset(instance->pending_queue);
+        cancel_all_pending_operations(instance);
 
     } else if(
         !cancel_current_operation_with_id(instance, msg->item_id) &&
