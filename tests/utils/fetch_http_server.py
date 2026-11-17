@@ -70,6 +70,7 @@ class FetchHTTP11Response:
     expected_error: str | None = None
     keep_open: bool = False
     packet_interval_s: float = 0
+    status: int = 200
 
 
 def _encode_chunks(chunks):
@@ -203,6 +204,21 @@ HTTP11_HEADER_ERROR_RESPONSES = {
         headers=(("Transfer-Encoding", "chunked"), ("Content-Length", "1")),
     ),
 }
+HTTP11_INFORMATIONAL_RESPONSES = {
+    f"informational-{status}-{mode}": FetchHTTP11Response(
+        packets=(
+            (b"HTTP/1.1 200 OK\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",)
+            if mode == "followed-by-200"
+            else ()
+        ),
+        headers=(),
+        expected_error="Unsupported informational response",
+        keep_open=mode == "keep-alive",
+        status=status,
+    )
+    for status in (100, 101, 102, 103, 199)
+    for mode in ("close", "keep-alive", "followed-by-200")
+}
 HTTP11_ERROR_RESPONSES.update(
     {
         name: FetchHTTP11Response(
@@ -298,6 +314,7 @@ class FetchRequestHandler(http.server.BaseHTTPRequestHandler):
                 **HTTP11_SUCCESS_RESPONSES,
                 **HTTP11_ERROR_RESPONSES,
                 **HTTP11_HEADER_ERROR_RESPONSES,
+                **HTTP11_INFORMATIONAL_RESPONSES,
             }[name]
             self._send_http11_response(response)
         elif request_path == "/known.bin":
@@ -409,10 +426,15 @@ class FetchRequestHandler(http.server.BaseHTTPRequestHandler):
         else:
             self._send_payload(404, NOT_FOUND_PAYLOAD)
 
-    def _send_http11_response(self, response, status=200):
+    def _send_http11_response(self, response, status=None):
+        status = response.status if status is None else status
+        try:
+            reason = HTTPStatus(status).phrase
+        except ValueError:
+            reason = "Unassigned"
         connection = "keep-alive" if response.keep_open else "close"
         headers = (
-            f"HTTP/1.1 {status} {HTTPStatus(status).phrase}\r\n"
+            f"HTTP/1.1 {status} {reason}\r\n"
             "Content-Type: application/octet-stream\r\n"
             f"Connection: {connection}\r\n"
         )

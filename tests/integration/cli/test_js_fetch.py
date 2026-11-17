@@ -18,6 +18,7 @@ from utils.fetch_http_server import (
     HTTP11_ERROR_RESPONSES,
     HTTP11_HEADER_ERROR_RESPONSES,
     HTTP11_INCOMPLETE_TRAILER_CASES,
+    HTTP11_INFORMATIONAL_RESPONSES,
     HTTP11_SUCCESS_RESPONSES,
     NON_BMP_UNICODE_TEXT,
     NOT_FOUND_PAYLOAD,
@@ -1557,6 +1558,50 @@ class TestJSFetch:
                 assert captured["version"] == "HTTP/1.1", f"captured={captured!r}"
                 assert captured["path"] == expected_path, f"captured={captured!r}"
                 assert_js_fetch_header(captured)
+
+    @allure.title("JavaScript fetch rejects a 1xx response: {case_name}, {method}.")
+    @pytest.mark.parametrize("case_name", HTTP11_INFORMATIONAL_RESPONSES)
+    @pytest.mark.parametrize("method", ["GET", "HEAD"])
+    def test_http11_informational_response(
+        self, js_case_runner, http_server, case_name, method
+    ):
+        case = HTTP11_INFORMATIONAL_RESPONSES[case_name]
+        path = f"/http11/{case_name}"
+        url = json.dumps(http_server.url(path))
+        recovery_url = json.dumps(http_server.url("/http11/simple"))
+        body = build_promise_rejection_check(
+            f"fetch({url}, {{method: {json.dumps(method)}}})",
+            expected_message=case.expected_error,
+        )
+        body += dedent(
+            f"""
+
+                const recovery = await fetch({recovery_url});
+                assert(recovery.status === 200, "recovery status=" + recovery.status);
+                const text = await recovery.text();
+                assert(text === "hello", "recovery body=" + text);
+            """
+        )
+        output = js_case_runner(
+            "http11_informational", body, timeout=FETCH_HTTP11_TIMEOUT_S
+        )
+        with allure.step("Verify the rejected request and successful recovery"):
+            for expected_method, expected_path in (
+                (method, path),
+                ("GET", "/http11/simple"),
+            ):
+                captured = captured_request(http_server, output, expected_path)
+                assert captured["version"] == "HTTP/1.1", f"captured={captured!r}"
+                assert captured["method"] == expected_method, f"captured={captured!r}"
+                assert captured["path"] == expected_path, f"captured={captured!r}"
+                assert_js_fetch_header(captured)
+        if case.keep_open:
+            with allure.step("Verify Fetch closed the keep-alive connection"):
+                try:
+                    closed_path = http_server.closed_requests.get(timeout=1)
+                except queue.Empty:
+                    pytest.fail(f"Rejected connection remains open; output={output!r}")
+                assert closed_path == path, f"Closed {closed_path!r}, expected {path!r}"
 
     @allure.title("JavaScript fetch completes a bodyless HTTP/1.1 response.")
     @pytest.mark.parametrize(

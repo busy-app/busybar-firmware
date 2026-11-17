@@ -11,6 +11,7 @@ from utils.fetch_http_server import (
     HTTP11_ERROR_RESPONSES,
     HTTP11_HEADER_ERROR_RESPONSES,
     HTTP11_INCOMPLETE_TRAILER_CASES,
+    HTTP11_INFORMATIONAL_RESPONSES,
     HTTP11_SUCCESS_RESPONSES,
     KNOWN_PAYLOAD,
     NOT_FOUND_PAYLOAD,
@@ -402,6 +403,48 @@ class TestCLIFetch:
                 "Storage error: file/dir not exist" in stat
             ), f"Partial file remains: {stat!r}; Fetch output={response!r}"
         with allure.step("Download again after the failed transfer"):
+            recovery = cli.execute_command(
+                f"fetch {http_server.url('/http11/simple')} -o {destination}",
+                timeout=FETCH_HTTP11_TIMEOUT_S,
+                slow_command=True,
+            )
+            assert "Error:" not in recovery, recovery
+        self._assert_http11_request(http_server, "/http11/simple", recovery)
+        self._assert_saved_payload(cli, destination, b"hello")
+
+    @allure.title("CLI. Fetch rejects a 1xx response: {case_name}, {method}.")
+    @pytest.mark.parametrize("case_name", HTTP11_INFORMATIONAL_RESPONSES)
+    @pytest.mark.parametrize("method", ["GET", "HEAD"])
+    def test_fetch_http11_informational_response(
+        self, persistent_cli_connection, http_server, storage_dir, case_name, method
+    ):
+        cli = persistent_cli_connection
+        case = HTTP11_INFORMATIONAL_RESPONSES[case_name]
+        path = f"/http11/{case_name}"
+        destination = f"{storage_dir}/informational.bin"
+        response = cli.execute_command(
+            f"fetch -X {method} {http_server.url(path)} -o {destination}",
+            timeout=FETCH_HTTP11_TIMEOUT_S,
+            slow_command=True,
+        )
+        with allure.step("Verify the informational status was explicitly rejected"):
+            assert f"Error: {case.expected_error}" in response, response
+        self._assert_http11_request(http_server, path, response, method)
+        with allure.step("Verify the rejected download left no output file"):
+            stat = cli.execute_command(f"storage stat {destination}")
+            assert (
+                "Storage error: file/dir not exist" in stat
+            ), f"Rejected file remains: {stat!r}; Fetch output={response!r}"
+        if case.keep_open:
+            with allure.step("Verify Fetch closed the keep-alive connection"):
+                try:
+                    closed_path = http_server.closed_requests.get(timeout=1)
+                except queue.Empty:
+                    pytest.fail(
+                        f"Rejected connection remains open; output={response!r}"
+                    )
+                assert closed_path == path, f"Closed {closed_path!r}, expected {path!r}"
+        with allure.step("Verify a subsequent HTTP 200 download succeeds"):
             recovery = cli.execute_command(
                 f"fetch {http_server.url('/http11/simple')} -o {destination}",
                 timeout=FETCH_HTTP11_TIMEOUT_S,
