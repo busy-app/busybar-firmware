@@ -1,5 +1,0 @@
-<<<<<<<< HEAD:assets/frontend-build/public/_nuxt/ProseA-fe81eb1.js
-import{p as o,o as n,w as s,q as p,e as f}from"./entry-fe81eb1.js";const u={__name:"ProseA",props:{href:{type:String,default:""},target:{type:String,default:void 0,required:!1}},setup(e){const t=e;return(r,_)=>{const a=f;return n(),o(a,{href:t.href,target:t.target},{default:s(()=>[p(r.$slots,"default")]),_:3},8,["href","target"])}}};export{u as default};
-========
-import{p as o,o as n,w as s,q as p,e as f}from"./entry-e56d8ac.js";const u={__name:"ProseA",props:{href:{type:String,default:""},target:{type:String,default:void 0,required:!1}},setup(e){const t=e;return(r,_)=>{const a=f;return n(),o(a,{href:t.href,target:t.target},{default:s(()=>[p(r.$slots,"default")]),_:3},8,["href","target"])}}};export{u as default};
->>>>>>>> origin/nzinin/geolocation-settings-format:assets/frontend-build/public/_nuxt/ProseA-e56d8ac.js
