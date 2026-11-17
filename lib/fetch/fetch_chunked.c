@@ -4,42 +4,38 @@
 #include <stdint.h>
 #include <furi/core/core_defines.h>
 #include <furi/core/check.h>
-#include <furi/core/log.h>
 
-#define TAG "chunked"
+typedef enum {
+    FetchChunkedStateSizeHead,
+    FetchChunkedStateSizeTail,
+    FetchChunkedStateExt,
+    FetchChunkedStateSizeLf,
+    FetchChunkedStateChunk,
+    FetchChunkedStateChunkCr,
+    FetchChunkedStateChunkLf,
+    FetchChunkedStateTrailer,
+    FetchChunkedStateError,
+    FetchChunkedStateMax,
+} FetchChunkedState;
 
-typedef enum State {
-    StateSizeHead,
-    StateSizeTail,
-    StateExt,
-    StateSizeLf,
-    StateChunk,
-    StateChunkCr,
-    StateChunkLf,
-    StateTrailer,
-    StateError,
+struct FetchChunked {
+    FetchChunkedDataCallback data_callback;
+    FetchChunkedErrorCallback error_callback;
+    void* callback_context;
 
-    StateMax,
-} State;
-
-typedef struct FetchChunked {
-    FetchChunkedDataCallback data_cb;
-    FetchChunkedErrorCallback error_cb;
-    void* callback_ctx;
-
-    State state;
+    FetchChunkedState state;
     uint64_t chunk_size;
-} FetchChunked;
+};
 
 FetchChunked* fetch_chunked_alloc(
-    FetchChunkedDataCallback data_cb,
-    FetchChunkedErrorCallback error_cb,
-    void* callback_ctx) {
+    FetchChunkedDataCallback data_callback,
+    FetchChunkedErrorCallback error_callback,
+    void* callback_context) {
     FetchChunked* instance = malloc(sizeof(FetchChunked));
-    instance->data_cb = data_cb;
-    instance->error_cb = error_cb;
-    instance->callback_ctx = callback_ctx;
-    instance->state = StateSizeHead;
+    instance->data_callback = data_callback;
+    instance->error_callback = error_callback;
+    instance->callback_context = callback_context;
+    instance->state = FetchChunkedStateSizeHead;
     return instance;
 }
 
@@ -59,14 +55,14 @@ static int fetch_chunked_hex_to_int(char c) {
     } else if(c >= 'a' && c <= 'f') {
         return c - 'a' + 10;
     } else {
-        furi_assert(!"not a hex digit");
+        furi_crash("not a hex digit");
         return 0;
     }
 }
 
 static void fetch_chunked_raise_error(FetchChunked* instance) {
-    instance->state = StateError;
-    instance->error_cb(instance->callback_ctx);
+    instance->state = FetchChunkedStateError;
+    instance->error_callback(instance->callback_context);
 }
 
 typedef size_t (*FetchChunkedParseStateHandler)(FetchChunked* instance, SizedBufferConst packet);
@@ -76,7 +72,7 @@ static size_t
     char c = *(char*)packet.buffer;
     if(fetch_chunked_is_hex_digit(c)) {
         instance->chunk_size = fetch_chunked_hex_to_int(c);
-        instance->state = StateSizeTail;
+        instance->state = FetchChunkedStateSizeTail;
         return 1;
     } else {
         fetch_chunked_raise_error(instance);
@@ -96,10 +92,10 @@ static size_t
             instance->chunk_size = instance->chunk_size * 16 + digit;
         }
     } else if(c == '\r') {
-        instance->state = StateSizeLf;
+        instance->state = FetchChunkedStateSizeLf;
     } else {
         // Relaxed condition for extension, not checking for a semicolon
-        instance->state = StateExt;
+        instance->state = FetchChunkedStateExt;
     }
     return 1;
 }
@@ -107,7 +103,7 @@ static size_t
 static size_t fetch_chunked_handle_state_ext(FetchChunked* instance, SizedBufferConst packet) {
     char c = *(char*)packet.buffer;
     if(c == '\r') {
-        instance->state = StateSizeLf;
+        instance->state = FetchChunkedStateSizeLf;
     }
     return 1;
 }
@@ -116,9 +112,9 @@ static size_t fetch_chunked_handle_state_size_lf(FetchChunked* instance, SizedBu
     char c = *(char*)packet.buffer;
     if(c == '\n') {
         if(instance->chunk_size == 0) {
-            instance->state = StateTrailer;
+            instance->state = FetchChunkedStateTrailer;
         } else {
-            instance->state = StateChunk;
+            instance->state = FetchChunkedStateChunk;
         }
         return 1;
     } else {
@@ -129,11 +125,12 @@ static size_t fetch_chunked_handle_state_size_lf(FetchChunked* instance, SizedBu
 
 static size_t fetch_chunked_handle_state_chunk(FetchChunked* instance, SizedBufferConst packet) {
     size_t processed = MIN(instance->chunk_size, packet.size);
-    instance->data_cb(
-        (SizedBufferConst){.buffer = packet.buffer, .size = processed}, instance->callback_ctx);
+    instance->data_callback(
+        (SizedBufferConst){.buffer = packet.buffer, .size = processed},
+        instance->callback_context);
     instance->chunk_size -= processed;
     if(instance->chunk_size == 0) {
-        instance->state = StateChunkCr;
+        instance->state = FetchChunkedStateChunkCr;
     }
     return processed;
 }
@@ -142,7 +139,7 @@ static size_t
     fetch_chunked_handle_state_chunk_cr(FetchChunked* instance, SizedBufferConst packet) {
     char c = *(char*)packet.buffer;
     if(c == '\r') {
-        instance->state = StateChunkLf;
+        instance->state = FetchChunkedStateChunkLf;
         return 1;
     } else {
         fetch_chunked_raise_error(instance);
@@ -154,7 +151,7 @@ static size_t
     fetch_chunked_handle_state_chunk_lf(FetchChunked* instance, SizedBufferConst packet) {
     char c = *(char*)packet.buffer;
     if(c == '\n') {
-        instance->state = StateSizeHead;
+        instance->state = FetchChunkedStateSizeHead;
         return 1;
     } else {
         fetch_chunked_raise_error(instance);
@@ -173,18 +170,18 @@ static size_t fetch_chunked_handle_state_error(FetchChunked* instance, SizedBuff
 }
 
 static const FetchChunkedParseStateHandler fetch_chunked_parse_state_handlers[] = {
-    [StateSizeHead] = fetch_chunked_handle_state_size_head,
-    [StateSizeTail] = fetch_chunked_handle_state_size_tail,
-    [StateExt] = fetch_chunked_handle_state_ext,
-    [StateSizeLf] = fetch_chunked_handle_state_size_lf,
-    [StateChunk] = fetch_chunked_handle_state_chunk,
-    [StateChunkCr] = fetch_chunked_handle_state_chunk_cr,
-    [StateChunkLf] = fetch_chunked_handle_state_chunk_lf,
-    [StateTrailer] = fetch_chunked_handle_state_trailer,
-    [StateError] = fetch_chunked_handle_state_error,
+    [FetchChunkedStateSizeHead] = fetch_chunked_handle_state_size_head,
+    [FetchChunkedStateSizeTail] = fetch_chunked_handle_state_size_tail,
+    [FetchChunkedStateExt] = fetch_chunked_handle_state_ext,
+    [FetchChunkedStateSizeLf] = fetch_chunked_handle_state_size_lf,
+    [FetchChunkedStateChunk] = fetch_chunked_handle_state_chunk,
+    [FetchChunkedStateChunkCr] = fetch_chunked_handle_state_chunk_cr,
+    [FetchChunkedStateChunkLf] = fetch_chunked_handle_state_chunk_lf,
+    [FetchChunkedStateTrailer] = fetch_chunked_handle_state_trailer,
+    [FetchChunkedStateError] = fetch_chunked_handle_state_error,
 };
 
-static_assert(COUNT_OF(fetch_chunked_parse_state_handlers) == StateMax);
+static_assert(COUNT_OF(fetch_chunked_parse_state_handlers) == FetchChunkedStateMax);
 
 bool fetch_chunked_process(FetchChunked* instance, SizedBufferConst packet) {
     size_t remaining = packet.size;
@@ -197,9 +194,9 @@ bool fetch_chunked_process(FetchChunked* instance, SizedBufferConst packet) {
         buffer += processed;
     }
 
-    return instance->state >= StateTrailer;
+    return instance->state >= FetchChunkedStateTrailer;
 }
 
 bool fetch_chunked_is_complete(FetchChunked* instance) {
-    return instance->state == StateTrailer;
+    return instance->state == FetchChunkedStateTrailer;
 }

@@ -15,8 +15,8 @@ typedef void (*FetchChunkedDataCallback)(SizedBufferConst data, void* context);
 typedef void (*FetchChunkedErrorCallback)(void* context);
 
 FetchChunked* fetch_chunked_alloc(
-    FetchChunkedDataCallback data_cb,
-    FetchChunkedErrorCallback error_cb,
+    FetchChunkedDataCallback data_callback,
+    FetchChunkedErrorCallback error_callback,
     void* callback_ctx);
 
 void fetch_chunked_free(FetchChunked* instance);
