@@ -183,6 +183,20 @@ HTTP11_ERROR_RESPONSES.update(
     }
 )
 
+HTTP11_ERROR_RESPONSES.update(
+    {
+        name: FetchHTTP11Response(
+            (b"5\r\nhello\r\n0\r\n\r\n",),
+            headers=(("Transfer-Encoding", encoding),),
+            expected_error="Unsupported Transfer-Encoding",
+        )
+        for name, encoding in (
+            ("unsupported-encoding", "gzip, chunked"),
+            ("unknown-encoding", "identity"),
+        )
+    }
+)
+
 HTTP11_HEADER_ERROR_RESPONSES = {
     "conflicting-framing": FetchHTTP11Response(
         (b"5\r\nhello\r\n0\r\n\r\n",),

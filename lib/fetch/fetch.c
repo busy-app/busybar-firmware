@@ -24,9 +24,14 @@
 #define FETCH_LOG_E(...)
 #endif
 
-// =====
-// Types
-// =====
+#define HTTP_STATUS_NO_CONTENT   (204)
+#define HTTP_STATUS_NOT_MODIFIED (304)
+
+typedef enum {
+    FetchTransferEncodingNone,
+    FetchTransferEncodingChunked,
+    FetchTransferEncodingUnsupported,
+} FetchTransferEncoding;
 
 struct Fetch {
     struct mg_mgr mgr;
@@ -52,19 +57,11 @@ struct Fetch {
     _Atomic bool is_stop_requested;
 };
 
-// ============================
-// Stateless internal functions
-// ============================
-
 static uint32_t fetch_calc_download_speed(size_t size_delta, uint32_t start_timestamp_ticks) {
     const uint32_t delta_ticks = furi_get_tick() - start_timestamp_ticks + 1;
     const float delta_s = (float)delta_ticks / furi_kernel_get_tick_frequency();
     return size_delta / delta_s;
 }
-
-// ===========================
-// Stateful internal functions
-// ===========================
 
 static bool fetch_is_rx_complete(const Fetch* instance) {
     bool is_complete = false;
@@ -90,49 +87,6 @@ static void fetch_consume_rx_data(struct mg_connection* conn, size_t length) {
 static void fetch_on_data(SizedBufferConst data, void* context);
 static void fetch_on_data_error(void* context);
 
-static void fetch_switch_to_raw_protocol(
-    Fetch* instance,
-    struct mg_connection* conn,
-    const struct mg_http_message* msg) {
-    const bool is_head = instance->request->method &&
-                         strcmp(instance->request->method, "HEAD") == 0;
-    const bool is_bodyless = is_head || mg_http_status(msg) == 304 ||
-                             mg_http_status(msg) == 204; // RFC 9112 6.1
-
-    const int32_t content_length = (int32_t)msg->body.len;
-    FETCH_LOG_I(TAG, "is_bodyless: %d", is_bodyless);
-    FETCH_LOG_I(TAG, "body size: %ld", content_length);
-
-    struct mg_str* transfer_encoding =
-        mg_http_get_header((struct mg_http_message*)msg, "transfer-encoding");
-    const bool is_chunked = transfer_encoding &&
-                            mg_strcasecmp(*transfer_encoding, mg_str("chunked")) == 0;
-    // status == 204 and transfer-encoding: chunked is a violation of the RFC, but we accept that
-    if(!is_bodyless) {
-        if(is_chunked) {
-            furi_assert(instance->chunked == NULL);
-            instance->chunked = fetch_chunked_alloc(fetch_on_data, fetch_on_data_error, instance);
-            FETCH_LOG_I(TAG, "chunked");
-        } else if(content_length != -1) {
-            FetchProgress* progress = &instance->progress;
-            progress->total_download_size = content_length;
-            progress->has_total_download_size = true;
-        }
-    } else {
-        FetchProgress* progress = &instance->progress;
-        progress->total_download_size = 0;
-        progress->has_total_download_size = true;
-    }
-    instance->started_raw_ticks = furi_get_tick();
-    instance->started_download_ticks = instance->started_raw_ticks;
-
-    fetch_consume_rx_data(conn, msg->head.len);
-    /* Mongoose will detach the protocol handler function automatically
-     * after the received data has been altered in the header callback.
-     * Here it is done preemptively for good measure. */
-    conn->pfn = NULL;
-}
-
 static void fetch_raise_error(Fetch* instance, const char* error_message) {
     FETCH_LOG_E(TAG, "Error: %s", error_message);
 
@@ -141,6 +95,103 @@ static void fetch_raise_error(Fetch* instance, const char* error_message) {
     }
 
     instance->is_error_occurred = true;
+}
+
+static void fetch_set_total_download_size(Fetch* instance, size_t size) {
+    FetchProgress* progress = &instance->progress;
+    progress->total_download_size = size;
+    progress->has_total_download_size = true;
+}
+
+static bool fetch_is_bodyless_method(const FetchRequest* request) {
+    bool is_bodyless = false;
+
+    const char* method = request->method;
+    if((method != NULL) && (strcmp(method, "HEAD") == 0)) {
+        is_bodyless = true;
+    }
+
+    return is_bodyless;
+}
+
+static bool fetch_is_bodyless_response(const struct mg_http_message* msg) {
+    bool is_bodyless = false;
+
+    const int status = mg_http_status(msg);
+    // RFC 9112 6.1
+    if(status == HTTP_STATUS_NO_CONTENT || status == HTTP_STATUS_NOT_MODIFIED) {
+        is_bodyless = true;
+    }
+
+    return is_bodyless;
+}
+
+static FetchTransferEncoding fetch_get_transfer_encoding(const struct mg_http_message* msg) {
+    FetchTransferEncoding encoding = FetchTransferEncodingNone;
+
+    const struct mg_str* transfer_encoding =
+        mg_http_get_header((struct mg_http_message*)msg, "transfer-encoding");
+
+    if(transfer_encoding != NULL) {
+        if(mg_strcasecmp(*transfer_encoding, mg_str("chunked")) == 0) {
+            encoding = FetchTransferEncodingChunked;
+        } else {
+            encoding = FetchTransferEncodingUnsupported;
+        }
+    }
+
+    return encoding;
+}
+
+static bool fetch_setup_body_framing(Fetch* instance, const struct mg_http_message* msg) {
+    bool success = true;
+
+    const bool is_bodyless = fetch_is_bodyless_method(instance->request) ||
+                             fetch_is_bodyless_response(msg);
+    if(is_bodyless) {
+        // Status == 204 and Transfer-Encoding: chunked is a violation of the RFC, but we accept that
+        fetch_set_total_download_size(instance, 0);
+    } else {
+        const FetchTransferEncoding transfer_encoding = fetch_get_transfer_encoding(msg);
+
+        if(transfer_encoding == FetchTransferEncodingNone) {
+            const int32_t content_length = msg->body.len;
+            if(content_length != -1) {
+                fetch_set_total_download_size(instance, content_length);
+            }
+
+        } else if(transfer_encoding == FetchTransferEncodingChunked) {
+            furi_assert(instance->chunked == NULL);
+            instance->chunked = fetch_chunked_alloc(fetch_on_data, fetch_on_data_error, instance);
+            FETCH_LOG_I(TAG, "chunked");
+
+        } else {
+            fetch_raise_error(instance, "Unsupported Transfer-Encoding");
+            success = false;
+        }
+    }
+
+    return success;
+}
+
+static void fetch_switch_to_raw_protocol(
+    Fetch* instance,
+    struct mg_connection* conn,
+    const struct mg_http_message* msg) {
+    instance->started_raw_ticks = furi_get_tick();
+    instance->started_download_ticks = instance->started_raw_ticks;
+
+    if(fetch_setup_body_framing(instance, msg)) {
+        fetch_consume_rx_data(conn, msg->head.len);
+    } else {
+        fetch_consume_rx_data(conn, conn->recv.len);
+        conn->is_draining = 1;
+    }
+
+    /* Mongoose will detach the protocol handler function automatically
+     * after the received data has been altered in the header callback.
+     * Here it is done preemptively for good measure. */
+    conn->pfn = NULL;
 }
 
 static bool fetch_init_connection(const FetchRequest* request, struct mg_connection* conn) {
@@ -271,6 +322,11 @@ static FURI_ALWAYS_INLINE void fetch_read_event(Fetch* instance, struct mg_conne
     const size_t recv_len = recv->len;
 
     FETCH_LOG_I(TAG, "Received %zu bytes", recv_len);
+
+    if(instance->is_error_occurred) {
+        fetch_consume_rx_data(conn, recv_len);
+        return;
+    }
 
     bool is_complete = fetch_process_packet(
         instance,
