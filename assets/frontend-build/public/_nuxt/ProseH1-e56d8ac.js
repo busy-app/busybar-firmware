@@ -1,0 +1,5 @@
+<<<<<<<< HEAD:assets/frontend-build/public/_nuxt/ProseH1-fe81eb1.js
+import{ax as i,f as d,c as t,o as n,q as r,g as f}from"./entry-fe81eb1.js";const p=["id"],u=["href"],k={__name:"ProseH1",props:{id:{type:String,required:!1}},setup(a){const o=a,{headings:e}=i().public.mdc,c=d(()=>o.id&&(typeof e?.anchorLinks=="boolean"&&e?.anchorLinks===!0||typeof e?.anchorLinks=="object"&&e?.anchorLinks?.h1));return(s,h)=>(n(),t("h1",{id:o.id},[f(c)?(n(),t("a",{key:0,href:`#${o.id}`},[r(s.$slots,"default")],8,u)):r(s.$slots,"default",{key:1})],8,p))}};export{k as default};
+========
+import{ax as i,f as d,c as t,o as n,q as r,g as f}from"./entry-e56d8ac.js";const p=["id"],u=["href"],k={__name:"ProseH1",props:{id:{type:String,required:!1}},setup(a){const o=a,{headings:e}=i().public.mdc,c=d(()=>o.id&&(typeof e?.anchorLinks=="boolean"&&e?.anchorLinks===!0||typeof e?.anchorLinks=="object"&&e?.anchorLinks?.h1));return(s,h)=>(n(),t("h1",{id:o.id},[f(c)?(n(),t("a",{key:0,href:`#${o.id}`},[r(s.$slots,"default")],8,u)):r(s.$slots,"default",{key:1})],8,p))}};export{k as default};
+>>>>>>>> origin/nzinin/geolocation-settings-format:assets/frontend-build/public/_nuxt/ProseH1-e56d8ac.js
