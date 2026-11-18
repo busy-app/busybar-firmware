@@ -14,6 +14,7 @@ extern "C" {
 #define TEST_FUNCTION_DECLS
 #include "test_test/test_test.h"
 #include "misc_test/path_test.h"
+#include "http_test/http_test.h"
 #include "rle_test/rle_test.h"
 #include "pipe_test/pipe_test.h"
 #include "json_helper_test/json_helper_test.h"
@@ -32,7 +33,6 @@ extern "C" {
 #include "argparse_test/argparse_test.h"
 #include "js_test/js_test.h"
 #include "xpm_test/xpm_test.h"
-#include "http_test/http_test.h"
 #include "url_test/url_test.h"
 #include "js_app_settings_test/js_app_settings_test.h"
 #include "semver_test/semver_test.h"
@@ -44,6 +44,7 @@ static TestCallback unit_test_callbacks[] = {
 #define TEST_FUNCTION_REFS
 #include "test_test/test_test.h"
 #include "misc_test/path_test.h"
+#include "http_test/http_test.h"
 #include "rle_test/rle_test.h"
 #include "pipe_test/pipe_test.h"
 #include "json_helper_test/json_helper_test.h"
@@ -62,7 +63,6 @@ static TestCallback unit_test_callbacks[] = {
 #include "argparse_test/argparse_test.h"
 #include "js_test/js_test.h"
 #include "xpm_test/xpm_test.h"
-#include "http_test/http_test.h"
 #include "url_test/url_test.h"
 #include "js_app_settings_test/js_app_settings_test.h"
 #include "semver_test/semver_test.h"

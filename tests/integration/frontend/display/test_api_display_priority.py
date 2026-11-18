@@ -29,6 +29,10 @@ TestDrawBusyTimerTransitions
     Verifies the full priority lifecycle:
       active → draw-blocked → pause/stop → draw-still-blocked
 
+TestDeleteDisplayPriority
+    Named DELETE requests return 409 during active / paused BUSY and CUSTOM
+    timers. Unconditional clear succeeds; stopping the timer allows named clear.
+
 TestDrawDisplayLifecycle
     Draw + clear + redraw sequences; multiple concurrent app_ids.
 """
@@ -41,7 +45,8 @@ import allure
 import pytest
 import requests
 
-from clients.api import StreamingAPI
+from clients.api import BusyAPI, StreamingAPI
+from clients.api.busy import BusySnapshotData
 from clients.api.assets import (
     AssetsAPI,
     LOADER_MAX_PRIORITY,
@@ -551,6 +556,116 @@ class TestDrawBusyTimerTransitions:
             )
             resp = _simple_draw(assets_api, priority=DEFAULT_ELEMENT_PRIORITY)
             assets_api.assert_status(resp, 409)
+
+
+@allure.epic("Focus Sessions")
+@allure.feature("Priority rules")
+@allure.story("Display Priority – DELETE During Timer")
+@pytest.mark.api
+@pytest.mark.frontend
+@pytest.mark.parametrize("timer_slot", ["busy", "custom"])
+@pytest.mark.parametrize("is_paused", [False, True], ids=["active", "paused"])
+class TestDeleteDisplayPriority:
+    @pytest.fixture
+    def blocking_timer(
+        self,
+        timer_slot: str,
+        is_paused: bool,
+        busy_api: BusyAPI,
+        api_session,
+        web_base_url: str,
+        busy_timer_stopped,
+    ):
+        profile = busy_api.get_profile(timer_slot)
+        snapshot = BusySnapshotData(
+            type="INFINITE",
+            card_id=profile.id,
+            is_paused=False,
+            busy_bar_settings=profile.busy_bar_settings,
+        )
+        # Activate before pausing so the timer scene has subscribed (FW-832).
+        pause_states = [False, True] if is_paused else [False]
+        for paused in pause_states:
+            snapshot.is_paused = paused
+            busy_api.set_snapshot(
+                {
+                    "snapshot": snapshot.model_dump(exclude_none=True),
+                    "snapshot_timestamp_ms": next_timestamp(api_session, web_base_url),
+                }
+            )
+            wait_for_snapshot_type(api_session, web_base_url, "INFINITE")
+
+        actual = busy_api.get_snapshot().snapshot
+        assert actual.get("type") == "INFINITE", f"Unexpected timer snapshot: {actual}"
+        assert (
+            actual.get("card_id") == profile.id
+        ), f"Unexpected timer profile: {actual}"
+        assert actual.get("is_paused") is is_paused, f"Unexpected pause state: {actual}"
+        return actual
+
+    @allure.title("DELETE by application returns 409 while a timer holds the display")
+    @pytest.mark.parametrize("app_name_in_body", [False, True], ids=["query", "body"])
+    @pytest.mark.parametrize("element_ids", [None, ["e1"]], ids=["all", "selected"])
+    def test_timer_blocks_application_delete(
+        self,
+        assets_api: AssetsAPI,
+        busy_api: BusyAPI,
+        blocking_timer: dict,
+        app_name_in_body: bool,
+        element_ids: list[str] | None,
+    ):
+        body = {} if element_ids is None else {"element_ids": element_ids}
+        if app_name_in_body:
+            body["application_name"] = _APP_ID
+
+        with allure.step("Attempt deletion for a named application"):
+            if app_name_in_body or element_ids is not None:
+                response = assets_api.clear_display_raw(
+                    body, app_name=None if app_name_in_body else _APP_ID
+                )
+            else:
+                response = assets_api.clear_display_by_app(_APP_ID)
+
+        with allure.step("Verify the priority conflict and unchanged timer"):
+            assets_api.assert_status(response, 409)
+            expected = {"error": "not cleared due to low priority"}
+            assert response.json() == expected, f"Unexpected error: {response.text}"
+            actual = busy_api.get_snapshot().snapshot
+            assert actual == blocking_timer, f"Timer changed after DELETE: {actual}"
+
+    @allure.title("DELETE without application_name succeeds while a timer runs")
+    def test_timer_allows_unconditional_delete(
+        self, assets_api: AssetsAPI, busy_api: BusyAPI, blocking_timer: dict
+    ):
+        with allure.step("Clear without an application ownership check"):
+            response = assets_api.clear_display()
+            assert response.result, f"Expected a successful clear, got {response}"
+
+        with allure.step("Verify the timer remains unchanged"):
+            actual = busy_api.get_snapshot().snapshot
+            assert actual == blocking_timer, f"Timer changed after DELETE: {actual}"
+
+    @allure.title("Stopping the timer allows application DELETE and redraw")
+    def test_stopped_timer_allows_application_delete(
+        self,
+        assets_api: AssetsAPI,
+        api_session,
+        web_base_url: str,
+        busy_state_guard: dict,
+        blocking_timer: dict,
+    ):
+        with allure.step("Stop the blocking timer"):
+            _set_busy_snapshot(
+                api_session, web_base_url, busy_state_guard, "NOT_STARTED"
+            )
+
+        with allure.step("Delete for an application with an empty canvas"):
+            response = assets_api.clear_display_by_app(_APP_ID)
+            assets_api.assert_status(response, 200)
+
+        with allure.step("Draw again at the default priority"):
+            response = _simple_draw(assets_api, priority=DEFAULT_ELEMENT_PRIORITY)
+            assets_api.assert_status(response, 200)
 
 
 @allure.epic("Focus Sessions")
