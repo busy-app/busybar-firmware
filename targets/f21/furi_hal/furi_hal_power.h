@@ -11,10 +11,7 @@
 extern "C" {
 #endif
 
-/**
- * @brief Super-early initialization of power HAL
- */
-void furi_hal_power_init_super_early(void);
+void furi_hal_power_init(void);
 
 void furi_hal_power_reset(void);
 
@@ -75,22 +72,6 @@ void furi_hal_power_sleep_wakeup_gpio(const GpioPin* wakeup_pin, GpioMode wakeup
  * processor core starts executing code at the reset vector.
  */
 FURI_NORETURN void furi_hal_power_deep_sleep(void);
-
-typedef enum {
-    FuriHalPowerResetSourceUnknown, //<! Couldn't determine reset source
-    FuriHalPowerResetSourcePowerOn, //<! Power-on reset
-    FuriHalPowerResetSourceResetLine, //<! Reset via RESET line or NVIC
-    FuriHalPowerResetSourceWakeup, //<! Wake up from deep sleep
-} FuriHalPowerResetSource;
-
-/**
- * @brief Gets the reset source
- * 
- * See @c FuriHalPowerResetSource for description
- * 
- * @returns reset source during this power cycle
- */
-FuriHalPowerResetSource furi_hal_power_get_reset_source(void);
 
 #ifdef __cplusplus
 }

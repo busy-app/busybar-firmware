@@ -11,30 +11,6 @@
 #include <sli_si91x_power_manager.h>
 #include <sli_si91x_clock_manager.h>
 
-typedef struct {
-    volatile FuriHalPowerResetSource reset_source;
-} FuriHalPower;
-
-FuriHalPower furi_hal_power;
-
-#define MCU_FIRST_POWERUP_RESET_N BIT(17)
-#define MCU_FIRST_POWERUP_POR     BIT(16)
-#define WAKEUP_STATUS_INDICATION  BIT(0)
-
-static FuriHalPowerResetSource furi_hal_power_parse_reset_source(void) {
-    const uint32_t status_reg = MCU_FSM->GPIO_WAKEUP_REGISTER;
-
-    if(status_reg & MCU_FIRST_POWERUP_POR) return FuriHalPowerResetSourcePowerOn;
-    if(status_reg & MCU_FIRST_POWERUP_RESET_N) return FuriHalPowerResetSourceResetLine;
-    if(status_reg & WAKEUP_STATUS_INDICATION) return FuriHalPowerResetSourceWakeup;
-
-    return FuriHalPowerResetSourceUnknown;
-}
-
-void furi_hal_power_init_super_early(void) {
-    furi_hal_power.reset_source = furi_hal_power_parse_reset_source();
-}
-
 void furi_hal_power_reset(void) {
     furi_hal_cortex_system_reset();
 }
@@ -128,8 +104,4 @@ void furi_hal_power_deep_sleep(void) {
 
     furi_crash("failed to enter sleep");
     FURI_CRITICAL_EXIT();
-}
-
-FuriHalPowerResetSource furi_hal_power_get_reset_source(void) {
-    return furi_hal_power.reset_source;
 }

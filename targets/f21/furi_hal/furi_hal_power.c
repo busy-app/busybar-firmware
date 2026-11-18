@@ -11,7 +11,7 @@ static volatile FuriHalPower furi_hal_power = {
     .insomnia = 0,
 };
 
-void furi_hal_power_init_super_early(void) {
+void furi_hal_power_init(void) {
     volatile uint32_t* const status_register = &PWR->WUSR;
     volatile uint32_t* const status_clear_register = &PWR->WUSCR;
     *status_clear_register |= *status_register;
@@ -160,9 +160,4 @@ void furi_hal_power_deep_sleep(void) {
 
     furi_crash("failed to enter deep sleep");
     FURI_CRITICAL_EXIT();
-}
-
-FuriHalPowerResetSource furi_hal_power_get_reset_source(void) {
-    // Datasheet says WUSR is not set correctly after exiting Standby
-    return FuriHalPowerResetSourceUnknown;
 }
