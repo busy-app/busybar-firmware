@@ -46,6 +46,7 @@ FuriHalSerialControl* furi_hal_serial_control = NULL;
 static void furi_hal_serial_control_log_callback(const uint8_t* data, size_t size, void* context) {
     FuriHalSerialHandle* handle = context;
     furi_hal_serial_tx(handle, data, size, FuriWaitForever);
+    furi_check(furi_hal_serial_tx_wait_complete(handle, FuriWaitForever));
 }
 
 static void furi_hal_serial_control_log_set_handle(FuriHalSerialHandle* handle) {

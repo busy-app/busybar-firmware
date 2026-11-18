@@ -132,6 +132,7 @@ sources = [
     f"{SDK_CMSIS_COMMON_DIR}/platform/common/src/sli_cmsis_os2_ext_task_register.c",
     f"{SDK_PLATFORM_CORE_DIR}/platform/common/src/sl_core_cortexm.c",
     f"{SDK_PLATFORM_COMMON_DIR}/platform/common/src/sl_string.c",
+    f"{SDK_PLATFORM_COMMON_DIR}/platform/common/src/sl_slist.c",
     f"{SDK_PLATFORM_CORE_DIR}/platform/service/mem_pool/src/sl_mem_pool.c",
     f"{SDK_PLATFORM_CORE_DIR}/platform/emdrv/nvm3/src/nvm3_default_common_linker.c",
     f"{SDK_PLATFORM_CORE_DIR}/platform/emdrv/nvm3/src/nvm3.c",
