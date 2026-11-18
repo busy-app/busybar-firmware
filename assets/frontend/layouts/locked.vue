@@ -1,17 +1,17 @@
 <template>
   <div
     data-id="layout-locked"
-    class="min-h-screen px-4 sm:px-6 py-4"
+    class="min-h-screen p-4 sm:px-6"
   >
     <UContainer>
       <div
         v-if="!initialLoading"
-        class="w-full max-w-[328px] mx-auto"
+        class="mx-auto w-full max-w-82"
       >
         <slot />
       </div>
       <template v-else>
-        <div class="w-screen h-screen absolute top-0 left-0 flex items-center justify-center">
+        <div class="absolute top-0 left-0 flex h-screen w-screen items-center justify-center">
           <UIcon
             name="i-busy-loader"
             class="size-12 animate-spin text-muted"

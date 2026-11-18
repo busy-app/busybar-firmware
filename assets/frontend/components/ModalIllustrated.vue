@@ -21,9 +21,7 @@
     </template>
 
     <template #body>
-      <div
-        class="flex flex-col p-5 gap-6"
-      >
+      <div class="flex flex-col gap-6 p-5">
         <img :src="colorMode.value === 'dark' ? props.images?.dark : props.images?.light">
 
         <div class="flex flex-col gap-5">

@@ -44,8 +44,8 @@ export function useCropGesture (options: CropGestureOptions) {
     const bounds = container.getBoundingClientRect();
     const freeWidth = (1 - rect.width) * bounds.width;
     const freeHeight = (1 - rect.height) * bounds.height;
-    const nextOffsetX = freeWidth > 0 ? drag.startOffsetX + (event.clientX - drag.startX) / freeWidth : drag.startOffsetX;
-    const nextOffsetY = freeHeight > 0 ? drag.startOffsetY + (event.clientY - drag.startY) / freeHeight : drag.startOffsetY;
+    const nextOffsetX = freeWidth > 0 ? drag.startOffsetX + ((event.clientX - drag.startX) / freeWidth) : drag.startOffsetX;
+    const nextOffsetY = freeHeight > 0 ? drag.startOffsetY + ((event.clientY - drag.startY) / freeHeight) : drag.startOffsetY;
 
     options.crop.value = {
       ...options.crop.value,

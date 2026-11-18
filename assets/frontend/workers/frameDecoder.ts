@@ -5,9 +5,9 @@ import { VIDEO_SOURCE_MAX_FRAME_PIXELS, VIDEO_SOURCE_MAX_FRAMES } from '../util/
 
 type GifImageFrame = Parameters<typeof decompressFrame>[0];
 
-type DecodeRequest
-  = | { id: number; type: 'anim'; buffer: ArrayBuffer; maxFrames?: number }
-    | { id: number; type: 'image'; buffer: ArrayBuffer; mime: string };
+type DecodeRequest =
+  | { id: number; type: 'anim'; buffer: ArrayBuffer; maxFrames?: number }
+  | { id: number; type: 'image'; buffer: ArrayBuffer; mime: string };
 
 type DecodedFrameMessage = {
   width: number;
@@ -16,9 +16,9 @@ type DecodedFrameMessage = {
   buffer: ArrayBuffer;
 };
 
-type DecodeResponse
-  = | { id: number; ok: true; width: number; height: number; fps?: number; frames: DecodedFrameMessage[] }
-    | { id: number; ok: false; error: string };
+type DecodeResponse =
+  | { id: number; ok: true; width: number; height: number; fps?: number; frames: DecodedFrameMessage[] }
+  | { id: number; ok: false; error: string };
 
 const DEFAULT_FRAME_DURATION_MS = 100;
 const GIF_DISPOSAL_RESTORE_BACKGROUND = 2;

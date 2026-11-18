@@ -3,7 +3,7 @@
 
   <img
     src="~/assets/images/locked-bar.png"
-    class="w-[328px] mb-4 mt-2"
+    class="mt-2 mb-4 w-82"
   >
 
   <div>Enter your password to unlock</div>
@@ -43,7 +43,7 @@
       </UInput>
     </UFormField>
 
-    <div class="w-full flex flex-col items-center gap-2">
+    <div class="flex w-full flex-col items-center gap-2">
       <UButton
         data-id="page-login-unlock-button"
         type="submit"
@@ -82,7 +82,7 @@
   >
     <div class="flex items-center gap-1.5">
       Press
-      <div class="inline-flex p-2 rounded-full bg-elevated ring ring-inset ring-accented">
+      <div class="inline-flex rounded-full bg-elevated p-2 ring ring-accented ring-inset">
         <UIcon
           name="i-bi-user-fill"
           class="size-4"
@@ -92,12 +92,12 @@
         name="i-bi-arrow-right"
         class="size-5"
       />
-      <div class="inline-flex px-2 py-1 rounded-lg bg-elevated ring ring-inset ring-accented font-meduim">Manage password</div>
+      <div class="inline-flex rounded-lg bg-elevated px-2 py-1 font-medium ring ring-accented ring-inset">Manage password</div>
       <UIcon
         name="i-bi-arrow-right"
         class="size-5"
       />
-      <div class="inline-flex px-2 py-1 rounded-lg bg-elevated ring ring-inset ring-accented font-meduim">Change</div>
+      <div class="inline-flex rounded-lg bg-elevated px-2 py-1 font-medium ring ring-accented ring-inset">Change</div>
     </div>
   </ModalIllustrated>
 </template>
