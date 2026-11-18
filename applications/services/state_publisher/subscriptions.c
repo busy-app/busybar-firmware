@@ -526,33 +526,27 @@ static void js_app_installer_pubsub_callback(const void* message, void* context)
     const JsAppInstallerEventType event_type = event->type;
     furi_assert(event_type < JsAppInstallerEventTypeMax);
 
-    static const pb_size_t event_lookup[] = {
-        [JsAppInstallerEventTypeOperationDetail] = BSB_State_AppQueueOperationEvent_detail_tag,
-        [JsAppInstallerEventTypeOperationFinished] = BSB_State_AppQueueOperationEvent_result_tag,
-    };
-    static_assert(COUNT_OF(event_lookup) == JsAppInstallerEventTypeMax);
-
     BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
-    update->which_state = BSB_State_StateUpdate_app_queue_tag;
-
-    BSB_State_AppQueue* app_queue = &update->state.app_queue;
-    app_queue->which_event = BSB_State_AppQueue_operation_tag;
-
-    BSB_State_AppQueueOperationEvent* operation = &app_queue->event.operation;
-    operation->item_id = event->item_id;
-    operation->which_event = event_lookup[event_type];
 
     if(event_type == JsAppInstallerEventTypeOperationDetail) {
+        update->which_state = BSB_State_StateUpdate_app_queue_state_tag;
+
+        BSB_State_AppQueueState* pb_state = &update->state.app_queue_state;
+        pb_state->which_value = BSB_State_AppQueueState_detail_tag;
+
         const JsAppInstallerOperationDetail* detail = &event->detail.value;
-        BSB_State_AppQueueOperationDetail* pb_detail = &operation->event.detail;
+        BSB_State_AppQueueOperationDetail* pb_detail = &pb_state->value.detail;
 
         const size_t step_bufsize = sizeof(pb_detail->step);
         furi_check(strlcpy(pb_detail->step, detail->step, step_bufsize) < step_bufsize);
 
+        pb_detail->item_id = event->item_id;
         pb_detail->has_progress = detail->has_progress;
         pb_detail->progress = detail->progress;
 
     } else if(event_type == JsAppInstallerEventTypeOperationFinished) {
+        update->which_state = BSB_State_StateUpdate_app_queue_event_tag;
+
         static const BSB_State_AppQueueError error_lookup[] = {
             [JsAppInstallerErrorNone] = BSB_State_AppQueueError_OK,
             [JsAppInstallerErrorDownload] = BSB_State_AppQueueError_DOWNLOAD,
@@ -574,14 +568,21 @@ static void js_app_installer_pubsub_callback(const void* message, void* context)
         const JsAppInstallerError error = event->finished.error;
         furi_assert(error < JsAppInstallerErrorMax);
 
-        BSB_State_AppQueueOperationResult* pb_result = &operation->event.result;
+        BSB_State_AppQueueEvent* pb_event = &update->state.app_queue_event;
+        pb_event->which_value = BSB_State_AppQueueEvent_result_tag;
+
+        BSB_State_AppQueueOperationResult* pb_result = &pb_event->value.result;
+
+        pb_result->item_id = event->item_id;
         pb_result->error = error_lookup[error];
 
     } else {
         furi_crash("Invalid JsAppInstallerEventType value");
     }
 
-    state_publisher_schedule_state_update(instance, update, StreamFlagAll);
+    // Storing messages directly to preserve ordering
+    state_publisher_store_state_update(instance, update, StreamFlagAll);
+    state_publisher_schedule_state_update(instance, NULL, StreamFlagAll);
 }
 
 static BSB_State_StateUpdate* collect_time_settings(const TimeSettings* settings) {

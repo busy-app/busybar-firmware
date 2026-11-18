@@ -254,6 +254,7 @@ static bool is_sequential_update(const BSB_State_StateUpdate* update) {
     if(update) {
         switch(update->which_state) {
         case BSB_State_StateUpdate_input_tag:
+        case BSB_State_StateUpdate_app_queue_event_tag:
             return true;
         default:
             return false;
