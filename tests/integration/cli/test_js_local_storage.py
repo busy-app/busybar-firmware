@@ -10,12 +10,19 @@ import pytest
 pytestmark = [
     pytest.mark.cli,
     pytest.mark.usefixtures("js_local_storage_clean"),
+    pytest.mark.bsb_metadata(
+        suite="Integration",
+        level="Integration",
+        intent="Product",
+        interfaces=("CLI", "Device API"),
+        transports=("Telnet", "LAN REST"),
+    ),
 ]
 
 
-@allure.epic("BSB CLI Testing")
-@allure.feature("JavaScript localStorage API")
-@allure.story("JS Apps")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("JavaScript applications")
+@allure.story("JavaScript localStorage persistence")
 class TestJSLocalStorage:
     """Exercise localStorage through independent JS CLI processes."""
 

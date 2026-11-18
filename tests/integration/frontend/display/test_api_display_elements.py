@@ -25,6 +25,17 @@ from .display_helpers import (
 )
 
 
+pytestmark = [
+    pytest.mark.bsb_metadata(
+        suite="Contract",
+        level="Component",
+        intent="Product",
+        interfaces=("Device API",),
+        transports=("LAN REST",),
+    ),
+]
+
+
 _APP_NAME = "display_elements_test"
 _OTHER_APP_NAME = "display_elements_other"
 
@@ -124,7 +135,8 @@ def _assert_accepted_without_frame_change(
     assert not errors, "; ".join(errors)
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Display/assets/screen")
 @allure.story("Draw API – selective deletion")
 class TestSelectiveDisplayDeletion:
     @allure.title("DELETE with matching application_name clears the owned canvas")
@@ -697,7 +709,8 @@ class TestSelectiveDisplayDeletion:
             )
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Display/assets/screen")
 @allure.story("Draw API – z-index")
 class TestDisplayZIndex:
     @allure.title("Higher z_index is rendered on top regardless of payload order")

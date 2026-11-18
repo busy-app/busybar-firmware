@@ -31,6 +31,17 @@ from clients.api.streaming import (
     FRONT_DISPLAY_WIDTH,
 )
 
+
+pytestmark = [
+    pytest.mark.bsb_metadata(
+        suite="Integration",
+        level="Integration",
+        intent="Product",
+        interfaces=("Device API",),
+        transports=("LAN REST",),
+    ),
+]
+
 ASSETS_DIR = Path(__file__).resolve().parents[2] / "assets"
 
 # Set UPDATE_REFS=1 to capture new reference frames instead of comparing.
@@ -244,7 +255,8 @@ FORMAT_PARAMS = [
 ]
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Display/assets/screen")
 @allure.story("Display Screenshot")
 class TestDisplayScreenshot:
     """Screenshot comparison tests for display rendering."""
@@ -356,7 +368,8 @@ class TestDisplayScreenshot:
 # --- Alignment tests ---
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Display/assets/screen")
 @allure.story("Display Alignment")
 class TestDisplayAlignment:
     """Test text alignment anchor points on the front display."""
@@ -483,7 +496,8 @@ class TestDisplayAlignment:
 # --- Priority tests ---
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("Focus Sessions")
+@allure.feature("Priority rules")
 @allure.story("Display Priority")
 class TestDisplayPriority:
     """Test draw priority behavior on the front display."""

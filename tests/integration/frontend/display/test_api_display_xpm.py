@@ -34,6 +34,17 @@ from .display_helpers import (
     xpm_source,
 )
 
+
+pytestmark = [
+    pytest.mark.bsb_metadata(
+        suite="Contract",
+        level="Component",
+        intent="Product",
+        interfaces=("Device API",),
+        transports=("LAN REST",),
+    ),
+]
+
 _APP = "xpm_test_app"
 
 
@@ -42,7 +53,8 @@ def _draw(api: AssetsAPI, elements: list[dict]):
     return api.draw_response(_APP, elements, priority=DEFAULT_ELEMENT_PRIORITY)
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Display/assets/screen")
 @allure.story("Draw API – XPM Bitmap Element")
 class TestXpmBitmapElement:
     """XPM2 data is validated, decoded, and rendered as a raw canvas image."""

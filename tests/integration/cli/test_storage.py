@@ -12,16 +12,24 @@ import pytest
 
 from utils.cli_helpers import BLOB_PAYLOAD, TEXT_PAYLOAD, read_chunks
 
-pytestmark = pytest.mark.cli
+pytestmark = [
+    pytest.mark.cli,
+    pytest.mark.bsb_metadata(
+        suite="Component",
+        level="Component",
+        intent="Product",
+        interfaces=("CLI",),
+        transports=("Telnet",),
+    ),
+]
 
 
-@allure.epic("BSB CLI Testing")
-@allure.feature("6. CLI")
-@allure.story("Commands Check")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Firmware CLI")
+@allure.story("Storage inspection")
 class TestCLIStorageReadOnly:
     """Read-only storage subcommands on /ext (no filesystem mutations)."""
 
-    @allure.id("2044")
     @allure.title("CLI. Command Storage.")
     @pytest.mark.story_commands_check
     def test_cli_command_storage(self, persistent_cli_connection):
@@ -73,9 +81,9 @@ class TestCLIStorageReadOnly:
         )
 
 
-@allure.epic("BSB CLI Testing")
-@allure.feature("6. CLI")
-@allure.story("Commands Check")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Firmware CLI")
+@allure.story("Storage mutations")
 class TestCLIStorageMutating:
     """Reversible mutating operations on /ext (everything is cleaned up)."""
 

@@ -14,6 +14,17 @@ from utils.busy_timer import (
     wait_for_snapshot_type,
 )
 
+
+pytestmark = [
+    pytest.mark.bsb_metadata(
+        suite="Integration",
+        level="Integration",
+        intent="Product",
+        interfaces=("Device API",),
+        transports=("LAN REST",),
+    ),
+]
+
 BUSY_THEME_ANIMS = {
     "back_soon": "back_soon_72x16.anim",
     "booked": "booked_72x16.anim",
@@ -109,7 +120,8 @@ def _wait_for_front_frame_content(
     return last_frame
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("Focus Sessions")
+@allure.feature("Snapshot sync")
 @allure.story("Busy Timer")
 class TestBusySnapshotAPI:
     """Test cases for Busy Timer Snapshot API endpoints"""
@@ -187,7 +199,8 @@ class TestBusySnapshotAPI:
         assert response.status_code == 400
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("Focus Sessions")
+@allure.feature("Focus profiles and cards")
 @allure.story("Busy Timer")
 class TestBusyProfileAPI:
     """Test cases for Busy Timer Profile API endpoints"""
@@ -270,7 +283,8 @@ class TestBusyProfileAPI:
         assert response.status_code == 400
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("Focus Sessions")
+@allure.feature("Snapshot sync")
 @allure.story("Busy Timer")
 @pytest.mark.api
 @pytest.mark.frontend
@@ -328,7 +342,8 @@ class TestBusyThemeRegressions:
         assert _front_frame_has_content(frame)
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("Focus Sessions")
+@allure.feature("Snapshot sync")
 @allure.story("Busy Timer")
 @pytest.mark.api
 @pytest.mark.frontend

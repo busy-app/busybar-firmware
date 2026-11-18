@@ -13,6 +13,17 @@ from clients.api import SettingsAPI
 from zeroconf import IPVersion, ServiceBrowser, ServiceInfo, ServiceListener, Zeroconf
 
 
+pytestmark = [
+    pytest.mark.bsb_metadata(
+        suite="Integration",
+        level="Integration",
+        intent="Integration",
+        interfaces=("mDNS",),
+        transports=("mDNS",),
+    ),
+]
+
+
 _DISCOVERY_SERVICE_TYPE = "_http._tcp.local."
 _LOCAL_API_PORT = 80
 
@@ -94,7 +105,8 @@ def _discover(
         zeroconf.close()
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("Device Connectivity")
+@allure.feature("LAN REST transport")
 @allure.story("Local API discovery")
 @pytest.mark.frontend
 @pytest.mark.mdns

@@ -5,10 +5,22 @@ import allure
 import pytest
 
 
+pytestmark = [
+    pytest.mark.bsb_metadata(
+        suite="Integration",
+        level="Integration",
+        intent="Reliability",
+        interfaces=("Device API",),
+        transports=("LAN REST",),
+    ),
+]
+
+
 BSB_STATE_PUBLISHER_MAX_FRAMES_PER_WINDOW = 11
 BSB_STATE_PUBLISHER_WINDOW_S = 1
 
-@allure.feature("State Publisher")
+@allure.epic("Realtime & Sync")
+@allure.feature("State publisher")
 @allure.story("Rate limiter")
 @pytest.mark.api
 @pytest.mark.state_publisher

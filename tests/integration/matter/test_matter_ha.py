@@ -32,10 +32,19 @@ pytestmark = [
     pytest.mark.regression,
     pytest.mark.uses_si917,
     pytest.mark.external_service,
+    pytest.mark.bsb_metadata(
+        suite="Integration",
+        level="Integration",
+        intent="Integration",
+        interfaces=("Device API", "Matter"),
+        transports=("LAN REST", "Matter"),
+        hardware=("BusyBar", "Wi-Fi AP"),
+    ),
 ]
 
 
-@allure.feature("Matter")
+@allure.epic("Integrations")
+@allure.feature("Smart Home / Matter")
 @allure.story("Home Assistant integration")
 @allure.title("Device is commissioned into Home Assistant")
 @pytest.mark.timeout(240)
@@ -50,7 +59,8 @@ def test_commissioning(ha, matter_smart_home_api, commissioned_device):
         assert commissioned_device["switch_entity"].startswith(("light.", "switch."))
 
 
-@allure.feature("Matter")
+@allure.epic("Integrations")
+@allure.feature("Smart Home / Matter")
 @allure.story("Home Assistant integration")
 @allure.title("Home Assistant turns the device switch {param_id}")
 @pytest.mark.timeout(120)
@@ -69,7 +79,8 @@ def test_ha_sets_device_switch(ha, matter_smart_home_api, idle_lamp_off, state):
         assert_switch_state(ha, matter_smart_home_api, entity, state)
 
 
-@allure.feature("Matter")
+@allure.epic("Integrations")
+@allure.feature("Smart Home / Matter")
 @allure.story("Home Assistant integration")
 @allure.title("Smart-home timer controls the Home Assistant lamp")
 @pytest.mark.timeout(180)
@@ -89,7 +100,8 @@ def test_timer_with_smart_home_lights_lamp(
         assert_switch_state(ha, matter_smart_home_api, entity, False)
 
 
-@allure.feature("Matter")
+@allure.epic("Integrations")
+@allure.feature("Smart Home / Matter")
 @allure.story("Home Assistant integration")
 @allure.title(
     "Timer leaves the Home Assistant lamp off when smart-home control is disabled"
@@ -122,7 +134,8 @@ def test_timer_without_smart_home_keeps_lamp_off(
             time.sleep(0.5)
 
 
-@allure.feature("Matter")
+@allure.epic("Integrations")
+@allure.feature("Smart Home / Matter")
 @allure.story("Home Assistant integration")
 @allure.title("Pausing and resuming the timer toggles the Home Assistant lamp")
 @pytest.mark.timeout(180)
@@ -144,7 +157,8 @@ def test_timer_pause_toggles_lamp(ha, matter_smart_home_api, busy_api, idle_lamp
         assert_switch_state(ha, matter_smart_home_api, entity, True)
 
 
-@allure.feature("Matter")
+@allure.epic("Integrations")
+@allure.feature("Smart Home / Matter")
 @allure.story("Home Assistant integration")
 @allure.title("Work and rest intervals toggle the Home Assistant lamp")
 @pytest.mark.timeout(180)
@@ -163,7 +177,8 @@ def test_timer_rest_interval_turns_lamp_off(
         assert_switch_state(ha, matter_smart_home_api, entity, False)
 
 
-@allure.feature("Matter")
+@allure.epic("Integrations")
+@allure.feature("Smart Home / Matter")
 @allure.story("Home Assistant integration")
 @allure.title("Home Assistant lamp starts and stops the device timer")
 @pytest.mark.timeout(180)
@@ -192,7 +207,8 @@ def test_ha_lamp_starts_and_stops_timer(
         )
 
 
-@allure.feature("Matter")
+@allure.epic("Integrations")
+@allure.feature("Smart Home / Matter")
 @allure.story("Home Assistant integration")
 @allure.title("Device switch state is visible in Home Assistant as {param_id}")
 @pytest.mark.timeout(120)

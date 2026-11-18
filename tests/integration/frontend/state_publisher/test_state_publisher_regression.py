@@ -22,10 +22,21 @@ from utils.busy_timer import (
 )
 
 
-pytestmark = [pytest.mark.regression, pytest.mark.api]
+pytestmark = [
+    pytest.mark.regression,
+    pytest.mark.api,
+    pytest.mark.bsb_metadata(
+        suite="Integration",
+        level="Integration",
+        intent="Reliability",
+        interfaces=("Device API", "WebSocket"),
+        transports=("LAN REST", "WebSocket"),
+    ),
+]
 
 
-@allure.feature("State Publisher")
+@allure.epic("Realtime & Sync")
+@allure.feature("State publisher")
 @allure.story("Published events")
 @allure.title("Device name change publishes a StateUpdate")
 def test_device_name_change_publishes(state_publisher_ws, settings_api):
@@ -57,7 +68,8 @@ def test_device_name_change_publishes(state_publisher_ws, settings_api):
             pass
 
 
-@allure.feature("State Publisher")
+@allure.epic("Realtime & Sync")
+@allure.feature("State publisher")
 @allure.story("Published events")
 @allure.title("Audio volume change publishes a StateUpdate")
 def test_audio_volume_change_publishes(state_publisher_ws, settings_api):
@@ -92,7 +104,8 @@ def _brightness_mode_for(value: str) -> str:
     return "automatic" if value.lower() == "auto" else "manual"
 
 
-@allure.feature("State Publisher")
+@allure.epic("Realtime & Sync")
+@allure.feature("State publisher")
 @allure.story("Published events")
 @allure.title("Brightness change publishes a StateUpdate")
 def test_brightness_change_publishes(state_publisher_ws, settings_api):
@@ -129,7 +142,8 @@ def test_brightness_change_publishes(state_publisher_ws, settings_api):
             pass
 
 
-@allure.feature("State Publisher")
+@allure.epic("Realtime & Sync")
+@allure.feature("State publisher")
 @allure.story("Published events")
 @allure.title("Timezone change publishes a StateUpdate")
 def test_timezone_change_publishes(state_publisher_ws, system_api):
@@ -163,7 +177,8 @@ def test_timezone_change_publishes(state_publisher_ws, system_api):
             pass
 
 
-@allure.feature("State Publisher")
+@allure.epic("Realtime & Sync")
+@allure.feature("State publisher")
 @allure.story("Published events")
 @allure.title("BLE enable and disable transitions publish StateUpdates")
 def test_ble_enable_disable_publishes(state_publisher_ws, ble_api):
@@ -210,7 +225,8 @@ def test_ble_enable_disable_publishes(state_publisher_ws, ble_api):
             pass
 
 
-@allure.feature("State Publisher")
+@allure.epic("Realtime & Sync")
+@allure.feature("State publisher")
 @allure.story("Published events")
 @allure.title("Busy timer change publishes a StateUpdate")
 def test_busy_timer_change_publishes(

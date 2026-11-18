@@ -15,6 +15,7 @@
 #include <js_app/js_app_settings_storage.h>
 
 #include <toolbox/api_lock.h>
+#include <m-array.h>
 
 #define TAG "JsAppLauncher"
 
@@ -30,19 +31,28 @@
 #define JS_APP_LAUNCHER_ARG_RESUME "+"
 
 typedef enum {
-    JsAppLauncherErrorNone,
-    JsAppLauncherErrorLoadFailed,
-    JsAppLauncherErrorApiVersionMismatch,
-    JsAppLauncherErrorSettingsSchemaMissing,
-    JsAppLauncherErrorSettingsSchemaInvalid,
-    JsAppLauncherErrorSettingsStorageFailure,
-    JsAppLauncherErrorSettingsLoadFailed,
-    JsAppLauncherErrorSyntaxError,
-    JsAppLauncherErrorProgramCrashed,
-    JsAppLauncherErrorMax,
-} JsAppLauncherError;
+    JsAppLauncherShowStatusNone,
+    JsAppLauncherShowStatusLoadFailed,
+    JsAppLauncherShowStatusApiVersionMismatch,
+    JsAppLauncherShowStatusSettingsSchemaMissing,
+    JsAppLauncherShowStatusSettingsSchemaInvalid,
+    JsAppLauncherShowStatusSettingsStorageFailure,
+    JsAppLauncherShowStatusSettingsLoadFailed,
+    JsAppLauncherShowStatusSyntaxError,
+    JsAppLauncherShowStatusProgramCrashed,
+
+    JsAppLauncherShowStatusMax,
+} JsAppLauncherShowStatus;
+
+typedef enum {
+    JsAppLauncherShowStatusTypeGeneralError,
+    JsAppLauncherShowStatusTypeGeneralInfo,
+
+    JsAppLauncherShowStatusTypesCount,
+} JsAppLauncherShowStatusType;
 
 typedef struct {
+    JsAppLauncherShowStatusType type;
     struct {
         const char* front;
         const char* back;
@@ -50,7 +60,7 @@ typedef struct {
     struct {
         const char* back;
     } auxiliary;
-} JsAppLauncherErrorDesc;
+} JsAppLauncherShowStatusDesc;
 
 typedef enum {
     JsAppLauncherApiMessageTypeInvalid,
@@ -78,6 +88,14 @@ typedef struct {
 } JsAppLauncherApiMessage;
 
 typedef struct {
+    const SettingProviderSetting* settings;
+    size_t settings_count;
+    const SettingProviderSetting* selected_setting;
+} JsAppLauncherSceneSetupLevel;
+
+ARRAY_DEF(JsAppLauncherSceneSetupLevels, JsAppLauncherSceneSetupLevel, M_POD_OPLIST)
+
+typedef struct {
     FuriEventLoop* event_loop;
     FuriMessageQueue* input_queue;
     FuriMessageQueue* event_queue;
@@ -94,7 +112,8 @@ typedef struct {
     JsApp* js_app;
     JsAppInfo js_app_info;
     JsAppSettingsStorage* settings_storage;
-    JsAppLauncherError error;
+    JsAppLauncherSceneSetupLevels_t setup_levels;
+    JsAppLauncherShowStatus show_status;
     JsAppLauncherStartMode start_mode;
 } JsAppLauncher;
 
@@ -103,7 +122,9 @@ typedef enum {
     JsAppLauncherCustomEventScriptStarted,
     JsAppLauncherCustomEventScriptFinished,
     JsAppLauncherCustomEventSettingsChanged,
+    JsAppLauncherCustomEventSettingsItemSelected,
     JsAppLauncherCustomEventLongBackPressed,
+    JsAppLauncherCustomEventSceneExitRequested,
     JsAppLauncherCustomEventScriptErrorBase = 0x100,
     JsAppLauncherCustomEventScriptErrorMask = 0x0ff,
 } JsAppLauncherCustomEvent;
@@ -112,9 +133,11 @@ static_assert(JsRunnerErrorMax <= JsAppLauncherCustomEventScriptErrorMask + 1);
 
 void js_app_launcher_send_custom_event(JsAppLauncher* instance, uint32_t event);
 
-const JsAppLauncherErrorDesc* js_app_launcher_get_error_desc(const JsAppLauncher* instance);
+const JsAppLauncherShowStatusDesc*
+    js_app_launcher_get_show_status_desc(const JsAppLauncher* instance);
 
-JsAppLauncherError js_app_launcher_translate_from_js_runner_error(JsRunnerError js_runner_error);
+JsAppLauncherShowStatus
+    js_app_launcher_translate_from_js_runner_error(JsRunnerError js_runner_error);
 
 void js_app_launcher_api_unlock_message(
     JsAppLauncherApiMessage* api_message,

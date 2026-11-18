@@ -46,7 +46,8 @@ export const useDeviceStore = defineStore('device', () => {
     checkingConnection.value = true;
     const wasConnected = isConnected.value;
     try {
-      await apiRequest('/api/name', { timeout: Number(configStore.get('httpRequestTimeout')) });
+      // No retry: a silent retry would hide a reboot and device-reconnected would never be triggered
+      await apiRequest('/api/name', { timeout: Number(configStore.get('httpRequestTimeout')), retry: 0 });
       if (!isConnected.value) {
         window.dispatchEvent(new Event('device-reconnected'));
         if (firmwareStore.autoUpdate.stage === UpdateStage.UPDATING) {

@@ -27,6 +27,17 @@ from utils.js_app_package import (
 from utils.wait import wait_for, wait_for_stable
 
 
+pytestmark = [
+    pytest.mark.bsb_metadata(
+        suite="Integration",
+        level="Integration",
+        intent="Product",
+        interfaces=("Device API",),
+        transports=("LAN REST",),
+    ),
+]
+
+
 APP_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_\-][a-zA-Z0-9_\-.]{0,31}$")
 APP_EXIT_RENDER_TIMEOUT = 15
 JS_APP_LAUNCHER_APP_ID = "js_app_launcher"
@@ -279,8 +290,9 @@ def _wait_for_native_app(cli: SimpleCLIConnection, app_id: str) -> str:
     )
 
 
-@allure.feature("5. Web Frontend")
-@allure.story("JavaScript Applications")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("JavaScript applications")
+@allure.story("Application lifecycle")
 @pytest.mark.api
 @pytest.mark.frontend
 class TestAppsAPI:

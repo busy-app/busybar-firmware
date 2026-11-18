@@ -265,15 +265,15 @@ static const SupervisorWarning supervisor_warnings[] = {
                 {
                     [GuiDisplayIdFront] =
                         {
-                            .primary_text = "JS heap overflow\nRestart device",
+                            .primary_text = "App crashed,\nRestart device",
                             .auxiliary_text = NULL,
                             .icon.as_path = SHARED_IMG_PATH("error_front_8x8.image"),
                             .is_icon_animated = false,
                         },
                     [GuiDisplayIdBack] =
                         {
-                            .primary_text = "JavaScript heap overflow",
-                            .auxiliary_text = "To restart device, hold\nBACK + START buttons",
+                            .primary_text = "App crashed",
+                            .auxiliary_text = "Out of memory: heap overflow.\nRestart device.",
                             .icon.as_path = SHARED_IMG_PATH("error_back_11x11.image"),
                             .is_icon_animated = false,
                         },

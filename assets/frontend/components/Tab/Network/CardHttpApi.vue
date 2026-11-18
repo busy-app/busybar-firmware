@@ -192,6 +192,7 @@ const deviceStore = useDeviceStore();
 const wifiStore = useWifiStore();
 const pms = usePasswordModalStore();
 const runtimeConfig = useRuntimeConfig();
+const appConfig = useAppConfig();
 
 const loading = ref({
   access: false
@@ -207,7 +208,7 @@ const barUrl = computed(() => {
     return runtimeConfig.public.barUrl || window.location.origin;
   }
 
-  return 'http://10.0.4.20';
+  return appConfig.links.barUsb;
 });
 
 watch(() => deviceStore.httpAPIAccess, access => {

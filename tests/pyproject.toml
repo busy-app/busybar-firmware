@@ -47,6 +47,7 @@ timeout_method = "thread"
 testpaths = ["tests"]
 asyncio_mode = "auto"
 markers = [
+    "bsb_metadata: BUSY taxonomy fields (module/class/test inheritance)",
     "cli: marks tests as CLI command tests",
     "frontend: marks tests as web frontend tests",
     "ui: marks tests as UI automation tests (Playwright)",

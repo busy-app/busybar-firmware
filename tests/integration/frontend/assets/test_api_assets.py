@@ -7,6 +7,17 @@ import requests
 
 from clients.api import AssetsAPI, SettingsAPI, StorageAPI
 
+
+pytestmark = [
+    pytest.mark.bsb_metadata(
+        suite="Integration",
+        level="Integration",
+        intent="Product",
+        interfaces=("Device API",),
+        transports=("LAN REST",),
+    ),
+]
+
 ASSETS_DIR = Path(__file__).resolve().parents[2] / "assets"
 REQUIRED_SHARED_FONTS = [
     "busy_bold_10.font",
@@ -49,14 +60,14 @@ def asset_cleanup(assets_api: AssetsAPI):
             )
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Display/assets/screen")
 @allure.story("Assets")
 @pytest.mark.api
 @pytest.mark.frontend
 class TestAssetsManagement:
     """Test cases for asset upload and deletion endpoints."""
 
-    @allure.id("2651")
     @allure.title("POST /api/assets/upload")
     def test_api_assets_upload(self, assets_api: AssetsAPI):
         """Test POST /api/assets/upload endpoint"""
@@ -66,7 +77,6 @@ class TestAssetsManagement:
 
         assets_api.upload_asset(test_app_id, test_filename, test_content)
 
-    @allure.id("2652")
     @allure.title("DELETE /api/assets/upload")
     def test_api_assets_delete(self, assets_api: AssetsAPI):
         """Test DELETE /api/assets/upload endpoint"""
@@ -103,14 +113,14 @@ class TestAssetsManagement:
             )
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Display/assets/screen")
 @allure.story("Assets")
 @pytest.mark.api
 @pytest.mark.frontend
 class TestDisplayDraw:
     """Test cases for display draw and clear endpoints."""
 
-    @allure.id("2653")
     @allure.title("POST /api/display/draw")
     def test_api_display_draw(self, assets_api: AssetsAPI):
         """Test POST /api/display/draw endpoint"""
@@ -132,7 +142,6 @@ class TestDisplayDraw:
         assets_api.draw("test_app", elements)
         assets_api.clear_display()
 
-    @allure.id("2690")
     @allure.title("POST /api/display/draw (image)")
     def test_api_display_draw_image(
         self, assets_api: AssetsAPI, asset_cleanup
@@ -167,13 +176,11 @@ class TestDisplayDraw:
         assets_api.draw(test_app_id, elements)
         assets_api.clear_display()
 
-    @allure.id("2654")
     @allure.title("DELETE /api/display/draw")
     def test_api_display_clear(self, assets_api: AssetsAPI):
         """Test DELETE /api/display/draw endpoint"""
         assets_api.clear_display()
 
-    @allure.id("2672")
     @allure.title("POST /api/display/draw (malformed JSON)")
     def test_api_malformed_json(self, api_session, web_base_url):
         """Test API endpoints with malformed JSON"""
@@ -190,14 +197,14 @@ class TestDisplayDraw:
         assert response.status_code == 400
 
 
-@allure.feature("5. Web Frontend")
-@allure.story("Assets")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Audio playback")
+@allure.story("Playback lifecycle")
 @pytest.mark.api
 @pytest.mark.frontend
 class TestAudioPlay:
     """Test cases for audio playback control endpoints."""
 
-    @allure.id("2655")
     @allure.title("POST /api/audio/play")
     def test_api_audio_play(
         self, assets_api: AssetsAPI, low_volume, asset_cleanup
@@ -224,7 +231,6 @@ class TestAudioPlay:
             response = assets_api.stop_audio_raw()
             assert response.status_code in {200, 410}
 
-    @allure.id("2656")
     @allure.title("DELETE /api/audio/play")
     def test_api_audio_stop(self, assets_api: AssetsAPI):
         """Test DELETE /api/audio/play endpoint"""
@@ -266,7 +272,6 @@ class TestAudioPlay:
             # connection until PlayEnd fires, then responds 200.
             assets_api.stop_audio()
 
-    @allure.id("2657")
     @allure.title("DELETE /api/audio/play while audio is playing")
     @pytest.mark.regression
     def test_api_audio_stop_while_playing(
@@ -294,7 +299,6 @@ class TestAudioPlay:
             result = assets_api.stop_audio()
             assert result.result == "OK"
 
-    @allure.id("2658")
     @allure.title("POST /api/audio/play (stock_path)")
     def test_api_audio_play_stock_path(
         self, assets_api: AssetsAPI, low_volume
@@ -312,7 +316,8 @@ class TestAudioPlay:
             assert response.status_code in {200, 410}
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Display/assets/screen")
 @allure.story("Assets")
 @pytest.mark.api
 @pytest.mark.frontend

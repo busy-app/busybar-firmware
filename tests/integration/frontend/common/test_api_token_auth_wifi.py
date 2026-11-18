@@ -11,7 +11,19 @@ import pytest
 import requests
 
 from clients.api import WIFI_SSID, MintedAccessToken, SettingsAPI, WifiAPI
-from utils.wait import wait_for
+from utils.wifi_helpers import connect_to_test_network_or_fail
+
+
+pytestmark = [
+    pytest.mark.bsb_metadata(
+        suite="Integration",
+        level="Integration",
+        intent="Security",
+        interfaces=("Device API",),
+        transports=("LAN REST",),
+        hardware=("BusyBar", "Wi-Fi AP"),
+    ),
+]
 
 _INITIAL_ACCESS_KEY = "73916482"
 _CHANGED_ACCESS_KEY = "28461739"
@@ -39,22 +51,7 @@ def wifi_external_base_url(
                     "WiFi authentication tests require an existing connection or "
                     "the WIFI_SSID test configuration"
                 )
-            response = wifi_api.connect_to_test_network(timeout=30)
-            assert response.status_code == 200, (
-                f"WiFi connect failed with HTTP {response.status_code}: "
-                f"{response.text!r}"
-            )
-            status = wait_for(
-                "WiFi connection with an assigned address",
-                wifi_api.get_status,
-                lambda value: (
-                    value.state == "connected"
-                    and value.ip_config is not None
-                    and bool(value.ip_config.address)
-                ),
-                timeout=30,
-                interval=1,
-            )
+            status = connect_to_test_network_or_fail(wifi_api)
 
         ip_config = status.ip_config
         assert ip_config is not None and ip_config.address, (
@@ -94,7 +91,8 @@ def wifi_token_api(
             settings_api.set_access(original_access.mode)
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Device HTTP API")
 @allure.story("API token authentication over WiFi")
 @pytest.mark.api
 @pytest.mark.frontend

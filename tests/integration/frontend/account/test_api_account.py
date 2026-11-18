@@ -7,12 +7,23 @@ from clients.api import AccountAPI
 from clients.api.account import AccountBackend
 
 
-@allure.feature("5. Web Frontend")
+pytestmark = [
+    pytest.mark.bsb_metadata(
+        suite="Integration",
+        level="Integration",
+        intent="Product",
+        interfaces=("Device API",),
+        transports=("LAN REST",),
+    ),
+]
+
+
+@allure.epic("Device Lifecycle")
+@allure.feature("Ownership")
 @allure.story("Account")
 class TestAccountInfoAPI:
     """Test cases for Account Info API endpoint"""
 
-    @allure.id("3490")
     @allure.title("GET /api/account/info")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -30,13 +41,13 @@ class TestAccountInfoAPI:
             assert response.user_id
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("Device Connectivity")
+@allure.feature("Connection orchestration")
 @allure.story("Account")
 @pytest.mark.uses_si917
 class TestAccountStatusAPI:
     """Test cases for Account Status (MQTT) API endpoint"""
 
-    @allure.id("3489")
     @allure.title("GET /api/account/status")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -47,13 +58,13 @@ class TestAccountStatusAPI:
         assert response.status in ["error", "disconnected", "connected"]
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("Device Connectivity")
+@allure.feature("Transport configuration")
 @allure.story("Account")
 @pytest.mark.uses_si917
 class TestAccountBackendAPI:
     """Test cases for MQTT backend configuration API endpoints (FW-881)."""
 
-    @allure.id("3488")
     @allure.title("GET /api/account/backend")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -66,7 +77,6 @@ class TestAccountBackendAPI:
         assert response.client_cert_type in ["default", "custom", "none"]
         assert isinstance(response.ignore_server_cert, bool)
 
-    @allure.id("3487")
     @allure.title("PUT /api/account/backend (custom URL)")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -96,7 +106,6 @@ class TestAccountBackendAPI:
         with allure.step("Restore original config"):
             account_api.set_backend(original)
 
-    @allure.id("3835")
     @allure.title("PUT /api/account/backend (default)")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -120,7 +129,6 @@ class TestAccountBackendAPI:
         with allure.step("Restore original config"):
             account_api.set_backend(original)
 
-    @allure.id("3836")
     @allure.title("PUT /api/account/backend (invalid)")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -153,12 +161,12 @@ class TestAccountBackendAPI:
         ), f"Expected 400 for payload {payload!r} ({reason}), got {response.status_code}"
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("Device Lifecycle")
+@allure.feature("First pair entrypoints")
 @allure.story("Account")
 class TestAccountLinkAPI:
     """Test cases for Account Link API endpoint"""
 
-    @allure.id("3485")
     @allure.title("POST /api/account/link")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -186,12 +194,12 @@ class TestAccountLinkAPI:
         assert response.expires_at > 1577836800
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("Device Lifecycle")
+@allure.feature("Unlink/relink")
 @allure.story("Account")
 class TestAccountUnlinkAPI:
     """Test cases for Account Unlink API endpoint"""
 
-    @allure.id("3484")
     @allure.title("DELETE /api/account")
     @pytest.mark.api
     @pytest.mark.frontend

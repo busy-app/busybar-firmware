@@ -14,16 +14,24 @@ import pytest
 from clients.api.streaming import raw_to_png
 from utils.cli_helpers import IMAGE_FILE, SOUND_FILE, run_streaming
 
-pytestmark = pytest.mark.cli
+pytestmark = [
+    pytest.mark.cli,
+    pytest.mark.bsb_metadata(
+        suite="Component",
+        level="Component",
+        intent="Product",
+        interfaces=("CLI",),
+        transports=("Telnet",),
+    ),
+]
 
 
-@allure.epic("BSB CLI Testing")
-@allure.feature("6. CLI")
-@allure.story("Commands Check")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Firmware CLI")
+@allure.story("Audio, display and input commands")
 class TestCLIPeripheralCommands:
     """Peripherals: audio/display/input."""
 
-    @allure.id("2028")
     @allure.title("CLI. Command Audio.")
     @pytest.mark.story_commands_check
     def test_cli_command_audio(self, persistent_cli_connection):
@@ -32,7 +40,6 @@ class TestCLIPeripheralCommands:
         assert "Invalid command bogus" in response, response
         assert "audio start <path>" in response and "audio stop" in response, response
 
-    @allure.id("2030")
     @allure.title("CLI. Command Display.")
     @pytest.mark.story_commands_check
     def test_cli_command_display(self, persistent_cli_connection):
@@ -96,6 +103,12 @@ class TestCLIPeripheralCommands:
         assert "Usage: input" in response, response
 
     @allure.title("CLI. Command display show (screenshot of the back display).")
+    @pytest.mark.bsb_metadata(
+        suite="Integration",
+        level="Integration",
+        interfaces=("CLI", "Device API"),
+        transports=("Telnet", "LAN REST"),
+    )
     @pytest.mark.regression  # streams the image, grabs the frame while it is shown
     def test_display_show_screenshot(self, persistent_cli_connection, streaming_api):
         # `display show` holds the image on screen only while it runs, so the frame
