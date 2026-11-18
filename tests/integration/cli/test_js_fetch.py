@@ -12,14 +12,20 @@ import requests
 import yaml
 
 from utils.fetch_http_server import (
+    CHUNKED_JSON_PAYLOAD,
+    FETCH_HTTP11_TIMEOUT_S,
     HEADERS_PAYLOAD,
+    HTTP11_ERROR_RESPONSES,
+    HTTP11_HEADER_ERROR_RESPONSES,
+    HTTP11_INCOMPLETE_TRAILER_CASES,
+    HTTP11_INFORMATIONAL_RESPONSES,
+    HTTP11_SUCCESS_RESPONSES,
     NON_BMP_UNICODE_TEXT,
     NOT_FOUND_PAYLOAD,
     REQUEST_RESPONSE,
     TEXT_PAYLOAD,
     UNICODE_TEXT,
 )
-
 
 pytestmark = [
     pytest.mark.cli,
@@ -232,6 +238,57 @@ def build_promise_rejection_check(
     return body
 
 
+def build_bytes_check(expression, payload):
+    return dedent(
+        f"""
+            const actual = {expression};
+            const expected = {json.dumps(list(payload))};
+            assert(actual.length === expected.length,
+                "byte count=" + actual.length + ", expected=" + expected.length);
+            for (let index = 0; index < expected.length; index++) {{
+                assert(actual[index] === expected[index],
+                    "byte " + index + "=" + actual[index] +
+                    ", expected=" + expected[index]);
+            }}
+        """
+    ).strip()
+
+
+def build_reader_completion_check(has_error):
+    return dedent(
+        f"""
+            const reader = response.body.getReader();
+            const closed = reader.closed.then(
+                function() {{ return {{rejected: false}}; }},
+                function(error) {{ return {{rejected: true, error: error}}; }}
+            );
+            const received = [];
+            let chunk;
+            do {{
+                chunk = await reader.read();
+                if (!chunk.done) {{
+                    assert(chunk.value instanceof Uint8Array,
+                        "expected Uint8Array, got=" + chunk.value);
+                    for (let index = 0; index < chunk.value.length; index++) {{
+                        received.push(chunk.value[index]);
+                    }}
+                }}
+            }} while (!chunk.done);
+            const outcome = await closed;
+            assert(outcome.rejected === {json.dumps(has_error)},
+                "reader.closed=" + JSON.stringify(outcome));
+            if (outcome.rejected) {{
+                assert(outcome.error instanceof TypeError,
+                    "expected TypeError, got=" + outcome.error);
+                assert(outcome.error.message === "Stream error",
+                    "reader.closed error=" + outcome.error.message);
+            }}
+            const end = await reader.read();
+            assert(end.done === true, "read after completion=" + JSON.stringify(end));
+        """
+    ).strip()
+
+
 @allure.epic("BusyBar & Local Control")
 @allure.feature("JavaScript applications")
 @allure.story("JavaScript Fetch API")
@@ -263,6 +320,7 @@ class TestJSFetch:
 
         with allure.step("Verify the host received a GET without a body"):
             captured = captured_request(http_server, output, "GET request")
+            assert captured["version"] == "HTTP/1.1", f"captured={captured!r}"
             assert captured["method"] == "GET", f"captured={captured!r}"
             assert captured["path"] == "/text", f"captured={captured!r}"
             assert captured["body"] == b"", f"captured={captured!r}"
@@ -1392,3 +1450,240 @@ class TestJSFetch:
         ).strip()
 
         js_case_runner(case_name, body, timeout=60)
+
+    @allure.title("JavaScript fetch decodes HTTP/1.1 data: {case_name}, {consumer}.")
+    @pytest.mark.parametrize("case_name", HTTP11_SUCCESS_RESPONSES)
+    @pytest.mark.parametrize("consumer", ["bytes", "reader"])
+    def test_http11_response(self, js_case_runner, http_server, case_name, consumer):
+        case = HTTP11_SUCCESS_RESPONSES[case_name]
+        path = f"/http11/{case_name}"
+        url = json.dumps(http_server.url(path))
+        body = (
+            f"const response = await fetch({url});\n"
+            'assert(response.status === 200, "status=" + response.status);\n'
+        )
+        if consumer == "reader":
+            body += build_reader_completion_check(False) + "\n"
+            body += build_bytes_check("received", case.payload)
+        else:
+            body += build_bytes_check("await response.bytes()", case.payload)
+            body += '\nassert(actual instanceof Uint8Array, "bytes type=" + actual);'
+
+        output = js_case_runner("http11_response", body, timeout=FETCH_HTTP11_TIMEOUT_S)
+        with allure.step("Verify HTTP/1.1 and the trusted JS request marker"):
+            captured = captured_request(http_server, output, "HTTP/1.1 request")
+            assert captured["version"] == "HTTP/1.1", f"captured={captured!r}"
+            assert captured["path"] == path, f"captured={captured!r}"
+            assert_js_fetch_header(captured)
+
+    @allure.title("JavaScript fetch consumes chunked UTF-8 JSON with {method}.")
+    @pytest.mark.parametrize("method", ["text", "json", "arrayBuffer"])
+    def test_http11_body_methods(self, js_case_runner, http_server, method):
+        url = json.dumps(http_server.url("/http11/utf8-and-json"))
+        body = f"const response = await fetch({url});\n"
+        if method == "text":
+            expected = json.dumps(CHUNKED_JSON_PAYLOAD.decode("utf-8"))
+            body += (
+                "const text = await response.text();\n"
+                f'assert(text === {expected}, "decoded text=" + text);'
+            )
+        elif method == "json":
+            body += dedent(
+                f"""
+                    const value = await response.json();
+                    assert(value.message === {json.dumps(NON_BMP_UNICODE_TEXT)},
+                        "message=" + value.message);
+                    assert(value.value === 42, "value=" + value.value);
+                """
+            ).strip()
+        else:
+            body += (
+                "const buffer = await response.arrayBuffer();\n"
+                'assert(buffer instanceof ArrayBuffer, "buffer type=" + buffer);\n'
+                + build_bytes_check("new Uint8Array(buffer)", CHUNKED_JSON_PAYLOAD)
+            )
+        body += '\nassert(response.bodyUsed === true, "bodyUsed after read");'
+        js_case_runner("http11_body_method", body, timeout=FETCH_HTTP11_TIMEOUT_S)
+
+    @allure.title(
+        "JavaScript fetch rejects broken chunked data: {case_name}, {consumer}."
+    )
+    @pytest.mark.parametrize(
+        "case_name",
+        [
+            (
+                pytest.param(
+                    case_name,
+                    marks=pytest.mark.skip(reason="FW-1313"),
+                )
+                if case_name in HTTP11_INCOMPLETE_TRAILER_CASES
+                else case_name
+            )
+            for case_name in HTTP11_ERROR_RESPONSES
+        ],
+    )
+    @pytest.mark.parametrize("consumer", ["text", "reader"])
+    def test_http11_response_error(
+        self, js_case_runner, http_server, case_name, consumer
+    ):
+        case = HTTP11_ERROR_RESPONSES[case_name]
+        path = f"/http11/{case_name}"
+        url = json.dumps(http_server.url(path))
+        recovery_url = json.dumps(http_server.url("/http11/simple"))
+        body = (
+            f"const response = await fetch({url});\n"
+            'assert(response.status === 200, "status=" + response.status);\n'
+        )
+        if consumer == "reader":
+            body += build_reader_completion_check(True)
+        else:
+            body += build_promise_rejection_check(
+                "response.text()", expected_message=case.expected_error
+            )
+        body += dedent(
+            f"""
+
+                const recovery = await fetch({recovery_url});
+                assert(recovery.status === 200, "recovery status=" + recovery.status);
+                const text = await recovery.text();
+                assert(text === "hello", "recovery body=" + text);
+            """
+        )
+        output = js_case_runner(
+            "http11_response_error", body, timeout=FETCH_HTTP11_TIMEOUT_S
+        )
+        with allure.step("Verify the failed request and successful recovery request"):
+            for expected_path in (path, "/http11/simple"):
+                captured = captured_request(http_server, output, expected_path)
+                assert captured["version"] == "HTTP/1.1", f"captured={captured!r}"
+                assert captured["path"] == expected_path, f"captured={captured!r}"
+                assert_js_fetch_header(captured)
+
+    @allure.title("JavaScript fetch rejects a 1xx response: {case_name}, {method}.")
+    @pytest.mark.parametrize("case_name", HTTP11_INFORMATIONAL_RESPONSES)
+    @pytest.mark.parametrize("method", ["GET", "HEAD"])
+    def test_http11_informational_response(
+        self, js_case_runner, http_server, case_name, method
+    ):
+        case = HTTP11_INFORMATIONAL_RESPONSES[case_name]
+        path = f"/http11/{case_name}"
+        url = json.dumps(http_server.url(path))
+        recovery_url = json.dumps(http_server.url("/http11/simple"))
+        body = build_promise_rejection_check(
+            f"fetch({url}, {{method: {json.dumps(method)}}})",
+            expected_message=case.expected_error,
+        )
+        body += dedent(
+            f"""
+
+                const recovery = await fetch({recovery_url});
+                assert(recovery.status === 200, "recovery status=" + recovery.status);
+                const text = await recovery.text();
+                assert(text === "hello", "recovery body=" + text);
+            """
+        )
+        output = js_case_runner(
+            "http11_informational", body, timeout=FETCH_HTTP11_TIMEOUT_S
+        )
+        with allure.step("Verify the rejected request and successful recovery"):
+            for expected_method, expected_path in (
+                (method, path),
+                ("GET", "/http11/simple"),
+            ):
+                captured = captured_request(http_server, output, expected_path)
+                assert captured["version"] == "HTTP/1.1", f"captured={captured!r}"
+                assert captured["method"] == expected_method, f"captured={captured!r}"
+                assert captured["path"] == expected_path, f"captured={captured!r}"
+                assert_js_fetch_header(captured)
+        if case.keep_open:
+            with allure.step("Verify Fetch closed the keep-alive connection"):
+                try:
+                    closed_path = http_server.closed_requests.get(timeout=1)
+                except queue.Empty:
+                    pytest.fail(f"Rejected connection remains open; output={output!r}")
+                assert closed_path == path, f"Closed {closed_path!r}, expected {path!r}"
+
+    @allure.title("JavaScript fetch completes a bodyless HTTP/1.1 response.")
+    @pytest.mark.parametrize(
+        "method,status",
+        [("HEAD", 200), ("GET", 204), ("GET", 304)],
+        ids=["head", "no-content", "not-modified"],
+    )
+    @pytest.mark.parametrize("framing", ["absent", "content-length", "chunked"])
+    @pytest.mark.parametrize("connection", ["close", "keep-alive"])
+    def test_http11_bodyless_response(
+        self, js_case_runner, http_server, method, status, framing, connection
+    ):
+        path = f"/http11/bodyless/{status}/{framing}/{connection}"
+        url = json.dumps(http_server.url(path))
+        body = dedent(
+            f"""
+                const response = await fetch({url}, {{method: {json.dumps(method)}}});
+                assert(response.status === {status}, "status=" + response.status);
+                assert(response.ok === {json.dumps(200 <= status < 300)},
+                    "ok=" + response.ok);
+                const text = await response.text();
+                assert(text === "", "bodyless response=" + JSON.stringify(text));
+                assert(response.bodyUsed === true, "bodyUsed after read");
+            """
+        ).strip()
+        output = js_case_runner("http11_bodyless", body, timeout=FETCH_HTTP11_TIMEOUT_S)
+        with allure.step("Verify the captured bodyless request"):
+            captured = captured_request(http_server, output, "bodyless request")
+            assert captured["version"] == "HTTP/1.1", f"captured={captured!r}"
+            assert captured["method"] == method, f"captured={captured!r}"
+            assert captured["path"] == path, f"captured={captured!r}"
+            assert_js_fetch_header(captured)
+
+    @allure.title("JavaScript fetch rejects contradictory HTTP/1.1 framing headers.")
+    @pytest.mark.parametrize("case_name", HTTP11_HEADER_ERROR_RESPONSES)
+    def test_http11_response_headers_error(
+        self, js_case_runner, http_server, case_name
+    ):
+        path = f"/http11/{case_name}"
+        url = json.dumps(http_server.url(path))
+        recovery_url = json.dumps(http_server.url("/http11/simple"))
+        body = build_promise_rejection_check(f"fetch({url})")
+        body += dedent(
+            f"""
+
+                const recovery = await fetch({recovery_url});
+                const text = await recovery.text();
+                assert(text === "hello", "recovery body=" + text);
+            """
+        )
+        output = js_case_runner(
+            "http11_headers_error", body, timeout=FETCH_HTTP11_TIMEOUT_S
+        )
+        with allure.step("Verify rejection and the following successful request"):
+            for expected_path in (path, "/http11/simple"):
+                captured = captured_request(http_server, output, expected_path)
+                assert captured["path"] == expected_path, f"captured={captured!r}"
+                assert_js_fetch_header(captured)
+
+    @allure.title(
+        "JavaScript fetch cancels a chunked transfer and releases the connection."
+    )
+    def test_http11_cancel(self, js_case_runner, http_server):
+        url = json.dumps(http_server.url("/http11/stalled-data"))
+        recovery_url = json.dumps(http_server.url("/http11/simple"))
+        body = dedent(
+            f"""
+                const response = await fetch({url});
+                assert(response.status === 200, "status=" + response.status);
+                await response.body.cancel();
+                const recovery = await fetch({recovery_url});
+                const text = await recovery.text();
+                assert(text === "hello", "recovery body=" + text);
+            """
+        ).strip()
+        output = js_case_runner("http11_cancel", body, timeout=FETCH_HTTP11_TIMEOUT_S)
+        with allure.step("Verify cancellation closed the unfinished server connection"):
+            try:
+                closed_path = http_server.closed_requests.get(timeout=1)
+            except queue.Empty:
+                pytest.fail(f"Cancelled connection remains open; JS output={output!r}")
+            assert closed_path == "/http11/stalled-data", (
+                f"Expected the cancelled connection to close, got {closed_path!r}; "
+                f"JS output={output!r}"
+            )

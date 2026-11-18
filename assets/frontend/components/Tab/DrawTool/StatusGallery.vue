@@ -34,7 +34,7 @@
         <USeparator
           v-if="!areAllStatusesSelected"
           orientation="vertical"
-          class="hidden md:block my-auto h-6"
+          class="my-auto hidden h-6 md:block"
         />
 
         <UButton
@@ -90,10 +90,10 @@
     </template>
 
     <template #raw-body>
-      <div class="min-h-48 p-4 sm:p-6 ring-1 ring-accented rounded-xl">
+      <div class="min-h-48 rounded-xl p-4 ring-1 ring-accented sm:p-6">
         <div
           v-if="!statusGalleryFiles.length"
-          class="h-38 flex items-center justify-center text-center text-sm text-muted transition-all"
+          class="flex h-38 items-center justify-center text-center text-sm text-muted transition-all"
           :class="isRefreshingStatusDirectory ? 'text-transparent' : ''"
         >
           Your statuses will appear here after you save them to the device.
@@ -101,16 +101,16 @@
 
         <div
           v-else
-          class="grid grid-cols-1 md:grid-cols-2 gap-4"
+          class="grid grid-cols-1 gap-4 md:grid-cols-2"
         >
           <article
             v-for="status in statusGalleryFiles"
             :key="status.name"
-            class="relative aspect-[72/16] md:aspect-auto md:h-16 w-full md:w-72 overflow-hidden rounded-md ring-1 ring-default"
+            class="relative aspect-[72/16] w-full overflow-hidden rounded-md ring-1 ring-default md:aspect-auto md:h-16 md:w-72"
             @mouseenter="hoveredStatusName = status.name"
             @mouseleave="hoveredStatusName = hoveredStatusName === status.name ? null : hoveredStatusName"
           >
-            <div class="h-full w-full overflow-hidden rounded-md bg-neutral-950">
+            <div class="size-full overflow-hidden rounded-md bg-neutral-950">
               <AnimationPlayer
                 v-if="status.animation"
                 :animation="status.animation"
@@ -119,11 +119,11 @@
                 v-else-if="status.previewUrl"
                 :src="status.previewUrl"
                 :alt="status.name"
-                class="h-full w-full object-cover [image-rendering:pixelated]"
+                class="size-full object-cover [image-rendering:pixelated]"
               >
               <div
                 v-else
-                class="flex h-full w-full items-center justify-center px-3 text-center text-xs text-muted"
+                class="flex size-full items-center justify-center px-3 text-center text-xs text-muted"
               >
                 Preview unavailable
               </div>

@@ -8,9 +8,9 @@
       footer: 'p-4 sm:p-6'
     }"
   >
-    <div class="grid sm:grid-cols-2 divide-y sm:divide-x sm:divide-y-0 divide-accented/30">
-      <div class="flex flex-col gap-8 pb-6 sm:pb-0 sm:pr-6">
-        <div class="flex justify-between items-center">
+    <div class="grid divide-y divide-accented/30 sm:grid-cols-2 sm:divide-x sm:divide-y-0">
+      <div class="flex flex-col gap-8 pb-6 sm:pr-6 sm:pb-0">
+        <div class="flex items-center justify-between">
           <UIcon
             data-id="mute-icon"
             :name="mute.isMuted ? 'i-bi-sound-off' : 'i-bi-sound'"
@@ -30,7 +30,7 @@
         </div>
 
         <div class="flex flex-col gap-2.5">
-          <div class="flex justify-between items-center">
+          <div class="flex items-center justify-between">
             <div class="text-lg font-medium">Sound</div>
             <div
               data-id="volume-percentage"
@@ -57,7 +57,7 @@
       </div>
 
       <div class="flex flex-col gap-8 pt-6 sm:pt-0 sm:pl-6">
-        <div class="flex justify-between items-center">
+        <div class="flex items-center justify-between">
           <UIcon
             data-id="brightness-auto-icon"
             :name="isBrightnessAuto ? 'i-bi-brightness-auto-control' : 'i-bi-brightness'"
@@ -77,7 +77,7 @@
         </div>
 
         <div class="flex flex-col gap-2.5">
-          <div class="flex justify-between items-center">
+          <div class="flex items-center justify-between">
             <div class="text-lg font-medium">Brightness</div>
             <div
               v-if="!isBrightnessAuto"

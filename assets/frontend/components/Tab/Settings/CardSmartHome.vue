@@ -5,13 +5,13 @@
     title="Smart home"
   >
     <template #raw-body>
-      <div class="flex flex-col gap-1 rounded-group [&>*:first-child]:rounded-b-sm! [&>*:last-child]:rounded-t-sm!">
+      <div class="rounded-group flex flex-col gap-1 [&>*:first-child]:rounded-b-sm! [&>*:last-child]:rounded-t-sm!">
         <div
           data-id="settings-section-matter"
-          class="bg-accented/25 dark:bg-elevated/75 p-4 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-2"
+          class="flex flex-col gap-4 bg-accented/25 p-4 sm:flex-row sm:items-center sm:gap-2 dark:bg-elevated/75"
           :class="{ 'min-h-20': accessTokensStore.tokens.length > 0 }"
         >
-          <div class="grow min-w-0 flex flex-col gap-1">
+          <div class="flex min-w-0 grow flex-col gap-1">
             <div class="flex items-center gap-2">
               <UIcon
                 name="i-bi-logo-matter"
@@ -26,19 +26,19 @@
               {{ matterStore.matterCommissioning.fabricCount }} connections
             </p>
           </div>
-          <div class="flex flex-col sm:flex-row gap-2">
+          <div class="flex flex-col gap-2 sm:flex-row">
             <UButton
               v-if="matterStore.matterCommissioning.fabricCount > 0"
               label="Forget all pairings"
               variant="outline"
               color="neutral"
-              class="rounded-full justify-center"
+              class="justify-center rounded-full"
               @click="() => { showMatterDeleteModal = true; }"
             />
             <UButton
               label="Pair device"
               icon="i-bi-plus"
-              class="rounded-full justify-center"
+              class="justify-center rounded-full"
               @click="matterStore.requestMatterLink()"
             />
           </div>
@@ -46,18 +46,18 @@
 
         <div
           v-if="accessTokensStore.tokens.length > 0"
-          class="bg-accented/25 dark:bg-elevated/75 overflow-hidden"
+          class="overflow-hidden bg-accented/25 dark:bg-elevated/75"
         >
           <UButton
             data-id="settings-section-home-assistant-open"
             variant="ghost"
             color="neutral"
             trailing-icon="i-bi-chevron-right"
-            class="w-full p-4 gap-2 rounded-none text-base font-normal text-left"
+            class="w-full gap-2 rounded-none p-4 text-left text-base font-normal"
             :ui="{ trailingIcon: 'size-6 text-muted' }"
             @click="emit('openHomeAssistant')"
           >
-            <span class="grow min-w-0 flex flex-col gap-1">
+            <span class="flex min-w-0 grow flex-col gap-1">
               <span class="flex items-center gap-2">
                 <UIcon
                   name="i-bi-logo-home-assistant"
@@ -74,9 +74,9 @@
         <div
           v-else
           data-id="settings-section-home-assistant"
-          class="bg-accented/25 dark:bg-elevated/75 p-4 flex flex-wrap items-center gap-2"
+          class="flex flex-wrap items-center gap-2 bg-accented/25 p-4 dark:bg-elevated/75"
         >
-          <div class="min-h-9 grow flex items-center gap-2">
+          <div class="flex min-h-9 grow items-center gap-2">
             <UIcon
               name="i-bi-logo-home-assistant"
               class="size-6 shrink-0"
@@ -85,7 +85,7 @@
           </div>
           <UButton
             variant="link"
-            class="p-0 gap-1 shrink-0 whitespace-nowrap"
+            class="shrink-0 gap-1 p-0 whitespace-nowrap"
             :href="appConfig.links.homeAssistantDocs"
             target="_blank"
           >
@@ -112,7 +112,7 @@
     <template #icon>
       <UIcon
         :name="colorMode.value === 'dark' ? 'i-bi-matter-bubble-dark' : 'i-bi-matter-bubble'"
-        class="size-10 mr-1"
+        class="mr-1 size-10"
       />
     </template>
     <template #body>
@@ -124,7 +124,7 @@
           width="184"
           height="184"
           aria-label="Matter QR code"
-          class="size-46 bg-white rounded-xl mb-6"
+          class="mb-6 size-46 rounded-xl bg-white"
         />
 
         <p>Or enter the code in your smart home app</p>
@@ -136,7 +136,7 @@
           class="w-full rounded-xl p-4 pr-5 text-2xl ring-black/4 dark:ring-white/4"
         />
 
-        <p class="w-full flex justify-end mt-6 text-muted text-sm">
+        <p class="mt-6 flex w-full justify-end text-sm text-muted">
           Expires in&nbsp;<CountDown :ms="matterStore.matterLink.expiresInMs" />
         </p>
       </div>
@@ -214,7 +214,7 @@ const accessTokensStore = useAccessTokensStore();
 const colorMode = useColorMode();
 const appConfig = useAppConfig();
 
-const matterQrCanvasRef = ref<HTMLCanvasElement | null>(null);
+const matterQrCanvasRef = useTemplateRef<HTMLCanvasElement>('matterQrCanvasRef');
 const showMatterDeleteModal = ref(false);
 const showRebootingModal = ref(false);
 

@@ -68,13 +68,14 @@
         :model-value="values[key] as number"
         :min="field.min"
         :max="field.max"
-        :step="field.step"
+        :step="1"
+        :step-snapping="false"
         :increment="NUMBER_BUTTON_PROPS"
         :decrement="NUMBER_BUTTON_PROPS"
         :ui="INPUT_UI"
         :style="GLASS_CONTROL_STYLE"
         class="w-36 shrink-0"
-        @update:model-value="values[key] = $event"
+        @update:model-value="updateInteger(field, key, $event)"
       />
 
       <UInput
@@ -96,7 +97,7 @@
         variant="soft"
         size="sm"
         :style="GLASS_CONTROL_STYLE"
-        class="h-7 w-fit min-w-[53px] shrink-0"
+        class="h-7 w-fit min-w-18 shrink-0"
         :ui="{
           base: 'text-sm leading-4.5 ps-2 pe-2 py-1 gap-1 focus-visible:outline-2 focus-visible:outline-primary',
           trailing: 'static p-0 pe-0',
@@ -179,4 +180,15 @@ const errors = computed(() => {
 
   return result;
 });
+
+function updateInteger (field: AppSettingsNode, key: string, next: number | undefined) {
+  const previous = values.value[key];
+
+  if (field.type === 'integer' && typeof next === 'number' && typeof previous === 'number' && Math.abs(next - previous) === 1) {
+    values.value[key] = stepIntegerSetting(field, previous, next > previous ? 1 : -1);
+    return;
+  }
+
+  values.value[key] = next;
+}
 </script>

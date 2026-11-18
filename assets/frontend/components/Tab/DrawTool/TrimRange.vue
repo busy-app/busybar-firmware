@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex w-full touch-none select-none items-center gap-3 rounded-xl bg-elevated/50 py-2 pl-2 pr-4 ring-1 ring-default"
+    class="flex w-full touch-none items-center gap-3 rounded-xl bg-elevated/50 py-2 pr-4 pl-2 ring-1 ring-default select-none"
     @keydown="handleRootKeyDown"
   >
     <UButton
@@ -19,7 +19,7 @@
       :class="disabled ? 'opacity-60' : ''"
     >
       <div
-        class="relative h-4 cursor-pointer text-[10px] tabular-nums text-dimmed"
+        class="relative h-4 cursor-pointer text-[10px] text-dimmed tabular-nums"
         @pointerdown="handleScrubDown"
         @pointermove="handleScrubMove"
         @pointerup="handleScrubUp"
@@ -40,7 +40,7 @@
         class="relative h-9"
       >
         <div
-          class="absolute inset-x-0 top-1/2 h-6 -translate-y-1/2 cursor-pointer rounded-md bg-accented/30 ring-1 ring-inset ring-default"
+          class="absolute inset-x-0 top-1/2 h-6 -translate-y-1/2 cursor-pointer rounded-md bg-accented/30 ring-1 ring-default ring-inset"
           @pointerdown="handleScrubDown"
           @pointermove="handleScrubMove"
           @pointerup="handleScrubUp"
@@ -55,7 +55,7 @@
         />
 
         <div
-          class="absolute top-1/2 h-6 -translate-y-1/2 rounded-md bg-accented/70 ring-1 ring-inset ring-inverted/30"
+          class="absolute top-1/2 h-6 -translate-y-1/2 rounded-md bg-accented/70 ring-1 ring-inverted/30 ring-inset"
           :class="disabled ? '' : activeMode === 'move' ? 'cursor-grabbing' : 'cursor-grab'"
           :style="{ left: `${startPercent}%`, width: `${Math.max(0, endPercent - startPercent)}%` }"
           @pointerdown="event => handlePointerDown(event, 'move')"
@@ -63,7 +63,7 @@
           @pointerup="handlePointerUp"
           @pointercancel="handlePointerUp"
         >
-          <span class="pointer-events-none absolute inset-0 flex items-center justify-center text-[11px] tabular-nums text-default">
+          <span class="pointer-events-none absolute inset-0 flex items-center justify-center text-[11px] text-default tabular-nums">
             {{ lengthLabel }}
           </span>
         </div>
@@ -78,7 +78,7 @@
           :aria-valuemin="0"
           :aria-valuemax="Math.round(duration * 100) / 100"
           :aria-valuenow="Math.round((currentTime ?? 0) * 100) / 100"
-          class="group absolute inset-y-0 z-[5] flex w-3 -translate-x-1/2 cursor-ew-resize justify-center focus:outline-none"
+          class="group absolute inset-y-0 z-5 flex w-3 -translate-x-1/2 cursor-ew-resize justify-center focus:outline-none"
           :style="{ left: `${playheadPercent}%` }"
           @pointerdown="handleScrubDown"
           @pointermove="handleScrubMove"
@@ -109,10 +109,10 @@
           @keydown="event => handleKeyDown(event, handle.mode)"
         >
           <span class="pointer-events-none h-full w-0.5 rounded-full bg-inverted" />
-          <span class="pointer-events-none absolute left-1/2 top-0 size-3 -translate-x-1/2 rounded-full bg-inverted ring-2 ring-default transition-transform group-hover:scale-125 group-focus:scale-125" />
+          <span class="pointer-events-none absolute top-0 left-1/2 size-3 -translate-x-1/2 rounded-full bg-inverted ring-2 ring-default transition-transform group-hover:scale-125 group-focus:scale-125" />
           <span
             v-if="activeMode === handle.mode"
-            class="pointer-events-none absolute left-1/2 top-full mt-1 -translate-x-1/2 rounded bg-inverted px-1.5 py-0.5 text-[10px] tabular-nums text-inverted"
+            class="pointer-events-none absolute top-full left-1/2 mt-1 -translate-x-1/2 rounded bg-inverted px-1.5 py-0.5 text-[10px] text-inverted tabular-nums"
           >
             {{ formatTrimTime(handle.value) }}
           </span>
@@ -155,9 +155,9 @@ const emit = defineEmits<{
 const start = defineModel<number>('start', { required: true });
 const end = defineModel<number>('end', { required: true });
 
-const trackRef = ref<HTMLDivElement | null>(null);
+const trackRef = useTemplateRef<HTMLDivElement>('trackRef');
 const scrubPointerId = ref<number | null>(null);
-const playheadRef = ref<HTMLDivElement | null>(null);
+const playheadRef = useTemplateRef<HTMLDivElement>('playheadRef');
 
 const {
   activeMode,

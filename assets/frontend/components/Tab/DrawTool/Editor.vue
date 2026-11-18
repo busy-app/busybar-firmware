@@ -113,12 +113,12 @@
         <div class="flex flex-col gap-4">
           <div
             :ref="esRefs.stageContainerRef"
-            class="relative w-full min-h-[400px] rounded-[28px]"
+            class="relative min-h-100 w-full rounded-[28px]"
           >
             <div class="relative w-full overflow-hidden rounded-2xl bg-neutral-500 dark:bg-neutral-950">
               <div
                 v-if="es.hasVideoShapes"
-                class="absolute right-2 top-2 z-40"
+                class="absolute top-2 right-2 z-40"
               >
                 <UTooltip
                   :delay-duration="80"
@@ -146,7 +146,7 @@
                 </UTooltip>
               </div>
 
-              <div class="absolute left-2 top-2 z-40">
+              <div class="absolute top-2 left-2 z-40">
                 <UPopover
                   :content="{
                     side: 'right',
@@ -169,7 +169,7 @@
                       color="neutral"
                       variant="soft"
                       square
-                      class="hidden sm:block rounded-xl bg-accented/25 size-9"
+                      class="hidden size-9 rounded-xl bg-accented/25 sm:block"
                     >
                       <UIcon
                         name="i-bi-info"
@@ -179,7 +179,7 @@
                   </UTooltip>
 
                   <template #content>
-                    <div class="w-[20rem] max-w-[calc(100vw-2rem)] p-2">
+                    <div class="w-xs max-w-[calc(100vw-2rem)] p-2">
                       <div class="px-2 py-1.5 text-sm font-medium text-muted">
                         Keyboard shortcuts
                       </div>
@@ -187,7 +187,7 @@
                       <div
                         v-for="shortcut in toolbarKeyboardShortcuts"
                         :key="shortcut.label"
-                        class="flex items-center gap-6 px-2 py-2"
+                        class="flex items-center gap-6 p-2"
                       >
                         <div class="min-w-0 flex-1 text-sm text-default">
                           {{ shortcut.label }}
@@ -206,7 +206,7 @@
                             </span>
                             <UKbd
                               v-else
-                              class="h-6 min-w-6 justify-center px-1.5 bg-accented/25"
+                              class="h-6 min-w-6 justify-center bg-accented/25 px-1.5"
                               :value="token.label"
                             />
                           </template>
@@ -587,7 +587,7 @@
       :class="toolbarContainerClass"
       :style="toolbarContainerStyle"
     >
-      <div class="flex w-full items-center gap-4 overflow-x-auto rounded-2xl p-2 ring-1 ring-glass bg-surface-container backdrop-blur-sm">
+      <div class="flex w-full flex-wrap items-center justify-center gap-4 rounded-2xl bg-surface-container p-2 ring-1 ring-glass backdrop-blur-sm max-md:flex-nowrap max-md:justify-start max-md:overflow-x-auto">
         <UPopover
           :content="{
             side: 'top',
@@ -806,7 +806,7 @@
                 :content="false"
                 color="neutral"
                 variant="link"
-                class="w-full mb-3"
+                class="mb-3 w-full"
               />
 
               <div class="h-36 overflow-y-auto">
@@ -821,7 +821,7 @@
                     data-draw-tool-preserve-selection
                     color="neutral"
                     variant="ghost"
-                    class="p-1 rounded-xl"
+                    class="rounded-xl p-1"
                     @click="insertDrawToolIcon(icon)"
                   >
                     <img
@@ -1096,7 +1096,7 @@ const emit = defineEmits<{
   back: [];
 }>();
 
-const drawToolRootRef = ref<HTMLDivElement | null>(null);
+const drawToolRootRef = useTemplateRef<HTMLDivElement>('drawToolRootRef');
 const resizeObserver = ref<ResizeObserver | null>(null);
 const pixelatedDisplayFrame = ref<number | null>(null);
 const transformerFrame = ref<number | null>(null);
@@ -1106,8 +1106,10 @@ const timelinePlaybackElapsed = ref(0);
 const stageContainerViewportTop = ref(0);
 const preserveSelectionUntilClick = ref(false);
 const isResizeAspectRatioUnlocked = ref(false);
-const toolbarContainerRef = ref<HTMLDivElement | null>(null);
+const toolbarContainerRef = useTemplateRef<HTMLDivElement>('toolbarContainerRef');
 const toolbarFixedTop = ref(0);
+const toolbarFixedLeft = ref(0);
+const toolbarFixedWidth = ref(0);
 const toolbarShouldStickToViewport = ref(true);
 const showGrid = ref(true);
 
@@ -1291,7 +1293,7 @@ const activeIcons = computed<ResolvedDrawToolIcon[]>(() => {
 
 const toolbarContainerClass = computed(() => {
   return toolbarShouldStickToViewport.value
-    ? 'fixed inset-x-0 z-40'
+    ? 'fixed z-40'
     : 'mt-6';
 });
 const toolbarContainerStyle = computed(() => {
@@ -1300,7 +1302,9 @@ const toolbarContainerStyle = computed(() => {
   }
 
   return {
-    top: `${toolbarFixedTop.value}px`
+    top: `${toolbarFixedTop.value}px`,
+    left: `${toolbarFixedLeft.value}px`,
+    width: `${toolbarFixedWidth.value}px`
   };
 });
 
@@ -1594,7 +1598,7 @@ const selectedTextEditorBounds = computed(() => {
 
   return {
     left: stageMetrics.value.workspaceX + (displayConfig.x * stageMetrics.value.cellSize),
-    top: stageMetrics.value.workspaceY + ((displayConfig.y + (font.fontSize - font.capHeight) / 2) * stageMetrics.value.cellSize),
+    top: stageMetrics.value.workspaceY + ((displayConfig.y + ((font.fontSize - font.capHeight) / 2)) * stageMetrics.value.cellSize),
     width: textConfig.width * stageMetrics.value.cellSize,
     height: textConfig.height * stageMetrics.value.cellSize,
     fontFamily: font.family,
@@ -1724,11 +1728,15 @@ function updateStageContainerViewportTop () {
 
   if (!stageContainerRect || !componentRootRect) {
     toolbarFixedTop.value = Math.max(0, desiredToolbarTop);
+    toolbarFixedLeft.value = 0;
+    toolbarFixedWidth.value = window.innerWidth;
     toolbarShouldStickToViewport.value = true;
     return;
   }
 
   toolbarFixedTop.value = Math.max(componentRootRect.top, desiredToolbarTop);
+  toolbarFixedLeft.value = componentRootRect.left;
+  toolbarFixedWidth.value = componentRootRect.width;
   toolbarShouldStickToViewport.value = toolbarFixedTop.value - stageContainerRect.bottom <= TOOLBAR_MAX_CANVAS_GAP;
 }
 
@@ -2210,10 +2218,10 @@ function buildLogicalExportImageData (sourceImageData: ImageData) {
   const cellHeight = sourceImageData.height / WORKSPACE_HEIGHT;
 
   for (let y = 0; y < WORKSPACE_HEIGHT; y += 1) {
-    const sampleY = Math.min(sourceImageData.height - 1, Math.max(0, Math.round((y + 0.5) * cellHeight - 0.5)));
+    const sampleY = Math.min(sourceImageData.height - 1, Math.max(0, Math.round(((y + 0.5) * cellHeight) - 0.5)));
 
     for (let x = 0; x < WORKSPACE_WIDTH; x += 1) {
-      const sampleX = Math.min(sourceImageData.width - 1, Math.max(0, Math.round((x + 0.5) * cellWidth - 0.5)));
+      const sampleX = Math.min(sourceImageData.width - 1, Math.max(0, Math.round(((x + 0.5) * cellWidth) - 0.5)));
       const sourcePixelIndex = ((sampleY * sourceImageData.width) + sampleX) * 4;
       const logicalPixelIndex = ((y * WORKSPACE_WIDTH) + x) * 4;
 
@@ -2614,6 +2622,10 @@ onMounted(() => {
 
   if (es.stageContainerRef) {
     resizeObserver.value.observe(es.stageContainerRef);
+  }
+
+  if (drawToolRootRef.value) {
+    resizeObserver.value.observe(drawToolRootRef.value);
   }
 
   window.addEventListener('scroll', updateStageContainerViewportTop, { passive: true });
