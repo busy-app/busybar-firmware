@@ -8,15 +8,15 @@ export interface DecodedFrameSet {
   frames: readonly TimedFrame[];
 }
 
-type DecodeRequest
-  = | { type: 'anim'; buffer: ArrayBuffer; maxFrames?: number }
-    | { type: 'image'; buffer: ArrayBuffer; mime: string };
+type DecodeRequest =
+  | { type: 'anim'; buffer: ArrayBuffer; maxFrames?: number }
+  | { type: 'image'; buffer: ArrayBuffer; mime: string };
 
 type WorkerFrame = { width: number; height: number; durationMs: number; buffer: ArrayBuffer };
 
-type WorkerResponse
-  = | { id: number; ok: true; width: number; height: number; fps?: number; frames: WorkerFrame[] }
-    | { id: number; ok: false; error: string };
+type WorkerResponse =
+  | { id: number; ok: true; width: number; height: number; fps?: number; frames: WorkerFrame[] }
+  | { id: number; ok: false; error: string };
 
 let worker: Worker | null = null;
 let requestCounter = 0;

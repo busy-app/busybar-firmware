@@ -23,7 +23,7 @@
       />
 
       <template #content>
-        <div class="h-100 max-h-[calc(100vh-5rem)] flex flex-col gap-2 p-2">
+        <div class="flex h-100 max-h-[calc(100vh-5rem)] flex-col gap-2 p-2">
           <div class="flex items-center justify-between gap-3">
             <UInput
               v-model="searchQuery"
@@ -69,9 +69,9 @@
 
           <div
             v-if="showReloadPrompt"
-            class="rounded-xl flex items-center justify-between gap-2"
+            class="flex items-center justify-between gap-2 rounded-xl"
           >
-            <div class="text-sm pl-3">
+            <div class="pl-3 text-sm">
               Changes saved. Reload the page to apply
             </div>
             <UButton
@@ -89,12 +89,12 @@
               <div
                 v-for="item in filteredLocaleSortedItemsWithChangedFirst"
                 :key="item.name"
-                class="rounded-xl ring ring-inset ring-default/70 bg-default/70 p-3"
+                class="rounded-xl bg-default/70 p-3 ring ring-default/70 ring-inset"
                 :class="item.value !== item.default ? 'bg-warning/5 ring-warning/50' : ''"
               >
                 <div class="flex items-center justify-between gap-2">
-                  <div class="flex flex-col gap-0.75 min-w-0">
-                    <div class="break-all text-xs font-medium opacity-85">
+                  <div class="flex min-w-0 flex-col gap-0.75">
+                    <div class="text-xs font-medium break-all opacity-85">
                       {{ item.name }}
                     </div>
                     <div class="text-sm">
@@ -102,7 +102,7 @@
                     </div>
                   </div>
 
-                  <div class="flex items-center justify-end gap-3 shrink-0">
+                  <div class="flex shrink-0 items-center justify-end gap-3">
                     <USwitch
                       v-if="item.type === 'boolean'"
                       :model-value="item.value"
@@ -128,7 +128,7 @@
                       v-if="item.value !== item.default"
                       class="relative"
                     >
-                      <div class="absolute -top-3.5 w-px h-[calc(100%+1.75rem)] bg-warning/50" />
+                      <div class="absolute -top-3.5 h-[calc(100%+1.75rem)] w-px bg-warning/50" />
                       <UButton
                         data-id="config-store-reset"
                         icon="i-bi-arrow-counterclockwise"

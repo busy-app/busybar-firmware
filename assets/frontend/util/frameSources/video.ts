@@ -175,7 +175,7 @@ async function decodeVideo (handle: FrameSourceHandle, options: DecodeFramesOpti
       throw new DOMException('Video frame decoding aborted', 'AbortError');
     }
 
-    const time = Math.min(grid.startTime + index / grid.fps, Math.max(0, handle.duration - 0.001));
+    const time = Math.min(grid.startTime + (index / grid.fps), Math.max(0, handle.duration - 0.001));
     await seekVideo(video, time);
 
     frames.push(scaler.scale(video));

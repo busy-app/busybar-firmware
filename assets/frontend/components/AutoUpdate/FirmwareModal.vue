@@ -14,7 +14,7 @@
     }"
   >
     <template #body>
-      <div class="flex flex-col gap-6 p-6 bg-no-repeat">
+      <div class="flex flex-col gap-6 bg-no-repeat p-6">
         <div class="flex items-center justify-between text-xl font-medium">
           <div>Update firmware</div>
 
@@ -28,7 +28,7 @@
         </div>
 
         <template v-if="stage === UpdateStage.LOADING">
-          <div class="flex items-center justify-between mt-2.5">
+          <div class="mt-2.5 flex items-center justify-between">
             <div class="flex items-center gap-2.5">
               <UIcon
                 name="i-bi-download"
@@ -50,7 +50,7 @@
             }"
           />
 
-          <div class="w-full flex justify-end">
+          <div class="flex w-full justify-end">
             <UButton
               v-if="firmwareStore.autoUpdate.progress < 100"
               color="neutral"
@@ -63,7 +63,7 @@
         </template>
 
         <template v-if="stage === UpdateStage.UPDATING">
-          <div class="flex items-center justify-between mt-2.5">
+          <div class="mt-2.5 flex items-center justify-between">
             <div class="flex items-center gap-2.5">
               <UIcon
                 name="i-bi-firmware"
@@ -95,7 +95,7 @@
             </div>
           </div>
 
-          <div class="p-4 bg-accented/25 rounded-xl text-sm">
+          <div class="rounded-xl bg-accented/25 p-4 text-sm">
             <MDC
               :value="firmwareStore.autoUpdate.error.stage === UpdateStage.LOADING ? downloadErrorMarkdown : updateErrorMarkdown"
               tag="article"

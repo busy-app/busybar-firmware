@@ -1,19 +1,19 @@
 <template>
   <nav
     data-id="layout-default-header"
-    class="relative h-12 flex justify-between items-center"
+    class="relative flex h-12 items-center justify-between"
   >
     <div class="flex gap-3">
       <UIcon
         data-id="layout-default-header-logo"
         name="i-busy-logo-white"
-        class="w-[70px] h-[28px] mr-5"
+        class="mr-5 h-7 w-[70px]"
         @click="onLogoClick"
       />
       <div
         v-if="power"
         data-id="layout-default-header-power"
-        class="hidden md:flex items-center gap-1.5"
+        class="hidden items-center gap-1.5 md:flex"
       >
         <div class="relative flex">
           <BatteryIndicator
@@ -29,7 +29,7 @@
         size="md"
         variant="ghost"
         color="neutral"
-        class="group hidden xl:flex items-center text-base gap-2 px-1 py-0.5 rounded-md"
+        class="group hidden items-center gap-2 rounded-md px-1 py-0.5 text-base xl:flex"
         icon-class="opacity-0 transition-opacity group-hover:opacity-100"
       >
         <div
@@ -56,7 +56,7 @@
       </CopyButton>
 
       <!-- Show connection as static string between lg and xl screens -->
-      <div class="hidden lg:flex xl:hidden items-center text-base gap-2 px-1">
+      <div class="hidden items-center gap-2 px-1 text-base lg:flex xl:hidden">
         <template v-if="deviceStore.isConnected">
           <UIcon
             :name="deviceStore.connectionType === 'usb' ? 'i-bi-usb-alt' : 'i-bi-wifi-4'"
@@ -105,7 +105,7 @@
           trailing-icon="i-bi-caret-down"
           color="neutral"
           variant="ghost"
-          class="max-w-[calc(100vw-2rem-5.625rem-2.25rem)] sm:max-w-auto relative -right-4 xl:-right-2 text-xl rounded-md truncate"
+          class="relative -right-4 max-w-[calc(100vw-2rem-5.625rem-2.25rem)] truncate rounded-md text-xl xl:-right-2"
           :ui="{
             trailingIcon: 'size-6 text-neutral-500'
           }"
@@ -179,7 +179,7 @@
       />
     </div>
 
-    <div class="flex gap-4 items-center">
+    <div class="flex items-center gap-4">
       <UDropdownMenu
         data-id="layout-default-header-user-menu"
         :items="userDropdownItems"
@@ -208,17 +208,17 @@
 
         <template #signin>
           <div class="flex flex-col gap-2 rounded-md">
-            <div class="flex justify-between items-center gap-2">
+            <div class="flex items-center justify-between gap-2">
               <UIcon
                 name="i-busy-logo"
-                class="w-12 h-5"
+                class="h-5 w-12"
               />
               <UIcon
                 name="i-bi-open-in-new"
                 class="size-5"
               />
             </div>
-            <div class="max-w-[230px] min-w-[200px] text-xs text-muted">
+            <div class="max-w-[230px] min-w-50 text-xs text-muted">
               {{ accountLinked ? 'Manage your BUSY Account' : 'Link your device to BUSY Account to sync your data across all platforms' }}
             </div>
           </div>

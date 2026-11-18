@@ -41,7 +41,7 @@
       :data-id="`apps-section-${app.id}-settings-loading`"
       role="status"
       aria-label="Loading settings"
-      class="flex flex-col gap-1 rounded-group"
+      class="rounded-group flex flex-col gap-1"
     >
       <div
         v-for="width in SKELETON_LABEL_WIDTHS"
@@ -63,7 +63,7 @@
     <div
       v-else-if="schema && settings"
       :data-id="`apps-section-${app.id}-settings`"
-      class="flex flex-col gap-1 rounded-group"
+      class="rounded-group flex flex-col gap-1"
     >
       <TabAppsSettingsFields
         v-model:values="settings.values"
@@ -77,7 +77,7 @@
       :data-id="`apps-section-${app.id}-settings-error`"
       class="flex flex-col items-center gap-6 py-6"
     >
-      <div class="flex max-w-[336px] flex-col gap-2 text-center">
+      <div class="flex max-w-84 flex-col gap-2 text-center">
         <div
           :data-id="`apps-section-${app.id}-settings-error-title`"
           class="text-xl font-medium text-highlighted"
@@ -109,7 +109,7 @@
         />
       </div>
 
-      <div class="flex max-w-[336px] flex-col gap-2 text-center">
+      <div class="flex max-w-84 flex-col gap-2 text-center">
         <div
           :data-id="`apps-section-${app.id}-no-settings-title`"
           class="text-xl font-medium text-highlighted"
