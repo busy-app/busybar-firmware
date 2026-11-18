@@ -456,6 +456,10 @@ void state_publisher_schedule_state_update(
 
     if(queue_status != FuriStatusOk) {
         FURI_LOG_E(TAG, "Queue full, update dropped");
+        if(update) {
+            state_publisher_free_state_update(update);
+            free(update);
+        }
     }
 }
 
