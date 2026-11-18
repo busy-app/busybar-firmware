@@ -22,7 +22,9 @@
 
     <template #body>
       <div class="flex flex-col gap-6 p-5">
-        <img :src="colorMode.value === 'dark' ? props.images?.dark : props.images?.light">
+        <slot name="image">
+          <img :src="colorMode.value === 'dark' ? props.images?.dark : props.images?.light">
+        </slot>
 
         <div class="flex flex-col gap-5">
           <div class="flex flex-col gap-2">
@@ -33,10 +35,12 @@
               {{ props.title }}
             </div>
             <div
-              v-if="props.description"
+              v-if="props.description || $slots['body-description']"
               :data-id="`${props.dataId}-description`"
             >
-              {{ props.description }}
+              <slot name="body-description">
+                {{ props.description }}
+              </slot>
             </div>
           </div>
 
