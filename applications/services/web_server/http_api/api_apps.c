@@ -861,33 +861,47 @@ static void api_apps_queue_get(struct mg_connection* conn, struct mg_http_messag
     cJSON_Delete(response_json);
 }
 
+static const char* api_apps_queue_operation_source_info_parse_url(cJSON* json) {
+    const char* url_str = NULL;
+    Url* url = url_alloc();
+
+    do {
+        cJSON* url_json = cJSON_GetObjectItemCaseSensitive(json, OPERATION_URL_KEY);
+        if(!cJSON_IsString(url_json)) {
+            break;
+        }
+
+        if(!url_parse(url, cJSON_GetStringValue(url_json))) {
+            break;
+        }
+
+        const StringSlice* href = url_get_part(url, UrlPartIdHref);
+        char* href_str = string_slice_to_owned_cstr(href);
+
+        url_str = cJSON_SetValuestring(url_json, href_str);
+        free(href_str);
+
+    } while(false);
+
+    url_free(url);
+    return url_str;
+}
+
 static bool api_apps_queue_operation_source_info_parse(
     JsAppInstallerSourceInfo* source,
     const cJSON* json) {
     bool success = false;
 
     do {
-        const cJSON* item;
-
-        item = cJSON_GetObjectItemCaseSensitive(json, OPERATION_URL_KEY);
-        if(!cJSON_IsString(item)) {
+        const char* url_str = api_apps_queue_operation_source_info_parse_url((cJSON*)json);
+        if(url_str == NULL) {
             break;
         }
-
-        const char* url_str = cJSON_GetStringValue(item);
-        Url* url = url_alloc();
-        const bool is_url_valid = url_parse(url, url_str);
-        url_free(url);
-
-        if(!is_url_valid) {
-            break;
-        }
-
         source->url = url_str;
 
         JsAppInstallerAppVersion* version = &source->version;
 
-        item = cJSON_GetObjectItemCaseSensitive(json, OPERATION_VERSION_KEY);
+        const cJSON* item = cJSON_GetObjectItemCaseSensitive(json, OPERATION_VERSION_KEY);
         if(item != NULL) {
             if(!cJSON_IsString(item)) {
                 break;
