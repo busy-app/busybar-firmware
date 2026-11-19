@@ -278,7 +278,6 @@ typedef struct {
 } osThreadAttr_t;
 
 typedef struct {
-    FuriThread* thread;
     osThreadFunc_t callback;
     void* context;
 } FuriThreadAdapter;
@@ -286,6 +285,7 @@ typedef struct {
 static FURI_ALWAYS_INLINE int32_t furi_cmsis_thread_callback(void* context) {
     FuriThreadAdapter* adapter = (FuriThreadAdapter*)context;
     adapter->callback(adapter->context);
+    free(adapter);
     return 0;
 }
 
@@ -448,17 +448,16 @@ static FURI_ALWAYS_INLINE osThreadId_t
     adapter->callback = func;
     adapter->context = argument;
 
-    adapter->thread =
-        furi_thread_alloc_ex(attr->name, attr->stack_size, furi_cmsis_thread_callback, adapter);
+    FuriThread* thread = furi_thread_alloc_ex(attr->name, attr->stack_size, furi_cmsis_thread_callback, adapter);
 
-    furi_thread_set_priority(adapter->thread, (FuriThreadPriority)attr->priority);
+    furi_thread_set_priority(thread, (FuriThreadPriority)attr->priority);
     if(attr->attr_bits & osThreadJoinable) {
         //ToDo: Implement joinable threads ??????
     } else {
-        furi_thread_start(adapter->thread);
+        furi_thread_start(thread);
     }
 
-    return (osThreadId_t)adapter;
+    return (osThreadId_t)thread;
 }
 
 /// Get name of a thread.
@@ -466,15 +465,16 @@ static FURI_ALWAYS_INLINE osThreadId_t
 /// \return name as null-terminated string.
 //const char *osThreadGetName (osThreadId_t thread_id);
 static FURI_ALWAYS_INLINE const char* osThreadGetName(osThreadId_t thread_id) {
-    FuriThreadAdapter* adapter = (FuriThreadAdapter*)thread_id;
-    return furi_thread_get_name((FuriThreadId)adapter->thread);
+    FuriThread* thread = (FuriThread*)thread_id;
+    FuriThreadId id = furi_thread_get_id(thread);
+    return furi_thread_get_name(id);
 }
 
 /// Return the thread ID of the current running thread.
 /// \return thread ID for reference by other functions or NULL in case of error.
 //osThreadId_t osThreadGetId (void);
 static FURI_ALWAYS_INLINE osThreadId_t osThreadGetId(void) {
-    return (osThreadId_t)furi_thread_get_current_id();
+    return (osThreadId_t)furi_thread_get_current();
 }
 
 /// Get current thread state of a thread.
@@ -502,8 +502,8 @@ static FURI_ALWAYS_INLINE osThreadId_t osThreadGetId(void) {
 // /// \param[in]     thread_id     thread ID obtained by \ref osThreadNew or \ref osThreadGetId.
 // /// \return current priority value of the specified thread.
 static FURI_ALWAYS_INLINE osPriority_t osThreadGetPriority (osThreadId_t thread_id) {
-    FuriThreadAdapter* adapter = (FuriThreadAdapter*)thread_id;
-    const FuriThreadPriority prio = furi_thread_get_priority(adapter->thread);
+    FuriThread* thread = (FuriThread*)thread_id;
+    const FuriThreadPriority prio = furi_thread_get_priority(thread);
     return (osPriority_t)prio;
 }
 
@@ -519,8 +519,9 @@ static FURI_ALWAYS_INLINE osStatus_t osThreadYield(void) {
 // /// \param[in]     thread_id     thread ID obtained by \ref osThreadNew or \ref osThreadGetId.
 // /// \return status code that indicates the execution status of the function.
 static FURI_ALWAYS_INLINE osStatus_t osThreadSuspend (osThreadId_t thread_id) {
-    FuriThreadAdapter* adapter = (FuriThreadAdapter*)thread_id;
-    furi_thread_suspend(adapter->thread);
+    FuriThread* thread = (FuriThread*)thread_id;
+    FuriThreadId id = furi_thread_get_id(thread);
+    furi_thread_suspend(id);
     return osOK;
 }
 
@@ -539,10 +540,8 @@ static FURI_ALWAYS_INLINE osStatus_t osThreadSuspend (osThreadId_t thread_id) {
 // /// \return status code that indicates the execution status of the function.
 //osStatus_t osThreadJoin (osThreadId_t thread_id);
 static FURI_ALWAYS_INLINE osStatus_t osThreadJoin(osThreadId_t thread_id) {
-    FuriThreadAdapter* adapter = (FuriThreadAdapter*)thread_id;
-    furi_thread_join(adapter->thread);
-    //furi_thread_free(adapter->thread);
-    //free(adapter);
+    FuriThread* thread = (FuriThread*)thread_id;
+    furi_thread_join(thread);
     return osOK;
 }
 
@@ -554,10 +553,9 @@ static FURI_ALWAYS_INLINE osStatus_t osThreadJoin(osThreadId_t thread_id) {
 /// \return status code that indicates the execution status of the function.
 //osStatus_t osThreadTerminate (osThreadId_t thread_id);
 static FURI_ALWAYS_INLINE osStatus_t osThreadTerminate(osThreadId_t thread_id) {
-    FuriThreadAdapter* adapter = (FuriThreadAdapter*)thread_id;
-    furi_thread_join(adapter->thread);
-    furi_thread_free(adapter->thread);
-    free(adapter);
+    FuriThread* thread = (FuriThread*)thread_id;
+    furi_thread_join(thread);
+    furi_thread_free(thread);
     return osOK;
 }
 
@@ -579,8 +577,9 @@ static FURI_ALWAYS_INLINE osStatus_t osThreadTerminate(osThreadId_t thread_id) {
 // /// \return thread flags after setting or error code if highest bit set.
 // uint32_t osThreadFlagsSet (osThreadId_t thread_id, uint32_t flags);
 static FURI_ALWAYS_INLINE uint32_t osThreadFlagsSet(osThreadId_t thread_id, uint32_t flags) {
-    FuriThreadAdapter* adapter = (FuriThreadAdapter*)thread_id;
-    return furi_thread_flags_set(adapter->thread, flags);
+    FuriThread* thread = (FuriThread*)thread_id;
+    FuriThreadId id = furi_thread_get_id(thread);
+    return furi_thread_flags_set(id, flags);
 }
 
 // /// Clear the specified Thread Flags of current running thread.
