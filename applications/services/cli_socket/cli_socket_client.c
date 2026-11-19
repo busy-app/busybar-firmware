@@ -403,8 +403,8 @@ static CliSocketClient* cli_socket_client_thread_init(struct tcp_pcb* client_soc
 
     client->main_registry = furi_record_open(RECORD_CLI);
 
-    client->shell =
-        cli_shell_alloc(cli_main_motd, NULL, client->shell_pipe, client->main_registry, NULL);
+    client->shell = cli_shell_alloc(
+        cli_main_motd, NULL, client->shell_pipe, client->main_registry, NULL, CliShellFlagNone);
     cli_shell_free_pipe_on_exit(client->shell);
     cli_shell_start(client->shell);
 
