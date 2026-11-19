@@ -1,5 +1,13 @@
 #include "cli_ansi.h"
 
+#define UTF8_BYTE_TYPE_MASK         (0xC0)
+#define UTF8_CONTINUATION_BYTE_MASK (0x80)
+
+#define CSI_SEQUENCE_START     "\e["
+#define CSI_SEQUENCE_START_LEN (sizeof(CSI_SEQUENCE_START) - 1)
+#define CSI_SEQUENCE_FINAL_MIN (0x40)
+#define CSI_SEQUENCE_FINAL_MAX (0x7E)
+
 typedef enum {
     CliAnsiParserStateInitial,
     CliAnsiParserStateEscape,
@@ -126,31 +134,32 @@ size_t cli_ansi_printable_strlen(const char* string) {
     size_t count = 0;
 
     bool is_inside_escape_sequence = false;
-    char window[3] = {0};
 
-    const size_t window_sz = sizeof(window);
-    char* const window_last = &window[window_sz - 1];
-    char* const window_block_start = &window[1];
-    const size_t window_block_sz = window_sz - 1;
-
-    while((*window_last = *string++)) {
-        char c = *window_last;
-        memmove(window, window_block_start, window_block_sz);
-        *window_last = '\0';
-
-        if(strcmp(window, "\e[") == 0) {
+    for(const char* cursor = string; *cursor; ++cursor) {
+        if(strncmp(cursor, CSI_SEQUENCE_START, CSI_SEQUENCE_START_LEN) == 0) {
             is_inside_escape_sequence = true;
+            cursor += CSI_SEQUENCE_START_LEN - 1;
             continue;
         }
-        bool is_escape_sequence_terminator = (c >= 0x40) && (c <= 0x7e);
-        if(is_inside_escape_sequence && is_escape_sequence_terminator) {
-            is_inside_escape_sequence = false;
-            continue;
-        }
-        if(is_inside_escape_sequence) continue;
 
-        if((c & 0b1100'0000) == 0b1000'0000) continue; // UTF-8 continuation byte
-        if(c < ' ') continue; // ASCII non-printable
+        const char c = *cursor;
+
+        if(is_inside_escape_sequence) {
+            if((c >= CSI_SEQUENCE_FINAL_MIN) && (c <= CSI_SEQUENCE_FINAL_MAX)) {
+                is_inside_escape_sequence = false;
+            }
+
+            continue;
+        }
+
+        // UTF-8 continuation byte
+        if((c & UTF8_BYTE_TYPE_MASK) == UTF8_CONTINUATION_BYTE_MASK) {
+            continue;
+        }
+        // ASCII non-printable
+        if(c < ' ') {
+            continue;
+        }
 
         count++;
     }
