@@ -70,7 +70,9 @@ static bool slider_view_input_callback(Widget* widget, const InputEvent* event) 
     return true;
 }
 
-static void slider_view_style_front(Widget* widget) {
+static void slider_view_style_front(const lv_obj_class_t* class, Widget* widget) {
+    UNUSED(class);
+
     SliderView* instance = (SliderView*)widget;
 
     instance->font_text = font_registry_load_font(instance->font_registry, FONT_BUSY_REGULAR_7);
@@ -94,7 +96,9 @@ static void slider_view_style_front(Widget* widget) {
         instance->right_arrow_label, LV_OPA_50, LV_PART_MAIN | LV_STATE_DISABLED);
 }
 
-static void slider_view_style_back(Widget* widget) {
+static void slider_view_style_back(const lv_obj_class_t* class, Widget* widget) {
+    UNUSED(class);
+
     SliderView* instance = (SliderView*)widget;
 
     instance->font_text = font_registry_load_font(instance->font_registry, FONT_BUSY_REGULAR_9);

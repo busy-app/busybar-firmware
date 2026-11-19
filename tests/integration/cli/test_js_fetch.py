@@ -12,7 +12,14 @@ import requests
 import yaml
 
 from utils.fetch_http_server import (
+    CHUNKED_JSON_PAYLOAD,
+    FETCH_HTTP11_TIMEOUT_S,
     HEADERS_PAYLOAD,
+    HTTP11_ERROR_RESPONSES,
+    HTTP11_HEADER_ERROR_RESPONSES,
+    HTTP11_INCOMPLETE_TRAILER_CASES,
+    HTTP11_INFORMATIONAL_RESPONSES,
+    HTTP11_SUCCESS_RESPONSES,
     NON_BMP_UNICODE_TEXT,
     NOT_FOUND_PAYLOAD,
     REQUEST_RESPONSE,
@@ -20,8 +27,16 @@ from utils.fetch_http_server import (
     UNICODE_TEXT,
 )
 
-
-pytestmark = pytest.mark.cli
+pytestmark = [
+    pytest.mark.cli,
+    pytest.mark.bsb_metadata(
+        suite="Integration",
+        level="Integration",
+        intent="Product",
+        interfaces=("CLI", "Device API"),
+        transports=("Telnet", "LAN REST"),
+    ),
+]
 
 UPDATE_DIRECTORY_URL = "https://update.busy.app/busybar-firmware/directory.json"
 JS_FETCH_HEADER = "X-busybar-fetch"
@@ -42,7 +57,7 @@ JS_API_FULL_ACCESS_PATHS = {
     "/api/display/brightness",
     "/api/audio/volume",
 }
-JS_API_FULL_ACCESS_TAGS = {"Busy"}
+JS_API_FULL_ACCESS_TAGS = {"Busy", "Storage"}
 JS_API_GET_ACCESS_TAGS = {"System", "Time"}
 
 
@@ -194,9 +209,89 @@ def build_api_access_case(cases, *, forbidden):
     ).strip()
 
 
-@allure.epic("BSB CLI Testing")
-@allure.feature("JavaScript Fetch API")
-@allure.story("JS Apps")
+def build_promise_rejection_check(
+    expression, error_type="TypeError", expected_message=None
+):
+    """Check that an expression returns a Promise rejected with an error object."""
+    body = dedent(
+        f"""
+            const promise = {expression};
+            assert(promise instanceof Promise, "expected Promise, got=" + promise);
+            let rejection;
+            try {{
+                await promise;
+            }} catch (error) {{
+                rejection = error;
+            }}
+            assert(rejection instanceof {error_type},
+                "expected {error_type} rejection, got=" + rejection);
+            assert(typeof rejection.message === "string" &&
+                rejection.message.length > 0,
+                "missing error message: " + rejection);
+        """
+    ).strip()
+    if expected_message is not None:
+        body += (
+            f"\nassert(rejection.message === {json.dumps(expected_message)},\n"
+            '    "error message=" + rejection.message);'
+        )
+    return body
+
+
+def build_bytes_check(expression, payload):
+    return dedent(
+        f"""
+            const actual = {expression};
+            const expected = {json.dumps(list(payload))};
+            assert(actual.length === expected.length,
+                "byte count=" + actual.length + ", expected=" + expected.length);
+            for (let index = 0; index < expected.length; index++) {{
+                assert(actual[index] === expected[index],
+                    "byte " + index + "=" + actual[index] +
+                    ", expected=" + expected[index]);
+            }}
+        """
+    ).strip()
+
+
+def build_reader_completion_check(has_error):
+    return dedent(
+        f"""
+            const reader = response.body.getReader();
+            const closed = reader.closed.then(
+                function() {{ return {{rejected: false}}; }},
+                function(error) {{ return {{rejected: true, error: error}}; }}
+            );
+            const received = [];
+            let chunk;
+            do {{
+                chunk = await reader.read();
+                if (!chunk.done) {{
+                    assert(chunk.value instanceof Uint8Array,
+                        "expected Uint8Array, got=" + chunk.value);
+                    for (let index = 0; index < chunk.value.length; index++) {{
+                        received.push(chunk.value[index]);
+                    }}
+                }}
+            }} while (!chunk.done);
+            const outcome = await closed;
+            assert(outcome.rejected === {json.dumps(has_error)},
+                "reader.closed=" + JSON.stringify(outcome));
+            if (outcome.rejected) {{
+                assert(outcome.error instanceof TypeError,
+                    "expected TypeError, got=" + outcome.error);
+                assert(outcome.error.message === "Stream error",
+                    "reader.closed error=" + outcome.error.message);
+            }}
+            const end = await reader.read();
+            assert(end.done === true, "read after completion=" + JSON.stringify(end));
+        """
+    ).strip()
+
+
+@allure.epic("BusyBar & Local Control")
+@allure.feature("JavaScript applications")
+@allure.story("JavaScript Fetch API")
 class TestJSFetch:
     """Exercise JS Apps fetch semantics through the real device network."""
 
@@ -225,6 +320,7 @@ class TestJSFetch:
 
         with allure.step("Verify the host received a GET without a body"):
             captured = captured_request(http_server, output, "GET request")
+            assert captured["version"] == "HTTP/1.1", f"captured={captured!r}"
             assert captured["method"] == "GET", f"captured={captured!r}"
             assert captured["path"] == "/text", f"captured={captured!r}"
             assert captured["body"] == b"", f"captured={captured!r}"
@@ -249,8 +345,13 @@ class TestJSFetch:
 
     @allure.title("JavaScript cannot override the reserved fetch marker header.")
     @pytest.mark.parametrize(
-        "header_name",
-        ["X-busybar-fetch", "x-busybar-fetch", "X-BUSYBAR-FETCH", "  X-busybar-fetch"],
+        "header_name, expected_error",
+        [
+            ("X-busybar-fetch", ""),
+            ("x-busybar-fetch", ""),
+            ("X-BUSYBAR-FETCH", ""),
+            ("  X-busybar-fetch", "Invalid header"),
+        ],
         ids=["canonical", "lowercase", "uppercase", "lead_spaces"],
     )
     def test_reserved_marker_cannot_be_overridden(
@@ -258,23 +359,38 @@ class TestJSFetch:
         js_case_runner,
         http_server,
         header_name,
+        expected_error,
     ):
         case_name = f"reserved_marker_override_{header_name.strip(" ")}"
         url = json.dumps(http_server.url("/request"))
         headers = json.dumps({header_name: "untrusted"})
         body = dedent(
             f"""
-                const response = await fetch({url}, {{headers: {headers}}});
-                assert(response.status === 200, "status=" + response.status);
-                await response.text();
+                let error_message = "";
+                try {{
+                    const response = await fetch({url}, {{headers: {headers}}});
+                    assert(response.status === 200, "status=" + response.status);
+                    await response.text();
+                }} catch (error) {{
+                    error_message = String(error);
+                }}
+                assert(error_message === {json.dumps(expected_error)},
+                    "error=" + error_message);
             """
         ).strip()
 
         output = js_case_runner(case_name, body)
 
-        with allure.step("Verify the user value was replaced, not duplicated"):
-            captured = captured_request(http_server, output, "override request")
-            assert_js_fetch_header(captured)
+        if expected_error:
+            with allure.step("Verify an invalid header name sends no HTTP request"):
+                assert http_server.requests.empty(), (
+                    "host received a request with an invalid header name; "
+                    f"queue size={http_server.requests.qsize()}, output={output!r}"
+                )
+        else:
+            with allure.step("Verify the user value was replaced, not duplicated"):
+                captured = captured_request(http_server, output, "override request")
+                assert_js_fetch_header(captured)
 
     @allure.title("JavaScript fetch permits a colon in a header value.")
     def test_reserved_marker_value_allows_colon(self, js_case_runner, http_server):
@@ -317,25 +433,43 @@ class TestJSFetch:
 
         js_case_runner(case_name, body)
 
-    @allure.title("JavaScript fetch rejects a request-target containing CRLF.")
-    def test_url_with_http_request_line_rejects(self, js_case_runner):
-        case_name = "url_with_request_line_rejects"
-        url = "http://127.0.0.1/api/apps/list HTTP/1.0\r\n"
-        url += "X-busybar-fetch: spoofed\r\nX-junk:"
+    @allure.title("JavaScript fetch encodes CRLF in a URL without injecting headers.")
+    @pytest.mark.parametrize(
+        "request_target, encoded_target",
+        [
+            (
+                "/api/apps/list HTTP/1.0\r\n" "X-busybar-fetch: spoofed\r\nX-junk:",
+                "/api/apps/list%20HTTP/1.0%0D%0A"
+                "X-busybar-fetch:%20spoofed%0D%0AX-junk:",
+            ),
+            (
+                "/query?value=HTTP/1.0\r\n" "X-busybar-fetch: spoofed\r\nX-junk:",
+                "/query?value=HTTP/1.0%0D%0A" "X-busybar-fetch:%20spoofed%0D%0AX-junk:",
+            ),
+        ],
+        ids=["path", "query"],
+    )
+    def test_url_with_http_request_line_is_encoded(
+        self, js_case_runner, http_server, request_target, encoded_target
+    ):
+        case_name = "url_with_request_line_is_encoded"
+        url = json.dumps(http_server.url(request_target))
         body = dedent(
             f"""
-                let error_message = "";
-                try {{
-                    await fetch({json.dumps(url)});
-                }} catch (error) {{
-                    error_message = String(error);
-                }}
-                assert(error_message === "Invalid URL",
-                    "error=" + error_message);
+                const response = await fetch({url});
+                await response.text();
             """
         ).strip()
 
-        js_case_runner(case_name, body)
+        output = js_case_runner(case_name, body)
+
+        with allure.step("Verify the encoded target and trusted headers on the wire"):
+            captured = captured_request(http_server, output, "encoded URL request")
+            assert captured["method"] == "GET", f"captured={captured!r}"
+            assert captured["path"] == encoded_target, f"captured={captured!r}"
+            assert captured["body"] == b"", f"captured={captured!r}"
+            assert_js_fetch_header(captured)
+            assert "x-junk" not in captured["headers"], f"captured={captured!r}"
 
     @allure.title("JavaScript fetch rejects an HTTP request line as a method.")
     def test_method_with_http_request_line_rejects(self, js_case_runner):
@@ -360,23 +494,35 @@ class TestJSFetch:
 
     @allure.title("A spoofed JavaScript marker cannot authorize a local API request.")
     @pytest.mark.parametrize(
-        "header_name",
-        ["X-busybar-fetch", "x-busybar-fetch", "X-BUSYBAR-FETCH", "  X-busybar-fetch"],
+        "header_name, expected_error",
+        [
+            ("X-busybar-fetch", ""),
+            ("x-busybar-fetch", ""),
+            ("X-BUSYBAR-FETCH", ""),
+            ("  X-busybar-fetch", "Invalid header"),
+        ],
         ids=["canonical", "lowercase", "uppercase", "lead_spaces"],
     )
     def test_reserved_marker_does_not_authorize_local_api(
-        self, js_case_runner, header_name
+        self, js_case_runner, header_name, expected_error
     ):
         case_name = f"reserved_marker_local_api_{header_name.strip(' ')}"
         headers = json.dumps({header_name: "spoofed"})
         body = dedent(
             f"""
-                const response = await fetch(
-                    {json.dumps(LOCAL_API_URL + "/apps/list")},
-                    {{headers: {headers}}}
-                );
-                assert(response.status === 403, "status=" + response.status);
-                await response.text();
+                let error_message = "";
+                try {{
+                    const response = await fetch(
+                        {json.dumps(LOCAL_API_URL + "/apps/list")},
+                        {{headers: {headers}}}
+                    );
+                    assert(response.status === 403, "status=" + response.status);
+                    await response.text();
+                }} catch (error) {{
+                    error_message = String(error);
+                }}
+                assert(error_message === {json.dumps(expected_error)},
+                    "error=" + error_message);
             """
         ).strip()
 
@@ -624,10 +770,11 @@ class TestJSFetch:
                             const directory = await response.json();
                             return {{response: response, directory: directory}};
                         }} catch (error) {{
-                            const message = String(error);
-                            transientErrors.push(message);
-                            if (message !== "DNS error" &&
-                                message !== "Inactivity timeout") {{
+                            const message = error.message;
+                            transientErrors.push(String(error));
+                            if (!(error instanceof TypeError) ||
+                                (message !== "DNS error" &&
+                                    message !== "Inactivity timeout")) {{
                                 throw error;
                             }}
                             if (attempt < 4) {{
@@ -662,36 +809,51 @@ class TestJSFetch:
     def test_invalid_json_rejects(self, js_case_runner, http_server):
         case_name = "invalid_json"
         url = json.dumps(http_server.url("/invalid-json"))
-        body = dedent(
-            f"""
-                const response = await fetch({url});
-                let rejected = false;
-                try {{
-                    await response.json();
-                }} catch (error) {{
-                    rejected = true;
-                }}
-                assert(rejected, "json() accepted malformed JSON");
-                assert(response.bodyUsed === true, "bodyUsed after json()");
-            """
-        ).strip()
+        body = (
+            f"const response = await fetch({url});\n"
+            + build_promise_rejection_check("response.json()", "SyntaxError")
+            + '\nassert(response.bodyUsed === true, "bodyUsed after json()");'
+        )
 
         js_case_runner(case_name, body)
+
+    @allure.title("JavaScript fetch rejects text() for invalid UTF-8 with TypeError.")
+    def test_invalid_utf8_rejects(self, js_case_runner, http_server):
+        url = json.dumps(http_server.url("/invalid-utf8"))
+        body = (
+            f"const response = await fetch({url});\n"
+            + build_promise_rejection_check(
+                "response.text()", expected_message="Invalid UTF-8"
+            )
+            + '\nassert(response.bodyUsed === true, "bodyUsed after text()");'
+        )
+
+        js_case_runner("invalid_utf8", body)
+
+    @allure.title("Unimplemented JavaScript response body methods reject with Error.")
+    @pytest.mark.parametrize("method", ["blob", "formData"])
+    def test_unimplemented_body_method_rejects(
+        self, js_case_runner, http_server, method
+    ):
+        url = json.dumps(http_server.url("/text"))
+        body = (
+            f"const response = await fetch({url});\n"
+            + build_promise_rejection_check(
+                f"response.{method}()", "Error", "unimplemented"
+            )
+            + '\nassert(rejection.name === "Error", "error name=" + rejection.name);'
+            + '\nassert(response.bodyUsed === true, "bodyUsed after read");'
+        )
+
+        js_case_runner(f"unimplemented_{method}", body)
 
     @allure.title("JavaScript fetch rejects a call without a URL.")
     def test_missing_url_rejects(self, js_case_runner):
         case_name = "missing_url"
-        body = dedent(
-            """
-                let rejected = false;
-                try {
-                    await fetch();
-                } catch (error) {
-                    rejected = true;
-                }
-                assert(rejected, "fetch() without URL was not rejected");
-            """
-        ).strip()
+        body = build_promise_rejection_check(
+            "fetch()",
+            expected_message="At least 1 argument required, but only 0 passed",
+        )
 
         js_case_runner(case_name, body)
 
@@ -699,17 +861,9 @@ class TestJSFetch:
     def test_invalid_init_rejects(self, js_case_runner, http_server):
         case_name = "invalid_init"
         url = json.dumps(http_server.url("/text"))
-        body = dedent(
-            f"""
-                let rejected = false;
-                try {{
-                    await fetch({url}, 42);
-                }} catch (error) {{
-                    rejected = true;
-                }}
-                assert(rejected, "numeric init argument was not rejected");
-            """
-        ).strip()
+        body = build_promise_rejection_check(
+            f"fetch({url}, 42)", expected_message="Invalid parameter"
+        )
 
         js_case_runner(case_name, body)
 
@@ -717,17 +871,7 @@ class TestJSFetch:
     def test_disconnect_before_headers_rejects(self, js_case_runner, http_server):
         case_name = "disconnect_before_headers"
         url = json.dumps(http_server.url("/disconnect"))
-        body = dedent(
-            f"""
-                let rejected = false;
-                try {{
-                    await fetch({url});
-                }} catch (error) {{
-                    rejected = true;
-                }}
-                assert(rejected, "disconnect before headers was not rejected");
-            """
-        ).strip()
+        body = build_promise_rejection_check(f"fetch({url})")
 
         js_case_runner(case_name, body)
 
@@ -794,6 +938,131 @@ class TestJSFetch:
         ).strip()
 
         js_case_runner(case_name, body)
+
+    @allure.title("JavaScript fetch preserves empty response headers and HTTP status.")
+    @allure.issue("https://flipper.atlassian.net/browse/FW-1287")
+    @pytest.mark.parametrize(
+        "path,status,status_text,payload",
+        [
+            ("/empty-headers", 200, "OK", HEADERS_PAYLOAD),
+            ("/empty-headers-unauthorized", 401, "Unauthorized", HEADERS_PAYLOAD),
+            ("/empty-headers-no-content", 204, "No Content", b""),
+        ],
+        ids=["ok", "home-assistant-unauthorized", "no-content"],
+    )
+    def test_empty_response_headers(
+        self, js_case_runner, http_server, path, status, status_text, payload
+    ):
+        url = json.dumps(http_server.url(path))
+        expected_text = json.dumps(payload.decode("utf-8"))
+        body = dedent(
+            f"""
+                const response = await fetch({url});
+                assert(response.status === {status}, "status=" + response.status);
+                assert(response.statusText === {json.dumps(status_text)},
+                    "statusText=" + response.statusText);
+                assert(response.ok === {json.dumps(status < 400)},
+                    "ok=" + response.ok);
+                for (const name of [
+                    "Server", "X-Empty", "X-Tab", "X-Whitespace", "X-Last-Empty"
+                ]) {{
+                    assert(response.headers.has(name), name + " is missing");
+                    const value = response.headers.get(name);
+                    assert(value === "", name + "=" + JSON.stringify(value));
+                    let found = false;
+                    for (const entry of response.headers.entries()) {{
+                        if (entry[0] === name) {{
+                            assert(entry[1] === "",
+                                name + " entry=" + JSON.stringify(entry[1]));
+                            found = true;
+                        }}
+                    }}
+                    assert(found, name + " is missing from entries()");
+                }}
+                assert(!response.headers.has("X-Missing"), "missing header exists");
+                assert(response.headers.get("X-Missing") === null,
+                    "missing header=" + response.headers.get("X-Missing"));
+                assert(response.headers.get("X-Before") === "before",
+                    "preceding header=" + response.headers.get("X-Before"));
+                assert(response.headers.get("X-After") === "after",
+                    "following header=" + response.headers.get("X-After"));
+                const text = await response.text();
+                assert(text === {expected_text}, "body=" + JSON.stringify(text));
+                assert(response.bodyUsed === true, "bodyUsed after text()");
+            """
+        ).strip()
+
+        output = js_case_runner(f"empty_response_headers_{status}", body)
+
+        with allure.step("Verify the host received the request with the JS marker"):
+            captured = captured_request(http_server, output, "empty-header request")
+            assert captured["path"] == path, f"captured={captured!r}"
+            assert_js_fetch_header(captured)
+
+    @allure.title("Malformed response headers reject fetch and allow another request.")
+    @allure.issue("https://flipper.atlassian.net/browse/FW-1287")
+    @pytest.mark.parametrize(
+        "path,error_type,error_message,attempts",
+        [
+            ("/invalid-headers-empty-name", "TypeError", None, 1),
+            ("/invalid-headers-empty-value-lf", "Error", "Error parsing headers", 1),
+            (
+                "/invalid-headers-whitespace-value-lf",
+                "Error",
+                "Error parsing headers",
+                1,
+            ),
+            ("/invalid-headers-stall", "Error", "Error parsing headers", 1),
+            ("/invalid-headers-empty-value-lf", "Error", "Error parsing headers", 5),
+        ],
+        ids=[
+            "empty-name",
+            "empty-value-bare-lf",
+            "whitespace-value-bare-lf",
+            "stalled-body",
+            "repeated-rejections",
+        ],
+    )
+    def test_malformed_response_headers_reject_fetch(
+        self, js_case_runner, http_server, path, error_type, error_message, attempts
+    ):
+        url = json.dumps(http_server.url(path))
+        recovery_url = json.dumps(http_server.url("/text"))
+        rejection_check = build_promise_rejection_check(
+            f"fetch({url})", error_type, error_message
+        )
+        body = (
+            rejection_check
+            + "\n"
+            + dedent(
+                f"""
+                const response = await fetch({recovery_url});
+                assert(response.status === 200, "recovery status=" + response.status);
+                const text = await response.text();
+                assert(text === {json.dumps(TEXT_PAYLOAD.decode("utf-8"))},
+                    "recovery body=" + JSON.stringify(text));
+            """
+            ).strip()
+        )
+
+        body = f"for (let attempt = 0; attempt < {attempts}; attempt++) {{\n{body}\n}}"
+        case_name = f"{path.strip('/').replace('-', '_')}_{attempts}"
+        output = js_case_runner(case_name, body)
+
+        with allure.step("Verify both requests reached the host in order"):
+            for expected_path in (path, "/text") * attempts:
+                captured = captured_request(http_server, output, expected_path)
+                assert captured["path"] == expected_path, f"captured={captured!r}"
+                assert_js_fetch_header(captured)
+
+        if path == "/invalid-headers-stall":
+            with allure.step(
+                "Verify fetch closed the connection without waiting for a body"
+            ):
+                assert http_server.stalled_request_closed.wait(timeout=1), (
+                    "fetch left the connection open after rejecting malformed headers; "
+                    f"output={output!r}"
+                )
 
     @allure.title("JavaScript Headers.has is case-insensitive.")
     def test_headers_has_is_case_insensitive(self, js_case_runner, http_server):
@@ -923,23 +1192,20 @@ class TestJSFetch:
         js_case_runner(case_name, body)
 
     @allure.title("JavaScript response body can only be consumed once.")
-    def test_body_is_single_use(self, js_case_runner, http_server):
+    @pytest.mark.parametrize(
+        "method", ["text", "json", "arrayBuffer", "bytes", "blob", "formData"]
+    )
+    def test_body_is_single_use(self, js_case_runner, http_server, method):
         case_name = "body_single_use"
         url = json.dumps(http_server.url("/text"))
-        body = dedent(
-            f"""
-                const response = await fetch({url});
-                await response.text();
-                let rejected = false;
-                try {{
-                    await response.text();
-                }} catch (error) {{
-                    rejected = true;
-                }}
-                assert(rejected, "second body read was not rejected");
-                assert(response.bodyUsed === true, "bodyUsed after read");
-            """
-        ).strip()
+        body = (
+            f"const response = await fetch({url});\n"
+            "await response.text();\n"
+            + build_promise_rejection_check(
+                f"response.{method}()", expected_message="Body is already in use"
+            )
+            + '\nassert(response.bodyUsed === true, "bodyUsed after read");'
+        )
 
         js_case_runner(case_name, body)
 
@@ -947,18 +1213,12 @@ class TestJSFetch:
     def test_truncated_body_rejects(self, js_case_runner, http_server):
         case_name = "truncated_body"
         url = json.dumps(http_server.url("/truncated"))
-        body = dedent(
-            f"""
-                const response = await fetch({url});
-                let rejected = false;
-                try {{
-                    await response.text();
-                }} catch (error) {{
-                    rejected = true;
-                }}
-                assert(rejected, "truncated body was not rejected");
-            """
-        ).strip()
+        body = (
+            f"const response = await fetch({url});\n"
+            + build_promise_rejection_check(
+                "response.text()", expected_message="Incomplete response body"
+            )
+        )
 
         js_case_runner(case_name, body)
 
@@ -966,20 +1226,66 @@ class TestJSFetch:
     def test_inactivity_after_headers_rejects(self, js_case_runner, http_server):
         case_name = "inactivity_after_headers"
         url = json.dumps(http_server.url("/stall"))
+        body = (
+            f"const response = await fetch({url});\n"
+            + build_promise_rejection_check(
+                "response.text()", expected_message="Inactivity timeout"
+            )
+        )
+
+        js_case_runner(case_name, body, timeout=12)
+
+    @allure.title("JavaScript reader.closed reports stream completion and errors.")
+    @pytest.mark.parametrize(
+        "path, has_error",
+        [("/text", False), ("/truncated", True)],
+        ids=["complete", "truncated"],
+    )
+    def test_reader_closed(self, js_case_runner, http_server, path, has_error):
+        url = json.dumps(http_server.url(path))
         body = dedent(
             f"""
                 const response = await fetch({url});
-                let rejected = false;
-                try {{
-                    await response.text();
-                }} catch (error) {{
-                    rejected = true;
+                const reader = response.body.getReader();
+                function observeClosed() {{
+                    const promise = reader.closed;
+                    assert(promise instanceof Promise,
+                        "expected closed Promise, got=" + promise);
+                    return promise.then(
+                        function(value) {{
+                            return {{rejected: false, value: value}};
+                        }},
+                        function(error) {{
+                            return {{rejected: true, error: error}};
+                        }}
+                    );
                 }}
-                assert(rejected, "inactivity timeout did not reject body read");
+                const pendingClosed = observeClosed();
+                let chunk;
+                do {{
+                    chunk = await reader.read();
+                }} while (!chunk.done);
+
+                const outcomes = [await pendingClosed, await observeClosed()];
+                for (let index = 0; index < outcomes.length; index++) {{
+                    const outcome = outcomes[index];
+                    assert(outcome.rejected === {json.dumps(has_error)},
+                        "closed result=" + JSON.stringify(outcome) +
+                        ", index=" + index);
+                    if (outcome.rejected) {{
+                        assert(outcome.error instanceof TypeError,
+                            "expected TypeError, got=" + outcome.error);
+                        assert(outcome.error.message === "Stream error",
+                            "closed error=" + outcome.error);
+                    }} else {{
+                        assert(outcome.value === undefined,
+                            "closed value=" + outcome.value);
+                    }}
+                }}
             """
         ).strip()
 
-        js_case_runner(case_name, body, timeout=12)
+        js_case_runner("reader_closed", body)
 
     @allure.title("JavaScript fetch accepts the documented ten request headers.")
     def test_ten_request_headers(self, js_case_runner, http_server):
@@ -1108,7 +1414,7 @@ class TestJSFetch:
             timeout=35,
         )
 
-    @allure.title("JavaScript API whitelist rejects dot-segment traversal.")
+    @allure.title("Double-encoded dot segments pass the JavaScript API whitelist.")
     def test_local_api_whitelist_results_error_on_double_encoded_dot_segment_traversal(
         self, js_case_runner
     ):
@@ -1144,3 +1450,240 @@ class TestJSFetch:
         ).strip()
 
         js_case_runner(case_name, body, timeout=60)
+
+    @allure.title("JavaScript fetch decodes HTTP/1.1 data: {case_name}, {consumer}.")
+    @pytest.mark.parametrize("case_name", HTTP11_SUCCESS_RESPONSES)
+    @pytest.mark.parametrize("consumer", ["bytes", "reader"])
+    def test_http11_response(self, js_case_runner, http_server, case_name, consumer):
+        case = HTTP11_SUCCESS_RESPONSES[case_name]
+        path = f"/http11/{case_name}"
+        url = json.dumps(http_server.url(path))
+        body = (
+            f"const response = await fetch({url});\n"
+            'assert(response.status === 200, "status=" + response.status);\n'
+        )
+        if consumer == "reader":
+            body += build_reader_completion_check(False) + "\n"
+            body += build_bytes_check("received", case.payload)
+        else:
+            body += build_bytes_check("await response.bytes()", case.payload)
+            body += '\nassert(actual instanceof Uint8Array, "bytes type=" + actual);'
+
+        output = js_case_runner("http11_response", body, timeout=FETCH_HTTP11_TIMEOUT_S)
+        with allure.step("Verify HTTP/1.1 and the trusted JS request marker"):
+            captured = captured_request(http_server, output, "HTTP/1.1 request")
+            assert captured["version"] == "HTTP/1.1", f"captured={captured!r}"
+            assert captured["path"] == path, f"captured={captured!r}"
+            assert_js_fetch_header(captured)
+
+    @allure.title("JavaScript fetch consumes chunked UTF-8 JSON with {method}.")
+    @pytest.mark.parametrize("method", ["text", "json", "arrayBuffer"])
+    def test_http11_body_methods(self, js_case_runner, http_server, method):
+        url = json.dumps(http_server.url("/http11/utf8-and-json"))
+        body = f"const response = await fetch({url});\n"
+        if method == "text":
+            expected = json.dumps(CHUNKED_JSON_PAYLOAD.decode("utf-8"))
+            body += (
+                "const text = await response.text();\n"
+                f'assert(text === {expected}, "decoded text=" + text);'
+            )
+        elif method == "json":
+            body += dedent(
+                f"""
+                    const value = await response.json();
+                    assert(value.message === {json.dumps(NON_BMP_UNICODE_TEXT)},
+                        "message=" + value.message);
+                    assert(value.value === 42, "value=" + value.value);
+                """
+            ).strip()
+        else:
+            body += (
+                "const buffer = await response.arrayBuffer();\n"
+                'assert(buffer instanceof ArrayBuffer, "buffer type=" + buffer);\n'
+                + build_bytes_check("new Uint8Array(buffer)", CHUNKED_JSON_PAYLOAD)
+            )
+        body += '\nassert(response.bodyUsed === true, "bodyUsed after read");'
+        js_case_runner("http11_body_method", body, timeout=FETCH_HTTP11_TIMEOUT_S)
+
+    @allure.title(
+        "JavaScript fetch rejects broken chunked data: {case_name}, {consumer}."
+    )
+    @pytest.mark.parametrize(
+        "case_name",
+        [
+            (
+                pytest.param(
+                    case_name,
+                    marks=pytest.mark.skip(reason="FW-1313"),
+                )
+                if case_name in HTTP11_INCOMPLETE_TRAILER_CASES
+                else case_name
+            )
+            for case_name in HTTP11_ERROR_RESPONSES
+        ],
+    )
+    @pytest.mark.parametrize("consumer", ["text", "reader"])
+    def test_http11_response_error(
+        self, js_case_runner, http_server, case_name, consumer
+    ):
+        case = HTTP11_ERROR_RESPONSES[case_name]
+        path = f"/http11/{case_name}"
+        url = json.dumps(http_server.url(path))
+        recovery_url = json.dumps(http_server.url("/http11/simple"))
+        body = (
+            f"const response = await fetch({url});\n"
+            'assert(response.status === 200, "status=" + response.status);\n'
+        )
+        if consumer == "reader":
+            body += build_reader_completion_check(True)
+        else:
+            body += build_promise_rejection_check(
+                "response.text()", expected_message=case.expected_error
+            )
+        body += dedent(
+            f"""
+
+                const recovery = await fetch({recovery_url});
+                assert(recovery.status === 200, "recovery status=" + recovery.status);
+                const text = await recovery.text();
+                assert(text === "hello", "recovery body=" + text);
+            """
+        )
+        output = js_case_runner(
+            "http11_response_error", body, timeout=FETCH_HTTP11_TIMEOUT_S
+        )
+        with allure.step("Verify the failed request and successful recovery request"):
+            for expected_path in (path, "/http11/simple"):
+                captured = captured_request(http_server, output, expected_path)
+                assert captured["version"] == "HTTP/1.1", f"captured={captured!r}"
+                assert captured["path"] == expected_path, f"captured={captured!r}"
+                assert_js_fetch_header(captured)
+
+    @allure.title("JavaScript fetch rejects a 1xx response: {case_name}, {method}.")
+    @pytest.mark.parametrize("case_name", HTTP11_INFORMATIONAL_RESPONSES)
+    @pytest.mark.parametrize("method", ["GET", "HEAD"])
+    def test_http11_informational_response(
+        self, js_case_runner, http_server, case_name, method
+    ):
+        case = HTTP11_INFORMATIONAL_RESPONSES[case_name]
+        path = f"/http11/{case_name}"
+        url = json.dumps(http_server.url(path))
+        recovery_url = json.dumps(http_server.url("/http11/simple"))
+        body = build_promise_rejection_check(
+            f"fetch({url}, {{method: {json.dumps(method)}}})",
+            expected_message=case.expected_error,
+        )
+        body += dedent(
+            f"""
+
+                const recovery = await fetch({recovery_url});
+                assert(recovery.status === 200, "recovery status=" + recovery.status);
+                const text = await recovery.text();
+                assert(text === "hello", "recovery body=" + text);
+            """
+        )
+        output = js_case_runner(
+            "http11_informational", body, timeout=FETCH_HTTP11_TIMEOUT_S
+        )
+        with allure.step("Verify the rejected request and successful recovery"):
+            for expected_method, expected_path in (
+                (method, path),
+                ("GET", "/http11/simple"),
+            ):
+                captured = captured_request(http_server, output, expected_path)
+                assert captured["version"] == "HTTP/1.1", f"captured={captured!r}"
+                assert captured["method"] == expected_method, f"captured={captured!r}"
+                assert captured["path"] == expected_path, f"captured={captured!r}"
+                assert_js_fetch_header(captured)
+        if case.keep_open:
+            with allure.step("Verify Fetch closed the keep-alive connection"):
+                try:
+                    closed_path = http_server.closed_requests.get(timeout=1)
+                except queue.Empty:
+                    pytest.fail(f"Rejected connection remains open; output={output!r}")
+                assert closed_path == path, f"Closed {closed_path!r}, expected {path!r}"
+
+    @allure.title("JavaScript fetch completes a bodyless HTTP/1.1 response.")
+    @pytest.mark.parametrize(
+        "method,status",
+        [("HEAD", 200), ("GET", 204), ("GET", 304)],
+        ids=["head", "no-content", "not-modified"],
+    )
+    @pytest.mark.parametrize("framing", ["absent", "content-length", "chunked"])
+    @pytest.mark.parametrize("connection", ["close", "keep-alive"])
+    def test_http11_bodyless_response(
+        self, js_case_runner, http_server, method, status, framing, connection
+    ):
+        path = f"/http11/bodyless/{status}/{framing}/{connection}"
+        url = json.dumps(http_server.url(path))
+        body = dedent(
+            f"""
+                const response = await fetch({url}, {{method: {json.dumps(method)}}});
+                assert(response.status === {status}, "status=" + response.status);
+                assert(response.ok === {json.dumps(200 <= status < 300)},
+                    "ok=" + response.ok);
+                const text = await response.text();
+                assert(text === "", "bodyless response=" + JSON.stringify(text));
+                assert(response.bodyUsed === true, "bodyUsed after read");
+            """
+        ).strip()
+        output = js_case_runner("http11_bodyless", body, timeout=FETCH_HTTP11_TIMEOUT_S)
+        with allure.step("Verify the captured bodyless request"):
+            captured = captured_request(http_server, output, "bodyless request")
+            assert captured["version"] == "HTTP/1.1", f"captured={captured!r}"
+            assert captured["method"] == method, f"captured={captured!r}"
+            assert captured["path"] == path, f"captured={captured!r}"
+            assert_js_fetch_header(captured)
+
+    @allure.title("JavaScript fetch rejects contradictory HTTP/1.1 framing headers.")
+    @pytest.mark.parametrize("case_name", HTTP11_HEADER_ERROR_RESPONSES)
+    def test_http11_response_headers_error(
+        self, js_case_runner, http_server, case_name
+    ):
+        path = f"/http11/{case_name}"
+        url = json.dumps(http_server.url(path))
+        recovery_url = json.dumps(http_server.url("/http11/simple"))
+        body = build_promise_rejection_check(f"fetch({url})")
+        body += dedent(
+            f"""
+
+                const recovery = await fetch({recovery_url});
+                const text = await recovery.text();
+                assert(text === "hello", "recovery body=" + text);
+            """
+        )
+        output = js_case_runner(
+            "http11_headers_error", body, timeout=FETCH_HTTP11_TIMEOUT_S
+        )
+        with allure.step("Verify rejection and the following successful request"):
+            for expected_path in (path, "/http11/simple"):
+                captured = captured_request(http_server, output, expected_path)
+                assert captured["path"] == expected_path, f"captured={captured!r}"
+                assert_js_fetch_header(captured)
+
+    @allure.title(
+        "JavaScript fetch cancels a chunked transfer and releases the connection."
+    )
+    def test_http11_cancel(self, js_case_runner, http_server):
+        url = json.dumps(http_server.url("/http11/stalled-data"))
+        recovery_url = json.dumps(http_server.url("/http11/simple"))
+        body = dedent(
+            f"""
+                const response = await fetch({url});
+                assert(response.status === 200, "status=" + response.status);
+                await response.body.cancel();
+                const recovery = await fetch({recovery_url});
+                const text = await recovery.text();
+                assert(text === "hello", "recovery body=" + text);
+            """
+        ).strip()
+        output = js_case_runner("http11_cancel", body, timeout=FETCH_HTTP11_TIMEOUT_S)
+        with allure.step("Verify cancellation closed the unfinished server connection"):
+            try:
+                closed_path = http_server.closed_requests.get(timeout=1)
+            except queue.Empty:
+                pytest.fail(f"Cancelled connection remains open; JS output={output!r}")
+            assert closed_path == "/http11/stalled-data", (
+                f"Expected the cancelled connection to close, got {closed_path!r}; "
+                f"JS output={output!r}"
+            )

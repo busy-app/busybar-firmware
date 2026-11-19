@@ -2,7 +2,19 @@ import allure
 import pytest
 
 
-@allure.feature("State Publisher")
+pytestmark = [
+    pytest.mark.bsb_metadata(
+        suite="Integration",
+        level="Integration",
+        intent="Integration",
+        interfaces=("Device API",),
+        transports=("LAN REST",),
+    ),
+]
+
+
+@allure.epic("Realtime & Sync")
+@allure.feature("State publisher")
 @allure.story("Transport contract")
 @pytest.mark.api
 @pytest.mark.state_publisher

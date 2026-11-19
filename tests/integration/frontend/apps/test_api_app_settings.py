@@ -13,6 +13,17 @@ from utils.js_app_package import build_app_package
 from utils.wait import wait_for
 
 
+pytestmark = [
+    pytest.mark.bsb_metadata(
+        suite="Integration",
+        level="Integration",
+        intent="Product",
+        interfaces=("Device API",),
+        transports=("LAN REST",),
+    ),
+]
+
+
 SETTINGS_VERSION = 7
 SETTINGS_SCHEMA = {
     "format_version": 1,
@@ -248,7 +259,8 @@ def settings_app(
         storage_api.remove_raw(data_path)
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("JavaScript applications")
 @allure.story("JavaScript Application Settings")
 @pytest.mark.api
 @pytest.mark.frontend

@@ -9,6 +9,17 @@ import requests
 from clients.api import UpdateAPI
 
 
+pytestmark = [
+    pytest.mark.bsb_metadata(
+        suite="Integration",
+        level="Integration",
+        intent="Product",
+        interfaces=("Device API",),
+        transports=("LAN REST",),
+    ),
+]
+
+
 # Example firmware version for negative testing
 ERROR_FIRMWARE_VERSION = "0.0.0"
 
@@ -46,12 +57,12 @@ def attach_status_json(data: dict, name: str):
         attachment_type=allure.attachment_type.JSON
     )
 
-@allure.feature("5. Web Frontend")
-@allure.story("Updater")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Firmware update")
+@allure.story("Update lifecycle")
 class TestUpdateAPI:
     """Test cases for Update API endpoints"""
 
-    @allure.id("2670")
     @allure.title("POST /api/update (invalid package)")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -63,7 +74,6 @@ class TestUpdateAPI:
 
         assert response.status_code == 400
 
-    @allure.id("3527")
     @allure.title("GET /api/update/status")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -84,7 +94,6 @@ class TestUpdateAPI:
             ]
             assert sum(check_states) <= 1
 
-    @allure.id("3525")
     @allure.title("POST /api/update/check")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -92,7 +101,6 @@ class TestUpdateAPI:
         """Test POST /api/update/check endpoint starts update check"""
         update_api.check()
 
-    @allure.id("3531")
     @allure.title("GET /api/update/changelog (missing version)")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -102,7 +110,6 @@ class TestUpdateAPI:
 
         assert response.status_code == 400
 
-    @allure.id("3528")
     @allure.title("GET /api/update/changelog (non-existent version)")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -112,7 +119,6 @@ class TestUpdateAPI:
 
         assert response.status_code == 400
 
-    @allure.id("3526")
     @allure.title("POST /api/update/install (missing version)")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -122,7 +128,6 @@ class TestUpdateAPI:
 
         assert response.status_code == 400
 
-    @allure.id("3530")
     @allure.title("POST /api/update/install (non-existent version)")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -132,7 +137,6 @@ class TestUpdateAPI:
 
         assert response.status_code == 400
 
-    @allure.id("3529")
     @allure.title("POST /api/update/abort_download")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -141,8 +145,9 @@ class TestUpdateAPI:
         update_api.abort_download()
 
 
-@allure.feature("5. Web Frontend")
-@allure.story("Updater")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Firmware update")
+@allure.story("Automatic update configuration")
 class TestAutoupdateAPI:
     """Test cases for Autoupdate API endpoints"""
 
@@ -337,12 +342,12 @@ class TestAutoupdateAPI:
         assert restored["interval_end"] == expected["interval_end"]
 
 
-@allure.feature("5. Web Frontend")
-@allure.story("Updater")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Firmware update")
+@allure.story("Download and update status")
 class TestUpdateStatusFlow:
     """Test update status transitions by triggering actions and verifying states"""
 
-    @allure.id("3540")
     @allure.title("Update check status flow")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -389,7 +394,6 @@ class TestUpdateStatusFlow:
             }, "Check Result")
             assert check_result.is_available or check_result.is_up_to_date or check_result.has_failed
 
-    @allure.id("3541")
     @allure.title("Update install and abort status flow")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -459,7 +463,6 @@ class TestUpdateStatusFlow:
             # After abort, should be stopped or show abort status
             assert status.install.is_idle or status.install.status == "download_abort"
 
-    @allure.id("3542")
     @allure.title("Verify idle state")
     @pytest.mark.api
     @pytest.mark.frontend

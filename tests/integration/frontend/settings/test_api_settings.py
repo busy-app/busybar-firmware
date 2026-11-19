@@ -4,12 +4,23 @@ import pytest
 from clients.api import SettingsAPI
 
 
-@allure.feature("5. Web Frontend")
+pytestmark = [
+    pytest.mark.bsb_metadata(
+        suite="Contract",
+        level="Component",
+        intent="Product",
+        interfaces=("Device API",),
+        transports=("LAN REST",),
+    ),
+]
+
+
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Device HTTP API")
 @allure.story("Settings")
 class TestNameAPI:
     """Test cases for Name API endpoints"""
 
-    @allure.id("2883")
     @allure.title("Name. GET /api/name")
     @allure.issue("https://flipper.atlassian.net/browse/FW-407")
     @pytest.mark.api
@@ -21,7 +32,6 @@ class TestNameAPI:
         # Type validated by pydantic
         assert isinstance(response.name, str)
 
-    @allure.id("2884")
     @allure.title("Name. POST /api/name")
     @allure.issue("https://flipper.atlassian.net/browse/FW-407")
     @pytest.mark.api
@@ -53,7 +63,6 @@ class TestNameAPI:
             verify = settings_api.get_name()
             assert verify.name == test_name
 
-    @allure.id("3451")
     @allure.title("Name. POST /api/name (negative)")
     @allure.issue("https://flipper.atlassian.net/browse/FW-407")
     @pytest.mark.api
@@ -96,12 +105,12 @@ class TestNameAPI:
             assert settings_api.get_name().name == original_name
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Device HTTP API")
 @allure.story("Settings")
 class TestSettingsAPI:
     """Test cases for Settings API endpoints"""
 
-    @allure.id("2642")
     @allure.title("Settings. GET /api/access")
     @allure.issue("FW-406")
     @pytest.mark.api
@@ -114,7 +123,6 @@ class TestSettingsAPI:
         assert response.mode in ["disabled", "enabled", "key"]
         assert isinstance(response.key_valid, bool)
 
-    @allure.id("2643")
     @allure.title("Settings. POST /api/access (valid keys)")
     @allure.issue("FW-406")
     @pytest.mark.api
@@ -155,7 +163,6 @@ class TestSettingsAPI:
         response = settings_api.set_access_raw("key", key)
         assert response.status_code == 400
 
-    @allure.id("2644")
     @allure.title("Settings. GET /api/display/brightness")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -166,7 +173,6 @@ class TestSettingsAPI:
         # Structure validated by pydantic
         assert response.value is not None
 
-    @allure.id("2645")
     @allure.title("Settings. POST /api/display/brightness")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -174,7 +180,6 @@ class TestSettingsAPI:
         """Test POST /api/display/brightness endpoint"""
         settings_api.set_brightness(value="50")
 
-    @allure.id("2646")
     @allure.title("Settings. GET /api/audio/volume")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -185,7 +190,6 @@ class TestSettingsAPI:
         # Type validated by pydantic
         assert isinstance(response.volume, (int, float))
 
-    @allure.id("2647")
     @allure.title("Settings. POST /api/audio/volume")
     @pytest.mark.api
     @pytest.mark.frontend

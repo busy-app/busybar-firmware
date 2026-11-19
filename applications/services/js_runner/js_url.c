@@ -90,6 +90,15 @@ static jerry_value_t js_url_search_get(
     return js_url_get(call_info, UrlPartIdSearch);
 }
 
+static jerry_value_t js_url_hash_get(
+    const jerry_call_info_t* call_info,
+    const jerry_value_t args[],
+    const jerry_length_t args_count) {
+    UNUSED(args);
+    UNUSED(args_count);
+    return js_url_get(call_info, UrlPartIdHash);
+}
+
 static jerry_value_t js_url_init(jerry_value_t this_value, const char* url_str) {
     Url* instance = url_alloc();
 
@@ -141,6 +150,7 @@ void js_setup_url(void) {
     js_set_property_getset(prototype, "port", js_url_port_get, NULL);
     js_set_property_getset(prototype, "pathname", js_url_pathname_get, NULL);
     js_set_property_getset(prototype, "search", js_url_search_get, NULL);
+    js_set_property_getset(prototype, "hash", js_url_hash_get, NULL);
     js_set_method(prototype, "toString", js_url_href_get);
 
     js_set_constructor_prototype(constructor, prototype);

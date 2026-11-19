@@ -125,8 +125,8 @@ An arbitrary number of settings is supported, each of which can be any of the su
 settings can be grouped via the `group` directive, with a maximum of 4 nested levels.
 
 The graphical interface for viewing and editing the settings is handled by the firmware, so the application
-does not need to implement it by itself. However, not all settings types (namely, `color` and `geolocation`)
-can be edited via @bsb graphical interface due to display and input limitations. Full editing capability is
+does not need to implement it by itself. However, not all settings types (namely, `string`, `color`, `time`
+and `geolocation`) can be edited via @bsb graphical interface due to display and input limitations. Full editing capability is
 available from the Web UI or programmaticaly via the HTTP API.
 
 While running, the application only has the ability to read its settings via the `GET /api/apps/settings` HTTP request.
@@ -166,27 +166,29 @@ fetch("http://localhost/api/display/draw", {
 
 For application isolation purposes, only the following API endpoints are accessible from within the applications:
 
-| Endpoint             | Allowed method(s) |
-| -------------------- | :---------------: |
-| `apps/settings`      | `GET` [1]         |
-| `display/brightness` | `GET`, `POST`     |
-| `display/draw`       | `POST`, `DELETE`  |
-| `audio/play`         | `POST`, `DELETE`  |
-| `busy`               | `GET`, `PUT`      |
-| `name`               | `GET`             |
-| `audio/volume`       | `GET`, `POST`     |
-| `time`               | `GET`             |
-| `wifi/status`        | `GET`             |
-| `version`            | `GET`             |
-| `access`             | `GET`             |
-| `transport`          | `GET`             |
-| `status`             | `GET`             |
-| `status/device`      | `GET`             |
-| `status/firmware`    | `GET`             |
-| `status/system`      | `GET`             |
-| `status/power`       | `GET`             |
+| Endpoint             | Allowed method(s)           |
+| -------------------- | :-------------------------: |
+| `apps/settings`      | `GET` [1]                   |
+| `display/brightness` | `GET`, `POST`               |
+| `display/draw`       | `POST`, `DELETE`            |
+| `audio/play`         | `POST`, `DELETE`            |
+| `busy`               | `GET`, `PUT`                |
+| `name`               | `GET`                       |
+| `audio/volume`       | `GET`, `POST`               |
+| `time`               | `GET`                       |
+| `wifi/status`        | `GET`                       |
+| `version`            | `GET`                       |
+| `access`             | `GET`                       |
+| `transport`          | `GET`                       |
+| `status`             | `GET`                       |
+| `status/device`      | `GET`                       |
+| `status/firmware`    | `GET`                       |
+| `status/system`      | `GET`                       |
+| `status/power`       | `GET`                       |
+| `storage`            | `GET`, `POST`, `DELETE` [2] |
 
 - [1] The request is only allowed if the `app_id` request parameter matches the running application ID.
+- [2] Requests made to Storage API from a JS application can only access application's sandboxed storage space mapped to `/ext/data`.
 
 The `fetch` function can also be used to access remote HTTP(S) resources in the same manner, provided there is a working Wi-Fi connection.
 
@@ -424,7 +426,7 @@ A long press of the Back button is handled outside of the application and is use
                     "type": "integer",
                     "minimum": 1,
                     "default": 1,
-                    "description": "Value increment in the UI (max - min must be evenly divisible by step)"
+                    "description": "Value increment in the UI"
                 }
             },
             "required": ["default"]

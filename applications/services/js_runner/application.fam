@@ -15,6 +15,7 @@ App(
         "js_fetch.c",
         "js_readable_stream.c",
         "js_fetch_body_methods.c",
+        "js_fetch_request.c",
         "js_headers.c",
         "js_request.c",
         "js_local_storage.c",

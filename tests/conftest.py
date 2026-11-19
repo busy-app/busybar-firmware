@@ -22,6 +22,7 @@ from utils.crash_detector import (
     request_forced_trace_for_node,
 )
 from utils.device_flasher import DeviceFlasher
+from utils.testops_metadata import case_labels, case_metadata
 
 # API client imports
 from clients.api import (
@@ -46,6 +47,7 @@ from config.config import Config
 _API_503_INCIDENT_FILENAME = "api_503_incidents.jsonl"
 _USER_AGENT = "BSB-AutoTest/1.0"
 _PYTEST_MARKERS = (
+    "bsb_metadata: BUSY taxonomy fields (module/class/test inheritance)",
     "cli: CLI command tests",
     "frontend: Web frontend tests",
     "api: API endpoint tests",
@@ -322,6 +324,17 @@ def fresh_cli_connection():
     yield from _cli_connection("fresh function-scoped")
 
 
+def pytest_collection_modifyitems(items):
+    for item in items:
+        try:
+            metadata = case_metadata(item)
+        except ValueError as exc:
+            raise pytest.UsageError(f"{item.nodeid}: {exc}") from exc
+        if metadata is not None:
+            for label, value in case_labels(metadata):
+                item.add_marker(allure.label(label, value))
+
+
 def pytest_runtest_setup(item):
     """Test setup"""
     for attr in (
@@ -338,6 +351,9 @@ def pytest_runtest_setup(item):
 
     logger.info(f"Setting up: {item.name}")
     _write_test_context(item.name, test_nodeid=item.nodeid, phase="setup")
+
+    if item.get_closest_marker("bsb_metadata") is not None:
+        return
 
     for marker in item.iter_markers():
         if marker.name.startswith("story_"):

@@ -8,12 +8,25 @@ import pytest
 from bs4 import BeautifulSoup
 
 
-@allure.feature("5. Web Frontend")
+pytestmark = [
+    pytest.mark.bsb_metadata(
+        suite="Contract",
+        level="Component",
+        intent="Product",
+        interfaces=("Local Web", "Device API"),
+        transports=("LAN REST",),
+        components=("BusyBar Firmware", "Local Web"),
+        surfaces=("Local Web",),
+    ),
+]
+
+
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Local Web")
 @allure.story("Basic connectivity")
 class TestWebFrontendBasic:
     """Basic smoke tests - HTML page and API documentation"""
 
-    @allure.id("2728")
     @allure.title("BSB Front. HTTP Server Response")
     @pytest.mark.frontend
     def test_http_server_responds(self, web_session, web_base_url):
@@ -39,7 +52,6 @@ class TestWebFrontendBasic:
             app_container = soup.find("div", {"id": "__nuxt"})
             assert app_container is not None, "Missing Nuxt app container"
 
-    @allure.id("2729")
     @allure.title("BSB Front. API Documentation Available")
     @pytest.mark.frontend
     def test_api_docs_available(self, web_session, web_base_url):
@@ -63,7 +75,6 @@ class TestWebFrontendBasic:
             swagger_container = soup.find("div", {"id": "swagger-ui"})
             assert swagger_container is not None, "Missing Swagger UI container"
 
-    @allure.id("2730")
     @allure.title("BSB Front. OpenAPI Spec Available")
     @pytest.mark.frontend
     def test_openapi_spec_available(self, web_session, web_base_url):
@@ -83,12 +94,17 @@ class TestWebFrontendBasic:
             assert "paths:" in content, "Should contain API paths"
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Local Web")
 @allure.story("API endpoints")
+@pytest.mark.bsb_metadata(
+    components=("BusyBar Firmware",),
+    surfaces=("BusyBar",),
+    interfaces=("Device API",),
+)
 class TestWebFrontendAPI:
     """Test actual API endpoints from the documentation"""
 
-    @allure.id("2731")
     @allure.title("BSB API. Version Endpoint")
     @pytest.mark.frontend
     def test_api_version_endpoint(self, web_session, web_base_url):
@@ -113,7 +129,6 @@ class TestWebFrontendAPI:
             except ValueError:
                 pytest.fail("Response is not valid JSON")
 
-    @allure.id("2732")
     @allure.title("BSB API. Status Endpoint")
     @pytest.mark.frontend
     def test_api_status_endpoint(self, web_session, web_base_url):
@@ -138,7 +153,6 @@ class TestWebFrontendAPI:
             except ValueError:
                 pytest.fail("Response is not valid JSON")
 
-    @allure.id("2733")
     @allure.title("BSB API. WiFi Status Endpoint")
     @pytest.mark.frontend
     def test_api_wifi_status_endpoint(self, web_session, web_base_url):
@@ -161,7 +175,6 @@ class TestWebFrontendAPI:
             except ValueError:
                 pytest.fail("Response is not valid JSON")
 
-    @allure.id("2734")
     @allure.title("BSB API. System Status Endpoint")
     @pytest.mark.frontend
     def test_api_system_status_endpoint(self, web_session, web_base_url):
@@ -187,12 +200,12 @@ class TestWebFrontendAPI:
                 pytest.fail("Response is not valid JSON")
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Local Web")
 @allure.story("Error handling")
 class TestWebFrontendErrorHandling:
     """Test error handling and edge cases"""
 
-    @allure.id("2735")
     @allure.title("BSB Front. 404 Handling")
     @pytest.mark.frontend
     def test_404_handling(self, web_session, web_base_url):
@@ -214,7 +227,6 @@ class TestWebFrontendErrorHandling:
         with allure.step("Verify 404 page body"):
             assert "404" in response.text, "404 page body should contain '404'"
 
-    @allure.id("2736")
     @allure.title("BSB Front. Invalid API Path")
     @pytest.mark.frontend
     def test_invalid_api_path(self, web_session, web_base_url):
@@ -227,7 +239,6 @@ class TestWebFrontendErrorHandling:
                 405,
             ], f"Expected 404/405, got {response.status_code}"
 
-    @allure.id("2738")
     @pytest.mark.parametrize(
         "endpoint",
         ["/api/version", "/api/status", "/api/wifi/status", "/docs/", "/openapi.yaml"],
@@ -255,7 +266,8 @@ class TestWebFrontendErrorHandling:
             )
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Local Web")
 @allure.story("Gzip content negotiation")
 class TestWebFrontendGzip:
     """Tests for gzip content negotiation on pre-compressed static assets.
@@ -341,7 +353,6 @@ class TestWebFrontendGzip:
                 response.status_code == 406
             ), f"Expected 406 Not Acceptable, got {response.status_code}"
 
-    @allure.id("2743")
     @allure.title(
         "BSB Front. Accept-Encoding: identity serves uncompressed asset (Case C, uncompressed)"
     )
@@ -364,12 +375,12 @@ class TestWebFrontendGzip:
             ), f"Unexpected Content-Encoding: {response.headers.get('Content-Encoding')}"
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Local Web")
 @allure.story("Integration")
 class TestWebFrontendIntegration:
     """Integration tests - multiple components working together"""
 
-    @allure.id("2739")
     @allure.title("BSB Front. Complete Stack Test")
     @pytest.mark.frontend
     def test_complete_stack_functional(self, web_session, web_base_url):

@@ -96,7 +96,7 @@ static void free_closed_promise(void* context) {
 static void resolve_closed_promise(JsReadableStream* instance, bool is_error) {
     if(instance->has_closed_promise) {
         if(is_error) {
-            jerry_value_t error = jerry_undefined();
+            jerry_value_t error = jerry_error_sz(JERRY_ERROR_TYPE, "Stream error");
             jerry_value_free(jerry_promise_reject(instance->closed_promise, error));
             jerry_value_free(error);
         } else {
@@ -323,13 +323,15 @@ static jerry_value_t reader_closed(
         return jerry_value_copy(instance->closed_promise);
     } else {
         jerry_value_t promise = jerry_promise();
-        jerry_value_t result = jerry_undefined();
         if(!instance->is_error) {
+            jerry_value_t result = jerry_undefined();
             js_check_and_free(jerry_promise_resolve(promise, result));
+            jerry_value_free(result);
         } else {
-            js_check_and_free(jerry_promise_reject(promise, result));
+            jerry_value_t error = jerry_error_sz(JERRY_ERROR_TYPE, "Stream error");
+            js_check_and_free(jerry_promise_reject(promise, error));
+            jerry_value_free(error);
         }
-        jerry_value_free(result);
         return promise;
     }
 }

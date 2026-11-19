@@ -7,9 +7,13 @@ from textwrap import indent
 
 import allure
 
+from clients.cli import SimpleCLIConnection
+
 
 RESULT_PREFIX = "JS_TEST_RESULT"
 INPUT_READY_MARKER = "JS_INPUT_READY"
+CLI_PROMPT = b">: "
+JS_STOP_TIMEOUT_SECONDS = 5
 
 
 def build_js_case(case_name, body):
@@ -63,6 +67,17 @@ def _verify_js_case_output(case_name, output):
         )
 
 
+def _stop_js_case(cli):
+    recovery_cli = SimpleCLIConnection(cli.host, cli.port)
+    try:
+        assert recovery_cli.connect(), "Could not connect to stop JavaScript case"
+        recovery_cli.execute_command("js -k", timeout=JS_STOP_TIMEOUT_SECONDS)
+        response = cli.tn.read_until(CLI_PROMPT, timeout=JS_STOP_TIMEOUT_SECONDS)
+        return response.endswith(CLI_PROMPT)
+    finally:
+        recovery_cli.disconnect()
+
+
 def run_js_case(
     cli,
     storage_api,
@@ -78,15 +93,30 @@ def run_js_case(
 
     _upload_js_case(storage_api, script_path, source, case_name)
 
-    with allure.step(f"Run JavaScript case {case_name}"):
-        output = cli.execute_command(
-            f"js {script_path}", timeout=timeout, slow_command=True
-        )
+    output = ""
+    prompt_received = False
+    stop_completed = None
+    try:
+        with allure.step(f"Run JavaScript case {case_name}"):
+            cli.tn.read_very_eager()
+            cli.tn.write(f"js {script_path}\r\n".encode("utf-8"))
+            response = cli.tn.read_until(CLI_PROMPT, timeout=timeout)
+            output = response.decode("utf-8", "ignore")
+            prompt_received = response.endswith(CLI_PROMPT)
+    finally:
         allure.attach(
             output,
             "JavaScript CLI output",
             allure.attachment_type.TEXT,
         )
+        if not prompt_received:
+            with allure.step("Try to stop the JavaScript case after a CLI timeout"):
+                stop_completed = _stop_js_case(cli)
+
+    assert prompt_received, (
+        f"JavaScript case {case_name} did not return to the CLI prompt "
+        f"within {timeout}s (stop completed: {stop_completed}): {output!r}"
+    )
     _verify_js_case_output(case_name, output)
 
     return output

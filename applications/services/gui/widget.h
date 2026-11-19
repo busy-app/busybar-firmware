@@ -339,6 +339,23 @@ void widget_set_blend_mode(Widget* instance, WidgetBlendMode blend_mode);
  */
 WidgetBlendMode widget_get_blend_mode(const Widget* instance);
 
+/**
+ * @brief Set the widget context.
+ *
+ * @param[in,out] instance pointer to the Widget instance to be modified
+ * @param[in,out] context pointer to a user-specific object
+ */
+void widget_set_context(Widget* instance, void* context);
+
+/**
+ * @brief Get the widget context.
+ *
+ * @param[in] instance pointer to the Widget instance to be queried
+ *
+ * @returns pointer to the user-specific object (may be @c NULL)
+ */
+void* widget_get_context(const Widget* instance);
+
 #ifdef __cplusplus
 }
 #endif

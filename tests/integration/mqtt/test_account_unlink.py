@@ -5,7 +5,19 @@ import allure
 import pytest
 
 
-@allure.feature("MQTT")
+pytestmark = [
+    pytest.mark.bsb_metadata(
+        suite="Integration",
+        level="Integration",
+        intent="Security",
+        interfaces=("Device API", "MQTT"),
+        transports=("LAN REST", "MQTT"),
+    ),
+]
+
+
+@allure.epic("Device Lifecycle")
+@allure.feature("Token revocation on unlink")
 @allure.story("Account unlink")
 @pytest.mark.api
 @pytest.mark.mqtt

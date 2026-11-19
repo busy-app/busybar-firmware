@@ -13,6 +13,17 @@ from clients.api import MintedAccessToken, SettingsAPI
 from utils.wait import wait_for
 
 
+pytestmark = [
+    pytest.mark.bsb_metadata(
+        suite="Contract",
+        level="Component",
+        intent="Security",
+        interfaces=("Device API",),
+        transports=("LAN REST",),
+    ),
+]
+
+
 _ADMIN_ACCESS_KEY = "73916482"
 _CHANGED_ACCESS_KEY = "28461739"
 _TOKEN_HEADER = "X-API-Token"
@@ -53,7 +64,8 @@ def local_token_api(
             settings_api.set_access(original_access.mode)
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Device HTTP API")
 @allure.story("API token authentication")
 @pytest.mark.api
 @pytest.mark.frontend

@@ -4,6 +4,7 @@ const LOCATIONS_PATH = '/weather/v1/locations';
 const REQUEST_TIMEOUT_MS = 8000;
 const MAX_QUERY_LENGTH = 100;
 const DISPLAY_LANGUAGE = 'en';
+const COORDINATE_TOLERANCE = 0.001;
 
 export const MIN_QUERY_LENGTH = 2;
 
@@ -84,6 +85,11 @@ export async function searchCities (query: string, signal?: AbortSignal) {
   return (response.results ?? []).map(toSuggestion);
 }
 
+export async function findCity (name: string, lat: number, lng: number, signal?: AbortSignal) {
+  const cities = await searchCities(name, signal);
+  return cities.find(city => Math.abs(city.lat - lat) < COORDINATE_TOLERANCE && Math.abs(city.lng - lng) < COORDINATE_TOLERANCE);
+}
+
 function zoneCity (timezone?: string) {
   return timezone?.split('/').pop()?.replaceAll('_', ' ');
 }
@@ -107,7 +113,9 @@ export async function resolveByTimezone (zone: TimezoneInfo, signal?: AbortSigna
   }
 
   const cities = await searchCities(zone.name, signal);
+  const sameCity = cities.filter(city => zoneCity(city.timezone) === zone.name);
 
-  return cities.find(city => zoneCity(city.timezone) === zone.name)
+  return sameCity.find(city => zoneOffset(city.timezone) === zone.offset)
+    ?? sameCity[0]
     ?? cities.find(city => zoneOffset(city.timezone) === zone.offset);
 }

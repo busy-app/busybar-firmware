@@ -5,11 +5,11 @@
     title="HTTP API"
     icon="i-bi-http-api"
   >
-    <div class="flex justify-between items-center">
+    <div class="flex items-center justify-between">
       <div>Over USB</div>
       <UButton
         variant="link"
-        class="p-0 gap-0.5"
+        class="gap-0.5 p-0"
         :href="`${barUrl}/docs`"
         target="_blank"
       >
@@ -21,12 +21,12 @@
       </UButton>
     </div>
     <div class="flex flex-col gap-1">
-      <div class="flex justify-between items-center gap-y-4 gap-x-6">
+      <div class="flex items-center justify-between gap-x-6 gap-y-4">
         <div>Over Wi-Fi</div>
         <UButton
           v-if="connected && deviceStore.httpAPIAccess.mode !== 'disabled'"
           variant="link"
-          class="p-0 gap-0.5"
+          class="gap-0.5 p-0"
           :href="`http://${wifiStore.wifi?.ip_config?.address}/docs`"
           target="_blank"
         >
@@ -44,7 +44,7 @@
         Connect to a Wi-Fi network to enable access to HTTP API over Wi-Fi
       </div>
       <template v-else>
-        <div class="flex justify-between items-center gap-y-4 gap-x-6 mt-3">
+        <div class="mt-3 flex items-center justify-between gap-x-6 gap-y-4">
           <div class="flex flex-col gap-1">
             <div>HTTP API access</div>
             <div class="text-sm text-muted">Send requests and control BUSY Bar when connected via Wi-Fi</div>
@@ -60,7 +60,7 @@
 
         <div
           v-if="deviceStore.httpAPIAccess.mode !== 'disabled'"
-          class="flex justify-between items-center gap-y-4 gap-x-6 mt-3"
+          class="mt-3 flex items-center justify-between gap-x-6 gap-y-4"
         >
           <div class="flex flex-col gap-1">
             <div class="flex items-center gap-2">
@@ -192,6 +192,7 @@ const deviceStore = useDeviceStore();
 const wifiStore = useWifiStore();
 const pms = usePasswordModalStore();
 const runtimeConfig = useRuntimeConfig();
+const appConfig = useAppConfig();
 
 const loading = ref({
   access: false
@@ -207,7 +208,7 @@ const barUrl = computed(() => {
     return runtimeConfig.public.barUrl || window.location.origin;
   }
 
-  return 'http://10.0.4.20';
+  return appConfig.links.barUsb;
 });
 
 watch(() => deviceStore.httpAPIAccess, access => {

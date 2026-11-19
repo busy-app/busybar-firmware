@@ -20,10 +20,25 @@ from utils.wifi_helpers import (
 )
 
 
-pytestmark = [pytest.mark.regression, pytest.mark.api]
+pytestmark = [
+    pytest.mark.regression,
+    pytest.mark.api,
+    pytest.mark.bsb_metadata(
+        suite="Integration",
+        level="Integration",
+        intent="Reliability",
+        interfaces=("Device API", "WebSocket"),
+        transports=("LAN REST", "WebSocket"),
+        hardware=("BusyBar", "Wi-Fi AP"),
+    ),
+]
+
+# WifiSrv can spend up to 30 seconds waiting for DHCP before handling disconnect.
+_WIFI_BASELINE_TIMEOUT_SECONDS = 40.0
 
 
-@allure.feature("State Publisher")
+@allure.epic("Realtime & Sync")
+@allure.feature("State publisher")
 @allure.story("Published events")
 @allure.title("Wi-Fi connect and disconnect transitions publish StateUpdates")
 def test_wifi_connect_disconnect_publishes(state_publisher_ws, wifi_api):
@@ -33,6 +48,11 @@ def test_wifi_connect_disconnect_publishes(state_publisher_ws, wifi_api):
 
     # Establish a known starting point: disconnected.
     with allure.step("Establish a disconnected Wi-Fi baseline"):
+        wait_for_wifi_state(
+            wifi_api,
+            ["connected", "disconnected"],
+            timeout=_WIFI_BASELINE_TIMEOUT_SECONDS,
+        )
         ensure_disconnected(wifi_api)
 
     state_publisher_ws.drain()

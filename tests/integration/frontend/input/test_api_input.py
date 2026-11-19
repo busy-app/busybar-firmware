@@ -5,12 +5,23 @@ from clients.api import InputAPI
 from utils.simple_websocket import websocket_upgrade, websocket_url
 
 
-@allure.feature("5. Web Frontend")
+pytestmark = [
+    pytest.mark.bsb_metadata(
+        suite="Integration",
+        level="Integration",
+        intent="Product",
+        interfaces=("Device API",),
+        transports=("LAN REST",),
+    ),
+]
+
+
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Device HTTP API")
 @allure.story("Input")
 class TestInputAPI:
     """Test cases for Input API endpoints"""
 
-    @allure.id("2665")
     @allure.title("POST /api/input (key events)")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -21,7 +32,6 @@ class TestInputAPI:
                 response = input_api.send_key(key)
                 assert response.status_code == 200
 
-    @allure.id("2666")
     @allure.title("POST /api/input (invalid key)")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -35,13 +45,19 @@ class TestInputAPI:
         assert "error" in data
 
 
-@allure.feature("5. Web Frontend")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("Device HTTP API")
 @allure.story("Input")
 @pytest.mark.api
 @pytest.mark.frontend
 @pytest.mark.regression
 class TestInputWebSocketRegressions:
     @allure.title("Removed /api/input/ws does not upgrade")
+    @pytest.mark.bsb_metadata(
+        intent="Reliability",
+        interfaces=("Device API", "WebSocket"),
+        transports=("LAN REST", "WebSocket"),
+    )
     def test_removed_input_websocket_api_does_not_upgrade(self, web_base_url):
         result = websocket_upgrade(websocket_url(web_base_url, "/api/input/ws"))
 

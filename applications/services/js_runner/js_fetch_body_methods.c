@@ -144,8 +144,7 @@ static void process_error(BodyMethod* instance, FuriString* msg) {
     js_fetch_set_data_sink(instance->parent, NULL, NULL);
     ByteArray_clear(*instance->body);
     free(instance->body);
-    // jerry_value_t exception = jerry_throw_sz(JERRY_ERROR_TYPE, furi_string_get_cstr(msg));
-    jerry_value_t exception = jerry_string_sz(furi_string_get_cstr(msg));
+    jerry_value_t exception = jerry_error_sz(JERRY_ERROR_TYPE, furi_string_get_cstr(msg));
     jerry_value_free(jerry_promise_reject(instance->promise, exception));
     jerry_value_free(instance->promise);
     jerry_value_free(exception);
@@ -190,9 +189,10 @@ static bool array_buffer_body_collected(BodyMethod* instance) {
 }
 
 static bool blob_body_collected(BodyMethod* instance) {
-    jerry_value_t exception = jerry_string_sz("unimplemented");
+    jerry_value_t exception = jerry_error_sz(JERRY_ERROR_COMMON, "unimplemented");
     jerry_value_free(jerry_promise_reject(instance->promise, exception));
     jerry_value_free(instance->promise);
+    jerry_value_free(exception);
     js_run_jobs();
     return false;
 }
@@ -235,9 +235,10 @@ static bool json_body_collected(BodyMethod* instance) {
 }
 
 static bool form_data_body_collected(BodyMethod* instance) {
-    jerry_value_t exception = jerry_string_sz("unimplemented");
+    jerry_value_t exception = jerry_error_sz(JERRY_ERROR_COMMON, "unimplemented");
     jerry_value_free(jerry_promise_reject(instance->promise, exception));
     jerry_value_free(instance->promise);
+    jerry_value_free(exception);
     js_run_jobs();
     return false;
 }
@@ -261,7 +262,7 @@ static bool text_body_collected(BodyMethod* instance) {
         js_check_and_free(jerry_promise_resolve(instance->promise, string));
         jerry_value_free(string);
     } else {
-        jerry_value_t exception = jerry_string_sz("Invalid UTF-8");
+        jerry_value_t exception = jerry_error_sz(JERRY_ERROR_TYPE, "Invalid UTF-8");
         js_check_and_free(jerry_promise_reject(instance->promise, exception));
         jerry_value_free(exception);
     }

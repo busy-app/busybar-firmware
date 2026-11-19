@@ -6,6 +6,17 @@ import pytest
 from clients.api import BleAPI
 
 
+pytestmark = [
+    pytest.mark.bsb_metadata(
+        suite="Integration",
+        level="Integration",
+        intent="Product",
+        interfaces=("Device API",),
+        transports=("LAN REST",),
+    ),
+]
+
+
 BLE_ENABLED_STATES = frozenset({"enabled", "connectable", "connected"})
 BLE_DISABLED_STATES = frozenset({"disabled"})
 
@@ -31,13 +42,13 @@ def _wait_for_ble_status(
     return last
 
 
-@allure.feature("5. Web Frontend")
-@allure.story("BLE")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("BLE setup/status")
+@allure.story("Configuration")
 @pytest.mark.uses_si917
 class TestBleAPI:
     """Test cases for BLE API endpoints"""
 
-    @allure.id("2663")
     @allure.title("POST /api/ble/enable")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -47,7 +58,6 @@ class TestBleAPI:
 
         assert response.status_code == 200
 
-    @allure.id("2664")
     @allure.title("POST /api/ble/disable")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -57,7 +67,6 @@ class TestBleAPI:
 
         assert response.status_code == 200
 
-    @allure.id("3597")
     @allure.title("#3564 BLE. Preserve status over reboot")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -79,13 +88,13 @@ class TestBleAPI:
             last = _wait_for_ble_status(ble_api, expected_set, timeout=30.0)
             assert last in expected_set, f"post-reboot: got {last!r}, expected one of {sorted(expected_set)}"
 
-@allure.feature("5. Web Frontend")
-@allure.story("BLE")
+@allure.epic("BusyBar & Local Control")
+@allure.feature("BLE setup/status")
+@allure.story("Interface state")
 @pytest.mark.uses_si917
 class TestBleStatusAPI:
     """Test cases for BLE Status API endpoints"""
 
-    @allure.id("3870")
     @allure.title("GET /api/ble/status")
     @pytest.mark.api
     @pytest.mark.frontend
@@ -104,7 +113,6 @@ class TestBleStatusAPI:
         if response.status == "connected":
             assert response.address is not None
 
-    @allure.id("3871")
     @allure.title("DELETE /api/ble/pairing")
     @pytest.mark.api
     @pytest.mark.frontend
