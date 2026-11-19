@@ -25,6 +25,9 @@ FREERTOS_INCDIR = f"#/lib/{FREERTOS_DIR}"
 WISECONNECT_DIR = "wiseconnect/components"
 WISECONNECT_INCDIR = f"#/lib/{WISECONNECT_DIR}"
 
+SL_GLUE_DIR = "sl_glue"
+SL_GLUE_INCDIR = f"#/lib/{SL_GLUE_DIR}"
+
 env.Append(
     CPPPATH=[
         Dir(f"{SDK_PLATFORM_COMMON_INCDIR}/platform/common/inc").rdir(),
@@ -41,6 +44,8 @@ env.Append(
         # Break cyclic dependency on WiseConnect
         Dir(f"{WISECONNECT_INCDIR}/device/silabs/si91x/mcu/core/config").rdir(),
         Dir(f"{WISECONNECT_INCDIR}/device/silabs/si91x/mcu/core/chip/inc").rdir(),
+        # Break cyclic dependency on glue
+        Dir(f"{SL_GLUE_INCDIR}/inc").rdir(),
         # NVM3
         Dir(f"{SDK_PLATFORM_CORE_INCDIR}/platform/emdrv/common/inc").rdir(),
         Dir(f"{SDK_PLATFORM_CORE_INCDIR}/platform/emdrv/nvm3/inc").rdir(),

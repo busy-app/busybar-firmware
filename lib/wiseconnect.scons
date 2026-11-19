@@ -8,6 +8,8 @@ WIRELESS_INCDIR = f"#/lib/{WIRELESS_DIR}"
 MCU_DIR = f"{DEVICE_DIR}/mcu"
 MCU_INCDIR = f"#/lib/{MCU_DIR}"
 
+SL_DEBUG_LOG = bool(env.get("SL_DEBUG_LOG", False))
+
 env.Append(
     CPPPATH=[
         Dir(f"{WISECONNECT_INCDIR}/protocol/wifi/inc").rdir(),
@@ -86,6 +88,13 @@ env.Append(
         "SUPPORT_CPLUSPLUS",
     ],
 )
+
+if SL_DEBUG_LOG:
+    env.Append(
+        CPPDEFINES=[
+            "PRINT_DEBUG_LOG",
+            "SL_CATALOG_LOG_COMPONENT_PRESENT",
+        ])
 
 libenv = env.Clone(FW_LIB_NAME="wiseconnect")
 libenv.ApplyLibFlags()
