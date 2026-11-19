@@ -1,5 +1,6 @@
 #include "brightness_control.h"
 #include "brightness_conv.h"
+#include "brightness_ramp_i.h"
 #include "settings/settings.h"
 #include <furi/furi.h>
 #include <light_sensor/light_sensor.h>
@@ -11,8 +12,9 @@
 
 #define TAG "BrightCtrl"
 
-#define MAX_MESSAGES                4
-#define LIGHT_SENSOR_UPDATE_TIMEOUT 10
+#define MAX_MESSAGES                      4
+#define LIGHT_SENSOR_UPDATE_TIMEOUT       10
+#define BRIGHTNESS_TRANSITION_INTERVAL_MS (16U)
 
 #define DEFAULT_BRIGHTNESS \
     (UserBrightness) {     \
@@ -22,6 +24,12 @@
 struct BrightnessControl {
     FuriEventLoop* event_loop;
     FuriMessageQueue* message_queue;
+    FuriEventLoopTimer* transition_timer;
+    BrightnessRamp ramp;
+    bool has_applied_output[BrightnessControlModuleMax];
+    uint8_t applied_output[BrightnessControlModuleMax];
+    bool has_published_state;
+    BrightnessControlState published_state;
 
     FrontDisplaySrv* front_display;
     BackDisplaySrv* back_display;
@@ -137,16 +145,23 @@ static void message_queue_callback(FuriEventLoopObject* object, void* context) {
     message_handlers[message.type](instance, &message);
 }
 
-static void apply_brightness(const BrightnessControl* instance);
+static void apply_brightness(BrightnessControl* instance);
+static void brightness_control_transition_timer_callback(void* context);
+static void brightness_control_apply_immediate(BrightnessControl* instance);
 static void load_config(BrightnessControl* instance);
 static void save_config(const BrightnessControl* instance);
 static InternalBrightness get_effective_brightness(const BrightnessControl* instance);
-static void update_state(const BrightnessControl* instance);
+static void update_state(BrightnessControl* instance);
 
 static BrightnessControl* brightness_control_alloc(void) {
     BrightnessControl* instance = malloc(sizeof(BrightnessControl));
 
     instance->event_loop = furi_event_loop_alloc();
+    instance->transition_timer = furi_event_loop_timer_alloc(
+        instance->event_loop,
+        brightness_control_transition_timer_callback,
+        FuriEventLoopTimerTypeOnce,
+        instance);
     instance->message_queue = furi_message_queue_alloc(MAX_MESSAGES, sizeof(Message));
     furi_event_loop_subscribe_message_queue(
         instance->event_loop,
@@ -181,8 +196,7 @@ static BrightnessControl* brightness_control_alloc(void) {
 
     instance->state = furi_state_alloc(sizeof(BrightnessControlState));
 
-    update_state(instance);
-    apply_brightness(instance);
+    brightness_control_apply_immediate(instance);
 
     return instance;
 }
@@ -258,34 +272,75 @@ static InternalBrightness apply_override(
     }
 }
 
-static void apply_brightness(const BrightnessControl* instance) {
-    InternalBrightness br = get_effective_brightness(instance);
+static bool brightness_control_output_changed(
+    BrightnessControl* instance,
+    BrightnessControlModule module,
+    uint8_t value) {
+    const bool has_changed = !instance->has_applied_output[module] ||
+                             instance->applied_output[module] != value;
+    instance->has_applied_output[module] = true;
+    instance->applied_output[module] = value;
+    return has_changed;
+}
 
-    FURI_LOG_D(TAG, "Set brightness %.2f", br.val);
-    front_display_set_brightness(
-        instance->front_display,
-        brightness_conv_internal_to_front(
-            apply_override(instance, br, BrightnessControlModuleFrontDisplay)));
-    back_display_set_contrast(
-        instance->back_display,
-        brightness_conv_internal_to_back(
-            apply_override(instance, br, BrightnessControlModuleBackDisplay)));
+static void apply_brightness(BrightnessControl* instance) {
+    const InternalBrightness br = instance->ramp.current;
+    const FrontDisplayBrightness front = brightness_conv_internal_to_front(
+        apply_override(instance, br, BrightnessControlModuleFrontDisplay));
+    if(brightness_control_output_changed(
+           instance, BrightnessControlModuleFrontDisplay, front.val)) {
+        front_display_set_brightness(instance->front_display, front);
+    }
+    const BackDisplayContrast back = brightness_conv_internal_to_back(
+        apply_override(instance, br, BrightnessControlModuleBackDisplay));
+    if(brightness_control_output_changed(instance, BrightnessControlModuleBackDisplay, back.val)) {
+        back_display_set_contrast(instance->back_display, back);
+    }
 #if defined(SRV_STATUS_LIGHTS)
-    status_lights_set_brightness(
-        instance->status_lights,
-        brightness_conv_internal_to_status(
-            apply_override(instance, br, BrightnessControlModuleStatusLights)));
+    const StatusLightsBrightness status = brightness_conv_internal_to_status(
+        apply_override(instance, br, BrightnessControlModuleStatusLights));
+    if(brightness_control_output_changed(
+           instance, BrightnessControlModuleStatusLights, status.val)) {
+        if(status_lights_set_brightness(instance->status_lights, status) != StatusLightsStatusOk) {
+            instance->has_applied_output[BrightnessControlModuleStatusLights] = false;
+        }
+    }
 #endif
 }
 
-static void update_state(const BrightnessControl* instance) {
-    with_furi_state(instance->state, BrightnessControlState * state, {
-        state->mode = instance->is_auto ? BrightnessControlBrightnessModeAuto :
-                                          BrightnessControlBrightnessModeManual;
-        state->effective_brightness =
-            brightness_conv_internal_to_user(get_effective_brightness(instance)).val;
-        state->brightness_setting = instance->manual_brightness.val;
-    });
+static void update_state(BrightnessControl* instance) {
+    const BrightnessControlState next = {
+        .mode = instance->is_auto ? BrightnessControlBrightnessModeAuto :
+                                    BrightnessControlBrightnessModeManual,
+        .effective_brightness = brightness_conv_internal_to_user(instance->ramp.current).val,
+        .brightness_setting = instance->manual_brightness.val,
+    };
+    if(!instance->has_published_state || next.mode != instance->published_state.mode ||
+       next.effective_brightness != instance->published_state.effective_brightness ||
+       next.brightness_setting != instance->published_state.brightness_setting) {
+        instance->published_state = next;
+        instance->has_published_state = true;
+        with_furi_state(instance->state, BrightnessControlState * state, { *state = next; });
+    }
+}
+
+static void brightness_control_apply_immediate(BrightnessControl* instance) {
+    furi_event_loop_timer_stop(instance->transition_timer);
+    brightness_ramp_set(&instance->ramp, get_effective_brightness(instance));
+    apply_brightness(instance);
+    update_state(instance);
+}
+
+static void brightness_control_transition_timer_callback(void* context) {
+    furi_assert(context);
+    BrightnessControl* instance = context;
+    brightness_ramp_step(&instance->ramp);
+    apply_brightness(instance);
+    update_state(instance);
+    if(instance->ramp.is_active) {
+        furi_event_loop_timer_start(
+            instance->transition_timer, furi_ms_to_ticks(BRIGHTNESS_TRANSITION_INTERVAL_MS));
+    }
 }
 
 static void do_set_manual_brightness(BrightnessControl* instance, Message* message) {
@@ -293,9 +348,8 @@ static void do_set_manual_brightness(BrightnessControl* instance, Message* messa
 
     instance->is_auto = false;
     instance->manual_brightness = message->user_brightness;
-    apply_brightness(instance);
+    brightness_control_apply_immediate(instance);
     save_config(instance);
-    update_state(instance);
 }
 
 static void do_set_auto_brightness(BrightnessControl* instance, Message* message) {
@@ -303,9 +357,8 @@ static void do_set_auto_brightness(BrightnessControl* instance, Message* message
 
 #if defined(SRV_LIGHT_SENSOR)
     instance->is_auto = true;
-    apply_brightness(instance);
+    brightness_control_apply_immediate(instance);
     save_config(instance);
-    update_state(instance);
 #else
     UNUSED(instance);
 #endif
@@ -320,8 +373,15 @@ static void do_process_light_sensor(BrightnessControl* instance, Message* messag
         instance->last_light_sensor_level = message->light_sensor_level;
 
         if(instance->is_auto) {
-            apply_brightness(instance);
-            update_state(instance);
+            if(brightness_ramp_target(&instance->ramp, get_effective_brightness(instance))) {
+                if(instance->ramp.is_active) {
+                    furi_event_loop_timer_start(
+                        instance->transition_timer,
+                        furi_ms_to_ticks(BRIGHTNESS_TRANSITION_INTERVAL_MS));
+                } else {
+                    furi_event_loop_timer_stop(instance->transition_timer);
+                }
+            }
         }
     }
 #else
