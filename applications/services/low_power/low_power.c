@@ -7,6 +7,7 @@
 #include <front_display/front_display.h>
 #include <light_sensor/light_sensor.h>
 #include <power/power_service/power.h>
+#include <wifi/wifi.h>
 
 #include <toolbox/api_lock.h>
 
@@ -43,6 +44,7 @@ struct LowPower {
     BackDisplaySrv* back_display;
     FrontDisplaySrv* front_display;
     Power* power;
+    Wifi* wifi;
 
     FuriEventLoop* event_loop;
     FuriMessageQueue* api_queue;
@@ -89,6 +91,10 @@ static void low_power_exit_standby(LowPower* instance) {
 static void low_power_enter_sleep(LowPower* instance) {
     FURI_LOG_D(TAG, "Enter sleep");
     low_power_setting_flush(instance);
+
+    WifiStatus disconnect_status = wifi_disconnect(instance->wifi);
+    UNUSED(disconnect_status);
+
     power_deep_sleep(instance->power);
 }
 
@@ -280,6 +286,7 @@ static LowPower* low_power_alloc(void) {
     instance->front_display = furi_record_open(RECORD_FRONT_DISPLAY);
     instance->light_sensor = furi_record_open(RECORD_LIGHT_SENSOR);
     instance->power = furi_record_open(RECORD_POWER);
+    instance->wifi = furi_record_open(RECORD_WIFI);
 
     low_power_exit_standby(instance);
 
