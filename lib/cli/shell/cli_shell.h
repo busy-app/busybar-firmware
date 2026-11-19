@@ -1,3 +1,7 @@
+/**
+ * @file cli_shell.h
+ * @brief Types and functions for building CLI shells.
+ */
 #pragma once
 
 #include <furi.h>
@@ -23,14 +27,18 @@ typedef void (*CliShellMotd)(void* context);
  */
 typedef enum {
     CliShellFlagNone = 0,
-    CliShellFlagNonExitable =
-        (1
-         << 0), //!< The "exit" command or Ctrl+D handling are non-functional, instead printing an error. Useful for UART shells or other interfaces where exiting a shell would lead to the interface being unusable until a reset.
+    /**
+      * @brief Disable exiting from the shell.
+      * Commands like `exit` or `Ctrl+D` are ignored with an error message.
+      * Useful for UART shells or other interfaces where exiting a shell
+      * would lead to the interface becoming unusable until a reset.
+      */
+    CliShellFlagNonExitable = (1UL << 0),
 } CliShellFlag;
 
 /**
  * @brief Allocates a shell
- * 
+ *
  * @param [in] motd       Message of the Day callback
  * @param [in] context    Callback context
  * @param [in] pipe       Pipe side to be used by the shell
@@ -38,7 +46,8 @@ typedef enum {
  * @param [in] ext_config External command configuration. See
  *                        `CliCommandExternalConfig`. May be NULL if support for
  *                        external commands is not required.
- * 
+ * @param [in] flags      Combination of flags that enable certain features
+ *
  * @return Shell instance
  */
 CliShell* cli_shell_alloc(
@@ -51,46 +60,47 @@ CliShell* cli_shell_alloc(
 
 /**
  * @brief Frees a shell
- * 
+ *
  * @param [in] shell Shell instance
  */
 void cli_shell_free(CliShell* shell);
 
 /**
  * @brief Starts a shell
- * 
+ *
  * The shell runs in a separate thread. This call is non-blocking.
- * 
+ *
  * @param [in] shell Shell instance
  */
 void cli_shell_start(CliShell* shell);
 
 /**
  * @brief Joins the shell thread
- * 
+ *
  * @warning This call is blocking.
- * 
+ *
  * @param [in] shell Shell instance
  */
 void cli_shell_join(CliShell* shell);
 
 /**
  * @brief Sets optional text before prompt (`>:`)
- * 
+ *
  * @param [in] shell Shell instance
+ * @param [in] prompt Zero-terminated string containing the prompt
  */
 void cli_shell_set_prompt(CliShell* shell, const char* prompt);
 
 /**
  * @brief Frees the pipe provided in `cli_shell_alloc` when the shell exits.
- * 
+ *
  * @param [in] shell Shell instance
  */
 void cli_shell_free_pipe_on_exit(CliShell* shell);
 
 /**
  * @brief Prints a notification while a command is not running
- * 
+ *
  * @param [in] shell Shell instance
  * @param [inout] string String to print
  */
