@@ -36,7 +36,7 @@ struct BackDisplaySrv {
     FuriMutex* property_mutex;
     BackDisplayGammaTable gamma_table;
     uint8_t sensor_contrast;
-    bool sleep_mode;
+    bool is_sleep_mode;
 };
 
 static_assert(
@@ -87,7 +87,7 @@ static void back_display_event_callback(uint32_t events, void* context) {
     }
 
     if(events & BackDisplayEventUpdateSleep) {
-        ssd1320_sleep_mode(instance->sleep_mode);
+        ssd1320_sleep_mode(instance->is_sleep_mode);
     }
 
     furi_check(furi_mutex_release(instance->property_mutex) == FuriStatusOk);
@@ -153,7 +153,7 @@ void back_display_sleep_mode(BackDisplaySrv* instance, bool sleep) {
     furi_check(instance);
 
     furi_check(furi_mutex_acquire(instance->property_mutex, FuriWaitForever) == FuriStatusOk);
-    instance->sleep_mode = sleep;
+    instance->is_sleep_mode = sleep;
     furi_check(furi_mutex_release(instance->property_mutex) == FuriStatusOk);
 
     furi_event_loop_set_custom_event(instance->event_loop, BackDisplayEventUpdateSleep);
