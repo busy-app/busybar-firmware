@@ -319,11 +319,17 @@ bool storage_process_dir_open(Storage* app, File* file, FuriString* path) {
     file->error_id = storage_get_data(app, type, &storage);
 
     if(file->error_id == FSE_OK) {
-        if(storage_path_already_open(path, FSAM_ANY, storage)) {
+        const char* storage_path = cstr_storage_path(app, type, path);
+
+        FileInfo file_info;
+        FS_Error fs_error = storage->fs_api->common.stat(storage, storage_path, &file_info);
+        if(fs_error == FSE_OK && !file_info_is_dir(&file_info)) {
+            file->error_id = FSE_INVALID_PARAMETER;
+        } else if(storage_path_already_open(path, FSAM_ANY, storage)) {
             file->error_id = FSE_ALREADY_OPEN;
         } else {
             storage_push_storage_file(file, path, FSAM_ANY, storage);
-            FS_CALL(storage, dir.open(storage, file, cstr_storage_path(app, type, path)));
+            FS_CALL(storage, dir.open(storage, file, storage_path));
         }
     }
 
