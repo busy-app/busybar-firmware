@@ -1,4 +1,5 @@
 #include "fetch.h"
+#include "fetch_chunked.h"
 
 #include <network/network.h>
 #include <toolbox/timers.h>
@@ -23,14 +24,23 @@
 #define FETCH_LOG_E(...)
 #endif
 
-// =====
-// Types
-// =====
+#define HTTP_STATUS_INFORMATIONAL_MIN (100)
+#define HTTP_STATUS_INFORMATIONAL_MAX (199)
+#define HTTP_STATUS_NO_CONTENT        (204)
+#define HTTP_STATUS_NOT_MODIFIED      (304)
+
+typedef enum {
+    FetchTransferEncodingNone,
+    FetchTransferEncodingChunked,
+    FetchTransferEncodingUnsupported,
+} FetchTransferEncoding;
 
 struct Fetch {
     struct mg_mgr mgr;
     const FetchRequest* request;
     FetchProgress progress;
+
+    FetchChunked* chunked;
 
     uint32_t started_raw_ticks;
     uint32_t started_download_ticks;
@@ -49,19 +59,18 @@ struct Fetch {
     _Atomic bool is_stop_requested;
 };
 
-// ============================
-// Stateless internal functions
-// ============================
+static void fetch_on_data(SizedBufferConst data, void* context);
+static void fetch_on_data_error(void* context);
+
+static bool fetch_is_expecting_headers(const struct mg_connection* conn) {
+    return conn->pfn != NULL;
+}
 
 static uint32_t fetch_calc_download_speed(size_t size_delta, uint32_t start_timestamp_ticks) {
     const uint32_t delta_ticks = furi_get_tick() - start_timestamp_ticks + 1;
     const float delta_s = (float)delta_ticks / furi_kernel_get_tick_frequency();
     return size_delta / delta_s;
 }
-
-// ===========================
-// Stateful internal functions
-// ===========================
 
 static bool fetch_is_rx_complete(const Fetch* instance) {
     bool is_complete = false;
@@ -84,29 +93,6 @@ static void fetch_consume_rx_data(struct mg_connection* conn, size_t length) {
     mg_iobuf_del(&conn->recv, 0, length);
 }
 
-static void fetch_switch_to_raw_protocol(
-    Fetch* instance,
-    struct mg_connection* conn,
-    const struct mg_http_message* msg) {
-    const int32_t body_length = (int32_t)msg->body.len;
-    FETCH_LOG_I(TAG, "body size: %ld", body_length);
-
-    instance->started_raw_ticks = furi_get_tick();
-    instance->started_download_ticks = instance->started_raw_ticks;
-
-    if(body_length != -1) {
-        FetchProgress* progress = &instance->progress;
-        progress->total_download_size = body_length;
-        progress->has_total_download_size = true;
-    }
-
-    fetch_consume_rx_data(conn, msg->head.len);
-    /* Mongoose will detach the protocol handler function automatically
-     * after the received data has been altered in the header callback.
-     * Here it is done preemptively for good measure. */
-    conn->pfn = NULL;
-}
-
 static void fetch_raise_error(Fetch* instance, const char* error_message) {
     FETCH_LOG_E(TAG, "Error: %s", error_message);
 
@@ -115,6 +101,109 @@ static void fetch_raise_error(Fetch* instance, const char* error_message) {
     }
 
     instance->is_error_occurred = true;
+}
+
+static void fetch_set_total_download_size(Fetch* instance, size_t size) {
+    FetchProgress* progress = &instance->progress;
+    progress->total_download_size = size;
+    progress->has_total_download_size = true;
+}
+
+static bool fetch_is_bodyless_method(const FetchRequest* request) {
+    bool is_bodyless = false;
+
+    const char* method = request->method;
+    if((method != NULL) && (strcmp(method, "HEAD") == 0)) {
+        is_bodyless = true;
+    }
+
+    return is_bodyless;
+}
+
+static bool fetch_is_bodyless_response(const struct mg_http_message* msg) {
+    bool is_bodyless = false;
+
+    const int status = mg_http_status(msg);
+    // RFC 9112 6.1 Responses with the following
+    // status codes are not expected to have a body
+    if(status == HTTP_STATUS_NO_CONTENT || status == HTTP_STATUS_NOT_MODIFIED) {
+        is_bodyless = true;
+    }
+
+    return is_bodyless;
+}
+
+static bool fetch_is_informational_response(const struct mg_http_message* msg) {
+    const int status = mg_http_status(msg);
+    return (status >= HTTP_STATUS_INFORMATIONAL_MIN) && (status <= HTTP_STATUS_INFORMATIONAL_MAX);
+}
+
+static FetchTransferEncoding fetch_get_transfer_encoding(const struct mg_http_message* msg) {
+    FetchTransferEncoding encoding = FetchTransferEncodingNone;
+
+    const struct mg_str* transfer_encoding =
+        mg_http_get_header((struct mg_http_message*)msg, "transfer-encoding");
+
+    if(transfer_encoding != NULL) {
+        if(mg_strcasecmp(*transfer_encoding, mg_str("chunked")) == 0) {
+            encoding = FetchTransferEncodingChunked;
+        } else {
+            encoding = FetchTransferEncodingUnsupported;
+        }
+    }
+
+    return encoding;
+}
+
+static bool fetch_setup_body_framing(Fetch* instance, const struct mg_http_message* msg) {
+    bool success = true;
+
+    const bool is_bodyless = fetch_is_bodyless_method(instance->request) ||
+                             fetch_is_bodyless_response(msg);
+    if(is_bodyless) {
+        // RFC 9112 6.1 forbids sending Transfer-Encoding with status code 204.
+        // This implementation allows such responses for simplicity.
+        fetch_set_total_download_size(instance, 0);
+    } else {
+        const FetchTransferEncoding transfer_encoding = fetch_get_transfer_encoding(msg);
+
+        if(transfer_encoding == FetchTransferEncodingNone) {
+            const int32_t content_length = msg->body.len;
+            if(content_length != -1) {
+                fetch_set_total_download_size(instance, content_length);
+            }
+
+        } else if(transfer_encoding == FetchTransferEncodingChunked) {
+            furi_assert(instance->chunked == NULL);
+            instance->chunked = fetch_chunked_alloc(fetch_on_data, fetch_on_data_error, instance);
+            FETCH_LOG_I(TAG, "chunked");
+
+        } else {
+            fetch_raise_error(instance, "Unsupported Transfer-Encoding");
+            success = false;
+        }
+    }
+
+    return success;
+}
+
+static void fetch_discard_response(struct mg_connection* conn) {
+    fetch_consume_rx_data(conn, conn->recv.len);
+    conn->is_draining = 1;
+}
+
+static void fetch_switch_to_raw_protocol(
+    Fetch* instance,
+    struct mg_connection* conn,
+    const struct mg_http_message* msg) {
+    instance->started_raw_ticks = furi_get_tick();
+    instance->started_download_ticks = instance->started_raw_ticks;
+
+    if(fetch_setup_body_framing(instance, msg)) {
+        fetch_consume_rx_data(conn, msg->head.len);
+    } else {
+        fetch_discard_response(conn);
+    }
 }
 
 static bool fetch_init_connection(const FetchRequest* request, struct mg_connection* conn) {
@@ -137,7 +226,7 @@ static void fetch_send_request_method(const FetchRequest* request, struct mg_con
         method = "GET";
     }
 
-    mg_printf(conn, "%s %s HTTP/1.0\r\n", method, uri);
+    mg_printf(conn, "%s %s HTTP/1.1\r\n", method, uri);
 }
 
 static void fetch_send_request_headers(const FetchRequest* request, struct mg_connection* conn) {
@@ -201,18 +290,55 @@ static FURI_ALWAYS_INLINE void
     FETCH_LOG_I(TAG, "MG_EV_HTTP_HDRS: %.*s", msg->message.len, msg->message.buf);
     FETCH_LOG_I(TAG, "Path: %.*s", msg->uri.len, msg->uri.buf);
 
-    if(instance->header_callback) {
-        instance->header_callback(msg->head.buf, msg->head.len, instance->callback_context);
+    if(fetch_is_informational_response(msg)) {
+        // RFC 9110 15.2: Informational responses (1xx) are not supported
+        fetch_raise_error(instance, "Unsupported informational response");
+        fetch_discard_response(conn);
+
+    } else {
+        if(instance->header_callback) {
+            instance->header_callback(msg->head.buf, msg->head.len, instance->callback_context);
+        }
+
+        fetch_switch_to_raw_protocol(instance, conn, msg);
     }
 
-    fetch_switch_to_raw_protocol(instance, conn, msg);
+    /* Mongoose will detach the protocol handler function automatically
+     * after the received data has been altered in the header callback.
+     * Here it is done preemptively for good measure. */
+    conn->pfn = NULL;
+}
+
+static void fetch_on_data(SizedBufferConst data, void* context) {
+    Fetch* instance = context;
+
+    instance->progress.received_download_size += data.size;
+    instance->delta_received_bytes += data.size;
+
+    if(instance->rx_data_callback) {
+        instance->rx_data_callback(data.buffer, data.size, instance->callback_context);
+    }
+}
+
+static void fetch_on_data_error(void* context) {
+    Fetch* instance = context;
+    fetch_raise_error(instance, "Chunked transfer error");
+}
+
+static bool fetch_process_packet(Fetch* instance, SizedBufferConst packet) {
+    if(instance->chunked) {
+        return fetch_chunked_process(instance->chunked, packet);
+    } else {
+        fetch_on_data(packet, instance);
+        return fetch_is_rx_complete(instance);
+    }
 }
 
 static FURI_ALWAYS_INLINE void fetch_read_event(Fetch* instance, struct mg_connection* conn) {
     FETCH_LOG_I(TAG, "MG_EV_READ");
 
-    if(conn->pfn) {
-        // Ignore read events if the protocol handler function is still set
+    if(fetch_is_expecting_headers(conn)) {
+        // Ignore read events before having processed the headers
         return;
     }
 
@@ -221,11 +347,20 @@ static FURI_ALWAYS_INLINE void fetch_read_event(Fetch* instance, struct mg_conne
 
     FETCH_LOG_I(TAG, "Received %zu bytes", recv_len);
 
-    instance->activity_timer = coarse_timer_create(FETCH_INACTIVITY_TIMEOUT_MS);
-    instance->progress.received_download_size += recv_len;
-    instance->delta_received_bytes += recv_len;
-    instance->count_receive_packets++;
+    if(instance->is_error_occurred) {
+        fetch_consume_rx_data(conn, recv_len);
+        return;
+    }
 
+    bool is_complete = fetch_process_packet(
+        instance,
+        (SizedBufferConst){
+            .buffer = recv->buf,
+            .size = recv_len,
+        });
+
+    instance->activity_timer = coarse_timer_create(FETCH_INACTIVITY_TIMEOUT_MS);
+    instance->count_receive_packets++;
     if((instance->count_receive_packets % (12 * 8)) == 0) {
         instance->progress.speed_bytes_per_sec =
             fetch_calc_download_speed(instance->delta_received_bytes, instance->started_raw_ticks);
@@ -239,19 +374,23 @@ static FURI_ALWAYS_INLINE void fetch_read_event(Fetch* instance, struct mg_conne
         instance->delta_received_bytes = 0;
     }
 
-    if(instance->rx_data_callback) {
-        instance->rx_data_callback(recv->buf, recv_len, instance->callback_context);
-    }
-
     fetch_consume_rx_data(conn, recv_len);
 
-    if(fetch_is_rx_complete(instance)) {
+    if(is_complete) {
         conn->is_draining = 1;
     }
 }
 
 static FURI_ALWAYS_INLINE void fetch_close_event(Fetch* instance, struct mg_connection* conn) {
     FETCH_LOG_I(TAG, "MG_EV_CLOSE");
+
+    if(fetch_is_expecting_headers(conn)) {
+        /* Mongoose closes the connection upon receiving a malformed
+        * response header without emitting the MG_EV_ERROR event. */
+        if(!instance->is_error_occurred && !instance->is_stop_requested) {
+            fetch_raise_error(instance, "Invalid or missing response header");
+        }
+    }
 
     instance->progress.speed_bytes_per_sec = fetch_calc_download_speed(
         instance->progress.received_download_size, instance->started_download_ticks);
@@ -321,20 +460,29 @@ static void fetch_reset(Fetch* instance) {
     instance->count_receive_packets = 0;
     instance->is_error_occurred = false;
     instance->is_stop_requested = false;
+
+    if(instance->chunked) {
+        fetch_chunked_free(instance->chunked);
+        instance->chunked = NULL;
+    }
 }
 
 static bool fetch_verify_response_body_size(Fetch* instance) {
     bool success = true;
 
     if(!(instance->is_stop_requested || instance->is_error_occurred)) {
-        const FetchProgress* progress = &instance->progress;
+        if(instance->chunked) {
+            success = fetch_chunked_is_complete(instance->chunked);
+        } else {
+            const FetchProgress* progress = &instance->progress;
 
-        if(progress->has_total_download_size) {
-            const size_t expected_size = progress->total_download_size;
-            const size_t actual_size = progress->received_download_size;
+            if(progress->has_total_download_size) {
+                const size_t expected_size = progress->total_download_size;
+                const size_t actual_size = progress->received_download_size;
 
-            if(expected_size != actual_size) {
-                success = false;
+                if(expected_size != actual_size) {
+                    success = false;
+                }
             }
         }
     }
@@ -354,6 +502,10 @@ Fetch* fetch_alloc(void) {
 void fetch_free(Fetch* instance) {
     furi_check(instance);
     furi_check(!instance->is_running);
+
+    if(instance->chunked) {
+        fetch_chunked_free(instance->chunked);
+    }
 
     free(instance);
 }
@@ -420,6 +572,11 @@ FetchStatus fetch_run(Fetch* instance, const FetchRequest* request) {
 
     network_deinit_current_thread(network);
     furi_record_close(RECORD_NETWORK);
+
+    if(instance->chunked) {
+        fetch_chunked_free(instance->chunked);
+        instance->chunked = NULL;
+    }
 
     return fetch_get_status(instance);
 }

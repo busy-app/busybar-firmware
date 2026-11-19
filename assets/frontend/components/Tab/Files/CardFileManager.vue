@@ -1,15 +1,10 @@
 <template>
   <SectionCard
     data-id="files-section-primary"
-    class="overflow-visible"
-    :class="isDragging ? 'border-dashed border-1 border-muted' : ''"
-    @dragenter.prevent="onDragEnter"
-    @dragleave.prevent="onDragLeave"
-    @dragover.prevent
-    @drop.prevent="onDrop"
+    class="relative overflow-visible"
     @mouseup="stopSelection"
   >
-    <div class="w-full grid grid-cols-[32px_1fr_auto] gap-2 items-center pr-1">
+    <div class="grid w-full grid-cols-[32px_1fr_auto] items-center gap-2 pr-1">
       <div>
         <UTooltip
           :delay-duration="0"
@@ -27,7 +22,7 @@
         </UTooltip>
       </div>
 
-      <div class="flex-1 min-w-0 relative">
+      <div class="relative min-w-0 flex-1">
         <UInput
           ref="filesInputMenu"
           v-model="inputMenuModel"
@@ -45,13 +40,13 @@
           <div
             v-if="inputMenuModel.length > 0 && inputMenuItems.length > 0"
             class="fim-focus-visible
-              w-full absolute top-8 flex flex-col gap-0.5 p-1.5
-              rounded-md text-sm bg-default ring ring-inset ring-accented z-30"
+              absolute top-8 z-30 flex w-full flex-col gap-0.5
+              rounded-md bg-default p-1.5 text-sm ring ring-accented ring-inset"
           >
             <div
               v-for="(item, index) in inputMenuItems"
               :key="item.path"
-              class="flex items-center gap-1.5 p-1.5 px-2 rounded-md cursor-pointer hover:bg-elevated/50"
+              class="flex cursor-pointer items-center gap-1.5 rounded-md p-1.5 px-2 hover:bg-elevated/50"
               :class="highlightedItemIndex === index ? 'bg-elevated/85' : ''"
               @mousedown="inputMenuList(item)"
             >
@@ -87,9 +82,9 @@
           </template>
         </UInput>
 
-        <div class="absolute text-sm top-1.5 left-9">
+        <div class="absolute top-1.5 left-9 text-sm">
           <span>/</span><span
-            class="cursor-pointer hover:underline mr-[0.5px]"
+            class="mr-[0.5px] cursor-pointer hover:underline"
             @click="list('/ext')"
           >ext</span>
           <template
@@ -129,7 +124,7 @@
             color="neutral"
             square
             :loading="loading.list"
-            @click="filesModel = null; filesToUpload = []; showUploadModal = true;"
+            @click="filesModel = null; filesToUpload = []; uploadDirectory = null; showUploadModal = true;"
           />
         </UTooltip>
 
@@ -151,7 +146,7 @@
 
     <div
       ref="fileListContainer"
-      class="w-full flex flex-col"
+      class="flex w-full flex-col"
     >
       <UContextMenu
         v-for="(item, index) in currentDir"
@@ -159,18 +154,17 @@
         :items="getContextMenuItems(item)"
       >
         <div
-          class="fm-item relative min-h-10 grid grid-cols-[1fr_auto] items-center py-1 px-2 gap-2 rounded break-all select-none"
+          class="fm-item relative grid min-h-10 grid-cols-[1fr_auto] items-center gap-2 rounded px-2 py-1 break-all select-none"
           :class="[
             item.type === 'dir' ? 'cursor-pointer' : '',
             getItemClass(item, index)
           ]"
+          :data-drop-dir="item.type === 'dir' ? item.name : undefined"
           @click="onClickItem(item, $event)"
           @mousedown="onMouseDown(item, index, $event)"
           @mouseenter="onMouseEnter(index)"
         >
-          <div
-            class="grid grid-cols-[24px_1fr] gap-4 items-center"
-          >
+          <div class="grid grid-cols-[24px_1fr] items-center gap-4">
             <UIcon
               class="size-5"
               :name="item.type === 'dir' ? 'i-bi-folder' : 'i-bi-file'"
@@ -184,6 +178,18 @@
               <span class="text-sm text-muted">{{ bytesToSize((item as StorageFileElement).size) }}</span>
             </template>
           </div>
+
+          <div
+            v-if="dropTargetDir === item.name && item.type === 'dir'"
+            class="pointer-events-none absolute inset-0 z-10 flex items-center justify-center gap-2
+              rounded-md border-2 border-dashed border-accented bg-elevated px-2 text-sm"
+          >
+            <UIcon
+              class="size-4 shrink-0"
+              name="i-bi-upload"
+            />
+            <span class="truncate">Drop to upload to {{ item.name }}</span>
+          </div>
         </div>
       </UContextMenu>
 
@@ -194,10 +200,25 @@
         Empty directory
       </div>
 
+      <div
+        v-if="isDragging && isDragOverCard && !showUploadModal && !dropTargetDir"
+        data-id="files-drop-overlay"
+        class="pointer-events-none absolute inset-0 z-40 flex flex-col items-center justify-center
+          gap-3 rounded-3xl border-2 border-dashed border-accented bg-default/75"
+      >
+        <UIcon
+          class="size-10"
+          name="i-bi-upload"
+        />
+        <p class="text-xl">Drop files to upload</p>
+        <p class="px-4 text-center break-all text-muted">to {{ currentPath }}</p>
+      </div>
+
       <ModalGeneric
         v-model:open="showMkdirModal"
         data-id="modal-storage-mkdir"
         title="Create directory"
+        :dismissible="!loading.mkdir"
         :primary-action-props="{
           label: 'Create',
           loading: loading.mkdir,
@@ -227,7 +248,7 @@
       <ModalGeneric
         v-model:open="showUploadModal"
         data-id="modal-storage-upload"
-        title="Upload files"
+        :title="uploadModalTitle"
         wide
         :dismissible="!loading.write"
         :primary-action-props="{
@@ -252,9 +273,10 @@
             layout="list"
             class="w-full rounded-xl"
             description="Drag and drop to upload"
+            :dropzone="false"
             :disabled="loading.write"
             :ui="{
-              base: 'cursor-pointer',
+              base: ['cursor-pointer border-dashed focus-visible:-outline-offset-2', isDragging ? 'bg-elevated/25' : ''],
               icon: 'size-6',
               label: 'text-lg',
               description: 'text-sm',
@@ -274,7 +296,7 @@
             <template #files-top="{ files }">
               <div
                 v-if="files?.length"
-                class="w-full my-2 flex items-center justify-between"
+                class="my-2 flex w-full items-center justify-between"
               >
                 <p class="font-bold">Files ({{ files?.length }})</p>
 
@@ -291,23 +313,23 @@
             </template>
 
             <template #files>
-              <div class="max-h-[175px] flex flex-col gap-1.5 overflow-y-auto">
+              <div class="flex max-h-[175px] flex-col gap-1.5 overflow-y-auto">
                 <div
                   v-for="(file, index) in filesModel"
                   :key="index"
-                  class="min-h-8 flex justify-between gap-2 items-center p-2 rounded"
+                  class="flex min-h-8 items-center justify-between gap-2 rounded p-2"
                 >
                   <div class="flex items-center gap-2">
                     <UIcon
-                      class="size-5 mx-1"
+                      class="mx-1 size-5"
                       name="i-bi-file"
                     />
-                    <div>{{ file.name }}</div>
+                    <div>{{ getUploadPath(file) }}</div>
                   </div>
 
                   <div class="flex items-center gap-2">
                     <div
-                      v-if="filesToUpload.find(f => f.blob.name === file.name)?.status === 'uploading'"
+                      v-if="filesToUpload.find(f => f.blob === file)?.status === 'uploading'"
                       class="flex items-center gap-2 text-sm"
                     >
                       <UIcon
@@ -317,7 +339,7 @@
                       Uploading
                     </div>
                     <div
-                      v-if="filesToUpload.find(f => f.blob.name === file.name)?.status === 'success'"
+                      v-if="filesToUpload.find(f => f.blob === file)?.status === 'success'"
                       class="flex items-center gap-2 text-sm text-green-500"
                     >
                       <UIcon
@@ -327,11 +349,11 @@
                       Uploaded
                     </div>
                     <div
-                      v-if="filesToUpload.find(f => f.blob.name === file.name)?.status === 'error'"
+                      v-if="filesToUpload.find(f => f.blob === file)?.status === 'error'"
                       class="flex items-center gap-2 text-sm text-red-500"
                     >
                       <UIcon
-                        class="size-4 relative top-[1px]"
+                        class="relative top-px size-4"
                         name="i-bi-alert"
                       />
                       Failed
@@ -357,6 +379,7 @@
         v-model:open="showDeleteModal"
         data-id="modal-storage-delete"
         :title="itemToDelete ? `Delete ${itemToDelete.name}?` : `Delete ${selectedItems.size} items?`"
+        :dismissible="!loading.remove"
         description="This action is irreversible"
         :primary-action-props="{
           label: 'Delete',
@@ -381,9 +404,36 @@ import type { StorageListElement, StorageFileElement } from '@busy-app/busy-lib'
 import type { ContextMenuItem } from '@nuxt/ui';
 import type { LocationQueryValue } from 'vue-router';
 
+interface InputMenuItem {
+  path: string;
+  name: string;
+  icon?: string;
+}
+
+interface UploadFile {
+  blob: File;
+  status: 'idle' | 'uploading' | 'success' | 'error';
+}
+
+interface ListOptions {
+  syncUrl?: boolean;
+  replaceUrl?: boolean;
+  errorNotificationTimeout?: number;
+}
+
+const fileRelativePaths = new WeakMap<File, string>();
+
 const deviceStore = useDeviceStore();
 const route = useRoute();
 const router = useRouter();
+
+const filesInputMenu = useTemplateRef('filesInputMenu');
+
+defineShortcuts({
+  '/': () => {
+    filesInputMenu.value?.inputRef?.focus();
+  }
+});
 
 const loading = ref({
   list: false,
@@ -393,25 +443,50 @@ const loading = ref({
   mkdir: false,
   suggestions: false
 });
-const isAnythingLoading = computed(() => !!Object.values(loading.value).some(e => !!e));
-
 const currentPath = ref('/ext');
+
 const currentDir = ref<StorageListElement[]>([]);
 
-const filesInputMenu = useTemplateRef('filesInputMenu');
-defineShortcuts({
-  '/': () => {
-    filesInputMenu.value?.inputRef?.focus();
-  }
-});
 const inputMenuModel = ref('');
-interface InputMenuItem {
-  path: string;
-  name: string;
-  icon?: string;
-}
 const inputMenuItems = ref<InputMenuItem[]>([]);
 const highlightedItemIndex = ref(0);
+
+const selectedItems = ref<Set<string>>(new Set());
+const isSelecting = ref(false);
+const selectStartIndex = ref(-1);
+
+const wasDraggingSelection = ref(false);
+const selectionMode = ref<'replace' | 'add'>('replace');
+const initialSelection = ref<Set<string>>(new Set());
+
+const showMkdirModal = ref(false);
+const mkdirNameModel = ref('');
+
+const isDragging = ref(false);
+const dragCounter = ref(0);
+const isDragOverCard = ref(false);
+const dropTargetDir = ref<string | null>(null);
+const uploadDirectory = ref<string | null>(null);
+
+const fileListContainer = useTemplateRef<HTMLElement>('fileListContainer');
+
+const showUploadModal = ref(false);
+const filesModel = ref<File[] | null>(null);
+const filesToUpload = ref<UploadFile[]>([]);
+
+const showDeleteModal = ref(false);
+const itemToDelete = ref<StorageListElement & { fullPath: string } | null>(null);
+
+const isAnythingLoading = computed(() => !!Object.values(loading.value).some(e => !!e));
+
+const allFilesUploaded = computed(() => filesModel.value
+  && filesModel.value.length > 0
+  && filesToUpload.value.length === filesModel.value.length
+  && filesToUpload.value.filter(f => f.status !== 'success').length === 0);
+
+const uploadModalTitle = computed(() => (uploadDirectory.value
+  ? `Upload files to ${uploadDirectory.value.slice(uploadDirectory.value.lastIndexOf('/') + 1)}`
+  : 'Upload files'));
 
 function getQueryPath (queryPath: LocationQueryValue | LocationQueryValue[] | undefined): string | null {
   if (Array.isArray(queryPath)) {
@@ -472,15 +547,19 @@ async function onInputMenuModelUpdate (newValue: string) {
 
   inputMenuItems.value = options;
 }
+
 async function inputMenuList (model: InputMenuItem | null) {
   await list(`/ext${normalizePath(model?.path || inputMenuModel.value)}`);
 }
+
 function onArrowUp () {
   highlightedItemIndex.value = (highlightedItemIndex.value - 1 + inputMenuItems.value.length) % inputMenuItems.value.length;
 }
+
 function onArrowDown () {
   highlightedItemIndex.value = (highlightedItemIndex.value + 1) % inputMenuItems.value.length;
 }
+
 async function onTab () {
   if (inputMenuItems.value.length === 0) {
     return;
@@ -489,6 +568,7 @@ async function onTab () {
   }
   return onArrowDown();
 }
+
 async function onEnter () {
   if (inputMenuItems.value.length === 0) {
     return;
@@ -499,16 +579,6 @@ async function onEnter () {
       await inputMenuList(null);
     }
   }
-}
-
-const selectedItems = ref<Set<string>>(new Set());
-const isSelecting = ref(false);
-const selectStartIndex = ref(-1);
-
-interface ListOptions {
-  syncUrl?: boolean;
-  replaceUrl?: boolean;
-  errorNotificationTimeout?: number;
 }
 
 async function list (path: string, options: ListOptions = {}) {
@@ -588,10 +658,6 @@ async function read (fileName: string) {
 function createObjectUrl (file: File | Blob): string {
   return URL.createObjectURL(file);
 }
-
-const wasDraggingSelection = ref(false);
-const selectionMode = ref<'replace' | 'add'>('replace');
-const initialSelection = ref<Set<string>>(new Set());
 
 function onMouseDown (item: StorageListElement, index: number, event: MouseEvent) {
   if (event.button === 0) {
@@ -817,8 +883,6 @@ function confirmBatchDelete () {
   showDeleteModal.value = true;
 }
 
-const showDeleteModal = ref(false);
-const itemToDelete = ref<StorageListElement & { fullPath: string } | null>(null);
 async function remove () {
   if (selectedItems.value.size > 0 && !itemToDelete.value) {
     loading.value.remove = true;
@@ -866,27 +930,35 @@ async function remove () {
   return list(currentPath.value, { syncUrl: false });
 }
 
-const showUploadModal = ref(false);
-const filesModel = ref<File[] | null>(null);
-const filesToUpload = ref<{ blob: File; status: 'idle' | 'uploading' | 'success' | 'error' }[]>([]);
-const allFilesUploaded = computed(() => filesModel.value
-  && filesModel.value.length > 0
-  && filesToUpload.value.length === filesModel.value.length
-  && filesToUpload.value.filter(f => f.status !== 'success').length === 0);
 function prepareFiles () {
   if (!filesModel.value) {
+    filesToUpload.value = [];
     return;
   }
 
-  for (const file of filesModel.value) {
-    filesToUpload.value.push({ blob: file, status: 'idle' });
-  }
+  const prepared = filesToUpload.value;
+  filesToUpload.value = filesModel.value.map<UploadFile>(file => prepared.find(f => f.blob === file)
+    ?? { blob: file, status: 'idle' });
 }
 function removeUpdatedFiles () {
   if (filesModel.value && filesModel.value.length) {
-    filesModel.value = filesModel.value.filter(f => !(filesToUpload.value.find(fu => fu.blob.name === f.name)?.status === 'success'));
+    filesModel.value = filesModel.value.filter(f => !(filesToUpload.value.find(fu => fu.blob === f)?.status === 'success'));
     filesToUpload.value = filesToUpload.value.filter(fu => fu.status !== 'success');
   }
+}
+
+function getUploadPath (file: File) {
+  return fileRelativePaths.get(file) ?? file.name;
+}
+
+async function getDroppedUploadFiles (dataTransfer: DataTransfer) {
+  const droppedFiles = await getDroppedFiles(dataTransfer);
+
+  for (const { file, relativePath } of droppedFiles) {
+    fileRelativePaths.set(file, relativePath);
+  }
+
+  return droppedFiles.map(({ file }) => file);
 }
 
 async function uploadFiles () {
@@ -907,19 +979,23 @@ async function uploadFiles () {
   loading.value.write = true;
 
   prepareFiles();
-  const _currentPath = currentPath.value;
+  const _currentPath = uploadDirectory.value ?? currentPath.value;
 
   for (const file of filesToUpload.value) {
+    if (file.status === 'success') {
+      continue;
+    }
+
     try {
       file.status = 'uploading';
       await deviceStore.busyBar.StorageWrite({
-        path: `${_currentPath}/${file.blob.name}`,
+        path: `${_currentPath}/${getUploadPath(file.blob)}`,
         file: file.blob
       }, { timeout: 0 });
       file.status = 'success';
     } catch (error) {
       file.status = 'error';
-      await handleHTTPError(error, `Couldn't upload ${file.blob.name}`, false, 0);
+      await handleHTTPError(error, `Couldn't upload ${getUploadPath(file.blob)}`, false, 0);
     }
   }
 
@@ -928,35 +1004,95 @@ async function uploadFiles () {
   loading.value.write = false;
 }
 
-const showMkdirModal = ref(false);
-const mkdirNameModel = ref('');
+function isFileDrag (e: DragEvent) {
+  return !!e.dataTransfer?.types.includes('Files');
+}
 
-const isDragging = ref(false);
-const dragCounter = ref(0);
+function resetDragState () {
+  isDragging.value = false;
+  dragCounter.value = 0;
+  isDragOverCard.value = false;
+  dropTargetDir.value = null;
+}
 
-function onDragEnter () {
+function isOverCard (e: DragEvent) {
+  const target = e.target as HTMLElement | null;
+  return !!target?.closest('[data-id="files-section-primary"]');
+}
+
+function getDropTargetDir (e: DragEvent) {
+  const target = e.target as HTMLElement | null;
+  return target?.closest<HTMLElement>('[data-drop-dir]')?.dataset.dropDir ?? null;
+}
+
+function onWindowDragEnter (e: DragEvent) {
+  if (!isFileDrag(e)) {
+    return;
+  }
+
   dragCounter.value++;
   isDragging.value = true;
 }
 
-function onDragLeave () {
+function onWindowDragLeave (e: DragEvent) {
+  if (!isFileDrag(e)) {
+    return;
+  }
+
   dragCounter.value--;
   if (dragCounter.value <= 0) {
-    isDragging.value = false;
-    dragCounter.value = 0;
+    resetDragState();
   }
 }
 
-function onDrop (e: DragEvent) {
-  isDragging.value = false;
-  dragCounter.value = 0;
-  if (e.dataTransfer?.files) {
-    const files = Array.from(e.dataTransfer.files);
-    if (files.length) {
-      filesModel.value = files;
-      filesToUpload.value = [];
-      showUploadModal.value = true;
+function onWindowDragOver (e: DragEvent) {
+  if (!isFileDrag(e)) {
+    return;
+  }
+
+  e.preventDefault();
+  isDragOverCard.value = isOverCard(e);
+  dropTargetDir.value = showUploadModal.value ? null : getDropTargetDir(e);
+}
+
+async function onWindowDrop (e: DragEvent) {
+  if (!isFileDrag(e)) {
+    return;
+  }
+
+  e.preventDefault();
+  const isDropOnCard = isOverCard(e);
+  const targetDir = getDropTargetDir(e);
+  resetDragState();
+
+  if (!e.dataTransfer) {
+    return;
+  }
+
+  if (showUploadModal.value) {
+    if (loading.value.write) {
+      return;
     }
+
+    const files = await getDroppedUploadFiles(e.dataTransfer);
+    if (files.length) {
+      filesModel.value = [...(filesModel.value || []), ...files];
+      removeUpdatedFiles();
+    }
+
+    return;
+  }
+
+  if (!isDropOnCard) {
+    return;
+  }
+
+  const files = await getDroppedUploadFiles(e.dataTransfer);
+  if (files.length) {
+    filesModel.value = files;
+    filesToUpload.value = [];
+    uploadDirectory.value = targetDir ? `${currentPath.value}/${targetDir}` : null;
+    showUploadModal.value = true;
   }
 }
 
@@ -989,8 +1125,6 @@ async function mkdir () {
   await list(currentPath.value, { syncUrl: false });
 }
 
-const fileListContainer = ref<HTMLElement | null>(null);
-
 async function refreshCurrentPath () {
   await list(currentPath.value, { syncUrl: false });
 }
@@ -1017,15 +1151,6 @@ function onGlobalClick (event: MouseEvent) {
   selectedItems.value.clear();
 }
 
-onMounted(async () => {
-  window.addEventListener('device-reconnected', refreshCurrentPath);
-  window.addEventListener('click', onGlobalClick);
-});
-onBeforeUnmount(() => {
-  window.removeEventListener('device-reconnected', refreshCurrentPath);
-  window.removeEventListener('click', onGlobalClick);
-});
-
 watch(() => route.query.path, async queryPath => {
   const rawPath = getQueryPath(queryPath);
 
@@ -1050,7 +1175,23 @@ watch(() => route.query.path, async queryPath => {
   }
 }, { immediate: true });
 
+onMounted(() => {
+  window.addEventListener('device-reconnected', refreshCurrentPath);
+  window.addEventListener('click', onGlobalClick);
+  window.addEventListener('dragenter', onWindowDragEnter);
+  window.addEventListener('dragleave', onWindowDragLeave);
+  window.addEventListener('dragover', onWindowDragOver);
+  window.addEventListener('drop', onWindowDrop);
+});
+
 onBeforeUnmount(() => {
+  window.removeEventListener('device-reconnected', refreshCurrentPath);
+  window.removeEventListener('click', onGlobalClick);
+  window.removeEventListener('dragenter', onWindowDragEnter);
+  window.removeEventListener('dragleave', onWindowDragLeave);
+  window.removeEventListener('dragover', onWindowDragOver);
+  window.removeEventListener('drop', onWindowDrop);
+
   router.replace({ query: { ...route.query, path: undefined } });
 });
 </script>

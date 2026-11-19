@@ -1,12 +1,10 @@
 <template>
-  <UCard
-    :ui="resolvedCardUi"
-  >
+  <UCard :ui="resolvedCardUi">
     <template
       v-if="headerExists"
       #header
     >
-      <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div class="flex w-full flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div :class="resolvedUi.titleWrapper">
           <slot name="leading-actions" />
 
@@ -46,13 +44,13 @@
     >
       <div
         v-if="!isEmptySlot('default')"
-        class="flex flex-col gap-1 rounded-group"
+        class="rounded-group flex flex-col gap-1"
         :class="headerExists ? '' : 'mt-4 sm:mt-6'"
       >
         <div
           v-for="(child, i) in $slots.default!()"
           :key="child.key ?? i"
-          class="bg-accented/25 dark:bg-elevated/75 p-4 rounded-xl"
+          class="rounded-xl bg-accented/25 p-4 dark:bg-elevated/75"
         >
           <component :is="child" />
         </div>

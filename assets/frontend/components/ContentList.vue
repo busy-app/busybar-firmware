@@ -9,10 +9,10 @@
         v-for="item in list"
         :key="item.title"
       >
-        <li class="break-inside-avoid flex flex-col sm:flex-row gap-0.5 sm:gap-2">
+        <li class="flex break-inside-avoid flex-col gap-0.5 sm:flex-row sm:gap-2">
           <div class="flex-2 text-muted">{{ item.title }}</div>
           <template v-if="item.loading">
-            <USkeleton class="flex-3 h-4 rounded-full" />
+            <USkeleton class="h-4 flex-3 rounded-full" />
           </template>
           <template v-else>
             <div

@@ -32,7 +32,7 @@ static void system_settings_scene_power_scene_restart_confirm_on_enter(void* con
         data->front_dialog = dialog_alloc(instance->front_scene_window);
         data->back_dialog = dialog_alloc(instance->back_scene_window);
 
-        dialog_set_text(data->front_dialog, "Restart device?");
+        dialog_set_text(data->front_dialog, "Restart\ndevice?");
         dialog_set_text(data->back_dialog, "Restart device?");
 
         Color text_color = COLOR_MAKE_RGB(0xFF, 0xFF, 0xFF);
