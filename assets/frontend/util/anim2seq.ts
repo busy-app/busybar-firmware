@@ -268,7 +268,7 @@ function decompressQoi (data: Uint8Array, pixelCount: number): Uint8Array {
   let written = 0;
 
   const emit = () => {
-    hashLut[(r * 3 + g * 5 + b * 7 + a * 11) % 64] = ((r << 24) | (g << 16) | (b << 8) | a) >>> 0;
+    hashLut[((r * 3) + (g * 5) + (b * 7) + (a * 11)) % 64] = ((r << 24) | (g << 16) | (b << 8) | a) >>> 0;
 
     if (written < pixelCount) {
       const offset = written * 4;

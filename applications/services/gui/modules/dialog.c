@@ -2,7 +2,7 @@
 
 #include <gui/widget_i.h>
 
-#include <lvgl/src/core/lv_obj_class_private.h>
+#include <lvgl_addons/extensions/lv_label_ext.h>
 
 #define MY_CLASS          (&dialog_lvgl_class)
 #define MY_TEXT_CLASS     (&dialog_text_lvgl_class)
@@ -11,6 +11,9 @@
 #define MY_CURSOR_CLASS   (&dialog_cursor_lvgl_class)
 
 #define ARROW_CHAR "▶" // U+25B6
+
+#define DIALOG_FADER_WIDTH                   (10)
+#define DIALOG_LONG_TEXT_ANIM_SPEED_PX_PER_M (1000)
 
 struct Dialog {
     Widget base;
@@ -22,6 +25,8 @@ struct Dialog {
     lv_group_t* options_group;
     DialogCallback callback;
     void* context;
+
+    bool do_draw_fader;
 };
 
 typedef struct {
@@ -91,18 +96,13 @@ static void dialog_lvgl_constructor(const lv_obj_class_t* class_p, lv_obj_t* obj
 
     instance->text_main = lv_obj_class_create_obj(MY_TEXT_CLASS, instance->text_cont);
     lv_obj_class_init_obj(instance->text_main);
-    lv_label_set_long_mode(instance->text_main, LV_LABEL_LONG_MODE_DOTS);
     lv_label_set_text(instance->text_main, "");
 
     instance->text_sub = lv_obj_class_create_obj(MY_TEXT_SUB_CLASS, instance->text_cont);
     lv_obj_class_init_obj(instance->text_sub);
+    lv_label_ext_set_max_lines(instance->text_sub, 1);
     lv_label_set_long_mode(instance->text_sub, LV_LABEL_LONG_MODE_DOTS);
     lv_label_set_text(instance->text_sub, "");
-
-    // Force single line
-    lv_coord_t line_height =
-        lv_font_get_line_height(lv_obj_get_style_text_font(instance->text_sub, LV_PART_MAIN));
-    lv_obj_set_style_max_height(instance->text_sub, line_height, LV_PART_MAIN);
 
     lv_obj_add_flag(instance->text_sub, LV_OBJ_FLAG_HIDDEN);
 
@@ -183,6 +183,81 @@ static void dialog_option_lvgl_event(const lv_obj_class_t* class_p, lv_event_t* 
     }
 }
 
+static void dialog_draw_text_fader(Dialog* instance, lv_layer_t* layer) {
+    static const lv_draw_rect_dsc_t fader_descriptor = {
+        .bg_opa = LV_OPA_COVER,
+        .bg_grad.dir = LV_GRAD_DIR_HOR,
+        .bg_grad.stops_count = 2,
+        .bg_grad.stops =
+            {
+                {
+                    .color = LV_COLOR_MAKE(0x00, 0x00, 0x00),
+                    .opa = LV_OPA_TRANSP,
+                    .frac = 0,
+                },
+                {
+                    .color = LV_COLOR_MAKE(0x00, 0x00, 0x00),
+                    .opa = LV_OPA_COVER,
+                    .frac = 0xFF,
+                },
+            },
+    };
+
+    lv_area_t text_coords;
+    lv_obj_get_coords(instance->text_main, &text_coords);
+
+    lv_area_t options_coords;
+    lv_obj_get_coords(instance->options_cont, &options_coords);
+
+    lv_area_t fader_area = {
+        .x1 = options_coords.x1 - DIALOG_FADER_WIDTH,
+        .x2 = options_coords.x1 - 1,
+        .y1 = text_coords.y1,
+        .y2 = text_coords.y2,
+    };
+
+    lv_draw_rect(layer, &fader_descriptor, &fader_area);
+}
+
+static void dialog_lvgl_event(const lv_obj_class_t* class, lv_event_t* event) {
+    LV_UNUSED(class);
+
+    if(lv_obj_event_base(MY_CLASS, event) == LV_RESULT_OK) {
+        lv_event_code_t event_code = lv_event_get_code(event);
+        Dialog* instance = lv_event_get_target(event);
+
+        if(event_code == LV_EVENT_DRAW_POST && instance->do_draw_fader) {
+            dialog_draw_text_fader(instance, lv_event_get_layer(event));
+        }
+    }
+}
+
+static void dialog_style_front(const lv_obj_class_t* class, Widget* widget) {
+    static const lv_anim_t long_text_anim_template = {
+        .act_time = -1000,
+        .repeat_cnt = LV_ANIM_REPEAT_INFINITE,
+        .repeat_delay = 2600,
+    };
+
+    widget_style(class, widget);
+
+    Dialog* instance = (Dialog*)widget;
+
+    lv_label_set_long_mode(instance->text_main, LV_LABEL_LONG_MODE_SCROLL_CIRCULAR);
+    lv_obj_set_style_anim(instance->text_main, &long_text_anim_template, LV_PART_MAIN);
+
+    instance->do_draw_fader = true;
+}
+
+static void dialog_style_back(const lv_obj_class_t* class, Widget* widget) {
+    widget_style(class, widget);
+
+    Dialog* instance = (Dialog*)widget;
+
+    lv_label_set_long_mode(instance->text_main, LV_LABEL_LONG_MODE_DOTS);
+    instance->do_draw_fader = false;
+}
+
 // Public API
 
 Dialog* dialog_alloc(Widget* widget) {
@@ -209,6 +284,10 @@ Widget* dialog_get_base(Dialog* instance) {
 void dialog_set_text(Dialog* instance, const char* text) {
     furi_check(instance);
     lv_label_set_text(instance->text_main, text);
+
+    if(lv_label_get_long_mode(instance->text_main) == LV_LABEL_LONG_MODE_SCROLL_CIRCULAR) {
+        lv_label_ext_set_anim_speed(instance->text_main, DIALOG_LONG_TEXT_ANIM_SPEED_PX_PER_M);
+    }
 }
 
 void dialog_set_text_sub(Dialog* instance, const char* text) {
@@ -277,6 +356,7 @@ const lv_obj_class_t dialog_lvgl_class = {
     .base_class = &widget_lvgl_class,
     .constructor_cb = dialog_lvgl_constructor,
     .destructor_cb = dialog_lvgl_destructor,
+    .event_cb = dialog_lvgl_event,
     .name = "widget-dialog",
     .width_def = LV_PCT(100),
     .height_def = LV_PCT(100),
@@ -286,8 +366,8 @@ const lv_obj_class_t dialog_lvgl_class = {
             .input_callback = dialog_input_callback,
             .style_callbacks =
                 {
-                    [GuiDisplayIdFront] = NULL,
-                    [GuiDisplayIdBack] = NULL,
+                    [GuiDisplayIdFront] = dialog_style_front,
+                    [GuiDisplayIdBack] = dialog_style_back,
                 },
         },
 };

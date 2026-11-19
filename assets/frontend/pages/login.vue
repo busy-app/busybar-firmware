@@ -1,7 +1,7 @@
 <template>
   <div
     data-id="page-login"
-    class="w-full min-h-[calc(100vh-2rem)] flex flex-col items-center justify-center gap-6"
+    class="flex min-h-[calc(100vh-2rem)] w-full flex-col items-center justify-center gap-6"
   >
     <template v-if="deviceStore.httpAPIAccess?.mode === 'disabled'">
       <LockedLayoutApiDisabled />

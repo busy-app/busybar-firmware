@@ -17,7 +17,7 @@
       <div class="flex flex-col items-center gap-2">
         <div
           ref="alphaTrackRef"
-          class="color-picker-alpha-track relative rounded-md ring-1 ring-default/70 touch-none"
+          class="color-picker-alpha-track relative touch-none rounded-md ring-1 ring-default/70"
           :class="[alphaTrackSizeClass, ui?.track]"
           :data-disabled="disabled ? true : undefined"
         >
@@ -47,7 +47,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, useAttrs, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, useAttrs, useTemplateRef, watch } from 'vue';
 
 defineOptions({
   inheritAttrs: false
@@ -104,7 +104,7 @@ const attrs = useAttrs();
 
 const opaqueHex = ref('#FFFFFF');
 const alphaPercent = ref(100);
-const alphaTrackRef = ref<HTMLDivElement | null>(null);
+const alphaTrackRef = useTemplateRef<HTMLDivElement>('alphaTrackRef');
 const alphaThumbPosition = ref<PointerPosition>({ x: 0, y: 0 });
 const alphaDragDelta = ref<PointerPosition>();
 let emitAlphaTimeout: ReturnType<typeof setTimeout> | undefined;

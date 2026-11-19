@@ -3,7 +3,7 @@
     ref="canvasRef"
     :width="animation.width"
     :height="animation.height"
-    class="block h-full w-full [image-rendering:pixelated]"
+    class="block size-full [image-rendering:pixelated]"
   />
 </template>
 
@@ -24,7 +24,7 @@ const props = withDefaults(defineProps<{
   frame: null
 });
 
-const canvasRef = ref<HTMLCanvasElement | null>(null);
+const canvasRef = useTemplateRef<HTMLCanvasElement>('canvasRef');
 
 let subscriber: AnimationTickerSubscriber | null = null;
 let unsubscribe: (() => void) | null = null;

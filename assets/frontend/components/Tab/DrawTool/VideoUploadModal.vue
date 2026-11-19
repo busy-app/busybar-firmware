@@ -126,7 +126,7 @@
                 v-if="handle.kind === 'video' && handle.previewUrl"
                 ref="previewVideoRef"
                 :src="handle.previewUrl"
-                class="h-full w-full object-contain"
+                class="size-full object-contain"
                 muted
                 loop
                 playsinline
@@ -135,12 +135,12 @@
               <canvas
                 v-else
                 ref="backdropCanvasRef"
-                class="h-full w-full object-contain [image-rendering:pixelated]"
+                class="size-full object-contain [image-rendering:pixelated]"
               />
 
               <div
                 v-if="fit === 'cover' && cropRectStyle"
-                class="absolute rounded-sm ring-2 shadow-[0_0_0_9999px_rgba(0,0,0,0.6)] transition-[opacity]"
+                class="absolute rounded-sm shadow-[0_0_0_9999px_rgba(0,0,0,0.6)] ring-2 transition-[opacity]"
                 :class="cropRectClass"
                 :style="cropRectStyle"
                 @pointerdown="handleCropPointerDown"
@@ -163,7 +163,7 @@
                 <span
                   data-id="draw-tool-video-zoom-grip"
                   :aria-label="`Zoom ${Math.round((1 - (crop.scale - VIDEO_CROP_MIN_SCALE) / (1 - VIDEO_CROP_MIN_SCALE)) * 100)}%`"
-                  class="absolute -bottom-1.5 -right-1.5 z-10 flex size-5 cursor-nwse-resize items-center justify-center rounded-full bg-white text-neutral-900 ring-1 ring-black/25"
+                  class="absolute -right-1.5 -bottom-1.5 z-10 flex size-5 cursor-nwse-resize items-center justify-center rounded-full bg-white text-neutral-900 ring-1 ring-black/25"
                   @pointerdown="handleZoomPointerDown"
                   @pointermove="handleZoomPointerMove"
                   @pointerup="handleZoomPointerUp"
@@ -318,11 +318,11 @@ const fileError = ref<string | null>(null);
 const editTargetId = ref<string | null>(null);
 const isTrimDragging = ref(false);
 
-const cropContainerRef = ref<HTMLDivElement | null>(null);
-const previewVideoRef = ref<HTMLVideoElement | null>(null);
-const backdropCanvasRef = ref<HTMLCanvasElement | null>(null);
-const replaceInputRef = ref<HTMLInputElement | null>(null);
-const trimRangeRef = ref<{ focus: () => void } | null>(null);
+const cropContainerRef = useTemplateRef<HTMLDivElement>('cropContainerRef');
+const previewVideoRef = useTemplateRef<HTMLVideoElement>('previewVideoRef');
+const backdropCanvasRef = useTemplateRef<HTMLCanvasElement>('backdropCanvasRef');
+const replaceInputRef = useTemplateRef<HTMLInputElement>('replaceInputRef');
+const trimRangeRef = useTemplateRef<{ focus: () => void }>('trimRangeRef');
 
 const isEditing = computed(() => !!editTargetId.value);
 
