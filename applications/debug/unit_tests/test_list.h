@@ -37,6 +37,7 @@ extern "C" {
 #include "url_test/url_test.h"
 #include "js_app_settings_test/js_app_settings_test.h"
 #include "semver_test/semver_test.h"
+#include "light_sensor_test/light_sensor_test.h"
 #undef TEST_FUNCTION_DECLS
 
 typedef int (*TestCallback)(void);
@@ -68,6 +69,7 @@ static TestCallback unit_test_callbacks[] = {
 #include "url_test/url_test.h"
 #include "js_app_settings_test/js_app_settings_test.h"
 #include "semver_test/semver_test.h"
+#include "light_sensor_test/light_sensor_test.h"
 #undef TEST_FUNCTION_REFS
 };
 

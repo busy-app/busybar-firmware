@@ -7,7 +7,7 @@
 #include <core/check.h>
 #include <core/log.h>
 
-#define LIGHT_SENSOR_DATA_THRESHOLD ((1.0f / LIGHT_SENSOR_LIGHT_LEVEL_MAX) / 2.0f)
+#define LIGHT_SENSOR_DATA_THRESHOLD (0.5f)
 
 struct LightSensorData {
     float measurements[LIGHT_SENSOR_DATA_WINDOW_SIZE];
