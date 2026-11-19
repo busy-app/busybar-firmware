@@ -1,7 +1,7 @@
 <template>
   <div
     data-id="layout-default-preview"
-    class="w-full flex flex-col items-center"
+    class="flex w-full flex-col items-center"
   >
     <StateScreenStream class="py-6" />
   </div>

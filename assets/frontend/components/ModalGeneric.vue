@@ -59,7 +59,7 @@
             variant="ghost"
             size="lg"
             :color="props.secondaryActionProps.color || 'neutral'"
-            class="min-w-20 px-4 justify-center"
+            class="min-w-20 justify-center px-4"
           />
           <UButton
             v-if="props.primaryActionProps"
@@ -69,7 +69,7 @@
             :form="props.form"
             :color="props.primaryActionProps.color || 'neutral'"
             size="lg"
-            class="min-w-20 px-4 justify-center"
+            class="min-w-20 justify-center px-4"
           />
         </div>
       </div>
@@ -91,7 +91,7 @@
         </template>
         <div
           v-else-if="!props.noActions"
-          class="flex justify-end gap-2 mt-2"
+          class="mt-2 flex justify-end gap-2"
         >
           <UButton
             v-if="props.secondaryActionProps"
@@ -100,7 +100,7 @@
             variant="ghost"
             size="lg"
             :color="props.secondaryActionProps.color || 'neutral'"
-            class="min-w-20 px-4 justify-center"
+            class="min-w-20 justify-center px-4"
           />
           <UButton
             v-if="props.primaryActionProps"
@@ -110,7 +110,7 @@
             :form="props.form"
             :color="props.primaryActionProps.color || 'neutral'"
             size="lg"
-            class="min-w-20 px-4 justify-center"
+            class="min-w-20 justify-center px-4"
           />
         </div>
       </div>

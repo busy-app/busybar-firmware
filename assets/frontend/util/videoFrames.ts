@@ -96,7 +96,7 @@ export function getFrameGrid (fps: number, startTime: number, endTime: number, m
   const safeEnd = Math.max(safeStart, Number.isFinite(endTime) ? endTime : safeStart);
   const frameCount = Math.max(1, Math.min(maxFrames, Math.floor(((safeEnd - safeStart) * safeFps) + FRAME_COUNT_EPSILON)));
 
-  return { fps: safeFps, startTime: safeStart, endTime: safeStart + frameCount / safeFps, frameCount };
+  return { fps: safeFps, startTime: safeStart, endTime: safeStart + (frameCount / safeFps), frameCount };
 }
 
 export function createFrameScaler (targetWidth: number, targetHeight: number) {
@@ -142,7 +142,7 @@ export function resampleTimedFrames (
   let sourceEndMs = Math.max(1, frames[0].durationMs);
 
   for (let index = 0; index < grid.frameCount; index++) {
-    const timeMs = (grid.startTime + index / grid.fps) * 1000;
+    const timeMs = (grid.startTime + (index / grid.fps)) * 1000;
 
     while (timeMs + FRAME_TIME_EPSILON_MS >= sourceEndMs && sourceIndex < frames.length - 1) {
       sourceIndex += 1;
@@ -190,8 +190,8 @@ export function sliceFrameCache (cache: FrameCache, startTime: number, endTime: 
     width: cache.width,
     height: cache.height,
     fps: cache.fps,
-    startTime: cache.startTime + startIndex / cache.fps,
-    endTime: cache.startTime + (startIndex + count) / cache.fps
+    startTime: cache.startTime + (startIndex / cache.fps),
+    endTime: cache.startTime + ((startIndex + count) / cache.fps)
   };
 }
 

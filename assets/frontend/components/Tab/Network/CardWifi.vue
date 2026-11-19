@@ -24,7 +24,7 @@
         data-id="network-section-wifi-status-connected"
         class="flex items-center gap-2 text-primary"
       >
-        <div class="relative top-[-1px] size-2.5 rounded-full bg-primary" />
+        <div class="relative -top-px size-2.5 rounded-full bg-primary" />
         Connected
       </div>
       <div
@@ -42,7 +42,7 @@
           Reconnecting...
         </template>
         <template v-else>
-          <div class="relative top-[-1px] size-2.5 rounded-full bg-red-500" />
+          <div class="relative -top-px size-2.5 rounded-full bg-red-500" />
           Offline
         </template>
       </div>
@@ -127,7 +127,7 @@
 
     <div
       v-if="connected && !reconnecting"
-      class="flex justify-between items-center"
+      class="flex items-center justify-between"
     >
       <div>IP Address</div>
       <template v-if="wifiStore.wifi?.ip_config?.address">
@@ -137,7 +137,7 @@
           :text="wifiStore.wifi?.ip_config?.address"
           variant="link"
           color="neutral"
-          class="p-0 text-base gap-2"
+          class="gap-2 p-0 text-base"
         />
         <div
           v-else
@@ -164,7 +164,7 @@
       v-if="!connected && showNetworksList"
       #raw-body
     >
-      <div class="mb-3 relative -top-2">If your network isn’t listed, try a manual scan using the Refresh button.</div>
+      <div class="relative -top-2 mb-3">If your network isn’t listed, try a manual scan using the Refresh button.</div>
 
       <div
         data-id="network-section-wifi-networks"
@@ -173,7 +173,7 @@
         <div
           v-for="network in networks"
           :key="network.ssid"
-          class="flex gap-2 items-center px-2.5 py-2.5 hover:bg-elevated rounded-xl"
+          class="flex items-center gap-2 rounded-xl p-2.5 hover:bg-elevated"
           :class="loading.connect ? 'cursor-wait' : 'cursor-pointer'"
           @click="() => {
             if (loading.connect) {
@@ -201,7 +201,7 @@
           <UIcon
             v-if="loading.connect && connectModel.ssid === network.ssid"
             name="i-busy-loader"
-            class="size-6 text-muted animate-spin"
+            class="size-6 animate-spin text-muted"
           />
           <template v-else>
             <UTooltip
@@ -218,7 +218,7 @@
         </div>
         <div
           v-if="networks.length === 0"
-          class="flex gap-2 items-center px-2.5 py-2.5 rounded-xl"
+          class="flex items-center gap-2 rounded-xl p-2.5"
         >
           <UIcon
             name="i-bi-wifi-no-connection"
@@ -325,7 +325,7 @@
 
       <UCollapsible
         data-id="modal-connect-wifi-advanced-options"
-        class="flex flex-col gap-6 w-full"
+        class="flex w-full flex-col gap-6"
       >
         <UButton
           data-id="modal-connect-wifi-advanced-options-toggle"

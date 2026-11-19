@@ -2,26 +2,26 @@
   <section
     v-if="!isHidden"
     data-id="network-section-apps-catalog-banner"
-    class="relative w-full min-h-20 flex items-center pl-2 pr-4 overflow-hidden rounded-3xl ring-1 ring-glass bg-brand-950"
+    class="relative flex min-h-20 w-full items-center overflow-hidden rounded-3xl bg-brand-950 pr-4 pl-2 ring-1 ring-glass"
   >
-    <div class="absolute inset-0 pointer-events-none bg-linear-to-l from-brand-500/31 to-transparent to-35%" />
-    <div class="absolute left-9.25 -top-32.25 w-40.5 h-39 rounded-full bg-brand-500 blur-3xl pointer-events-none" />
+    <div class="pointer-events-none absolute inset-0 bg-linear-to-l from-brand-500/31 to-transparent to-35%" />
+    <div class="pointer-events-none absolute -top-32.25 left-9.25 h-39 w-40.5 rounded-full bg-brand-500 blur-3xl" />
     <img
       src="~/assets/images/apps-catalog-banner/star.svg"
       alt=""
-      class="absolute left-3.75 top-1 max-w-none mix-blend-overlay pointer-events-none"
+      class="pointer-events-none absolute top-1 left-3.75 max-w-none mix-blend-overlay"
     >
-    <div class="absolute -left-7.75 top-19.5 w-46.5 h-26.5 rounded-full bg-sky-400/80 blur-2xl pointer-events-none" />
+    <div class="pointer-events-none absolute top-19.5 -left-7.75 h-26.5 w-46.5 rounded-full bg-sky-400/80 blur-2xl" />
 
     <img
       src="~/assets/images/apps-catalog-banner/illustration.svg"
       alt=""
-      class="relative hidden sm:block shrink-0"
+      class="relative hidden shrink-0 sm:block"
     >
 
-    <div class="relative flex-1 min-w-0 flex items-start gap-1.5 py-4 pl-2 sm:pl-0">
-      <div class="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-2">
-        <div class="flex-1 min-w-0 flex flex-col gap-1">
+    <div class="relative flex min-w-0 flex-1 items-start gap-1.5 py-4 pl-2 sm:pl-0">
+      <div class="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:gap-2">
+        <div class="flex min-w-0 flex-1 flex-col gap-1">
           <div class="flex items-center gap-2">
             <h2 class="font-medium text-white">Apps Catalog is here</h2>
             <UBadge

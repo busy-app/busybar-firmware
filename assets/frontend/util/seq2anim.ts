@@ -429,7 +429,7 @@ function compressQoi (pixels: Uint8Array): Uint8Array {
     const b = pixels[i + 2];
     const a = pixels[i + 3];
     const key = ((r << 24) | (g << 16) | (b << 8) | a) >>> 0;
-    const hash = (r * 3 + g * 5 + b * 7 + a * 11) % 64;
+    const hash = ((r * 3) + (g * 5) + (b * 7) + (a * 11)) % 64;
 
     if (r === lastR && g === lastG && b === lastB && a === lastA) {
       const lastIndex = output.length - 1;
