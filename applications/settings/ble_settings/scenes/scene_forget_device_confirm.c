@@ -30,7 +30,7 @@ static void scene_forget_device_confirm_on_enter(void* context) {
         data->front_dialog = dialog_alloc(instance->front_scene_window);
         data->back_dialog = dialog_alloc(instance->back_scene_window);
 
-        dialog_set_text(data->front_dialog, "Forget device?");
+        dialog_set_text(data->front_dialog, "Forget\ndevice?");
         dialog_set_text(data->back_dialog, "Forget device?");
 
         Color color_forget = COLOR_MAKE_RGB(0xED, 0x00, 0x18);

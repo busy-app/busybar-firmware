@@ -21,6 +21,7 @@ App(
         "crypto_backup",
         "fetch_cli",
         "tar_cli",
+        "neofetch",
     ],
     targets=["f20", "f21", "f22"],
 )

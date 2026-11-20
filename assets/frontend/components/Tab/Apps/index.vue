@@ -1,5 +1,6 @@
 <template>
-  <div>
+  <div class="flex flex-col gap-4">
+    <TabAppsCatalogCard v-if="!currentApp" />
     <TabAppsCustomApp
       v-if="currentApp"
       :key="`${currentApp.id}-${currentApp.version}`"

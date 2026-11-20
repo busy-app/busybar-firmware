@@ -45,7 +45,7 @@ export function drawQrCodeOnCanvas (
   }
 
   const moduleCount = matrix.length;
-  const totalModules = moduleCount + marginModules * 2;
+  const totalModules = moduleCount + (marginModules * 2);
   const moduleSize = size / totalModules;
   const offset = 0;
 
@@ -61,8 +61,8 @@ export function drawQrCodeOnCanvas (
       }
 
       context.fillRect(
-        offset + (columnIndex + marginModules) * moduleSize,
-        offset + (rowIndex + marginModules) * moduleSize,
+        offset + ((columnIndex + marginModules) * moduleSize),
+        offset + ((rowIndex + marginModules) * moduleSize),
         moduleSize,
         moduleSize
       );

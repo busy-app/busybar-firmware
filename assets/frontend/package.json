@@ -39,6 +39,7 @@
   "devDependencies": {
     "@iconify-json/ri": "^1.2.5",
     "@stylistic/eslint-plugin": "^5.7.1",
+    "eslint-plugin-tailwindcss": "4.4.0",
     "typescript": "^5.9.2",
     "vue-tsc": "^3.3.9"
   }
