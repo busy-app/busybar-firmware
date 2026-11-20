@@ -173,6 +173,30 @@ def _launcher_is_running(top_output: str) -> bool:
     )
 
 
+def _assert_no_running_app(apps_api: AppsAPI) -> None:
+    with allure.step("Verify GET /api/apps/running returns the no-app error"):
+        response = apps_api.get_running_raw()
+        assert response.status_code == 404, (
+            f"Expected no running app, got HTTP {response.status_code}: "
+            f"{response.text[:200]!r}"
+        )
+        content_type = response.headers.get("Content-Type", "")
+        assert (
+            content_type.split(";", 1)[0].strip() == "application/json"
+        ), f"Unexpected no-app Content-Type: {content_type!r}"
+        assert response.json() == {
+            "error": "App is not running"
+        }, f"Unexpected no-app response: {response.text!r}"
+
+
+def _assert_running_app(apps_api: AppsAPI, app_id: str) -> None:
+    with allure.step(f"Verify GET /api/apps/running identifies {app_id!r}"):
+        response = apps_api.get_running()
+        assert (
+            response.app_id == app_id
+        ), f"Expected running app {app_id!r}, got {response.app_id!r}"
+
+
 def _wait_for_launcher_state(
     cli: SimpleCLIConnection,
     *,
@@ -296,6 +320,53 @@ def _wait_for_native_app(cli: SimpleCLIConnection, app_id: str) -> str:
 @pytest.mark.api
 @pytest.mark.frontend
 class TestAppsAPI:
+    @allure.title("GET /api/apps/running returns 404 on native screens")
+    @pytest.mark.parametrize(
+        "key,native_app_id",
+        [("apps", "apps_menu"), ("settings", "settings_menu"), ("busy", "busy")],
+    )
+    def test_running_app_without_js_app(
+        self,
+        apps_api: AppsAPI,
+        input_api,
+        persistent_cli_connection: SimpleCLIConnection,
+        busy_timer_stopped,
+        key: str,
+        native_app_id: str,
+    ):
+        with allure.step(f"Open native screen {key!r} without a JavaScript app"):
+            _stop_launcher_if_running(apps_api, persistent_cli_connection)
+            response = input_api.send_key(key)
+            assert response.status_code == 200, (
+                f"Failed to open {key!r}: HTTP {response.status_code}, "
+                f"body={response.text[:200]!r}"
+            )
+            _wait_for_native_app(persistent_cli_connection, native_app_id)
+
+        _assert_no_running_app(apps_api)
+
+    @allure.title("/api/apps/running rejects unsupported HTTP methods")
+    @pytest.mark.parametrize("method", ["POST", "PUT", "DELETE"])
+    def test_running_app_unsupported_method(
+        self, web_session, web_base_url: str, method: str
+    ):
+        with allure.step(f"Send {method} /api/apps/running"):
+            response = web_session.request(
+                method, f"{web_base_url}/api/apps/running", data=b""
+            )
+
+        with allure.step("Verify HTTP 405 and the exact Allow header"):
+            assert response.status_code == 405, (
+                f"{method} returned HTTP {response.status_code}: "
+                f"{response.text[:200]!r}"
+            )
+            allowed = {
+                value.strip()
+                for value in response.headers.get("Allow", "").split(",")
+                if value.strip()
+            }
+            assert allowed == {"GET"}, f"Unexpected allowed methods: {allowed!r}"
+
     @allure.title(
         "GET /api/apps/list returns valid application metadata"
     )
@@ -533,6 +604,11 @@ class TestAppsAPI:
         storage_path = _local_storage_path(test_app_id)
 
         try:
+            with allure.step("Verify no app is running before launch"):
+                _stop_launcher_if_running(apps_api, persistent_cli_connection)
+                _wait_for_launcher_exit(persistent_cli_connection)
+                _assert_no_running_app(apps_api)
+
             with allure.step("Install an observable JavaScript app"):
                 storage_path = _install_observable_app(
                     apps_api,
@@ -555,6 +631,7 @@ class TestAppsAPI:
                     f"Unexpected launch count: {payload!r}"
                 )
                 _wait_for_launcher_start(persistent_cli_connection)
+                _assert_running_app(apps_api, test_app_id)
 
                 running_frame = wait_for_stable(
                     "stable running-app screen",
@@ -573,6 +650,7 @@ class TestAppsAPI:
                 )
 
                 _wait_for_launcher_exit(persistent_cli_connection)
+                _assert_no_running_app(apps_api)
 
                 repeated = apps_api.quit_raw()
                 assert repeated.status_code == 409, (
@@ -840,6 +918,7 @@ class TestAppsAPI:
                     interval=0.2,
                 )
                 control_frame.attach("31-character app running")
+                _assert_running_app(apps_api, control_app_id)
                 control_stop = apps_api.quit()
                 assert control_stop.result == "OK", (
                     f"Unexpected control quit: {control_stop.result!r}"
@@ -869,6 +948,7 @@ class TestAppsAPI:
                     f"control={control_frame.digest()}, "
                     f"boundary={boundary_frame.digest()}"
                 )
+                _assert_running_app(apps_api, max_length_app_id)
 
             with allure.step("Stop the boundary-length application"):
                 stopped = apps_api.quit()
@@ -926,6 +1006,7 @@ class TestAppsAPI:
                 assert first_payload["data"][
                     "integration_launch_count"
                 ] == "1", f"Unexpected first launch: {first_payload!r}"
+                _assert_running_app(apps_api, first_app_id)
 
             with allure.step("Replace it with the second application"):
                 second_launch = apps_api.launch(second_app_id)
@@ -941,6 +1022,7 @@ class TestAppsAPI:
                 assert second_payload["data"][
                     "integration_launch_count"
                 ] == "1", f"Unexpected replacement launch: {second_payload!r}"
+                _assert_running_app(apps_api, second_app_id)
 
                 first_payload = _read_local_storage(
                     storage_api,
@@ -960,6 +1042,7 @@ class TestAppsAPI:
                     f"Unexpected quit result: {stopped.result!r}"
                 )
                 _wait_for_launcher_exit(persistent_cli_connection)
+                _assert_no_running_app(apps_api)
         finally:
             _cleanup_observable_app(
                 apps_api,
