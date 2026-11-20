@@ -157,3 +157,5 @@ void state_publisher_store_state_update(
     StreamFlag flags);
 
 void state_publisher_send_control_message(StatePublisher* instance, const ControlMessage* message);
+
+void state_publisher_flush(StatePublisher* instance);

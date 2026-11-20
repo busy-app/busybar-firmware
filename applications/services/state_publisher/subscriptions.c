@@ -580,9 +580,8 @@ static void js_app_installer_pubsub_callback(const void* message, void* context)
         furi_crash("Invalid JsAppInstallerEventType value");
     }
 
-    // Storing messages directly to preserve ordering
     state_publisher_store_state_update(instance, update, StreamFlagAll);
-    state_publisher_schedule_state_update(instance, NULL, StreamFlagAll);
+    state_publisher_flush(instance);
 }
 
 static BSB_State_StateUpdate* collect_time_settings(const TimeSettings* settings) {
