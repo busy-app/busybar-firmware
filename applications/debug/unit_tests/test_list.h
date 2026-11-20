@@ -13,6 +13,7 @@ extern "C" {
 
 #define TEST_FUNCTION_DECLS
 #include "test_test/test_test.h"
+#include "cli_ansi_test/cli_ansi_test.h"
 #include "misc_test/path_test.h"
 #include "http_test/http_test.h"
 #include "rle_test/rle_test.h"
@@ -43,6 +44,7 @@ typedef int (*TestCallback)(void);
 static TestCallback unit_test_callbacks[] = {
 #define TEST_FUNCTION_REFS
 #include "test_test/test_test.h"
+#include "cli_ansi_test/cli_ansi_test.h"
 #include "misc_test/path_test.h"
 #include "http_test/http_test.h"
 #include "rle_test/rle_test.h"
