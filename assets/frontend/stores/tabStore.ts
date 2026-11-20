@@ -45,6 +45,13 @@ export const useTabStore = defineStore('tabs', () => {
       dataId: 'tab-apps'
     },
     {
+      label: 'App queue',
+      icon: 'i-bi-layer-down',
+      value: 'app-queue',
+      dataId: 'tab-app-queue',
+      hidden: true
+    },
+    {
       label: 'Files',
       icon: 'i-bi-folder',
       value: 'files',

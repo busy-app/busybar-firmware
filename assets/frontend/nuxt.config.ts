@@ -52,7 +52,9 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       barUrl: '',
-      appsApiUrl: 'https://apps-api.busy.app'
+      appsApiUrl: 'https://apps-api.busy.app',
+      // The catalog API sends no CORS headers, so the dev server proxies it (server/api/catalog).
+      appsCatalogApiUrl: process.env.NODE_ENV === 'development' ? '/api/catalog/v1' : 'https://cloud.busy.app/api/catalog/v1'
     }
   },
   experimental: {

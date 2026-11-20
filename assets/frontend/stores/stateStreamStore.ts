@@ -225,6 +225,8 @@ export const useStateStreamStore = defineStore('stateStream', () => {
     if (!data.updates) {
       return;
     }
+
+    const appQueueStore = useAppQueueStore();
     for (const update of data.updates) {
       switch (update.state) {
         case 'deviceName':
@@ -271,6 +273,12 @@ export const useStateStreamStore = defineStore('stateStream', () => {
           if (update.frame) {
             screenStreamStore.currentFrame = update.frame;
           }
+          break;
+        case 'appQueueState':
+          appQueueStore.applyOperationDetail(update.appQueueState?.detail);
+          break;
+        case 'appQueueEvent':
+          appQueueStore.applyOperationResult(update.appQueueEvent?.result);
           break;
         default:
           break;

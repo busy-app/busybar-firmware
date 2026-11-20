@@ -10,6 +10,7 @@
     <TabApps v-if="tabStore.currentTab === 'apps'" />
 
     <template v-if="tabStore.showHiddenTabs">
+      <TabAppQueue v-if="tabStore.currentTab === 'app-queue'" />
       <TabFiles v-if="tabStore.currentTab === 'files'" />
       <TabAnimations v-if="tabStore.currentTab === 'animations'" />
     </template>
