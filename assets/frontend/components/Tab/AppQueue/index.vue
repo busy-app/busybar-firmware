@@ -45,17 +45,12 @@ watch(() => appQueueStore.lastFinished, finished => {
 });
 
 onMounted(async () => {
-  appQueueStore.startSync();
-
   await Promise.allSettled([
-    appQueueStore.refreshQueue(),
+    // Reads the queue when there is no state yet; later changes come from the state stream.
+    appQueueStore.initializeQueue(),
     appQueueStore.fetchCatalog(),
     // The installed list is used for the button states and app names; the Apps tab keeps using the same store.
     appsStore.apps.length > 0 ? Promise.resolve() : appsStore.fetchApps()
   ]);
-});
-
-onBeforeUnmount(() => {
-  appQueueStore.stopSync();
 });
 </script>

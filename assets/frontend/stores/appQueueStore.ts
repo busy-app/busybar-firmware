@@ -13,10 +13,14 @@ export type AppQueueErrorName = NonNullable<QueueOperationResult['error']>;
 const FINISHED_TTL_MS = 60_000;
 /** How many finished operations are kept at most. */
 const FINISHED_MAX_COUNT = 32;
-/** Delay after an operation is added to the queue before the REST state is re-read. */
-const REFRESH_AFTER_ADD_MS = 300;
-/** Minimum interval between REST refreshes caused by unknown websocket items, in ms. */
-const UNKNOWN_ITEM_REFRESH_INTERVAL_MS = 1000;
+/**
+ * The REST queue is read only to initialize the state and to reconcile it when a websocket message describes something
+ * this page did not know about. Its state is otherwise trusted, so no periodic polling is needed.
+ * This is the delay used to coalesce a burst of such messages into one read.
+ */
+const UNKNOWN_ITEM_SYNC_DELAY_MS = 300;
+/** Minimum interval between queue reads caused by unknown websocket items, in ms. */
+const UNKNOWN_ITEM_SYNC_INTERVAL_MS = 1000;
 /** How long the installed app list is considered fresh after a refresh. */
 const INSTALLED_APPS_REFRESH_DELAY_MS = 500;
 
@@ -69,10 +73,10 @@ export const useAppQueueStore = defineStore('appQueue', () => {
   const catalogLoaded = ref(false);
   const catalogError = ref<string>();
 
-  let refreshTimer: ReturnType<typeof setTimeout> | undefined;
+  let unknownItemSyncTimer: ReturnType<typeof setTimeout> | undefined;
+  let lastQueueSyncAt = 0;
   let refreshPromise: Promise<void> | undefined;
-  let lastUnknownItemRefresh = 0;
-  let syncInterval: ReturnType<typeof setInterval> | undefined;
+  let pruneTimer: ReturnType<typeof setTimeout> | undefined;
   let installedAppsTimer: ReturnType<typeof setTimeout> | undefined;
 
   const activeByApp = computed(() => {
@@ -106,12 +110,33 @@ export const useAppQueueStore = defineStore('appQueue', () => {
 
   const hasActiveOperations = computed(() => activeItems.value.length > 0);
 
+  function schedulePrune () {
+    if (pruneTimer) {
+      clearTimeout(pruneTimer);
+      pruneTimer = undefined;
+    }
+
+    if (finishedItems.value.length === 0) {
+      return;
+    }
+
+    // Wake up when the oldest finished operation expires; no other timer is needed.
+    const oldest = finishedItems.value[0]!;
+    const delay = Math.max(0, oldest.finishedAt + FINISHED_TTL_MS - Date.now()) + 100;
+    pruneTimer = setTimeout(() => {
+      pruneTimer = undefined;
+      pruneFinished();
+    }, delay);
+  }
+
   function pruneFinished () {
     const now = Date.now();
     const kept = finishedItems.value.filter(item => now - item.finishedAt < FINISHED_TTL_MS).slice(-FINISHED_MAX_COUNT);
     if (kept.length !== finishedItems.value.length) {
       finishedItems.value = kept;
     }
+
+    schedulePrune();
   }
 
   function remember (itemId: number, appId: string, operation: AppQueueOperation) {
@@ -143,13 +168,22 @@ export const useAppQueueStore = defineStore('appQueue', () => {
     pruneFinished();
   }
 
-  function scheduleRefresh (delay = REFRESH_AFTER_ADD_MS) {
-    if (refreshTimer) {
-      clearTimeout(refreshTimer);
+  /**
+   * Reconciles the local queue with the REST state after a websocket message described an item this page did not know
+   * about: the queue was changed externally, so the local copy can no longer be trusted. Bursts of messages are
+   * coalesced into one read, and reads are limited to one per UNKNOWN_ITEM_SYNC_INTERVAL_MS.
+   */
+  function syncQueueForUnknownItem () {
+    if (unknownItemSyncTimer) {
+      // A read is already scheduled, it will observe the latest state.
+      return;
     }
 
-    refreshTimer = setTimeout(() => {
-      refreshTimer = undefined;
+    const now = Date.now();
+    const delay = Math.max(UNKNOWN_ITEM_SYNC_DELAY_MS, lastQueueSyncAt + UNKNOWN_ITEM_SYNC_INTERVAL_MS - now);
+    unknownItemSyncTimer = setTimeout(() => {
+      unknownItemSyncTimer = undefined;
+      lastQueueSyncAt = Date.now();
       void refreshQueue({ silent: true });
     }, delay);
   }
@@ -254,7 +288,6 @@ export const useAppQueueStore = defineStore('appQueue', () => {
       });
     }
 
-    scheduleRefresh();
     return response.result;
   }
 
@@ -262,18 +295,17 @@ export const useAppQueueStore = defineStore('appQueue', () => {
     try {
       await deviceStore.busyBar.appsQueueCancel({ item_id: itemId });
     } catch (error) {
-      // 404 means the operation already finished or was cancelled; let the refresh reconcile the list.
+      // 404 means the operation already finished or was cancelled: the local state is stale, reconcile it.
       if ((error as { status?: number }).status !== 404) {
         throw error;
       }
-    }
 
-    scheduleRefresh();
+      syncQueueForUnknownItem();
+    }
   }
 
   async function cancelAll () {
     await deviceStore.busyBar.appsQueueCancel({ all: true });
-    scheduleRefresh();
   }
 
   /** Applies an operation detail update from the state stream. */
@@ -284,12 +316,8 @@ export const useAppQueueStore = defineStore('appQueue', () => {
 
     const item = activeItems.value.find(entry => entry.item_id === detail.itemId);
     if (!item) {
-      // An operation started elsewhere: re-read the queue to learn its app.
-      const now = Date.now();
-      if (now - lastUnknownItemRefresh > UNKNOWN_ITEM_REFRESH_INTERVAL_MS) {
-        lastUnknownItemRefresh = now;
-        scheduleRefresh();
-      }
+      // The queue changed externally: re-read it to learn the app of this operation.
+      syncQueueForUnknownItem();
       return;
     }
 
@@ -315,6 +343,7 @@ export const useAppQueueStore = defineStore('appQueue', () => {
         finished.finishedAt = Date.now();
         finishedSerial += 1;
         lastFinished.value = { entry: finished, serial: finishedSerial };
+        schedulePrune();
       }
       return;
     }
@@ -322,7 +351,8 @@ export const useAppQueueStore = defineStore('appQueue', () => {
     const item = activeItems.value.find(entry => entry.item_id === result.itemId);
     const known = knownItems.value[result.itemId];
     if (!item && !known) {
-      scheduleRefresh();
+      // A result for an operation this page never saw: the queue changed externally.
+      syncQueueForUnknownItem();
       return;
     }
 
@@ -332,27 +362,19 @@ export const useAppQueueStore = defineStore('appQueue', () => {
       operation: item?.operation ?? known!.operation,
       outcome
     });
-    scheduleRefresh();
     scheduleInstalledAppsRefresh();
   }
 
-  /** Starts a periodic REST refresh used as a safety net for missed or coalesced websocket state. */
-  function startSync () {
-    if (syncInterval) {
+  /**
+   * Reads the queue once when the page has no queue state yet (page load or first open of the tab). Later changes are
+   * taken from the state stream and the REST state is only re-read to reconcile unexpected websocket messages.
+   */
+  async function initializeQueue () {
+    if (queueLoaded.value) {
       return;
     }
 
-    syncInterval = setInterval(() => {
-      void refreshQueue({ silent: true });
-      pruneFinished();
-    }, 2000);
-  }
-
-  function stopSync () {
-    if (syncInterval) {
-      clearInterval(syncInterval);
-      syncInterval = undefined;
-    }
+    await refreshQueue();
   }
 
   async function fetchCatalog () {
@@ -419,16 +441,14 @@ export const useAppQueueStore = defineStore('appQueue', () => {
     catalogError,
     catalogByApp,
 
+    initializeQueue,
     refreshQueue,
     addOperations,
     cancelItem,
     cancelAll,
     applyOperationDetail,
     applyOperationResult,
-    startSync,
-    stopSync,
     fetchCatalog,
-    pruneFinished,
 
     catalogAppFor,
     appOperation,
