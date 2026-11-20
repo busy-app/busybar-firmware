@@ -79,6 +79,7 @@ typedef struct {
 } BusyApiMessage;
 
 struct BusyApp {
+    bool is_user_exit; // the app closed itself (user action), not the selector/loader
     FuriEventLoop* event_loop;
     FuriMessageQueue* input_queue;
     FuriMessageQueue* event_queue;

@@ -393,6 +393,7 @@ static Wifi* wifi_alloc(void) {
     instance->response_queue = furi_message_queue_alloc(RESPONSE_QUEUE_SIZE, sizeof(WifiResponse));
     instance->dhcp_semaphore = furi_semaphore_alloc(1, 0);
     instance->state = furi_state_alloc(sizeof(WifiInfo));
+    instance->action_pubsub = furi_pubsub_alloc();
     instance->intercom = furi_record_open(RECORD_INTERCOM);
     instance->hostname = furi_string_alloc();
 

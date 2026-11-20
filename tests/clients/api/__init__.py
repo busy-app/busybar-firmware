@@ -152,6 +152,9 @@ from .matter import (
     SmartHomeResultResponse,
 )
 
+# Telemetry API
+from .telemetry import TelemetryAPI, TelemetryStatus
+
 __all__ = [
     "BaseAPI",
     "APIError",
@@ -237,4 +240,6 @@ __all__ = [
     "SmartHomeSwitchState",
     "SmartHomeResultResponse",
     "PairingStatus",
+    "TelemetryAPI",
+    "TelemetryStatus",
 ]

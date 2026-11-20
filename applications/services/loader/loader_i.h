@@ -8,6 +8,7 @@ typedef struct {
     FuriThread* thread;
     bool insomniac;
     size_t priority;
+    const char* appid;
 } LoaderAppData;
 
 struct Loader {

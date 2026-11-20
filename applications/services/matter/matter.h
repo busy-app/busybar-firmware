@@ -46,6 +46,7 @@ typedef struct {
         MatterCommissioningEvent commissioning;
         size_t fabric_count;
     };
+    size_t previous_fabric_count; //<! For MatterEventTypeFabricCountChanged: count before the change
 } MatterEvent;
 
 /**

@@ -523,7 +523,8 @@ static void busy_scene_timer_on_enter(void* context) {
     data->prev_timer_mode = BusyTimerModeMax;
 
     if(!instance->show_timer_requested) {
-        busy_timer_start(instance->busy_timer, busy_get_profile_id(instance));
+        busy_timer_start(
+            instance->busy_timer, busy_get_profile_id(instance), BusyTimerSessionSourceDevice);
     }
 
     busy_start_transition(instance);

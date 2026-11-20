@@ -1,0 +1,88 @@
+tags:
+- name: Telemetry
+  description: Telemetry collection consent
+
+paths:
+  /api/telemetry:
+    get:
+      tags:
+        - Telemetry
+      summary: Get telemetry collection status
+      description: Returns whether telemetry collection is enabled on the device
+      operationId: getTelemetry
+      responses:
+        "200":
+          description: Telemetry status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TelemetryStatus"
+    put:
+      tags:
+        - Telemetry
+      summary: Set telemetry collection enabled state
+      description: |
+        Enables or disables telemetry collection on the device.
+        `source` and `text_version` describe the consent and are reported in the
+        `telemetry.enable` event.
+      operationId: setTelemetry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TelemetrySetRequest"
+      responses:
+        "200":
+          description: Telemetry status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TelemetryStatus"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+schemas:
+  TelemetryStatus:
+    type: object
+    properties:
+      enabled:
+        type: boolean
+        description: Whether telemetry collection is enabled on the device
+        example: true
+    required:
+      - enabled
+    additionalProperties: false
+    example:
+      enabled: true
+
+  TelemetrySetRequest:
+    type: object
+    properties:
+      enabled:
+        type: boolean
+        description: Whether telemetry collection should be enabled
+        example: true
+      source:
+        type: string
+        description: |
+          Where the user changed the consent. Defaults to `companion`.
+          Values longer than 31 characters are truncated.
+        example: "companion"
+      text_version:
+        type: string
+        description: |
+          Version of the consent text the user was shown.
+          Values longer than 31 characters are truncated.
+        example: "1"
+    required:
+      - enabled
+    additionalProperties: false
+    example:
+      enabled: true
+      source: "companion"
+      text_version: "1"
