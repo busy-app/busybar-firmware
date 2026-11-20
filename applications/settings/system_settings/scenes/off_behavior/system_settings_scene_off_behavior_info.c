@@ -53,9 +53,7 @@ static void system_settings_scene_off_behavior_info_on_enter(void* context) {
 
         scene->qr_code = qr_code_alloc(back_root);
         qr_code_set_size(scene->qr_code, 66);
-        qr_code_set_data(
-            scene->qr_code,
-            "https://docs.busy.app"); // TODO: set more specific link when documentation arrives
+        qr_code_set_data(scene->qr_code, "https://go.busy.app/docs-off-position");
         widget_set_size_content(qr_code_get_base(scene->qr_code));
         widget_set_padding(qr_code_get_base(scene->qr_code), 2, 2, 2, 2);
         widget_set_align(qr_code_get_base(scene->qr_code), AlignRightMid);
