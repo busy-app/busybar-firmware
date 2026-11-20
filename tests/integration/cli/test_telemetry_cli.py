@@ -13,11 +13,15 @@ pytestmark = pytest.mark.cli
 TELEMETRY_EVENT_NAMES = {
     "device.boot",
     "fw.update",
-    "timer.session.start",
-    "timer.session.end",
-    "timer.theme",
+    "start_timer",
+    "timer_complete",
+    "timer_stop",
+    "change_timer_settings",
     "app.start",
     "app.stop",
+    "app.install",
+    "app.update",
+    "app.uninstall",
     "setting.brightness",
     "setting.volume",
     "input.switch",
@@ -32,6 +36,10 @@ TELEMETRY_EVENT_NAMES = {
     "account.unlink",
     "canvas.acquire",
     "canvas.release",
+    "integration.connect",
+    "integration.disconnect",
+    "telemetry.enable",
+    "telemetry.disable",
 }
 
 

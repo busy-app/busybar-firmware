@@ -29,6 +29,7 @@ from utils.wait import wait_for
 
 
 PUSH_RATE_LIMIT_S = 5
+RATE_WINDOW_MARGIN_S = 1.0
 CANVAS_TEST_APP = "telemetry_buffer_test"
 CANVAS_TEST_ELEMENTS = [
     {
@@ -63,15 +64,6 @@ def _decode_batch(message: PublishedMQTTMessage) -> dict:
     return batch
 
 
-def _has_timer_start_and_end(message: PublishedMQTTMessage) -> bool:
-    try:
-        batch = json.loads(message.payload)
-        event_types = {event.get("t") for event in batch.get("events", [])}
-    except (AttributeError, UnicodeDecodeError, json.JSONDecodeError):
-        return False
-    return {"timer.session.start", "timer.session.end"}.issubset(event_types)
-
-
 def _has_event_types(*expected_types: str):
     def matches(message: PublishedMQTTMessage) -> bool:
         try:
@@ -84,12 +76,12 @@ def _has_event_types(*expected_types: str):
     return matches
 
 
-def _has_timer_end_count(expected_count: int):
+def _has_event_count(event_type: str, expected_count: int):
     def matches(message: PublishedMQTTMessage) -> bool:
         try:
             batch = json.loads(message.payload)
             actual_count = sum(
-                event.get("t") == "timer.session.end"
+                event.get("t") == event_type
                 for event in batch.get("events", [])
             )
         except (AttributeError, UnicodeDecodeError, json.JSONDecodeError):
@@ -97,6 +89,60 @@ def _has_timer_end_count(expected_count: int):
         return actual_count >= expected_count
 
     return matches
+
+
+def _wait_for_event_types(
+    broker: PlainMQTTTestBroker,
+    topic: str,
+    expected_types: set[str],
+    *,
+    timeout: float,
+) -> tuple[list[PublishedMQTTMessage], list[dict]]:
+    """Collect telemetry batches until they hold every expected event type.
+
+    Every p2 event triggers a push, and pushes are rate-limited, so events of
+    one scenario can arrive in several consecutive batches.
+    """
+    messages = []
+    events = []
+    deadline = time.monotonic() + timeout
+    while not expected_types.issubset({event.get("t") for event in events}):
+        remaining = deadline - time.monotonic()
+        assert remaining > 0, (
+            "Timed out waiting for telemetry events "
+            f"{sorted(expected_types)}; "
+            f"received={[event.get('t') for event in events]!r}"
+        )
+        message = broker.wait_for_publish(
+            topic,
+            lambda _: True,
+            timeout=remaining,
+        )
+        messages.append(message)
+        events.extend(_decode_batch(message)["events"])
+    return messages, events
+
+
+def _enable_telemetry(
+    broker: PlainMQTTTestBroker,
+    telemetry_api: TelemetryAPI,
+    topic: str,
+) -> None:
+    """Enable telemetry and consume the telemetry.enable push.
+
+    telemetry.enable is a p2 event, so it leaves the buffer in its own push
+    (retried within the 5-second rate window if needed). After that, the
+    buffer is empty and the next push opens a new rate window.
+    """
+    telemetry_api.set_enabled(True)
+    message = broker.wait_for_publish(
+        topic,
+        _has_event_types("telemetry.enable"),
+        timeout=PUSH_RATE_LIMIT_S + 10,
+    )
+    enable = _events_of_type(_decode_batch(message), "telemetry.enable")[0]
+    _assert_event_envelope(enable, 2)
+    assert enable["d"].get("source") == "companion", enable
 
 
 def _telemetry_publishes(
@@ -145,6 +191,7 @@ def _assert_device_state(event: dict) -> None:
     assert set(event["d"]) == {
         "charge",
         "charging",
+        "usb_connected",
         "charge_limit",
         "matter_fabrics",
         "matter_commissioned",
@@ -155,6 +202,7 @@ def _assert_device_state(event: dict) -> None:
     assert 0 <= event["d"]["charge_limit"] <= 100, event
     for field in (
         "charging",
+        "usb_connected",
         "matter_commissioned",
         "account_linked",
         "dev_mode",
@@ -349,7 +397,7 @@ class TestMqttTelemetry:
                 _busy_settings(telemetry_busy_state_guard),
             )
             local_mqtt_broker.drain_publishes()
-            telemetry_api.set_enabled(True)
+            _enable_telemetry(local_mqtt_broker, telemetry_api, topic)
             time.sleep(PUSH_RATE_LIMIT_S + 0.2)
 
         with allure.step("Start and stop a BUSY timer through the HTTP API"):
@@ -361,86 +409,94 @@ class TestMqttTelemetry:
             )
 
         with allure.step(
-            "Wait for a telemetry batch containing the timer lifecycle"
+            "Wait for the telemetry batches with the timer lifecycle"
         ):
-            message = local_mqtt_broker.wait_for_publish(
+            messages, received = _wait_for_event_types(
+                local_mqtt_broker,
                 topic,
-                _has_event_types("timer.session.end"),
-                timeout=15,
+                {"start_timer", "timer_stop"},
+                timeout=PUSH_RATE_LIMIT_S + 10,
             )
-            batch = _decode_batch(message)
 
         with allure.step("Validate the MQTT and batch envelope contract"):
-            assert message.topic == topic, (
-                f"Unexpected telemetry topic: {message.topic!r}"
-            )
-            assert message.qos == 1, (
-                f"Telemetry QoS is {message.qos}, expected 1"
-            )
-            assert message.retained is False, (
-                "Telemetry messages must not be retained"
-            )
-            assert set(batch) == {"schema", "ts", "events"}, (
-                f"Unexpected telemetry batch fields: {sorted(batch)}"
-            )
-            assert batch["schema"] == 1, (
-                f"Unexpected telemetry schema: {batch['schema']!r}"
-            )
-            assert isinstance(batch["ts"], int) and batch["ts"] > 0, (
-                f"Invalid telemetry batch timestamp: {batch['ts']!r}"
-            )
-            assert isinstance(batch["events"], list), (
-                f"Telemetry events must be a list: {batch['events']!r}"
-            )
-            assert 2 <= len(batch["events"]) <= 34, (
-                f"Unexpected telemetry batch size: {len(batch['events'])}"
-            )
+            for message in messages:
+                batch = _decode_batch(message)
+                assert message.topic == topic, (
+                    f"Unexpected telemetry topic: {message.topic!r}"
+                )
+                assert message.qos == 1, (
+                    f"Telemetry QoS is {message.qos}, expected 1"
+                )
+                assert message.retained is False, (
+                    "Telemetry messages must not be retained"
+                )
+                assert set(batch) == {"schema", "ts", "events"}, (
+                    f"Unexpected telemetry batch fields: {sorted(batch)}"
+                )
+                assert batch["schema"] == 1, (
+                    f"Unexpected telemetry schema: {batch['schema']!r}"
+                )
+                assert isinstance(batch["ts"], int) and batch["ts"] > 0, (
+                    f"Invalid telemetry batch timestamp: {batch['ts']!r}"
+                )
+                assert isinstance(batch["events"], list), (
+                    f"Telemetry events must be a list: {batch['events']!r}"
+                )
+                assert 1 <= len(batch["events"]) <= 34, (
+                    f"Unexpected telemetry batch size: {len(batch['events'])}"
+                )
 
         events = {
             event["t"]: event
-            for event in batch["events"]
-            if event.get("t") in {"timer.session.start", "timer.session.end"}
+            for event in received
+            if event.get("t") in {"start_timer", "timer_stop"}
         }
         with allure.step("Validate timer event wire fields and HTTP source"):
-            assert set(events) == {
-                "timer.session.start",
-                "timer.session.end",
-            }, f"Incomplete timer lifecycle: {events!r}"
-            for event_type, priority in (
-                ("timer.session.start", 1),
-                ("timer.session.end", 2),
-            ):
-                event = events[event_type]
-                _assert_event_envelope(event, priority)
-                assert event["d"]["source"] == "http_api", event
+            for event in events.values():
+                _assert_event_envelope(event, 2)
+                assert event["d"]["timer_source"] == "HTTP_API", event
+                assert event["d"]["uuid"].lower() == WORK_CARD_UUID, event
+                assert event["d"]["timer_type"] == "INFINITE", event
+                assert event["d"]["timer_total_time_ms"] == 0, event
 
-            started = events["timer.session.start"]["d"]
+            started = events["start_timer"]["d"]
             assert set(started) == {
-                "source",
+                "uuid",
+                "timer_session_id",
+                "timer_source",
                 "profile",
                 "theme",
-                "mode",
+                "timer_type",
+                "timer_total_time_ms",
                 "demo",
+                "restored",
             }, started
-            assert started["mode"] == "infinite", started
             assert isinstance(started["profile"], str), started
             assert started["profile"], started
             assert isinstance(started["theme"], str), started
             assert started["theme"], started
             assert isinstance(started["demo"], bool), started
+            assert started["restored"] is False, started
 
-            ended = events["timer.session.end"]["d"]
-            assert set(ended) == {
-                "outcome",
-                "source",
+            stopped = events["timer_stop"]["d"]
+            assert set(stopped) == {
+                "uuid",
+                "timer_session_id",
+                "timer_source",
+                "timer_type",
+                "timer_total_time_ms",
                 "duration_s",
                 "cycles",
-            }, ended
-            assert ended["outcome"] == "stopped", ended
-            assert isinstance(ended["duration_s"], int), ended
-            assert ended["duration_s"] >= 0, ended
-            assert isinstance(ended["cycles"], int), ended
-            assert ended["cycles"] >= 0, ended
+                "reason",
+            }, stopped
+            assert stopped["reason"] == "EXTERNAL", stopped
+            assert (
+                stopped["timer_session_id"] == started["timer_session_id"]
+            ), (started, stopped)
+            assert isinstance(stopped["duration_s"], int), stopped
+            assert stopped["duration_s"] >= 0, stopped
+            assert isinstance(stopped["cycles"], int), stopped
+            assert stopped["cycles"] >= 0, stopped
 
     @allure.title("Public APIs emit documented telemetry collector payloads")
     def test_public_api_collectors_publish_documented_payloads(
@@ -473,7 +529,7 @@ class TestMqttTelemetry:
             )
             assets_api.clear_display()
             local_mqtt_broker.drain_publishes()
-            telemetry_api.set_enabled(True)
+            _enable_telemetry(local_mqtt_broker, telemetry_api, topic)
             time.sleep(PUSH_RATE_LIMIT_S + 0.2)
 
         try:
@@ -501,16 +557,17 @@ class TestMqttTelemetry:
                 "input.switch",
                 "canvas.acquire",
                 "canvas.release",
-                "timer.session.start",
-                "timer.session.end",
+                "start_timer",
+                "timer_stop",
             }
-            with allure.step("Capture the collector batch"):
-                message = local_mqtt_broker.wait_for_publish(
+            with allure.step("Capture the collector batches"):
+                _, events = _wait_for_event_types(
+                    local_mqtt_broker,
                     topic,
-                    _has_event_types(*expected_types),
-                    timeout=15,
+                    expected_types,
+                    timeout=PUSH_RATE_LIMIT_S + 10,
                 )
-                batch = _decode_batch(message)
+                batch = {"events": events}
 
             with allure.step("Validate setting and input payloads"):
                 brightness = _events_of_type(
@@ -533,7 +590,7 @@ class TestMqttTelemetry:
 
                 switch = _events_of_type(batch, "input.switch")[-1]
                 _assert_event_envelope(switch, 0)
-                assert switch["d"] == {"pos": "status"}, switch
+                assert switch["d"] == {"pos": "custom"}, switch
 
             with allure.step("Validate canvas ownership payloads"):
                 acquire = _events_of_type(batch, "canvas.acquire")[-1]
@@ -573,7 +630,7 @@ class TestMqttTelemetry:
                 settings,
             )
             local_mqtt_broker.drain_publishes()
-            telemetry_api.set_enabled(True)
+            _enable_telemetry(local_mqtt_broker, telemetry_api, topic)
 
         with allure.step("Disconnect the device from MQTT"):
             account_api.set_backend(
@@ -635,8 +692,8 @@ class TestMqttTelemetry:
 
         expected_types = {
             "net.offline",
-            "timer.session.start",
-            "timer.session.end",
+            "start_timer",
+            "timer_stop",
             "net.offline_duration",
             "net.online",
         }
@@ -647,12 +704,6 @@ class TestMqttTelemetry:
                 timeout=15,
             )
             batch = _decode_batch(message)
-            actual_types = {event["t"] for event in batch["events"]}
-            assert expected_types.issubset(actual_types), (
-                f"Reconnect batch is missing events: "
-                f"expected={sorted(expected_types)!r}, "
-                f"actual={sorted(actual_types)!r}"
-            )
             duration_event = _events_of_type(
                 batch,
                 "net.offline_duration",
@@ -687,7 +738,7 @@ class TestMqttTelemetry:
                 settings,
             )
             local_mqtt_broker.drain_publishes()
-            telemetry_api.set_enabled(True)
+            _enable_telemetry(local_mqtt_broker, telemetry_api, topic)
             time.sleep(PUSH_RATE_LIMIT_S + 0.2)
 
         with allure.step("Publish the first push-priority timer batch"):
@@ -699,20 +750,27 @@ class TestMqttTelemetry:
             )
             first_message = local_mqtt_broker.wait_for_publish(
                 topic,
-                _has_timer_start_and_end,
+                _has_event_types("start_timer"),
                 timeout=15,
             )
             first_received_at = time.monotonic()
-            assert _decode_batch(first_message)["events"]
+            first_batch = _decode_batch(first_message)
+            assert not _events_of_type(first_batch, "timer_stop"), (
+                first_batch
+            )
 
-        with allure.step("Generate another p2 event inside the rate window"):
+        with allure.step("Generate more p2 events inside the rate window"):
             _start_and_stop_http_timer(
                 busy_api,
                 api_session,
                 web_base_url,
                 settings,
             )
-            observation_end = first_received_at + PUSH_RATE_LIMIT_S - 0.2
+            # The device times the window from its own push, which happened
+            # slightly before the batch reached the broker
+            observation_end = (
+                first_received_at + PUSH_RATE_LIMIT_S - RATE_WINDOW_MARGIN_S
+            )
             messages = _telemetry_publishes(
                 local_mqtt_broker,
                 topic,
@@ -723,24 +781,17 @@ class TestMqttTelemetry:
                 f"rate window: {[message.payload for message in messages]!r}"
             )
 
-        with allure.step("Flush the buffered event after the rate window"):
-            remaining = first_received_at + PUSH_RATE_LIMIT_S + 0.2
-            time.sleep(max(0, remaining - time.monotonic()))
-            _start_and_stop_http_timer(
-                busy_api,
-                api_session,
-                web_base_url,
-                settings,
-            )
+        with allure.step(
+            "Verify the held events are pushed right after the rate window"
+        ):
             message = local_mqtt_broker.wait_for_publish(
                 topic,
-                _has_timer_end_count(2),
-                timeout=15,
+                _has_event_count("timer_stop", 2),
+                timeout=PUSH_RATE_LIMIT_S,
             )
             batch = _decode_batch(message)
-            assert len(_events_of_type(batch, "timer.session.end")) >= 2, (
-                batch
-            )
+            assert len(_events_of_type(batch, "timer_stop")) == 2, batch
+            assert len(_events_of_type(batch, "start_timer")) == 1, batch
 
     @allure.title("A 32-event buffer publishes one batch with device state")
     def test_full_buffer_flushes_at_32_events(
@@ -766,7 +817,7 @@ class TestMqttTelemetry:
             )
             assets_api.clear_display()
             local_mqtt_broker.drain_publishes()
-            telemetry_api.set_enabled(True)
+            _enable_telemetry(local_mqtt_broker, telemetry_api, topic)
 
         try:
             with allure.step("Buffer 30 canvas lifecycle events"):
@@ -850,7 +901,7 @@ class TestMqttTelemetry:
             )
             assets_api.clear_display()
             local_mqtt_broker.drain_publishes()
-            telemetry_api.set_enabled(True)
+            _enable_telemetry(local_mqtt_broker, telemetry_api, topic)
 
         try:
             with allure.step("Accumulate input counts for the flush window"):
@@ -942,7 +993,7 @@ class TestMqttTelemetry:
             )
             assets_api.clear_display()
             local_mqtt_broker.drain_publishes()
-            telemetry_api.set_enabled(True)
+            _enable_telemetry(local_mqtt_broker, telemetry_api, topic)
 
         try:
             with allure.step("Prepare 31 buffered events and input counts"):

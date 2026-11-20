@@ -46,7 +46,7 @@ typedef enum {
  */
 typedef enum {
     TelemetryEventDeviceBoot, /**< Device boot / firmware info (p2) */
-    TelemetryEventFwUpdate, /**< Firmware update installation started (p2) */
+    TelemetryEventFwUpdate, /**< Firmware update result (p2) */
     TelemetryEventTimerStart, /**< Busy timer session started: start_timer (p2) */
     TelemetryEventTimerComplete, /**< Busy timer ran to its end: timer_complete (p2) */
     TelemetryEventTimerStop, /**< Busy timer stopped or interrupted: timer_stop (p2) */
@@ -59,7 +59,7 @@ typedef enum {
     TelemetryEventSettingBrightness, /**< Display brightness changed (p0) */
     TelemetryEventSettingVolume, /**< Audio volume changed (p0) */
     TelemetryEventInputSwitch, /**< Mode switch position changed (p0) */
-    TelemetryEventPowerTransition, /**< Charging / USB power state changed (p1) */
+    TelemetryEventPowerTransition, /**< Charging / USB power state changed (p2) */
     TelemetryEventNetOnline, /**< MQTT (re)connected (p2) */
     TelemetryEventNetOffline, /**< MQTT disconnected (p2) */
     TelemetryEventNetOfflineDuration, /**< Reported offline duration on reconnect (p2) */
