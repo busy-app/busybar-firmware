@@ -428,10 +428,10 @@ static void telemetry_handle_set_enabled(
     }
 
     if(!enabled) {
-        // Send what is buffered, then telemetry.disable as the last event. Without a
-        // connection the buffer is dropped and telemetry.disable waits for the next one.
-        instance->last_push_ms = 0;
-        telemetry_flush(instance, true);
+        // Revoking consent discards everything not sent yet. telemetry.disable is the last
+        // event; without a connection it waits for the next one.
+        telemetry_ring_clear(instance);
+        telemetry_input_counts_clear(instance);
         instance->is_disable_pending = !telemetry_publish_disable_now(instance);
     } else if(instance->is_disable_pending) {
         // Consent given again before the revocation was delivered: deliver it first
@@ -442,10 +442,7 @@ static void telemetry_handle_set_enabled(
     instance->is_enabled = enabled;
     telemetry_save_settings(instance);
 
-    if(!enabled) {
-        telemetry_ring_clear(instance);
-        telemetry_input_counts_clear(instance);
-    } else {
+    if(enabled) {
         cJSON* d = cJSON_CreateObject();
         if(request->source[0]) {
             cJSON_AddStringToObject(d, "source", request->source);

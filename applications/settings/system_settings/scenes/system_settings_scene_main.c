@@ -52,7 +52,7 @@ static void system_settings_scene_main_on_enter(void* context) {
         if(is_debug_flag_set) {
             submenu_add_item(
                 data->front_menu,
-                "Share data",
+                "Share device stats",
                 NULL,
                 SceneEventTelemetry,
                 system_settings_scene_main_menu_item_callback,
@@ -72,7 +72,7 @@ static void system_settings_scene_main_on_enter(void* context) {
         submenu_add_item(data->back_menu, "Debug", NULL, SceneEventDebug, NULL, instance);
         if(is_debug_flag_set) {
             submenu_add_item(
-                data->back_menu, "Share data", NULL, SceneEventTelemetry, NULL, instance);
+                data->back_menu, "Share device stats", NULL, SceneEventTelemetry, NULL, instance);
         }
         submenu_add_item(
             data->back_menu, "Factory reset", NULL, SceneEventFactoryReset, NULL, instance);
@@ -113,7 +113,7 @@ static bool system_settings_scene_main_on_event(const SceneManagerEvent* event, 
             consumed = true;
         } else if(event->event == SceneEventTelemetry) {
             scene_manager_next_scene(instance->scene_manager, SceneIdTelemetry);
-            system_settings_push_location(instance, "SHARE DATA");
+            system_settings_push_location(instance, "SHARE DEVICE STATS");
             consumed = true;
         } else if(event->event == SceneEventFactoryReset) {
             scene_manager_next_scene(instance->scene_manager, SceneIdFactoryResetConfirm);

@@ -102,6 +102,6 @@ Timer fields: `timer_type` (`INFINITE`\|`SIMPLE`\|`INTERVAL`), `timer_total_time
 > device gets its first Matter controller and when it loses the last one.
 
 > `telemetry.enable` is the first event after consent is given.
-> `telemetry.disable` is the last event: buffered events are sent before it,
-> and the buffer is cleared after it. Without a connection the buffer is
-> dropped, and `telemetry.disable` is sent after the next connect.
+> `telemetry.disable` is the last event. Events not sent yet are dropped when
+> telemetry is turned off. Without a connection, `telemetry.disable` is sent
+> after the next connect.
