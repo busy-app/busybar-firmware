@@ -149,6 +149,23 @@ CliAnsiParserResult cli_ansi_parser_feed(CliAnsiParser* parser, char c);
  */
 CliAnsiParserResult cli_ansi_parser_feed_timeout(CliAnsiParser* parser);
 
+/**
+ * @brief Determines the number of visible characters in the given string
+ * 
+ * Rejects ANSI escape sequences and ASCII non-printable characters; collapses
+ * UTF-8 sequences into a single count.
+ * 
+ * Rabbit hole alert!
+ * The topic of determining string length is always complicated whenever Unicode
+ * is involved since there's several definitions of the term "length". This
+ * implementation equates "character" with "Unicode codepoint".
+ * 
+ * @param[in] string C-string to calculate the number of printable characters in
+ * 
+ * @returns The number of printable characters 
+ */
+size_t cli_ansi_printable_strlen(const char* string);
+
 #ifdef __cplusplus
 }
 #endif

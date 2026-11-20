@@ -39,7 +39,7 @@ static void firmware_settings_dialog_scene_on_enter(void* context) {
         dialog_set_callback(
             scene->front_dialog, firmware_settings_dialog_scene_option_callback, instance);
         dialog_set_icon(scene->front_dialog, THIS_IMG_PATH("download_front_8x8.image"));
-        dialog_set_text(scene->front_dialog, "Update available");
+        dialog_set_text(scene->front_dialog, "Update\navailable");
         dialog_set_options(scene->front_dialog, "Install", "Cancel");
         dialog_set_option_colors(
             scene->front_dialog,

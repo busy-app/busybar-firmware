@@ -14,7 +14,7 @@ export interface TrimRangeOptions {
 export function formatTrimTime (seconds: number) {
   const safe = Math.max(0, seconds);
   const minutes = Math.floor(safe / 60);
-  const rest = (safe - minutes * 60).toFixed(1).padStart(4, '0');
+  const rest = (safe - (minutes * 60)).toFixed(1).padStart(4, '0');
 
   return `${minutes}:${rest}`;
 }

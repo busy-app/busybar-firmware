@@ -6,24 +6,24 @@
     />
 
     <div>
-      <div class="w-full text-2xl font-medium text-highlighted mb-2">Wi-Fi control disabled</div>
+      <div class="mb-2 w-full text-2xl font-medium text-highlighted">Wi-Fi control disabled</div>
       <div class="w-full text-toned">To control your BUSY Bar via Wi-Fi, you must provide access to HTTP API.</div>
     </div>
 
-    <div class="flex flex-col lg:flex-row gap-4 pt-11">
+    <div class="flex flex-col gap-4 pt-11 lg:flex-row">
       <div
         v-for="item in items"
         :key="item.id"
         class="flex flex-col gap-4"
       >
-        <div class="w-84 flex items-center justify-center bg-surface-container rounded-xl">
+        <div class="flex w-84 items-center justify-center rounded-xl bg-surface-container">
           <img
             :src="colorMode.value === 'dark' ? item.imageDark : item.image"
-            class="w-[336px]"
+            class="w-84"
           >
         </div>
         <div class="flex flex-col gap-3">
-          <div class="w-fit flex items-center justify-center shrink-0 rounded-lg bg-accented/50 px-3 py-1 text-sm font-medium">Step {{ item.id }}</div>
+          <div class="flex w-fit shrink-0 items-center justify-center rounded-lg bg-accented/50 px-3 py-1 text-sm font-medium">Step {{ item.id }}</div>
           <div class="max-w-72 text-sm">
             <template v-if="item.id === 1">Connect the device to your computer using a USB cable</template>
             <template v-if="item.id === 2">
@@ -31,7 +31,7 @@
               <a
                 :href="appConfig.links.barUsb"
                 target="_blank"
-                class="inline-flex items-center gap-1 text-primary font-medium"
+                class="inline-flex items-center gap-1 font-medium text-primary"
               >
                 {{ barUsbHost }}
                 <UIcon
