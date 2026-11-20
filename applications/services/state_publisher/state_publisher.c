@@ -450,7 +450,7 @@ static void state_publisher_custom_event_callback(uint32_t events, void* context
 }
 
 void state_publisher_flush(StatePublisher* instance) {
-    furi_check(instance);
+    furi_assert(instance);
     furi_event_loop_set_custom_event(instance->event_loop, StatePublisherCustomEventFlush);
 }
 
@@ -565,15 +565,7 @@ static int32_t fetch_thread_callback(void* context) {
         }
 
         if(result) {
-            PublishMessage msg = {
-                .heartbeat = false,
-            };
-
-            FuriStatus queue_status = furi_message_queue_put(instance->publish_queue, &msg, 0);
-
-            if(queue_status != FuriStatusOk) {
-                FURI_LOG_E(TAG, "Queue full, update postponed");
-            }
+            state_publisher_flush(instance);
         }
     }
     return 0;
