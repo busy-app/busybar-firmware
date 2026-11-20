@@ -29,6 +29,19 @@ void power_reboot(Power* instance, PowerRebootMode mode) {
     api_lock_wait_unlock_and_free(msg.lock);
 }
 
+#if defined(SRV_INTERCOM)
+void power_deep_sleep(Power* instance) {
+    PowerMessage msg = {
+        .type = PowerMessageTypeDeepSleep,
+        .lock = api_lock_alloc_locked(),
+    };
+
+    furi_check(
+        furi_message_queue_put(instance->message_queue, &msg, FuriWaitForever) == FuriStatusOk);
+    api_lock_wait_unlock_and_free(msg.lock);
+}
+#endif
+
 bool power_is_usb_connected(Power* power) {
     furi_check(power);
 

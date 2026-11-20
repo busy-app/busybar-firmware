@@ -13,6 +13,7 @@ env.Append(
         Dir(f"{WISECONNECT_INCDIR}/protocol/wifi/inc").rdir(),
         Dir(f"{MCU_INCDIR}/drivers/cmsis_driver/CMSIS/Driver/Include").rdir(),
         Dir(f"{MCU_INCDIR}/drivers/cmsis_driver").rdir(),
+        Dir(f"{MCU_INCDIR}/drivers/service/power_manager/inc").rdir(),
         Dir(f"{WISECONNECT_INCDIR}/service/network_manager/inc").rdir(),
         Dir(f"{MCU_INCDIR}/drivers/rom_driver/inc").rdir(),
         Dir(f"{MCU_INCDIR}/core/chip/inc").rdir(),
@@ -74,6 +75,7 @@ env.Append(
         "SLI_SI91X_ENABLE_OS",
         "SLI_MULTITHREAD_DEVICE_SI91X",
         "ENABLE_DEBUG_MODULE",  # This is for debug power down mode
+        "SLI_SI91X_MCU_ENABLE_FLASH_BASED_EXECUTION",
         # SDK BLE Silabs
         "SLI_SI91X_ENABLE_BLE",
         "SL_SI91X_ENABLE_LITTLE_ENDIAN=1",
@@ -91,6 +93,8 @@ libenv.ApplyLibFlags()
 libenv.AppendUnique(
     CPPFLAGS=[
         "-Wno-deprecated-declarations",
+        "-Wno-unused-variable",
+        "-Wno-unused-but-set-variable",
     ],
 )
 
@@ -104,7 +108,12 @@ sources = [
     f"{MCU_DIR}/drivers/systemlevel/src/rsi_pll.c",
     f"{MCU_DIR}/drivers/systemlevel/src/rsi_ipmu.c",
     f"{MCU_DIR}/drivers/systemlevel/src/rsi_ulpss_clk.c",
+    f"{MCU_DIR}/drivers/systemlevel/src/rsi_temp_sensor.c",
     f"{MCU_DIR}/drivers/service/clock_manager/src/sl_si91x_clock_manager.c",
+    f"{MCU_DIR}/drivers/service/clock_manager/src/sli_si91x_clock_manager.c",
+    f"{MCU_DIR}/drivers/service/power_manager/src/sl_si91x_power_manager.c",
+    f"{MCU_DIR}/drivers/service/power_manager/src/sli_si91x_power_manager.c",
+    f"{MCU_DIR}/drivers/systemlevel/src/rsi_time_period.c",
     # SDK Wifi Silabs
     f"{WISECONNECT_DIR}/common/src/sl_utility.c",
     f"{WISECONNECT_DIR}/protocol/wifi/si91x/sl_wifi.c",
