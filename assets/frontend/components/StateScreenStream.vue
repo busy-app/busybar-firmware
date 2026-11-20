@@ -133,7 +133,7 @@ async function convertInitialFrameToStateFrame (source: Blob | ArrayBuffer | Uin
 
 async function getInitialFrame (): Promise<ProcessedFrame> {
   const busyBar = deviceStore.busyBar;
-  const screen = await busyBar.DisplayScreenFrameGet({ display: BSB_Frame.Screen.FRONT });
+  const screen = await busyBar.displayScreenFrameGet({ display: BSB_Frame.Screen.FRONT });
   const initialFrame = await convertInitialFrameToStateFrame(screen as Blob | ArrayBuffer | Uint8Array | string);
 
   return initialFrame;

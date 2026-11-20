@@ -241,7 +241,7 @@ async function deleteAssets (): Promise<void> {
 
 async function tryDeleteAssets (hasRetried = false): Promise<void> {
   try {
-    await deviceStore.busyBar.AssetsDelete({
+    await deviceStore.busyBar.assetsDelete({
       application_name: animationApplicationName
     });
   } catch (error) {
@@ -263,7 +263,7 @@ async function tryDeleteAssets (hasRetried = false): Promise<void> {
 
 async function clearAnimationDisplay (): Promise<void> {
   try {
-    await deviceStore.busyBar.DisplayClear({
+    await deviceStore.busyBar.displayClear({
       application_name: animationApplicationName
     });
   } catch (error) {
@@ -277,7 +277,7 @@ function isFileDeleteFailedError (error: unknown) {
 }
 
 async function uploadAnimation (animation: Blob) {
-  return deviceStore.busyBar.AssetsUpload({
+  return deviceStore.busyBar.assetsUpload({
     application_name: animationApplicationName,
     data: animation,
     file: 'test.anim'
@@ -289,7 +289,7 @@ async function uploadAnimation (animation: Blob) {
 }
 
 async function drawAnimation () {
-  return deviceStore.busyBar.DisplayDraw({
+  return deviceStore.busyBar.displayDraw({
     application_name: animationApplicationName,
     elements: [
       {

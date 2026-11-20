@@ -20,7 +20,7 @@ export const useMatterStore = defineStore('matter', () => {
     timeout: null as NodeJS.Timeout | null
   });
   async function fetchMatterCommissioning (): Promise<void> {
-    await deviceStore.busyBar.SmartHomePairingGet()
+    await deviceStore.busyBar.smartHomePairingGet()
       .then(response => {
         matterCommissioning.value.fabricCount = response.fabric_count || 0;
         matterCommissioning.value.latestStatus = response.latest_pairing_status;
@@ -30,7 +30,7 @@ export const useMatterStore = defineStore('matter', () => {
       });
   }
   async function requestMatterLink (): Promise<void> {
-    await deviceStore.busyBar.SmartHomePair()
+    await deviceStore.busyBar.smartHomePair()
       .then(response => {
         matterLink.value.manualCode = response.manual_code || '';
         matterLink.value.availableUntil = new Date(Number(response.available_until));
@@ -59,7 +59,7 @@ export const useMatterStore = defineStore('matter', () => {
   }
   async function deleteAllPairings () {
     try {
-      await deviceStore.busyBar.SmartHomeErase();
+      await deviceStore.busyBar.smartHomeErase();
       console.debug('All Matter pairings deleted, waiting for device to reboot');
 
       return true;

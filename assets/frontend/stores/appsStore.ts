@@ -81,7 +81,7 @@ export const useAppsStore = defineStore('apps', () => {
     loading.value = true;
 
     try {
-      const result = await deviceStore.busyBar.AppsList();
+      const result = await deviceStore.busyBar.appsList();
       const loadedIcons: Record<string, string> = {};
 
       for (const app of result.apps) {
@@ -107,7 +107,7 @@ export const useAppsStore = defineStore('apps', () => {
     }
 
     try {
-      const data = await deviceStore.busyBar.StorageRead({ path: iconPath }, { as_array_buffer: true });
+      const data = await deviceStore.busyBar.storageRead({ path: iconPath }, { as_array_buffer: true });
       return await toDataUrl(new Blob([data], { type: 'image/png' }));
     } catch {
       return undefined;
@@ -160,7 +160,7 @@ export const useAppsStore = defineStore('apps', () => {
 
   function installApp (installKey: number) {
     return whileDeviceIsBusy(async () => {
-      await deviceStore.busyBar.AppsInstall({ install_key: installKey }, { timeout: 0 });
+      await deviceStore.busyBar.appsInstall({ install_key: installKey }, { timeout: 0 });
       await fetchApps();
     });
   }
@@ -200,14 +200,14 @@ export const useAppsStore = defineStore('apps', () => {
 
   function removeApp (appId: string) {
     return whileDeviceIsBusy(async () => {
-      await deviceStore.busyBar.AppsRemove({ app_id: appId }, { timeout: 0 });
+      await deviceStore.busyBar.appsRemove({ app_id: appId }, { timeout: 0 });
       settingsSavedByApp.value[appId] = false;
       await fetchApps();
     });
   }
 
   async function readSettingsSchema (appId: string) {
-    const data = await deviceStore.busyBar.StorageRead(
+    const data = await deviceStore.busyBar.storageRead(
       { path: `${APPS_PATH}/${appId}/${SETTINGS_SCHEMA_PATH}` },
       { as_array_buffer: true }
     );
@@ -216,11 +216,11 @@ export const useAppsStore = defineStore('apps', () => {
   }
 
   function getSettings (appId: string) {
-    return deviceStore.busyBar.AppsSettingsGet({ app_id: appId });
+    return deviceStore.busyBar.appsSettingsGet({ app_id: appId });
   }
 
   async function setSettings (appId: string, settings: AppSettingsDocument) {
-    const result = await deviceStore.busyBar.AppsSettingsSet({ app_id: appId, settings });
+    const result = await deviceStore.busyBar.appsSettingsSet({ app_id: appId, settings });
     settingsSavedByApp.value[appId] = true;
     return result;
   }

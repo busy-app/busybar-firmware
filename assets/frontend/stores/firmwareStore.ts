@@ -94,7 +94,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
     autoUpdate.value.error.message = null;
   }
   async function fetchAutoUpdateStatus (attempt: number = 0): Promise<void> {
-    return deviceStore.busyBar.UpdateStatusGet()
+    return deviceStore.busyBar.updateStatusGet()
       .then(async status => {
         if (!status.check?.status || !status.check.event) {
           throw new Error('Invalid update status response: missing check info');
@@ -169,7 +169,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
     }
     autoUpdate.value.isChecking = true;
 
-    return deviceStore.busyBar.UpdateCheck()
+    return deviceStore.busyBar.updateCheck()
       .then(async () => {
         console.debug('Auto-update check requested');
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -199,7 +199,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
 
   async function fetchAutoUpdateChangelog (version: string) {
     autoUpdate.value.isChangelogLoading = true;
-    await deviceStore.busyBar.UpdateChangelogGet({ version })
+    await deviceStore.busyBar.updateChangelogGet({ version })
       .then(response => {
         if (autoUpdate.value.availableVersion === version) {
           autoUpdate.value.changelog = response.changelog || null;
@@ -235,10 +235,10 @@ export const useFirmwareStore = defineStore('firmware', () => {
     }
     console.debug('Requesting auto-update installation');
 
-    return deviceStore.busyBar.UpdateInstall({ version: autoUpdate.value.availableVersion }, { timeout: 0 });
+    return deviceStore.busyBar.updateInstall({ version: autoUpdate.value.availableVersion }, { timeout: 0 });
   }
   async function abortAutoUpdateDownload () {
-    await deviceStore.busyBar.UpdateAbort()
+    await deviceStore.busyBar.updateAbort()
       .then(() => {
         console.debug('Auto-update download abort requested');
         stopAutoUpdateProgressPolling();
@@ -269,7 +269,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
     }
 
     const pollingInterval = setInterval(async () => {
-      await deviceStore.busyBar.UpdateStatusGet()
+      await deviceStore.busyBar.updateStatusGet()
         .then(status => {
           if (autoUpdate.value.progressPollingInterval !== pollingInterval) {
             return;
