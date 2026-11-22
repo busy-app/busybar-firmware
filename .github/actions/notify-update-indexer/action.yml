@@ -1,0 +1,76 @@
+name: Register build in update-indexer
+description: Generate a JSON build manifest and notify the update-indexer about the new build
+inputs:
+  artifacts_dir:
+    description: Directory containing the published firmware files
+    required: true
+  branch_name:
+    description: Branch used in the uploaded artifact path
+    required: true
+  version_token:
+    description: Commit token used in the uploaded artifact path
+    required: true
+  indexer_url:
+    description: Base URL of update-indexer
+    required: true
+  indexer_token:
+    description: CI token for the busybar-firmware project
+    required: true
+runs:
+  using: composite
+  steps:
+    - id: generate
+      shell: bash
+      env:
+        ARTIFACTS_DIR: ${{ inputs.artifacts_dir }}
+        BRANCH_NAME: ${{ inputs.branch_name }}
+        VERSION_TOKEN: ${{ inputs.version_token }}
+      run: |
+        set -euo pipefail
+        manifest_dir=$(mktemp -d "$RUNNER_TEMP/busybar-manifest.XXXXXX")
+        cd -- "$ARTIFACTS_DIR"
+        find . -type f -print0 > "$manifest_dir/paths"
+
+        checksum_pattern='^busybar-([[:alnum:]_]+)-sha256sum\.txt$'
+        firmware_pattern='^busybar-([[:alnum:]_]+)-([[:alnum:]_]+)-.+\.([[:alnum:]_]+)$'
+        while IFS= read -r -d '' file; do
+          sha256=$(sha256sum < "$file")
+          size=$(stat --format=%s -- "$file")
+          target=''
+          type=''
+          name=${file##*/}
+          if [[ "$name" =~ $checksum_pattern ]]; then
+            target=${BASH_REMATCH[1]}
+            type=sha256sum_txt
+          elif [[ "$name" =~ $firmware_pattern ]]; then
+            target=${BASH_REMATCH[1]}
+            type="${BASH_REMATCH[2]}_${BASH_REMATCH[3]}"
+          fi
+          jq -nc \
+            --arg path "${file#./}" --arg sha256 "${sha256%% *}" \
+            --argjson size "$size" --arg target "$target" --arg type "$type" \
+            '{path: $path, sha256: $sha256, size: $size}
+             + (if $target == "" then {} else {target: $target, type: $type} end)'
+        done < "$manifest_dir/paths" > "$manifest_dir/files.jsonl"
+
+        jq -s \
+          --arg version_token "$VERSION_TOKEN" \
+          --arg branch "$BRANCH_NAME" \
+          '{version_token: $version_token, branch: $branch, files: .}' \
+          "$manifest_dir/files.jsonl" > "$manifest_dir/notify.json"
+        echo "manifest_path=$manifest_dir/notify.json" >> "$GITHUB_OUTPUT"
+
+    - name: Notify update-indexer
+      shell: bash
+      env:
+        INDEXER_URL: ${{ inputs.indexer_url }}
+        MANIFEST_PATH: ${{ steps.generate.outputs.manifest_path }}
+        INDEXER_TOKEN: ${{ inputs.indexer_token }}
+      run: |
+        curl --fail-with-body --silent --show-error \
+          --connect-timeout 15 --max-time 120 \
+          --retry 3 --retry-all-errors \
+          --header "Token: $INDEXER_TOKEN" \
+          --header 'Content-Type: application/json' \
+          --data-binary "@$MANIFEST_PATH" \
+          "${INDEXER_URL%/}/busybar-firmware/notify"

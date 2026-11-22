@@ -104,17 +104,40 @@ jobs:
               "${FILE_ARGS[@]}" \
               "${{ secrets.INDEXER_URL }}"/busybar-firmware/uploadfiles
 
-      - name: 'Upload build artifacts (update-indexer-dev)'
+      - name: Install rclone
+        id: install-rclone
         if: ${{ !github.event.pull_request.head.repo.fork && steps.build-fw.outcome == 'success' }}
+        uses: AnimMouse/setup-rclone@26ef2133e09fd383329a1d4c1fbe6a71db1976c9 # v1
+        with:
+          version: v1.75.2
+        continue-on-error: true
+
+      - name: Upload build artifacts to r2 (update-indexer-dev)
+        id: upload-r2
+        if: ${{ steps.install-rclone.outcome == 'success' }}
+        env:
+          RCLONE_CONFIG: /dev/null
+          RCLONE_CONFIG_R2_TYPE: s3
+          RCLONE_CONFIG_R2_PROVIDER: Cloudflare
+          RCLONE_CONFIG_R2_ACCESS_KEY_ID: ${{ secrets.UPDATE_INDEXER_DEV_S3_ACCESS_KEY_ID }}
+          RCLONE_CONFIG_R2_SECRET_ACCESS_KEY: ${{ secrets.UPDATE_INDEXER_DEV_S3_SECRET_ACCESS_KEY }}
+          RCLONE_CONFIG_R2_ENDPOINT: ${{ secrets.UPDATE_INDEXER_DEV_S3_ENDPOINT_URL }}
+          RCLONE_CONFIG_R2_REGION: auto
+          S3_BUCKET: ${{ secrets.UPDATE_INDEXER_DEV_S3_BUCKET }}
         run: |
-          ARTIFACT_DIR="${{ steps.build-fw.outputs.artifact_path }}"
-          while IFS= read -r -d '' ARTIFACT; do
-            curl --fail-with-body -L -H "Token: ${{ secrets.UPDATE_INDEXER_DEV_TOKEN }}" \
-                -F "branch=${BRANCH_NAME}" \
-                -F "version_token=${COMMIT_SHA}" \
-                -F "files=@${ARTIFACT}" \
-                "${{ secrets.UPDATE_INDEXER_DEV_URL }}"/busybar-firmware/uploadfiles
-          done < <(find "$ARTIFACT_DIR" -maxdepth 1 -type f -print0)
+          rclone copy ${{ steps.build-fw.outputs.artifact_path }} "r2:${S3_BUCKET}/busybar-firmware/${BRANCH_NAME}/${COMMIT_SHA}/" \
+            --checksum --fast-list --transfers 64 --checkers 64 --stats 10s --stats-one-line --log-level INFO
+        continue-on-error: true
+
+      - name: Register build in update-indexer (update-indexer-dev)
+        if: ${{ steps.upload-r2.outcome == 'success' }}
+        uses: ./.github/actions/notify-update-indexer
+        with:
+          artifacts_dir: ${{ steps.build-fw.outputs.artifact_path }}
+          branch_name: ${{ env.BRANCH_NAME }}
+          version_token: ${{ env.COMMIT_SHA }}
+          indexer_url: ${{ secrets.UPDATE_INDEXER_DEV_URL }}
+          indexer_token: ${{ secrets.UPDATE_INDEXER_DEV_TOKEN }}
         continue-on-error: true
 
       - name: Handle u5 map files
