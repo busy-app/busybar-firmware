@@ -20,6 +20,8 @@ StateUpdateKind = Literal[
     "ble",
     "auto_update_state",
     "timer_profiles",
+    "app_queue_state",
+    "app_queue_event",
 ]
 
 

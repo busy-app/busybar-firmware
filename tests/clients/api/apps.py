@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from .base import BaseAPI
 
@@ -49,12 +49,134 @@ class AppSettingsDocument(BaseModel):
     values: dict[str, Any]
 
 
+AppQueueAppId = Annotated[str, Field(pattern=r"^[a-z0-9_\-][a-z0-9_\-.]{0,31}$")]
+AppQueueItemId = Annotated[int, Field(strict=True)]
+AppQueueOperationType = Literal["install", "remove"]
+AppQueueError = Literal["timeout", "queue_full", "skipped"]
+
+
+class AppQueueOperation(BaseModel):
+    """Operation metadata returned by the application queue."""
+
+    type: AppQueueOperationType
+    version: str | None = None
+
+
+class AppQueueRequestOperation(AppQueueOperation):
+    """Queue command; install operations require a download URL."""
+
+    url: str | None = None
+
+    @model_validator(mode="after")
+    def validate_install_url(self) -> AppQueueRequestOperation:
+        if self.type == "install" and self.url is None:
+            raise ValueError("An install operation requires url")
+        return self
+
+
+class AppQueueRequestItem(BaseModel):
+    """Application and operation to enqueue."""
+
+    app_id: AppQueueAppId
+    operation: AppQueueRequestOperation
+
+
+class AppQueueAddRequest(BaseModel):
+    """POST /api/apps/queue body, including the documented empty batch."""
+
+    operations: list[AppQueueRequestItem] = Field(max_length=100)
+
+
+class AppQueueResponseItem(BaseModel):
+    """Enqueue outcome with exactly one of item_id or error."""
+
+    app_id: AppQueueAppId
+    operation: AppQueueOperation
+    item_id: AppQueueItemId | None = None
+    error: AppQueueError | None = None
+
+    @model_validator(mode="after")
+    def validate_outcome(self) -> AppQueueResponseItem:
+        has_item_id = "item_id" in self.model_fields_set
+        has_error = "error" in self.model_fields_set
+        if has_item_id == has_error:
+            raise ValueError("Expected exactly one of item_id or error")
+        if (has_item_id and self.item_id is None) or (has_error and self.error is None):
+            raise ValueError("Queue outcome must not be null")
+        return self
+
+
+class AppQueueAddResponse(BaseModel):
+    """Per-operation enqueue outcomes returned with HTTP 202."""
+
+    result: list[AppQueueResponseItem]
+
+
+class AppQueueDetail(BaseModel):
+    """Optional step and download percentage for an active operation."""
+
+    step: str
+    progress: Annotated[int, Field(strict=True, ge=0, le=100)] | None = None
+
+
+class AppQueueItem(BaseModel):
+    """Active or pending operation returned by GET /api/apps/queue."""
+
+    item_id: AppQueueItemId
+    app_id: AppQueueAppId
+    operation: AppQueueOperation
+    status: Literal["pending", "in_progress"]
+    detail: AppQueueDetail | None = None
+
+
+class AppQueueGetResponse(BaseModel):
+    """Snapshot of the active and pending application operations."""
+
+    result: list[AppQueueItem]
+
+
+class AppQueueCancelRequest(BaseModel):
+    """Cancel one operation by its queue ID."""
+
+    item_id: AppQueueItemId
+
+
+class AppQueueClearRequest(BaseModel):
+    """Cancel all active and pending operations."""
+
+    all: Literal[True] = True
+
+
 class AppsAPI(BaseAPI):
     """Typed client for JavaScript application management endpoints."""
 
     def list_apps(self) -> AppListResponse:
         """List installed JavaScript applications."""
         return self.get("/api/apps/list", AppListResponse)
+
+    def get_queue(self) -> AppQueueGetResponse:
+        """Read active and pending application operations."""
+        return self.get("/api/apps/queue", AppQueueGetResponse)
+
+    def add_to_queue(self, request: AppQueueAddRequest) -> AppQueueAddResponse:
+        """Enqueue a batch and validate its HTTP 202 response."""
+        response = self.post_raw(
+            "/api/apps/queue", json=request.model_dump(exclude_none=True)
+        )
+        self.assert_status(response, 202)
+        return self._validate(response, AppQueueAddResponse)
+
+    def cancel_queue(
+        self, request: AppQueueCancelRequest | AppQueueClearRequest
+    ) -> AppsResultResponse:
+        """Request cancellation and validate the HTTP 202 acknowledgement."""
+        response = self.cancel_queue_raw(request)
+        self.assert_status(response, 202)
+        return self._validate(response, AppsResultResponse)
+
+    def cancel_queue_raw(self, request: AppQueueCancelRequest | AppQueueClearRequest):
+        """Cancel an operation or clear the queue, returning the raw response."""
+        return self.post_raw("/api/apps/queue/cancel", json=request.model_dump())
 
     def stage(self, package: bytes) -> AppStageResponse:
         """Upload and validate a JavaScript application package."""
