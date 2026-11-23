@@ -143,13 +143,19 @@ static void* fs_open(const char* path, int flags) {
     Storage* fs_api = furi_record_open(RECORD_STORAGE);
     File* file = storage_file_alloc(fs_api);
 
-    FS_AccessMode access = (flags & MG_FS_WRITE) ? FSAM_READ_WRITE : FSAM_READ;
-    FS_OpenMode open_mode = (flags & MG_FS_WRITE) ? FSOM_OPEN_APPEND : FSOM_OPEN_EXISTING;
+    FS_AccessMode access_mode;
+    FS_OpenMode open_mode;
     if(flags & MG_FS_WRITE) {
-        open_mode |= FSOM_NONBLOCKING;
+        access_mode = FSAM_READ_WRITE;
+        open_mode = FSOM_OPEN_APPEND | FSOM_NONBLOCKING;
+    } else if(flags & MG_FS_READ) {
+        access_mode = FSAM_READ;
+        open_mode = FSOM_OPEN_EXISTING | FSOM_NONBLOCKING;
+    } else {
+        furi_crash();
     }
 
-    if(!storage_file_open(file, path, access, open_mode)) {
+    if(!storage_file_open(file, path, access_mode, open_mode)) {
         storage_file_close(file);
         storage_file_free(file);
         file = NULL;

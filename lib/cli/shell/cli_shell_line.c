@@ -224,12 +224,13 @@ static bool cli_shell_line_input_eot(CliKeyCombo combo, void* context) {
     UNUSED(combo);
     CliShellLine* line = context;
     line->about_to_exit = true;
-    printf("^D");
+    printf("^D\r\n");
 
     FuriString* command = furi_string_alloc_set("exit");
     cli_shell_execute_command(line->shell, command);
     furi_string_free(command);
 
+    printf("\r\n");
     fflush(stdout);
     return true;
 }
