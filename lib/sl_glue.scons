@@ -15,6 +15,7 @@ libenv.ApplyLibFlags()
 
 sources = [
     f"{SL_GLUE_DIR}/src/sl_debug.c",
+    f"{SL_GLUE_DIR}/src/cmsis_os2_thread.c",
 ]
 
 lib = libenv.StaticLibrary("${FW_LIB_NAME}", sources)
