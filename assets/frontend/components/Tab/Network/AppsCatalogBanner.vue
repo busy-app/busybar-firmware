@@ -11,6 +11,7 @@
       alt=""
       class="pointer-events-none absolute top-1 left-3.75 max-w-none mix-blend-overlay"
     >
+    <div class="pointer-events-none absolute top-19.5 -left-7.75 h-26.5 w-46.5 rounded-full bg-sky-300/80 blur-2xl" />
 
     <img
       src="~/assets/images/apps-catalog-banner/illustration.png"
