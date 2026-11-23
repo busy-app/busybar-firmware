@@ -6,7 +6,7 @@ export const useBrightnessStore = defineStore('brightness', () => {
 
   const displayBrightness = ref<DisplayBrightnessParams | undefined>(undefined);
   async function fetchDisplayBrightness (): Promise<DisplayBrightnessParams | undefined> {
-    const brightness = await deviceStore.busyBar.DisplayBrightnessGet()
+    const brightness = await deviceStore.busyBar.displayBrightnessGet()
       .then(response => {
         const valueParsed = response.value === 'auto' ? 'auto' : Number(response.value);
         const result = { value: valueParsed } as DisplayBrightnessParams;
@@ -21,7 +21,7 @@ export const useBrightnessStore = defineStore('brightness', () => {
     return brightness;
   }
   async function setDisplayBrightness (brightness: DisplayBrightnessParams): Promise<boolean> {
-    return await deviceStore.busyBar.DisplayBrightnessSet(brightness)
+    return await deviceStore.busyBar.displayBrightnessSet(brightness)
       .then(() => {
         displayBrightness.value = brightness;
         return true;

@@ -8,7 +8,7 @@ export const useAccessTokensStore = defineStore('accessTokens', () => {
 
   async function fetchTokens () {
     try {
-      const response = await deviceStore.busyBar.SettingsAccessTokensGet();
+      const response = await deviceStore.busyBar.settingsAccessTokensGet();
       tokens.value = response.tokens || [];
     } catch (error) {
       await handleHTTPError(error, 'Couldn\'t get access tokens', true);
@@ -17,7 +17,7 @@ export const useAccessTokensStore = defineStore('accessTokens', () => {
 
   async function revokeToken (shortId: string) {
     try {
-      await deviceStore.busyBar.SettingsAccessTokenRevoke({ short_id: shortId });
+      await deviceStore.busyBar.settingsAccessTokenRevoke({ short_id: shortId });
       tokens.value = tokens.value.filter(token => token.short_id !== shortId);
       return true;
     } catch (error) {

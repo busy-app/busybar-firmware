@@ -49,31 +49,27 @@ export const useFirmwareStore = defineStore('firmware', () => {
 
   const autoUpdateSelfCheck = ref<AutoUpdateSelfCheckState>({ is_enabled: false, interval_start: '02:00', interval_end: '05:00' });
   async function fetchAutoUpdateSelfCheck () {
-    return useApiStore().apiRequest<AutoUpdateSelfCheckState>('/api/update/autoupdate')
-      .then(response => {
-        autoUpdateSelfCheck.value = {
-          is_enabled: response.is_enabled,
-          interval_start: response.interval_start,
-          interval_end: response.interval_end
-        };
+    try {
+      const response = await deviceStore.busyBar.updateAutoUpdateGet();
+      autoUpdateSelfCheck.value = {
+        is_enabled: response.is_enabled ?? autoUpdateSelfCheck.value.is_enabled,
+        interval_start: response.interval_start ?? autoUpdateSelfCheck.value.interval_start,
+        interval_end: response.interval_end ?? autoUpdateSelfCheck.value.interval_end
+      };
 
-        return autoUpdateSelfCheck.value;
-      })
-      .catch(async error => {
-        await handleHTTPError(error, 'Couldn\'t fetch auto-update self-check settings');
-      });
+      return autoUpdateSelfCheck.value;
+    } catch (error) {
+      await handleHTTPError(error, 'Couldn\'t fetch auto-update self-check settings');
+    }
   }
+
   async function setAutoUpdateSelfCheck (payload: AutoUpdateSelfCheckState) {
-    return useApiStore().apiRequest('/api/update/autoupdate', {
-      method: 'POST',
-      body: payload
-    })
-      .then(() => {
-        autoUpdateSelfCheck.value = payload;
-      })
-      .catch(async error => {
-        await handleHTTPError(error, 'Couldn\'t update auto-update self-check settings');
-      });
+    try {
+      await deviceStore.busyBar.updateAutoUpdateSet(payload);
+      autoUpdateSelfCheck.value = payload;
+    } catch (error) {
+      await handleHTTPError(error, 'Couldn\'t update auto-update self-check settings');
+    }
   }
 
   function stopAutoUpdateProgressPolling () {
@@ -94,7 +90,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
     autoUpdate.value.error.message = null;
   }
   async function fetchAutoUpdateStatus (attempt: number = 0): Promise<void> {
-    return deviceStore.busyBar.UpdateStatusGet()
+    return deviceStore.busyBar.updateStatusGet()
       .then(async status => {
         if (!status.check?.status || !status.check.event) {
           throw new Error('Invalid update status response: missing check info');
@@ -169,7 +165,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
     }
     autoUpdate.value.isChecking = true;
 
-    return deviceStore.busyBar.UpdateCheck()
+    return deviceStore.busyBar.updateCheck()
       .then(async () => {
         console.debug('Auto-update check requested');
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -185,6 +181,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
       });
   }
   function setAutoUpdateBackgroundCheckInterval () {
+    clearAutoUpdateBackgroundCheckInterval();
     autoUpdate.value.backgroundCheckInterval = setInterval(() => {
       console.debug(`Performing background auto-update check (${new Date().toISOString()})`);
       requestAutoUpdateCheck();
@@ -199,7 +196,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
 
   async function fetchAutoUpdateChangelog (version: string) {
     autoUpdate.value.isChangelogLoading = true;
-    await deviceStore.busyBar.UpdateChangelogGet({ version })
+    await deviceStore.busyBar.updateChangelogGet({ version })
       .then(response => {
         if (autoUpdate.value.availableVersion === version) {
           autoUpdate.value.changelog = response.changelog || null;
@@ -235,10 +232,10 @@ export const useFirmwareStore = defineStore('firmware', () => {
     }
     console.debug('Requesting auto-update installation');
 
-    return deviceStore.busyBar.UpdateInstall({ version: autoUpdate.value.availableVersion }, { timeout: 0 });
+    return deviceStore.busyBar.updateInstall({ version: autoUpdate.value.availableVersion }, { timeout: 0 });
   }
   async function abortAutoUpdateDownload () {
-    await deviceStore.busyBar.UpdateAbort()
+    await deviceStore.busyBar.updateAbort()
       .then(() => {
         console.debug('Auto-update download abort requested');
         stopAutoUpdateProgressPolling();
@@ -269,7 +266,7 @@ export const useFirmwareStore = defineStore('firmware', () => {
     }
 
     const pollingInterval = setInterval(async () => {
-      await deviceStore.busyBar.UpdateStatusGet()
+      await deviceStore.busyBar.updateStatusGet()
         .then(status => {
           if (autoUpdate.value.progressPollingInterval !== pollingInterval) {
             return;

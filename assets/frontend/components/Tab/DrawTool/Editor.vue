@@ -2284,7 +2284,7 @@ async function clearStatusDisplay (): Promise<void> {
   const deviceStore = useDeviceStore();
 
   try {
-    await deviceStore.busyBar.DisplayClear({
+    await deviceStore.busyBar.displayClear({
       application_name: DRAW_TOOL_DISPLAY_APPLICATION_NAME
     });
   } catch (error) {
@@ -2296,7 +2296,7 @@ async function clearStatusDisplay (): Promise<void> {
 async function uploadStatusAsset (image: Blob) {
   const deviceStore = useDeviceStore();
 
-  return deviceStore.busyBar.AssetsUpload({
+  return deviceStore.busyBar.assetsUpload({
     application_name: DRAW_TOOL_DISPLAY_APPLICATION_NAME,
     data: image,
     file: DRAW_TOOL_TEMP_FILE_NAME
@@ -2310,7 +2310,7 @@ async function uploadStatusAsset (image: Blob) {
 async function drawStatusOnBusyBar (fileName: string) {
   const deviceStore = useDeviceStore();
 
-  return deviceStore.busyBar.DisplayDraw({
+  return deviceStore.busyBar.displayDraw({
     application_name: DRAW_TOOL_DISPLAY_APPLICATION_NAME,
     elements: [
       {
@@ -2339,7 +2339,7 @@ async function drawStatusOnBusyBar (fileName: string) {
 
 async function listSaveDirectory () {
   const deviceStore = useDeviceStore();
-  const result = await deviceStore.busyBar.StorageListGet({ path: DRAW_TOOL_SAVE_DIR });
+  const result = await deviceStore.busyBar.storageListGet({ path: DRAW_TOOL_SAVE_DIR });
 
   if (!result.list) {
     throw new Error('Empty response');
@@ -2360,7 +2360,7 @@ async function ensureSaveDirectoryExists () {
   const deviceStore = useDeviceStore();
 
   try {
-    await deviceStore.busyBar.StorageMkdir({ path: DRAW_TOOL_SAVE_DIR });
+    await deviceStore.busyBar.storageMkdir({ path: DRAW_TOOL_SAVE_DIR });
   } catch {
     // Ignore mkdir failure here and let the follow-up list call decide whether the directory is usable.
   }
@@ -2371,7 +2371,7 @@ async function ensureSaveDirectoryExists () {
 async function writeStatusFile (path: string, file: File) {
   const deviceStore = useDeviceStore();
 
-  await deviceStore.busyBar.StorageWrite({
+  await deviceStore.busyBar.storageWrite({
     path,
     file
   }, { timeout: 0 });

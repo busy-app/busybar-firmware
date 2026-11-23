@@ -6,7 +6,7 @@ export const useAudioStore = defineStore('audio', () => {
 
   const audio = ref<AudioVolumeInfo | undefined>(undefined);
   async function fetchAudioVolume (): Promise<AudioVolumeInfo | undefined> {
-    const volume = await deviceStore.busyBar.AudioVolumeGet()
+    const volume = await deviceStore.busyBar.audioVolumeGet()
       .then(response => {
         audio.value = response;
         return response;
@@ -19,7 +19,7 @@ export const useAudioStore = defineStore('audio', () => {
     return volume;
   }
   async function setAudioVolume (volume: number): Promise<boolean> {
-    return await deviceStore.busyBar.AudioVolumeSet({ volume })
+    return await deviceStore.busyBar.audioVolumeSet({ volume })
       .then(() => {
         if (audio.value) {
           audio.value.volume = volume;

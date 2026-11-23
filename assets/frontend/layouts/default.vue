@@ -46,7 +46,7 @@
 
 <script setup lang="ts">
 import type { ProcessedState } from '@busy-app/busy-lib';
-import { BSB_Error, StateStreamErrorCode, StreamLifecycle } from '@busy-app/busy-lib';
+import { BSB_Error, StateStreamError, StateStreamErrorCode, StreamLifecycle } from '@busy-app/busy-lib';
 
 const deviceStore = useDeviceStore();
 const firmwareStore = useFirmwareStore();
@@ -88,7 +88,7 @@ async function init () {
       await firmwareStore.fetchAutoUpdateStatus();
     }
 
-    await initStateStream();
+    initStateStream();
 
     if (hasPathQuery()) {
       tabStore.showHiddenTabs = true;
@@ -122,13 +122,13 @@ function handleStateStreamFailure () {
   deviceStore.setRefreshInterval();
   firmwareStore.setAutoUpdateBackgroundCheckInterval();
 }
-function initStateStream () {
+async function initStateStream () {
   try {
     stateStreamStore.showStateStreamFailBanner = false;
 
     const now = Date.now();
     console.debug('Starting state stream');
-    stateStreamStore.stream.start({
+    await stateStreamStore.stream.start({
       dataCallback: message => {
         stateStreamStore.applyStateMessage(message);
         if (configStore.get('stateStreamLogUpdates')) {
@@ -138,11 +138,7 @@ function initStateStream () {
       statusCallback: stateStreamStore.applyStreamStatus,
       errorCallback: error => {
         function stop () {
-          try {
-            stateStreamStore.stopStream();
-          } catch (stopError) {
-            console.warn('Failed to stop state stream after error:', stopError);
-          }
+          stateStreamStore.stopStream();
           handleStateStreamFailure();
         }
 
@@ -174,6 +170,11 @@ function initStateStream () {
     deviceStore.clearRefreshInterval();
     firmwareStore.clearAutoUpdateBackgroundCheckInterval();
   } catch (error) {
+    if (error instanceof StateStreamError && error.code === StateStreamErrorCode.STREAM_ALREADY_STARTED) {
+      console.warn('State stream is already running');
+      return;
+    }
+
     console.error('Error starting state websocket:', error);
     stateStreamStore.showStateStreamFailBanner = true;
     handleStateStreamFailure();

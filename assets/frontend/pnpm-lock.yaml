@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@busy-app/busy-lib':
-        specifier: ^0.21.1
-        version: 0.21.1
+        specifier: 1.0.0-rc.1
+        version: 1.0.0-rc.1
       '@nuxt/eslint':
         specifier: 1.4.1
         version: 1.4.1(@typescript-eslint/utils@8.44.0(eslint@9.35.0(jiti@2.5.1))(typescript@5.9.2))(@vue/compiler-sfc@3.5.21)(eslint@9.35.0(jiti@2.5.1))(magicast@0.3.5)(typescript@5.9.2)(vite-plugin-eslint2@5.0.4(eslint@9.35.0(jiti@2.5.1))(rollup@4.50.2)(vite@7.1.5(@types/node@25.6.0)(jiti@2.5.1)(lightningcss@1.30.1)(terser@5.44.0)(yaml@2.8.2)))(vite@7.1.5(@types/node@25.6.0)(jiti@2.5.1)(lightningcss@1.30.1)(terser@5.44.0)(yaml@2.8.2))
@@ -240,8 +240,8 @@ packages:
     resolution: {integrity: sha512-LwdZHpScM4Qz8Xw2iKSzS+cfglZzJGvofQICy7W7v4caru4EaAmyUuO6BGrbyQ2mYV11W0U8j5mBhd14dd3B0A==}
     engines: {node: '>=6.9.0'}
 
-  '@busy-app/busy-lib@0.21.1':
-    resolution: {integrity: sha512-GPPy9pE2Q/RNWMR56xq/ccFBetnz5KELNP/4JIMUC0V7eP4v8PlLW1kjuUqI7q0gOnmagENhKALsA3jhAHBsyA==}
+  '@busy-app/busy-lib@1.0.0-rc.1':
+    resolution: {integrity: sha512-cB6dKL4hD4eN9avhqQJxcP9NPZ7b28Sb3H9Z6uupbqHxDZQFt9IhRsFsLAviSvREMBjMYYnAtmr5nPaaCWrNMA==}
     engines: {node: '>=18'}
 
   '@capsizecss/metrics@3.5.0':
@@ -3886,12 +3886,6 @@ packages:
     resolution: {integrity: sha512-7x81NCL719oNbsq/3mh+hVrAWmFuEYUqrq/Iw3kUzH8ReypT9QQ0BLoJS7/G9k6N81XjW4qHWtjWwe/9eLy1EQ==}
     engines: {node: '>=12'}
 
-  openapi-fetch@0.14.1:
-    resolution: {integrity: sha512-l7RarRHxlEZYjMLd/PR0slfMVse2/vvIAGm75/F7J6MlQ8/b9uUQmUF2kCPrQhJqMXSxmYWObVgeYXbFYzZR+A==}
-
-  openapi-typescript-helpers@0.0.15:
-    resolution: {integrity: sha512-opyTPaunsklCBpTK8JGef6mfPhLSnyy5a0IN9vKtx3+4aExf+KxEqYwIy3hqkedXIB97u357uLMJsOnm3GVjsw==}
-
   optionator@0.9.4:
     resolution: {integrity: sha512-6IpQ7mKUxRcZNLIObR0hz7lxsapSSIYNZJwXPGeF0mTVqGKFIXj1DQcMoT22S3ROcLyY/rz0PWaWZ9ayWmad9g==}
     engines: {node: '>= 0.8.0'}
@@ -4275,8 +4269,8 @@ packages:
   property-information@7.1.0:
     resolution: {integrity: sha512-TwEZ+X+yCJmYfL7TPUOcvBZ4QfoT5YenQiJuX//0th53DE6w0xxLEtfK3iyryQFddXuvkIk51EEgrJQ0WJkOmQ==}
 
-  protobufjs@8.0.3:
-    resolution: {integrity: sha512-LBYnMWkKLB8fE/ljROPDbCl7mgLSlI+oBe1fAAr5MTqFg4TIi0tYrVVurJvQggOjnUYMQtEZBjrej59ojMNTHQ==}
+  protobufjs@8.8.1:
+    resolution: {integrity: sha512-d9e9179bjXSJdpJ3+R9fP8hzXsnKLyxTjHLG1dUzje8a27pPyXCe6PrcRtgx2rjoM3IZzHd2vAs+6J/BsO1k7Q==}
     engines: {node: '>=12.0.0'}
 
   protocols@2.0.2:
@@ -5550,10 +5544,9 @@ snapshots:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.28.5
 
-  '@busy-app/busy-lib@0.21.1':
+  '@busy-app/busy-lib@1.0.0-rc.1':
     dependencies:
-      openapi-fetch: 0.14.1
-      protobufjs: 8.0.3
+      protobufjs: 8.8.1
 
   '@capsizecss/metrics@3.5.0': {}
 
@@ -7078,6 +7071,7 @@ snapshots:
   '@types/node@25.6.0':
     dependencies:
       undici-types: 7.19.2
+    optional: true
 
   '@types/parse-path@7.1.0':
     dependencies:
@@ -9971,12 +9965,6 @@ snapshots:
       is-docker: 2.2.1
       is-wsl: 2.2.0
 
-  openapi-fetch@0.14.1:
-    dependencies:
-      openapi-typescript-helpers: 0.0.15
-
-  openapi-typescript-helpers@0.0.15: {}
-
   optionator@0.9.4:
     dependencies:
       deep-is: 0.1.4
@@ -10372,9 +10360,8 @@ snapshots:
 
   property-information@7.1.0: {}
 
-  protobufjs@8.0.3:
+  protobufjs@8.8.1:
     dependencies:
-      '@types/node': 25.6.0
       long: 5.3.2
 
   protocols@2.0.2: {}
@@ -11025,7 +11012,8 @@ snapshots:
       magic-string: 0.30.21
       unplugin: 2.3.11
 
-  undici-types@7.19.2: {}
+  undici-types@7.19.2:
+    optional: true
 
   unenv@2.0.0-rc.21:
     dependencies:
