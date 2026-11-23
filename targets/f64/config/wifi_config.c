@@ -24,9 +24,9 @@ const sl_wifi_device_configuration_t wifi_config_client = {
             .oper_mode = SL_SI91X_CLIENT_MODE,
             .coex_mode = SL_SI91X_WLAN_BLE_MODE,
             .feature_bit_map =
-                (SL_SI91X_FEAT_SECURITY_OPEN | SL_SI91X_FEAT_SECURITY_PSK |
-                 SL_WIFI_FEAT_CLEAR_SCAN_RESULTS_AFTER_USE | SL_SI91X_FEAT_AGGREGATION |
-                 SL_SI91X_FEAT_ULP_GPIO_BASED_HANDSHAKE | SL_SI91X_FEAT_DEV_TO_HOST_ULP_GPIO_1),
+                (SL_SI91X_FEAT_SECURITY_OPEN | SL_SI91X_FEAT_SECURITY_PSK | BIT(21) | BIT(22) |
+                 SL_SI91X_FEAT_AGGREGATION | SL_SI91X_FEAT_ULP_GPIO_BASED_HANDSHAKE |
+                 SL_SI91X_FEAT_DEV_TO_HOST_ULP_GPIO_1),
             .tcp_ip_feature_bit_map =
                 (SL_SI91X_TCP_IP_FEAT_BYPASS | SL_SI91X_TCP_IP_FEAT_EXTENSION_VALID),
             .custom_feature_bit_map =
@@ -36,7 +36,8 @@ const sl_wifi_device_configuration_t wifi_config_client = {
                  /* The below feature flag actually DISABLES the blocklist */
                  SL_SI91X_CUSTOM_FEAT_ENABLE_AP_BLACKLIST),
             .ext_custom_feature_bit_map =
-                (SL_SI91X_EXT_FEAT_XTAL_CLK | SL_SI91X_EXT_FEAT_IEEE_80211W | MEMORY_CONFIG
+                (SL_SI91X_EXT_FEAT_XTAL_CLK | SL_SI91X_EXT_FEAT_IEEE_80211W | MEMORY_CONFIG |
+                 BIT(7)
 #ifdef SLI_SI917
                  | SL_SI91X_EXT_FEAT_FRONT_END_SWITCH_PINS_ULP_GPIO_4_5_0
 #endif
