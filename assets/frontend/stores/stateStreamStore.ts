@@ -74,15 +74,13 @@ export const useStateStreamStore = defineStore('stateStream', () => {
   });
 
   async function stopStream () {
-    const stopping = stream.value.stop();
-
     if (streamStatus.value?.data.status === DataStatus.STALE) {
       streamStatus.value.data.status = DataStatus.NONE;
     }
     doCheckConnectionOnStreamDataStale.value = true;
 
     try {
-      await stopping;
+      await stream.value.stop();
     } catch (error) {
       console.warn('State stream did not close cleanly:', error);
     }
