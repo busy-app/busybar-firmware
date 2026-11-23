@@ -50,7 +50,7 @@ class AppSettingsDocument(BaseModel):
 
 
 AppQueueAppId = Annotated[str, Field(pattern=r"^[a-z0-9_\-][a-z0-9_\-.]{0,31}$")]
-AppQueueItemId = Annotated[int, Field(strict=True)]
+AppQueueItemId = Annotated[int, Field(strict=True, ge=0, le=(1 << 32) - 1)]
 AppQueueOperationType = Literal["install", "remove"]
 AppQueueError = Literal["timeout", "queue_full", "skipped"]
 
@@ -82,9 +82,9 @@ class AppQueueRequestItem(BaseModel):
 
 
 class AppQueueAddRequest(BaseModel):
-    """POST /api/apps/queue body, including the documented empty batch."""
+    """POST /api/apps/queue body containing one to 100 operations."""
 
-    operations: list[AppQueueRequestItem] = Field(max_length=100)
+    operations: list[AppQueueRequestItem] = Field(min_length=1, max_length=100)
 
 
 class AppQueueResponseItem(BaseModel):

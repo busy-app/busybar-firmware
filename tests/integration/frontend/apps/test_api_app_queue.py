@@ -45,11 +45,18 @@ class TestAppQueue:
             app_queue.snapshot([])
         app_queue.assert_no_more_results()
 
-    @allure.title("An empty operation batch is accepted as a no-op per OpenAPI")
-    def test_empty_batch_is_noop(self, app_queue: AppQueueHarness):
-        with allure.step("Enqueue the empty batch permitted by minItems: 0"):
-            item_ids = app_queue.enqueue()
-            assert item_ids == [], f"Empty batch created queue items: {item_ids!r}"
+    @allure.title("An empty operation batch is rejected without queue mutation")
+    def test_empty_batch_is_rejected(
+        self, app_queue: AppQueueHarness, app_queue_contract, web_session, web_base_url
+    ):
+        with allure.step("Reject the empty operation batch"):
+            response = web_session.post(
+                web_base_url + "/api/apps/queue", json={"operations": []}
+            )
+            assert (
+                response.status_code == 400
+            ), f"Empty batch returned {response.status_code}: {response.text!r}"
+            app_queue_contract.assert_error(response)
             app_queue.snapshot([])
         app_queue.assert_no_more_results()
 

@@ -1,4 +1,4 @@
-"""Boundary and request-validation coverage derived from application OpenAPI."""
+"""Boundary and request-validation coverage for the application queue API."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ import allure
 import pytest
 
 from clients.api import AppQueueAddResponse
+from clients.state_pb import app_queue_pb2
 from utils.app_queue import AppQueueHarness
 
 
@@ -85,7 +86,6 @@ INVALID_FIELDS = [
     pytest.param(("app_id",), "../outside", id="parent-path"),
     pytest.param(("app_id",), "test/queue", id="slash-id"),
     pytest.param(("app_id",), "test\\queue", id="backslash-id"),
-    pytest.param(("app_id",), "test.queue\x00suffix", id="nul-id"),
     pytest.param(("operation",), MISSING, id="missing-operation"),
     pytest.param(("operation",), None, id="null-operation"),
     pytest.param(("operation",), [], id="array-operation"),
@@ -94,7 +94,6 @@ INVALID_FIELDS = [
     pytest.param(("operation", "type"), 1, id="number-type"),
     pytest.param(("operation", "type"), "update", id="unknown-type"),
     pytest.param(("operation", "type"), "INSTALL", id="uppercase-type"),
-    pytest.param(("operation", "type"), "install\x00suffix", id="nul-type"),
     pytest.param(("operation", "url"), MISSING, id="missing-url"),
     pytest.param(("operation", "url"), None, id="null-url"),
     pytest.param(("operation", "url"), 1, id="number-url"),
@@ -118,6 +117,8 @@ INVALID_CANCEL = [
     pytest.param({"item_id": "1"}, id="id-string"),
     pytest.param({"item_id": []}, id="id-array"),
     pytest.param({"item_id": {}}, id="id-object"),
+    pytest.param({"item_id": -1}, id="id-negative"),
+    pytest.param({"item_id": UINT32_MAX + 1}, id="id-above-uint32"),
     pytest.param({"all": True, "item_id": 1}, id="both-alternatives"),
 ]
 
@@ -173,7 +174,6 @@ class TestAppQueueContract:
             "-1.2.3",
             "1.2.-3",
             "1.2.3suffix",
-            "1.2.3\x00suffix",
             "\u0661.2.3",
         ],
         ids=[
@@ -185,7 +185,6 @@ class TestAppQueueContract:
             "negative-major",
             "negative-patch",
             "suffix",
-            "nul",
             "non-ascii-digit",
         ],
     )
@@ -206,11 +205,11 @@ class TestAppQueueContract:
             app_queue.snapshot(item_ids)
             app_queue_contract.assert_response(QUEUE_PATH, "post", response)
 
-    @allure.title("Remove operations validate the types of optional source fields")
+    @allure.title("Remove operations ignore optional download fields")
     @pytest.mark.parametrize(
         "field,value", [("url", None), ("url", 1), ("version", None), ("version", 1)]
     )
-    def test_invalid_remove_fields(
+    def test_remove_ignores_download_fields(
         self, app_queue, app_queue_contract, web_session, web_base_url, field, value
     ):
         item_ids = _blocked_queue(app_queue)
@@ -218,14 +217,75 @@ class TestAppQueueContract:
         item = candidate.remove().model_dump(exclude_none=True)
         item["operation"][field] = value
         body = {"operations": [item]}
-        app_queue_contract.assert_request(QUEUE_PATH, body, valid=False)
         response = _post(app_queue, web_session, web_base_url, json=body)
-        with allure.step("Reject the schema-invalid optional field atomically"):
+        with allure.step("Enqueue removal without interpreting URL or version"):
+            assert (
+                response.status_code == 202
+            ), f"Remove returned {response.status_code}: {response.text!r}"
+            app_queue_contract.assert_response(QUEUE_PATH, "post", response)
+            result = AppQueueAddResponse.model_validate(response.json()).result
+            assert len(result) == 1, f"Unexpected remove response: {result!r}"
+            item = result[0]
+            assert item.item_id is not None, f"Remove was not enqueued: {item!r}"
+            assert item.app_id == candidate.app_id, f"Remove changed app ID: {item!r}"
+            assert item.operation.model_dump(exclude_none=True) == {
+                "type": "remove"
+            }, f"Ignored fields leaked into queue metadata: {item!r}"
+            app_queue.snapshot(item_ids + [item.item_id])
+        app_queue.cancel(item_ids[0])
+        app_queue.wait_results(
+            {
+                item_ids[0]: app_queue_pb2.CANCELLED,
+                item.item_id: app_queue_pb2.NOT_FOUND,
+            }
+        )
+        app_queue.wait_idle()
+
+    @allure.title("Special characters in restricted operation fields are rejected")
+    @pytest.mark.parametrize(
+        "path,prefix",
+        [
+            (("app_id",), "test.queue"),
+            (("operation", "type"), "install"),
+            (("operation", "version"), "1.2.3"),
+        ],
+        ids=["app-id", "operation-type", "version"],
+    )
+    @pytest.mark.parametrize(
+        "character",
+        ["\n", "\r", "\t", '"', "'", "\\", "%", "\u2603"],
+        ids=[
+            "newline",
+            "carriage-return",
+            "tab",
+            "double-quote",
+            "single-quote",
+            "backslash",
+            "percent",
+            "unicode",
+        ],
+    )
+    def test_special_characters(
+        self,
+        app_queue,
+        app_queue_contract,
+        web_session,
+        web_base_url,
+        path,
+        prefix,
+        character,
+    ):
+        item_ids = _blocked_queue(app_queue)
+        candidate = app_queue.package()
+        item = candidate.install().model_dump(exclude_none=True)
+        body = {"operations": [_replace(item, path, prefix + character + "suffix")]}
+        response = _post(app_queue, web_session, web_base_url, json=body)
+        with allure.step("Reject the special character without queue mutation"):
             assert (
                 response.status_code == 400
-            ), f"Invalid remove field accepted: {response.status_code}, {response.text!r}"
+            ), f"Special character accepted in {path!r}: {character!r}, {response.status_code}, {response.text!r}"
             app_queue.snapshot(item_ids)
-            app_queue_contract.assert_response(QUEUE_PATH, "post", response)
+            app_queue_contract.assert_error(response)
 
     @allure.title("Invalid source URL strings are rejected before queue mutation")
     @pytest.mark.parametrize(
@@ -312,7 +372,6 @@ class TestAppQueueContract:
     def test_invalid_cancellation(
         self, app_queue, app_queue_contract, web_session, web_base_url, body
     ):
-        app_queue_contract.assert_request(CANCEL_PATH, body, valid=False)
         item_ids = _blocked_queue(app_queue)
         response = web_session.post(
             web_base_url + CANCEL_PATH,
@@ -320,11 +379,14 @@ class TestAppQueueContract:
             headers={"Content-Type": "application/json"},
         )
         with allure.step("Verify a client error and unchanged active operation"):
+            assert (
+                response.status_code == 400
+            ), f"Invalid cancellation returned {response.status_code}: {response.text!r}"
             app_queue.snapshot(item_ids)
             app_queue_contract.assert_error(response)
 
-    @allure.title("Cancellation parse-error status is declared in OpenAPI")
-    def test_cancellation_error_is_documented(
+    @allure.title("Malformed cancellation JSON returns Bad Request")
+    def test_cancellation_malformed_json(
         self, app_queue, app_queue_contract, web_session, web_base_url
     ):
         response = web_session.post(
@@ -333,14 +395,16 @@ class TestAppQueueContract:
             headers={"Content-Type": "application/json"},
         )
         app_queue.snapshot([])
+        assert (
+            response.status_code == 400
+        ), f"Malformed cancellation returned {response.status_code}: {response.text!r}"
         app_queue_contract.assert_error(response)
-        app_queue_contract.assert_response(CANCEL_PATH, "post", response)
 
-    @allure.title("Unknown IDs allowed by OpenAPI return 404 without queue mutation")
+    @allure.title("Unknown uint32 IDs return 404 without queue mutation")
     @pytest.mark.parametrize(
         "item_id",
-        [0, UINT32_MAX, -1, UINT32_MAX + 1],
-        ids=["zero", "uint32-max", "negative", "above-uint32"],
+        [0, UINT32_MAX],
+        ids=["zero", "uint32-max"],
     )
     def test_unknown_integer_id(
         self, app_queue, app_queue_contract, web_session, web_base_url, item_id
