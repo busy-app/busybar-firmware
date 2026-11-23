@@ -28,8 +28,6 @@ struct DesktopOverlay {
 static void
     desktop_overlay_mask_frame(AnimPlayer* anim, const AnimFileFrameInfo* frame, void* context) {
     UNUSED(context);
-    if(frame->flags & FuriFlagError) return;
-
     if(frame->flags & AnimFileFrameFlagFinished) {
         widget_set_visible(anim_player_get_base(anim), false);
     }

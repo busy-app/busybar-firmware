@@ -23,11 +23,21 @@ static void anim_player_timer_cb(lv_timer_t* timer) {
     furi_check(instance->file);
 
     AnimFileFrameInfo info = anim_file_frame(instance->file);
+
+    if(info.flags & AnimFileFrameFlagError) {
+        FURI_LOG_E(TAG, "Failed to play file: %s", instance->file_path);
+        info.flags |= AnimFileFrameFlagFinished;
+    }
+
     lv_obj_invalidate(instance->canvas);
 
-    if(info.flags & AnimFileFrameFlagFinished) lv_timer_pause(instance->timer);
+    if(info.flags & AnimFileFrameFlagFinished) {
+        lv_timer_pause(instance->timer);
+    }
 
-    if(instance->frame_cb) instance->frame_cb(instance, &info, instance->frame_cb_context);
+    if(instance->frame_cb) {
+        instance->frame_cb(instance, &info, instance->frame_cb_context);
+    }
 }
 
 static void anim_player_resize_canvas(AnimPlayer* player, size_t width, size_t height) {

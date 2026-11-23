@@ -34,11 +34,10 @@ static void soft_off_animation_finished_callback(
     furi_assert(context);
     UNUSED(anim_player);
 
-    if(frame->flags & AnimFileFrameFlagError) return;
-    if(!(frame->flags & AnimFileFrameFlagFinished)) return;
-
-    FuriThreadId thread_id = context;
-    furi_thread_flags_set(thread_id, SoftOffThreadFlagAnimationCompleted);
+    if(frame->flags & AnimFileFrameFlagFinished) {
+        FuriThreadId thread_id = context;
+        furi_thread_flags_set(thread_id, SoftOffThreadFlagAnimationCompleted);
+    }
 }
 
 int32_t soft_off_app(void* arg) {

@@ -149,7 +149,9 @@ static void prompt_overlay_frame_callback(
     furi_assert(anim_player);
     UNUSED(context);
 
-    if(frame->flags & FuriFlagError) return;
+    if(frame->flags & AnimFileFrameFlagError) {
+        return;
+    }
 
     int8_t offset = 0;
     if(frame->index < COUNT_OF(overlay_offset_animation)) {
