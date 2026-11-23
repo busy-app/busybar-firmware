@@ -59,4 +59,5 @@ sl_status_t sl_log_sync_timestamp(uint8_t core_id, void *args) {
     return SL_STATUS_OK;
 }
 
-uint32_t sl_si91x_log_host_timesync_address;
+static uint32_t timesync;
+uint32_t sl_si91x_log_host_timesync_address = (uint32_t)&timesync;
