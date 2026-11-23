@@ -52,7 +52,12 @@ static bool parse_headers_list(HttpHeaders* headers, const char* data, size_t da
             break;
         }
         case ParseStateColon: {
-            if(c != ' ' && c != '\t') {
+            if(c == '\r') {
+                // Empty field value
+                value_begin_i = i;
+                value_end_i = i;
+                state = ParseStateNewline;
+            } else if(c != ' ' && c != '\t') {
                 if(isspace((int)c)) {
                     return false;
                 }

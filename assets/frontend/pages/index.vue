@@ -1,7 +1,7 @@
 <template>
   <div
     data-id="page-index"
-    class="w-full flex flex-col gap-4"
+    class="flex w-full flex-col gap-4"
   >
     <TabNetwork v-if="tabStore.currentTab === 'network'" />
     <TabFirmware v-if="tabStore.currentTab === 'firmware'" />

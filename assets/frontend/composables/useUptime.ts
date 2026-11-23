@@ -20,9 +20,9 @@ function parseUptime (uptime: string) {
 
   const normalizedDays = hours >= 24 ? 0 : days;
 
-  return normalizedDays * SECONDS_PER_DAY
-    + hours * SECONDS_PER_HOUR
-    + minutes * SECONDS_PER_MINUTE
+  return (normalizedDays * SECONDS_PER_DAY)
+    + (hours * SECONDS_PER_HOUR)
+    + (minutes * SECONDS_PER_MINUTE)
     + seconds;
 }
 

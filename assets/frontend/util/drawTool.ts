@@ -163,8 +163,8 @@ export const BORDER_RING_PIXELS: BorderPixel[] = [
 export function getStageMetrics (stageWidth: number): DrawToolStageMetrics {
   const width = Math.max(MIN_STAGE_WIDTH, stageWidth || MIN_STAGE_WIDTH);
   const height = MIN_STAGE_HEIGHT;
-  const usableWidth = Math.max(width - STAGE_PADDING_X * 2, WORKSPACE_WIDTH);
-  const usableHeight = Math.max(height - STAGE_PADDING_Y * 2, WORKSPACE_HEIGHT);
+  const usableWidth = Math.max(width - (STAGE_PADDING_X * 2), WORKSPACE_WIDTH);
+  const usableHeight = Math.max(height - (STAGE_PADDING_Y * 2), WORKSPACE_HEIGHT);
   const cellSize = Math.max(1, Math.floor(Math.min(usableWidth / WORKSPACE_WIDTH, usableHeight / WORKSPACE_HEIGHT)));
   const workspaceWidth = WORKSPACE_WIDTH * cellSize;
   const workspaceHeight = WORKSPACE_HEIGHT * cellSize;
@@ -439,7 +439,7 @@ export function isBorderPixelActive (
   }
 
   const patternLength = borderDashSize + borderGapSize;
-  const normalizedIndex = ((index - borderGapOffset) % patternLength + patternLength) % patternLength;
+  const normalizedIndex = (((index - borderGapOffset) % patternLength) + patternLength) % patternLength;
 
   return normalizedIndex < borderDashSize;
 }
