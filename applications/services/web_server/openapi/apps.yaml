@@ -542,6 +542,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Failed to parse request or invalid value
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "Bad Request"
         "404":
           description: >
             Item with requested ID is not found.
@@ -683,6 +691,8 @@ schemas:
     description: >
       Numeric identifier of the item in the queue. Starts at 0 for the first queue
       operation after reset and wraps back to 0 on overflow.
+    minimum: 0
+    maximum: 4294967295
     examples:
       - 0
       - 42
@@ -772,7 +782,6 @@ schemas:
       required:
         - url
 
-
   AppQueueRequestItem:
     type: object
     description: Single item to be sent as an app operation queue command
@@ -822,7 +831,7 @@ schemas:
     properties:
       operations:
         type: array
-        minItems: 0
+        minItems: 1
         maxItems: 100
         items:
           $ref: "#/components/schemas/AppQueueRequestItem"
