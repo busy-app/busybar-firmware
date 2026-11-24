@@ -274,7 +274,7 @@ bool ble_security_rpa_enable(BleSecurityData* security) {
 
         //set privacy mode
         status = rsi_ble_set_privacy_mode(
-            rpa_keys->Identity_addr_type, rpa_keys->Identity_addr, RSI_BLE_NETWORK_PRIVACY_MODE);
+            rpa_keys->Identity_addr_type, rpa_keys->Identity_addr, RSI_BLE_DEVICE_PRIVACY_MODE);
         if(status != RSI_SUCCESS) {
             BLE_LOG_W("line %d -> status: 0x%lx", __LINE__, status);
             break;
