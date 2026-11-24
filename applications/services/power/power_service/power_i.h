@@ -78,6 +78,7 @@ typedef enum {
     PowerMessageTypeIsBatteryReady,
     PowerMessageTypeChargeEnable,
     PowerMessageTypeSetChargeLimit,
+    PowerMessageTypeGetChargeLimit,
     PowerMessageTypeSetChargeCurrent,
     PowerMessageTypePdGetInfo,
     PowerMessageTypePdRequest,

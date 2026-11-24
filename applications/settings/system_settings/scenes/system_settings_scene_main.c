@@ -7,6 +7,7 @@
 typedef enum {
     SceneEventPower = AppEventSceneEventsStart,
     SceneEventOffBehavior,
+    SceneEventChargeLimit,
     SceneEventDebug,
     SceneEventFactoryReset,
 } SceneEvent;
@@ -48,6 +49,13 @@ static void system_settings_scene_main_on_enter(void* context) {
             instance);
         submenu_add_item(
             data->front_menu,
+            "Charging",
+            NULL,
+            SceneEventChargeLimit,
+            system_settings_scene_main_menu_item_callback,
+            instance);
+        submenu_add_item(
+            data->front_menu,
             "Debug",
             NULL,
             SceneEventDebug,
@@ -64,7 +72,10 @@ static void system_settings_scene_main_on_enter(void* context) {
 
         data->back_menu = submenu_alloc(instance->back_scene_window);
         submenu_add_item(data->back_menu, "Power", NULL, SceneEventPower, NULL, instance);
-        submenu_add_item(data->back_menu, "OFF behavior", NULL, SceneEventDebug, NULL, instance);
+        submenu_add_item(
+            data->back_menu, "OFF behavior", NULL, SceneEventOffBehavior, NULL, instance);
+        submenu_add_item(
+            data->back_menu, "Charge limit", NULL, SceneEventChargeLimit, NULL, instance);
         submenu_add_item(data->back_menu, "Debug", NULL, SceneEventDebug, NULL, instance);
         submenu_add_item(
             data->back_menu, "Factory reset", NULL, SceneEventFactoryReset, NULL, instance);
@@ -102,6 +113,10 @@ static bool system_settings_scene_main_on_event(const SceneManagerEvent* event, 
         } else if(event->event == SceneEventOffBehavior) {
             scene_manager_next_scene(instance->scene_manager, SceneIdOffBehavior);
             system_settings_push_location(instance, "OFF BEHAVIOR");
+            consumed = true;
+        } else if(event->event == SceneEventChargeLimit) {
+            scene_manager_next_scene(instance->scene_manager, SceneIdChargingMenu);
+            system_settings_push_location(instance, "CHARGING");
             consumed = true;
         } else if(event->event == SceneEventDebug) {
             scene_manager_next_scene(instance->scene_manager, SceneIdDebug);

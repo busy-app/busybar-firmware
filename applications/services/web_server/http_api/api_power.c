@@ -1,5 +1,6 @@
 #include "http_api.h"
 #include <low_power/low_power.h>
+#include <power/power_service/power.h>
 
 #include <toolbox/value_index.h>
 
@@ -100,12 +101,91 @@ static bool api_power_sleep_get_or_set(
     return false;
 }
 
+static bool api_power_charging_get(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(method);
+    UNUSED(msg);
+    UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
+    Power* power = furi_record_open(RECORD_POWER);
+    uint32_t limit = power_get_charge_limit(power);
+    furi_record_close(RECORD_POWER);
+
+    MG_REPLY_OK_BODY(conn, "{\"charge_limit\":%lu}\n", limit);
+
+    return true;
+}
+
+static bool api_power_charging_set(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(method);
+    UNUSED(ctx);
+
+    if(!IS_HTTP_ENDPOINT(path)) return false;
+
+    bool success = false;
+    do {
+        double limit_double = 0;
+        if(!mg_json_get_num(msg->body, "$.charge_limit", &limit_double)) {
+            break;
+        }
+        uint32_t limit = limit_double;
+        if(limit < 60) break;
+        if(limit > 100) break;
+
+        Power* power = furi_record_open(RECORD_POWER);
+        power_set_charge_limit(power, limit);
+        furi_record_close(RECORD_POWER);
+
+        success = true;
+    } while(0);
+
+    if(success) {
+        MG_REPLY_OK(conn);
+    } else {
+        MG_REPLY_BAD_REQUEST(conn);
+    }
+
+    return true;
+}
+
+static bool api_power_charging_get_or_set(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    if(method == HttpMethodGet) {
+        return api_power_charging_get(path, method, conn, msg, ctx);
+    } else if(method == HttpMethodPost) {
+        return api_power_charging_set(path, method, conn, msg, ctx);
+    }
+
+    return false;
+}
+
 static const HttpHandler api_power_handlers[] = {
     {
         .uri = "sleep",
         .method = HttpMethodGet | HttpMethodPost,
         .type = HttpHandlerCustom,
         .on_request = api_power_sleep_get_or_set,
+    },
+    {
+        .uri = "charging",
+        .method = HttpMethodGet | HttpMethodPost,
+        .type = HttpHandlerCustom,
+        .on_request = api_power_charging_get_or_set,
     },
 };
 
