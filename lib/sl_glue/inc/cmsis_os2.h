@@ -79,6 +79,8 @@
 #include <furi/core/message_queue.h>
 #include <furi/core/timer.h>
 #include <furi/core/event_flag.h>
+#include <furi/core/log.h>
+#include <furi/core/check.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -553,9 +555,9 @@ static FURI_ALWAYS_INLINE osStatus_t osThreadJoin(osThreadId_t thread_id) {
 /// \return status code that indicates the execution status of the function.
 //osStatus_t osThreadTerminate (osThreadId_t thread_id);
 static FURI_ALWAYS_INLINE osStatus_t osThreadTerminate(osThreadId_t thread_id) {
-    FuriThread* thread = (FuriThread*)thread_id;
-    furi_thread_join(thread);
-    furi_thread_free(thread);
+    UNUSED(thread_id);
+    FURI_LOG_E("CMSIS", "osThreadTerminate is forbidden");
+    furi_crash("osThreadTerminate is forbidden");
     return osOK;
 }
 
