@@ -315,7 +315,7 @@ void nvm_test_command(PipeSide* pipe, FuriString* args, void* context) {
     cli_registry_add_command(
         registry, "purge", CliCommandFlagDefault, nvm_test_purge_command, instance);
 
-    CliShell* shell = cli_shell_alloc(nvm_test_motd, NULL, pipe, registry, NULL);
+    CliShell* shell = cli_shell_alloc(nvm_test_motd, NULL, pipe, registry, NULL, CliShellFlagNone);
     cli_shell_set_prompt(shell, "nvm_test");
 
     cli_shell_start(shell);
