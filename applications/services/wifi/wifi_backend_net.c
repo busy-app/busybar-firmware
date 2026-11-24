@@ -47,6 +47,8 @@ static err_t wifi_net_tcpip_output_callback(struct netif* netif, struct pbuf* p)
     const sl_status_t status =
         sl_wifi_send_raw_data_frame(SL_WIFI_CLIENT_INTERFACE, p->payload, p->len);
 
+    wifi_mdns_bridge_mirror_response(instance, p->payload, p->len);
+
     return status != SL_STATUS_OK ? ERR_IF : ERR_OK;
 }
 
@@ -147,6 +149,8 @@ static void wifi_net_tcpip_netif_down_callback(void* context) {
 
     netif_set_link_down(netif);
     netif_set_down(netif);
+
+    wifi_mdns_bridge_reset(instance);
 
     wifi_net_tcpip_unlock();
 }
@@ -303,6 +307,7 @@ sl_status_t
     if(ethertype == ETHERTYPE_IPV6) {
         wifi_net_tcpip_input(data, data_len);
     } else {
+        wifi_mdns_bridge_forward_query(instance, data, pkt->length);
         wifi_net_intercom_input(data, data_len);
     }
 
