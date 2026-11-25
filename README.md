@@ -2,7 +2,7 @@
     <source media="(prefers-color-scheme: dark)" srcset="/.github/assets/dark_theme_banner.png">
     <source media="(prefers-color-scheme: light)" srcset="/.github/assets/light_theme_banner.png">
     <img
-        alt="Banner with the '▶ BUSY Bar' logo on the left, the text 'Official Firmware Repository' beneath it, and a BUSY Bar device on the right."
+        alt="Banner with the '▶ BUSY Bar' logo and the text 'Official firmware: Source code, tools & documentation' on the left, and a BUSY Bar device showing 'Hello World' on the right."
         src="/.github/assets/light_theme_banner.png">
 </picture>
 
