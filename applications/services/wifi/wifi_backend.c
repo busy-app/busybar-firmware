@@ -533,8 +533,6 @@ static sl_status_t wifi_scan_callback(
     sl_wifi_scan_result_t* result,
     uint32_t result_length,
     void* context) {
-    UNUSED(result);
-
     furi_assert(context);
     Wifi* instance = context;
 
