@@ -11,12 +11,12 @@
       alt=""
       class="pointer-events-none absolute top-1 left-3.75 max-w-none mix-blend-overlay"
     >
-    <div class="pointer-events-none absolute top-19.5 -left-7.75 h-26.5 w-46.5 rounded-full bg-sky-400/80 blur-2xl" />
+    <div class="pointer-events-none absolute top-19.5 -left-7.75 h-26.5 w-46.5 rounded-full bg-sky-300/80 blur-2xl" />
 
     <img
-      src="~/assets/images/apps-catalog-banner/illustration.svg"
+      src="~/assets/images/apps-catalog-banner/illustration.png"
       alt=""
-      class="relative hidden shrink-0 sm:block"
+      class="relative hidden h-20 w-33.25 shrink-0 sm:block"
     >
 
     <div class="relative flex min-w-0 flex-1 items-start gap-1.5 py-4 pl-2 sm:pl-0">

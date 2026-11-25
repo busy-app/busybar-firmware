@@ -14,6 +14,11 @@ def _instantiate_vars():
             "Force intercom handshake version string (overrides the default git-hash based check)",
             "",
         ),
+        BoolVariable(
+            "SL_DEBUG_LOG",
+            help="Enable SiLabs SDK debug logs",
+            default=False
+        ),
     )
     return vars
 
