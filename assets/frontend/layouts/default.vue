@@ -1,7 +1,7 @@
 <template>
   <div
     data-id="layout-default"
-    class="min-h-screen px-4 sm:px-6 py-4"
+    class="min-h-screen p-4 sm:px-6"
   >
     <ConfigStoreCard v-if="configStore.showConfigUI === true" />
 
@@ -21,9 +21,9 @@
         <FileUpdateUploadModal />
         <TabDrawToolLeaveEditorModal />
 
-        <div class="w-full relative flex flex-col items-center xl:items-start gap-4 xl:grid xl:grid-cols-[160px_auto_160px] xl:gap-0">
+        <div class="relative flex w-full flex-col items-center gap-4 xl:grid xl:grid-cols-[160px_auto_160px] xl:items-start xl:gap-0">
           <DefaultLayoutTabs />
-          <div class="w-full max-w-[688px] flex flex-col gap-4 mx-auto">
+          <div class="mx-auto flex w-full max-w-172 flex-col gap-4">
             <DefaultLayoutUpdateBanner />
             <DefaultLayoutStateStreamFailBanner />
             <DefaultLayoutStateStreamResourceLimitBanner />
@@ -33,7 +33,7 @@
         </div>
       </template>
       <template v-else>
-        <div class="w-screen h-screen absolute top-0 left-0 flex items-center justify-center">
+        <div class="absolute top-0 left-0 flex h-screen w-screen items-center justify-center">
           <UIcon
             name="i-busy-loader"
             class="size-12 animate-spin text-muted"

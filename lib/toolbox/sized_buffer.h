@@ -11,3 +11,8 @@ typedef struct SizedBuffer {
     void* buffer;
     size_t size;
 } SizedBuffer;
+
+typedef struct SizedBufferConst {
+    const void* buffer;
+    size_t size;
+} SizedBufferConst;

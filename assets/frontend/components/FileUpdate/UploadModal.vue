@@ -22,7 +22,7 @@
         v-model="firmwareStore.fileUpdate.firmwareFile"
         data-id="modal-update-firmware-file-upload"
         accept=".tgz"
-        class="w-full h-[400px] rounded-xl"
+        class="h-100 w-full rounded-xl"
         label="Upload Firmware file (.tgz)"
         description="Drag and drop to upload"
         :ui="{
@@ -49,7 +49,7 @@
           <div class="text-muted">Current version: {{ fwVersionPolifilled }}</div>
         </div>
 
-        <div class="flex justify-between items-center p-3 ring-1 ring-muted rounded-xl">
+        <div class="flex items-center justify-between rounded-xl p-3 ring-1 ring-muted">
           <div class="flex items-center gap-4">
             <UIcon
               name="i-bi-archive"

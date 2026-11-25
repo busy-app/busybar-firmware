@@ -959,6 +959,7 @@ static void api_display_canvas_draw(struct mg_connection* conn, struct mg_http_m
 static void api_display_canvas_clear(struct mg_connection* conn, struct mg_http_message* msg) {
     FuriString* error = furi_string_alloc();
     bool request_valid = false;
+    int error_code = 400;
     cJSON* body = NULL;
     char** element_ids = NULL;
 
@@ -1034,6 +1035,9 @@ static void api_display_canvas_clear(struct mg_connection* conn, struct mg_http_
         } else if(res == CanvasResultWrongAppId) {
             furi_string_set_str(
                 error, "this application_name is currently not displaying anything");
+        } else if(res == CanvasResultLowPriority) {
+            furi_string_set_str(error, "not cleared due to low priority");
+            error_code = 409;
         } else {
             furi_crash("no error translation for canvas result");
         }
@@ -1043,7 +1047,7 @@ static void api_display_canvas_clear(struct mg_connection* conn, struct mg_http_
     if(body) cJSON_Delete(body);
 
     if(!request_valid) {
-        MG_REPLY_ERROR(conn, 400, furi_string_get_cstr(error));
+        MG_REPLY_ERROR(conn, error_code, furi_string_get_cstr(error));
     }
 
     furi_string_free(error);

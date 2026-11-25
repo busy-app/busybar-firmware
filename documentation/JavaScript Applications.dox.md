@@ -125,8 +125,8 @@ An arbitrary number of settings is supported, each of which can be any of the su
 settings can be grouped via the `group` directive, with a maximum of 4 nested levels.
 
 The graphical interface for viewing and editing the settings is handled by the firmware, so the application
-does not need to implement it by itself. However, not all settings types (namely, `color` and `geolocation`)
-can be edited via @bsb graphical interface due to display and input limitations. Full editing capability is
+does not need to implement it by itself. However, not all settings types (namely, `string`, `color`, `time`
+and `geolocation`) can be edited via @bsb graphical interface due to display and input limitations. Full editing capability is
 available from the Web UI or programmaticaly via the HTTP API.
 
 While running, the application only has the ability to read its settings via the `GET /api/apps/settings` HTTP request.

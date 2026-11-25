@@ -1,7 +1,7 @@
 <template>
   <div
     data-id="state-screen-stream"
-    class="relative w-fit mx-auto"
+    class="relative mx-auto w-fit"
   >
     <div class="relative z-1">
       <img
@@ -10,15 +10,15 @@
       >
     </div>
     <div
-      class="w-[288px] sm:w-[360px]
-        absolute top-[calc(50%+8.5px)] left-[calc(50%-0.5px)] transform -translate-x-1/2 -translate-y-1/2 z-2"
+      class="absolute top-[calc(50%+8.5px)]
+        left-[calc(50%-0.5px)] z-2 w-72 -translate-1/2 transform sm:w-90"
     >
       <canvas
         ref="canvasRef"
         data-id="state-screen-stream-canvas"
         :width="Number(configStore.get('screenStreamCanvasBaseResolutionWidth')) * dpr"
         :height="(Number(configStore.get('screenStreamCanvasBaseResolutionWidth')) / FRONT_SCREEN_WIDTH * FRONT_SCREEN_HEIGHT) * dpr"
-        class="w-full bg-transparent rounded-sm aspect-[72/16]"
+        class="aspect-[72/16] w-full rounded-sm bg-transparent"
       />
     </div>
   </div>

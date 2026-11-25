@@ -319,11 +319,17 @@ bool storage_process_dir_open(Storage* app, File* file, FuriString* path) {
     file->error_id = storage_get_data(app, type, &storage);
 
     if(file->error_id == FSE_OK) {
-        if(storage_path_already_open(path, FSAM_ANY, storage)) {
+        const char* storage_path = cstr_storage_path(app, type, path);
+
+        FileInfo file_info;
+        FS_Error fs_error = storage->fs_api->common.stat(storage, storage_path, &file_info);
+        if(fs_error == FSE_OK && !file_info_is_dir(&file_info)) {
+            file->error_id = FSE_INVALID_PARAMETER;
+        } else if(storage_path_already_open(path, FSAM_ANY, storage)) {
             file->error_id = FSE_ALREADY_OPEN;
         } else {
             storage_push_storage_file(file, path, FSAM_ANY, storage);
-            FS_CALL(storage, dir.open(storage, file, cstr_storage_path(app, type, path)));
+            FS_CALL(storage, dir.open(storage, file, storage_path));
         }
     }
 
@@ -892,11 +898,17 @@ void storage_process_message_internal(Storage* app, StorageMessage* message) {
         storage_process_alias(app, app->path_aliased, message->data->path.thread_id, false);
         message->return_data->error_value = storage_process_sd_status(app, app->path_aliased);
         break;
-    case StorageCommandBackupReadOnly:
+    case StorageCommandBackupReadOnly: {
         StorageData* storage = &app->storage[ST_BKP];
         storage_set_read_only(storage, message->data->readonly.readonly);
         message->return_data->bool_value = true;
         break;
+    }
+    case StorageCommandBackupReadOnlyGet: {
+        StorageData* storage = &app->storage[ST_BKP];
+        message->return_data->bool_value = storage_is_read_only(storage);
+        break;
+    }
     }
 
     furi_string_set(app->path_aliased, "");

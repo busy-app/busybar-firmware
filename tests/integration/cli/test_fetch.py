@@ -7,6 +7,12 @@ import allure
 import pytest
 
 from utils.fetch_http_server import (
+    FETCH_HTTP11_TIMEOUT_S,
+    HTTP11_ERROR_RESPONSES,
+    HTTP11_HEADER_ERROR_RESPONSES,
+    HTTP11_INCOMPLETE_TRAILER_CASES,
+    HTTP11_INFORMATIONAL_RESPONSES,
+    HTTP11_SUCCESS_RESPONSES,
     KNOWN_PAYLOAD,
     NOT_FOUND_PAYLOAD,
     REQUEST_RESPONSE,
@@ -37,6 +43,8 @@ Options:
 -K (TLS) Custom client private key file path
 -v Enable full output"""
 
+HTTP11_FAILED_RESPONSES = {**HTTP11_ERROR_RESPONSES, **HTTP11_HEADER_ERROR_RESPONSES}
+
 
 @allure.epic("Device Connectivity")
 @allure.feature("Outbound HTTP/TLS")
@@ -63,6 +71,17 @@ class TestCLIFetch:
             assert (
                 expected_md5 in actual_md5
             ), f"expected MD5 {expected_md5} for {path}, got {actual_md5!r}"
+
+    @staticmethod
+    def _assert_http11_request(http_server, path, output, method="GET"):
+        with allure.step("Verify the captured HTTP/1.1 request"):
+            try:
+                captured = http_server.requests.get(timeout=1)
+            except queue.Empty:
+                pytest.fail(f"No request for {path!r}; Fetch output={output!r}")
+            assert captured["version"] == "HTTP/1.1", f"captured={captured!r}"
+            assert captured["path"] == path, f"captured={captured!r}"
+            assert captured["method"] == method, f"captured={captured!r}"
 
     @allure.title("CLI. Command fetch requires a URL.")
     def test_fetch_requires_url(self, persistent_cli_connection):
@@ -200,6 +219,7 @@ class TestCLIFetch:
                 )
 
         with allure.step("Verify method, quoted values, and request framing"):
+            assert captured["version"] == "HTTP/1.1", f"captured={captured!r}"
             assert (
                 captured["method"] == "PUT"
             ), f"expected method PUT, captured {captured!r}"
@@ -315,3 +335,154 @@ class TestCLIFetch:
         finally:
             http_server.release_stall.set()
             cli.execute_command(f"storage remove {self.TIMEOUT_DEST}")
+
+    @allure.title("CLI. Fetch saves decoded HTTP/1.1 data: {case_name}.")
+    @pytest.mark.parametrize("case_name", HTTP11_SUCCESS_RESPONSES)
+    def test_fetch_http11_download(
+        self, persistent_cli_connection, http_server, storage_dir, case_name
+    ):
+        cli = persistent_cli_connection
+        case = HTTP11_SUCCESS_RESPONSES[case_name]
+        path = f"/http11/{case_name}"
+        destination = f"{storage_dir}/http11.bin"
+        response = cli.execute_command(
+            f"fetch -v {http_server.url(path)} -o {destination}",
+            timeout=FETCH_HTTP11_TIMEOUT_S,
+            slow_command=True,
+        )
+        with allure.step("Verify successful completion and decoded progress"):
+            assert "HTTP/1.1 200 OK" in response, response
+            assert "Error:" not in response, response
+            if any(name.lower() == "transfer-encoding" for name, _ in case.headers):
+                expected_progress = f"{len(case.payload) // 1024}KiB/?KiB"
+                assert (
+                    expected_progress in response
+                ), f"Expected decoded progress {expected_progress!r}, got {response!r}"
+            elif case.payload and case.keep_open:
+                assert "Downloaded: 100%" in response, response
+
+        self._assert_http11_request(http_server, path, response)
+        self._assert_saved_payload(cli, destination, case.payload)
+
+    @allure.title("CLI. Fetch rejects broken chunked data and recovers: {case_name}.")
+    @pytest.mark.parametrize(
+        "case_name",
+        [
+            (
+                pytest.param(
+                    case_name,
+                    marks=pytest.mark.skip(reason="FW-1313"),
+                )
+                if case_name in HTTP11_INCOMPLETE_TRAILER_CASES
+                else case_name
+            )
+            for case_name in HTTP11_FAILED_RESPONSES
+        ],
+    )
+    def test_fetch_http11_error_removes_output(
+        self, persistent_cli_connection, http_server, storage_dir, case_name
+    ):
+        cli = persistent_cli_connection
+        case = HTTP11_FAILED_RESPONSES[case_name]
+        path = f"/http11/{case_name}"
+        destination = f"{storage_dir}/http11.bin"
+        response = cli.execute_command(
+            f"fetch {http_server.url(path)} -o {destination}",
+            timeout=FETCH_HTTP11_TIMEOUT_S,
+            slow_command=True,
+        )
+        with allure.step("Verify the framing or inactivity error"):
+            expected_error = (
+                f"Error: {case.expected_error}" if case.expected_error else "Error:"
+            )
+            assert expected_error in response, response
+        self._assert_http11_request(http_server, path, response)
+        with allure.step("Verify the partial file was removed"):
+            stat = cli.execute_command(f"storage stat {destination}")
+            assert (
+                "Storage error: file/dir not exist" in stat
+            ), f"Partial file remains: {stat!r}; Fetch output={response!r}"
+        with allure.step("Download again after the failed transfer"):
+            recovery = cli.execute_command(
+                f"fetch {http_server.url('/http11/simple')} -o {destination}",
+                timeout=FETCH_HTTP11_TIMEOUT_S,
+                slow_command=True,
+            )
+            assert "Error:" not in recovery, recovery
+        self._assert_http11_request(http_server, "/http11/simple", recovery)
+        self._assert_saved_payload(cli, destination, b"hello")
+
+    @allure.title("CLI. Fetch rejects a 1xx response: {case_name}, {method}.")
+    @pytest.mark.parametrize("case_name", HTTP11_INFORMATIONAL_RESPONSES)
+    @pytest.mark.parametrize("method", ["GET", "HEAD"])
+    def test_fetch_http11_informational_response(
+        self, persistent_cli_connection, http_server, storage_dir, case_name, method
+    ):
+        cli = persistent_cli_connection
+        case = HTTP11_INFORMATIONAL_RESPONSES[case_name]
+        path = f"/http11/{case_name}"
+        destination = f"{storage_dir}/informational.bin"
+        response = cli.execute_command(
+            f"fetch -X {method} {http_server.url(path)} -o {destination}",
+            timeout=FETCH_HTTP11_TIMEOUT_S,
+            slow_command=True,
+        )
+        with allure.step("Verify the informational status was explicitly rejected"):
+            assert f"Error: {case.expected_error}" in response, response
+        self._assert_http11_request(http_server, path, response, method)
+        with allure.step("Verify the rejected download left no output file"):
+            stat = cli.execute_command(f"storage stat {destination}")
+            assert (
+                "Storage error: file/dir not exist" in stat
+            ), f"Rejected file remains: {stat!r}; Fetch output={response!r}"
+        if case.keep_open:
+            with allure.step("Verify Fetch closed the keep-alive connection"):
+                try:
+                    closed_path = http_server.closed_requests.get(timeout=1)
+                except queue.Empty:
+                    pytest.fail(
+                        f"Rejected connection remains open; output={response!r}"
+                    )
+                assert closed_path == path, f"Closed {closed_path!r}, expected {path!r}"
+        with allure.step("Verify a subsequent HTTP 200 download succeeds"):
+            recovery = cli.execute_command(
+                f"fetch {http_server.url('/http11/simple')} -o {destination}",
+                timeout=FETCH_HTTP11_TIMEOUT_S,
+                slow_command=True,
+            )
+            assert "Error:" not in recovery, recovery
+        self._assert_http11_request(http_server, "/http11/simple", recovery)
+        self._assert_saved_payload(cli, destination, b"hello")
+
+    @allure.title("CLI. Fetch completes a bodyless HTTP/1.1 response.")
+    @pytest.mark.parametrize(
+        "method,status",
+        [("HEAD", 200), ("GET", 204), ("GET", 304)],
+        ids=["head", "no-content", "not-modified"],
+    )
+    @pytest.mark.parametrize("framing", ["absent", "content-length", "chunked"])
+    @pytest.mark.parametrize("connection", ["close", "keep-alive"])
+    def test_fetch_http11_bodyless_response(
+        self,
+        persistent_cli_connection,
+        http_server,
+        storage_dir,
+        method,
+        status,
+        framing,
+        connection,
+    ):
+        cli = persistent_cli_connection
+        path = f"/http11/bodyless/{status}/{framing}/{connection}"
+        destination = f"{storage_dir}/bodyless.bin"
+        response = cli.execute_command(
+            f"fetch -v -X {method} {http_server.url(path)} -o {destination}",
+            timeout=FETCH_HTTP11_TIMEOUT_S,
+            slow_command=True,
+        )
+        with allure.step("Verify headers-only completion without a timeout"):
+            assert f"HTTP/1.1 {status} " in response, response
+            assert "Error:" not in response, response
+            assert "?KiB" not in response, response
+        self._assert_http11_request(http_server, path, response, method)
+        self._assert_saved_payload(cli, destination, b"")
