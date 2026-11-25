@@ -36,6 +36,8 @@
 
 #define INFO_TIMER_PERIOD_MS (15 * 1000)
 
+#define SCAN_MAX_RESULTS_SIZE (sizeof(sl_wifi_extended_scan_result_t) * SCAN_MAX_RESULTS)
+
 typedef enum {
     WifiEventTypeScanFinished,
     WifiEventTypeModuleStats,
@@ -44,7 +46,6 @@ typedef enum {
 
 typedef struct {
     sl_status_t status;
-    uint32_t data_length;
 } WifiScanFinishedEvent;
 
 typedef struct {
@@ -305,20 +306,13 @@ static void wifi_scan_finished_event_handler(Wifi* instance, const WifiScanFinis
         .status = wifi_decode_sl_status(event->status),
     };
 
-    if(response.status == WifiStatusOk && event->data_length > 0) {
+    if(response.status == WifiStatusOk) {
         uint16_t results_count = 0;
-
-        uint32_t data_length = event->data_length;
-        if(data_length > SCAN_MAX_RESULTS * sizeof(sl_wifi_extended_scan_result_t)) {
-            FURI_LOG_W(TAG, "too many scan results, some entries are discarded");
-            data_length = SCAN_MAX_RESULTS * sizeof(sl_wifi_extended_scan_result_t);
-        }
-
-        sl_wifi_extended_scan_result_t* scan_results = malloc(data_length);
+        sl_wifi_extended_scan_result_t* scan_results = malloc(SCAN_MAX_RESULTS_SIZE);
 
         sl_wifi_extended_scan_result_parameters_t params = {
             .scan_results = scan_results,
-            .array_length = data_length / sizeof(sl_wifi_extended_scan_result_t),
+            .array_length = SCAN_MAX_RESULTS,
             .result_count = &results_count,
         };
 
@@ -343,8 +337,7 @@ static void wifi_scan_finished_event_handler(Wifi* instance, const WifiScanFinis
 
         sli_wifi_flush_scan_results_database();
         free(scan_results);
-    } else if(event->data_length == 0) {
-        response.scan_results.count = 0;
+
     } else {
         FURI_LOG_E(TAG, "Scan finished with error: 0x%lX", event->status);
     }
@@ -530,28 +523,25 @@ static bool wifi_send_event(Wifi* instance, const WifiEvent* event) {
 static sl_status_t wifi_scan_callback(
     sl_wifi_event_t event,
     sl_status_t status_code,
-    sl_wifi_scan_result_t* result,
-    uint32_t result_length,
+    sl_wifi_scan_result_t* data,
+    uint32_t data_length,
     void* context) {
     furi_assert(context);
     Wifi* instance = context;
 
-    sl_status_t ret = SL_STATUS_OK;
-    sl_status_t status = SL_STATUS_OK;
+    const bool is_error = (status_code != SL_STATUS_OK);
+    const bool is_done = (event == SL_WIFI_SCAN_RESULT_EVENT) && (data == NULL);
 
-    if(event & SL_WIFI_EVENT_FAIL_INDICATION) {
-        event &= ~SL_WIFI_EVENT_FAIL_INDICATION;
-        status = status_code;
-        ret = SL_STATUS_FAIL;
-    }
+    if(is_error || is_done) {
+        if(is_done && (data_length > SCAN_MAX_RESULTS_SIZE)) {
+            FURI_LOG_W(TAG, "Too many scan results, some entries are discarded");
+        }
 
-    if(event == SL_WIFI_SCAN_RESULT_EVENT && (ret != SL_STATUS_OK || result == NULL)) {
         const WifiEvent wifi_event = {
             .type = WifiEventTypeScanFinished,
             .scan_finished =
                 {
-                    .status = status,
-                    .data_length = result_length,
+                    .status = status_code,
                 },
         };
 
@@ -560,7 +550,7 @@ static sl_status_t wifi_scan_callback(
         }
     }
 
-    return ret;
+    return status_code;
 }
 
 static sl_status_t wifi_stats_callback(
@@ -572,11 +562,7 @@ static sl_status_t wifi_stats_callback(
     furi_assert(context);
     Wifi* instance = context;
 
-    sl_status_t ret = SL_STATUS_OK;
-
-    if(status_code != SL_STATUS_OK) {
-        ret = SL_STATUS_FAIL;
-    } else if(event == SL_WIFI_STATS_MODULE_STATE_EVENT) {
+    if(event == SL_WIFI_STATS_MODULE_STATE_EVENT) {
         furi_assert(data);
         furi_assert(data_length == sizeof(sl_wifi_module_state_stats_response_t));
 
@@ -596,7 +582,7 @@ static sl_status_t wifi_stats_callback(
         }
     }
 
-    return ret;
+    return status_code;
 }
 
 static sl_status_t wifi_init_driver(Wifi* instance) {
