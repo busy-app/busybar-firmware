@@ -98,11 +98,6 @@ SPDX-FileCopyrightText = ["2024-2026 Flipper FZCO", "2020-2024 Project CHIP Auth
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
-path = "lib/wiseconnect_extra/**"
-SPDX-FileCopyrightText = "Silicon Laboratories Inc."
-SPDX-License-Identifier = "LicenseRef-Silabs-MSLA"
-
-[[annotations]]
 path = [
     ".github/**",
     ".forgejo/**",

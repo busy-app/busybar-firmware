@@ -1,7 +1,7 @@
 #!/bin/bash
 
-if (( $# != 1 )); then
-    echo "Usage: $0 [wiseconnect|simplicity_sdk]"
+if (( $# != 1 && $# != 2 )); then
+    echo "Usage: $0 [wiseconnect|simplicity_sdk] [version]"
     echo
     echo "Download and copy latest version of a silabs library"
     exit 1
@@ -16,8 +16,12 @@ elif [[ "$1" == simplicity_sdk ]]; then
     PACKAGE=simplicity-sdk
     DEST_PATH=${ROOT}/lib/simplicity_sdk
 else
-    echo "Usage: $0 [wiseconnect|simplicity_sdk]"
+    echo "Usage: $0 [wiseconnect|simplicity_sdk] [version]"
     exit 1
+fi
+
+if [[ ! -z $2 ]]; then
+    PACKAGE=${PACKAGE}/$2
 fi
 
 
