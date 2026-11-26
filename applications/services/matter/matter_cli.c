@@ -330,8 +330,8 @@ static MatterCli* matter_cli_alloc(PipeSide* pipe) {
 
     matter_cli->matter = furi_record_open(RECORD_MATTER);
     matter_cli->commands = cli_registry_alloc();
-    matter_cli->shell =
-        cli_shell_alloc(matter_cli_motd, matter_cli, pipe, matter_cli->commands, NULL);
+    matter_cli->shell = cli_shell_alloc(
+        matter_cli_motd, matter_cli, pipe, matter_cli->commands, NULL, CliShellFlagNone);
     cli_shell_set_prompt(matter_cli->shell, "matter");
 
     FuriPubSub* pubsub = matter_get_pubsub(matter_cli->matter);

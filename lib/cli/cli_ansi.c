@@ -1,5 +1,13 @@
 #include "cli_ansi.h"
 
+#define UTF8_BYTE_TYPE_MASK         (0xC0)
+#define UTF8_CONTINUATION_BYTE_MASK (0x80)
+
+#define CSI_SEQUENCE_START     "\e["
+#define CSI_SEQUENCE_START_LEN (sizeof(CSI_SEQUENCE_START) - 1)
+#define CSI_SEQUENCE_FINAL_MIN (0x40)
+#define CSI_SEQUENCE_FINAL_MAX (0x7E)
+
 typedef enum {
     CliAnsiParserStateInitial,
     CliAnsiParserStateEscape,
@@ -120,4 +128,41 @@ CliAnsiParserResult cli_ansi_parser_feed_timeout(CliAnsiParser* parser) {
 
     parser->state = CliAnsiParserStateInitial;
     return result;
+}
+
+size_t cli_ansi_printable_strlen(const char* string) {
+    size_t count = 0;
+
+    bool is_inside_escape_sequence = false;
+
+    for(const char* cursor = string; *cursor; ++cursor) {
+        if(strncmp(cursor, CSI_SEQUENCE_START, CSI_SEQUENCE_START_LEN) == 0) {
+            is_inside_escape_sequence = true;
+            cursor += CSI_SEQUENCE_START_LEN - 1;
+            continue;
+        }
+
+        const char c = *cursor;
+
+        if(is_inside_escape_sequence) {
+            if((c >= CSI_SEQUENCE_FINAL_MIN) && (c <= CSI_SEQUENCE_FINAL_MAX)) {
+                is_inside_escape_sequence = false;
+            }
+
+            continue;
+        }
+
+        // UTF-8 continuation byte
+        if((c & UTF8_BYTE_TYPE_MASK) == UTF8_CONTINUATION_BYTE_MASK) {
+            continue;
+        }
+        // ASCII non-printable
+        if(c < ' ') {
+            continue;
+        }
+
+        count++;
+    }
+
+    return count;
 }

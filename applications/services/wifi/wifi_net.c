@@ -104,6 +104,27 @@ static void wifi_net_intercom_rx_callback(const void* data, size_t data_size, vo
     }
 }
 
+static void wifi_net_hostname_push_part(FuriString* buffer, const char* part) {
+    for(unsigned char c; (c = *part) != '\0'; part++) {
+        if(isalnum(c)) {
+            furi_string_push_back(buffer, c);
+        } else if(!furi_string_end_with(buffer, "-")) {
+            furi_string_push_back(buffer, '-');
+        }
+    }
+}
+
+static void wifi_net_hostname_from_device_name(const char* device_name, FuriString* buffer) {
+    furi_string_reset(buffer);
+
+    wifi_net_hostname_push_part(buffer, DEVICE_NAME_DEFAULT);
+    if(strncmp(device_name, DEVICE_NAME_DEFAULT, DEVICE_NAME_MAX_LENGTH) != 0) {
+        wifi_net_hostname_push_part(buffer, "-");
+        wifi_net_hostname_push_part(buffer, device_name);
+        furi_string_trim(buffer, "-");
+    }
+}
+
 void wifi_net_init(Wifi* instance, const uint8_t* hw_addr) {
     furi_record_open(RECORD_USB_NETWORK);
 
@@ -212,13 +233,9 @@ void wifi_net_set_hostname(Wifi* instance, const char* hostname) {
 
     LOCK_TCPIP_CORE();
 
-    if(strncmp(hostname, DEVICE_NAME_DEFAULT, DEVICE_NAME_MAX_LENGTH) == 0) {
-        furi_string_set(instance->hostname, DEVICE_NAME_DEFAULT);
-    } else {
-        furi_string_printf(instance->hostname, "%s %s", DEVICE_NAME_DEFAULT, hostname);
-    }
-
+    wifi_net_hostname_from_device_name(hostname, instance->hostname);
     netif->hostname = furi_string_get_cstr(instance->hostname);
+
     // Retransmit new DHCP hostname (if applicable)
     dhcp_network_changed_link_up(netif);
 
