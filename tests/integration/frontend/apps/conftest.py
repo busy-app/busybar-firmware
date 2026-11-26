@@ -10,7 +10,7 @@ from urllib.parse import urlsplit
 import allure
 import pytest
 
-from clients.state_pb import app_queue_pb2, state_pb2
+from clients.state_pb import apps_pb2, state_pb2
 from clients.state_publisher import StatePublisherClient
 from utils.app_package_server import AppPackageServer
 from utils.app_queue import AppQueueHarness
@@ -46,11 +46,9 @@ def app_package_server(web_base_url):
 def app_queue(apps_api, storage_api, web_base_url, app_package_server):
     initial = apps_api.get_queue()
     assert not initial.result, f"Application queue is already in use: {initial!r}"
+    assert apps_pb2 is not None, "Application queue protobuf bindings are unavailable"
     assert (
-        app_queue_pb2 is not None
-    ), "Application queue protobuf bindings are unavailable"
-    assert (
-        "app_queue_event" in state_pb2.StateUpdate.DESCRIPTOR.fields_by_name
+        "apps_event" in state_pb2.StateUpdate.DESCRIPTOR.fields_by_name
     ), "Regenerate protobuf bindings from the PR's assets/proto submodule"
 
     with StatePublisherClient(web_base_url) as ws:

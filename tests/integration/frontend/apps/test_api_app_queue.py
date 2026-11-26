@@ -5,7 +5,7 @@ from __future__ import annotations
 import allure
 import pytest
 
-from clients.state_pb import app_queue_pb2
+from clients.state_pb import apps_pb2
 from utils.js_app_package import build_non_app_package
 from utils.app_queue import (
     AppQueueHarness,
@@ -77,14 +77,14 @@ class TestAppQueue:
 
         with allure.step("Finish installation and verify its files"):
             original.download.release.set()
-            app_queue.wait_results(dict.fromkeys(item_ids, app_queue_pb2.OK))
+            app_queue.wait_results(dict.fromkeys(item_ids, apps_pb2.QUEUE_ERROR_NONE))
             app_queue.wait_idle()
             _assert_installed(app_queue, storage_api, original)
 
         with allure.step("Update the installed application through the queue"):
             updated = app_queue.package(app_id=original.app_id, version="2.0.0")
             update_ids = app_queue.enqueue(updated.install())
-            app_queue.wait_results(dict.fromkeys(update_ids, app_queue_pb2.OK))
+            app_queue.wait_results(dict.fromkeys(update_ids, apps_pb2.QUEUE_ERROR_NONE))
             app_queue.wait_idle()
             _assert_installed(app_queue, storage_api, updated)
 
@@ -92,7 +92,7 @@ class TestAppQueue:
             "Remove the application and reject cancellation of its finished item"
         ):
             remove_ids = app_queue.enqueue(updated.remove())
-            app_queue.wait_results(dict.fromkeys(remove_ids, app_queue_pb2.OK))
+            app_queue.wait_results(dict.fromkeys(remove_ids, apps_pb2.QUEUE_ERROR_NONE))
             app_queue.wait_idle()
             _assert_absent(app_queue, updated)
             _assert_cancel_not_found(app_queue, remove_ids[0])
@@ -114,7 +114,7 @@ class TestAppQueue:
 
         with allure.step("Release the first install while keeping the second blocked"):
             first.download.release.set()
-            app_queue.wait_results({item_ids[0]: app_queue_pb2.OK})
+            app_queue.wait_results({item_ids[0]: apps_pb2.QUEUE_ERROR_NONE})
             second.download.wait_started()
             _assert_queue(app_queue, item_ids[1:], operations[1:])
             _assert_installed(app_queue, storage_api, first)
@@ -122,7 +122,7 @@ class TestAppQueue:
 
         with allure.step("Complete the batch and verify sequential final events"):
             second.download.release.set()
-            app_queue.wait_results(dict.fromkeys(item_ids, app_queue_pb2.OK))
+            app_queue.wait_results(dict.fromkeys(item_ids, apps_pb2.QUEUE_ERROR_NONE))
             app_queue.wait_idle()
             _assert_absent(app_queue, first)
             _assert_installed(app_queue, storage_api, second)
@@ -142,7 +142,9 @@ class TestAppQueue:
         target = app_queue.package()
         if operation_type == "remove":
             initial_ids = app_queue.enqueue(target.install())
-            app_queue.wait_results(dict.fromkeys(initial_ids, app_queue_pb2.OK))
+            app_queue.wait_results(
+                dict.fromkeys(initial_ids, apps_pb2.QUEUE_ERROR_NONE)
+            )
             app_queue.wait_idle()
             _assert_installed(app_queue, storage_api, target)
 
@@ -158,7 +160,7 @@ class TestAppQueue:
 
         with allure.step("Cancel only the pending middle operation"):
             app_queue.cancel(item_ids[1])
-            app_queue.wait_results({item_ids[1]: app_queue_pb2.CANCELLED})
+            app_queue.wait_results({item_ids[1]: apps_pb2.QUEUE_ERROR_CANCELLED})
             _assert_queue(
                 app_queue, [item_ids[0], item_ids[2]], [operations[0], operations[2]]
             )
@@ -169,7 +171,7 @@ class TestAppQueue:
         ):
             blocker.download.release.set()
             app_queue.wait_results(
-                dict.fromkeys([item_ids[0], item_ids[2]], app_queue_pb2.OK)
+                dict.fromkeys([item_ids[0], item_ids[2]], apps_pb2.QUEUE_ERROR_NONE)
             )
             app_queue.wait_idle()
             _assert_installed(app_queue, storage_api, blocker)
@@ -189,7 +191,7 @@ class TestAppQueue:
     def test_cancel_active_download(self, app_queue: AppQueueHarness, storage_api):
         original = app_queue.package()
         initial_ids = app_queue.enqueue(original.install())
-        app_queue.wait_results(dict.fromkeys(initial_ids, app_queue_pb2.OK))
+        app_queue.wait_results(dict.fromkeys(initial_ids, apps_pb2.QUEUE_ERROR_NONE))
         app_queue.wait_idle()
         _assert_installed(app_queue, storage_api, original)
 
@@ -205,7 +207,10 @@ class TestAppQueue:
         ):
             app_queue.cancel(item_ids[0])
             app_queue.wait_results(
-                {item_ids[0]: app_queue_pb2.CANCELLED, item_ids[1]: app_queue_pb2.OK}
+                {
+                    item_ids[0]: apps_pb2.QUEUE_ERROR_CANCELLED,
+                    item_ids[1]: apps_pb2.QUEUE_ERROR_NONE,
+                }
             )
             app_queue.wait_idle()
 
@@ -232,7 +237,9 @@ class TestAppQueue:
             "Cancel all operations, including pending removal of an absent app"
         ):
             app_queue.cancel()
-            app_queue.wait_results(dict.fromkeys(item_ids, app_queue_pb2.CANCELLED))
+            app_queue.wait_results(
+                dict.fromkeys(item_ids, apps_pb2.QUEUE_ERROR_CANCELLED)
+            )
             app_queue.wait_idle()
             _assert_absent(app_queue, active, pending)
             assert (
@@ -243,7 +250,9 @@ class TestAppQueue:
         with allure.step("Install a new application after clearing the queue"):
             recovery = app_queue.package()
             recovery_ids = app_queue.enqueue(recovery.install())
-            app_queue.wait_results(dict.fromkeys(recovery_ids, app_queue_pb2.OK))
+            app_queue.wait_results(
+                dict.fromkeys(recovery_ids, apps_pb2.QUEUE_ERROR_NONE)
+            )
             app_queue.wait_idle()
             _assert_installed(app_queue, storage_api, recovery)
         app_queue.assert_no_more_results()
@@ -254,36 +263,46 @@ class TestAppQueue:
     @pytest.mark.parametrize(
         "package_options, expected_error",
         [
-            pytest.param({"truncated": True}, app_queue_pb2.DOWNLOAD, id="download"),
-            pytest.param({"held": True}, app_queue_pb2.DOWNLOAD, id="download-timeout"),
             pytest.param(
-                {"body": b"invalid archive"}, app_queue_pb2.UNPACK, id="unpack"
+                {"truncated": True}, apps_pb2.QUEUE_ERROR_DOWNLOAD, id="download"
+            ),
+            pytest.param(
+                {"held": True}, apps_pb2.QUEUE_ERROR_DOWNLOAD, id="download-timeout"
+            ),
+            pytest.param(
+                {"body": b"invalid archive"}, apps_pb2.QUEUE_ERROR_UNPACK, id="unpack"
             ),
             pytest.param(
                 {"manifest_id": "test.queue.other"},
-                app_queue_pb2.MANIFEST,
+                apps_pb2.QUEUE_ERROR_MANIFEST,
                 id="manifest",
             ),
             pytest.param(
-                {"api_version": "999.0.0"}, app_queue_pb2.API_VERSION, id="api-version"
+                {"api_version": "999.0.0"},
+                apps_pb2.QUEUE_ERROR_API_VERSION,
+                id="api-version",
             ),
-            pytest.param({"body": b""}, app_queue_pb2.UNPACK, id="empty-package"),
+            pytest.param(
+                {"body": b""}, apps_pb2.QUEUE_ERROR_UNPACK, id="empty-package"
+            ),
             pytest.param(
                 {"body": build_non_app_package()},
-                app_queue_pb2.MANIFEST,
+                apps_pb2.QUEUE_ERROR_MANIFEST,
                 id="non-app-archive",
             ),
             pytest.param(
-                {"include_main": False}, app_queue_pb2.MANIFEST, id="missing-main"
+                {"include_main": False},
+                apps_pb2.QUEUE_ERROR_MANIFEST,
+                id="missing-main",
             ),
             pytest.param(
                 {"missing_manifest_fields": ("id",)},
-                app_queue_pb2.MANIFEST,
+                apps_pb2.QUEUE_ERROR_MANIFEST,
                 id="missing-manifest-id",
             ),
             pytest.param(
                 {"manifest_updates": {"format_version": "invalid"}},
-                app_queue_pb2.MANIFEST,
+                apps_pb2.QUEUE_ERROR_MANIFEST,
                 id="manifest-format",
             ),
         ],
@@ -303,7 +322,7 @@ class TestAppQueue:
 
         with allure.step("Complete the next operation successfully"):
             valid.download.release.set()
-            app_queue.wait_results({item_ids[1]: app_queue_pb2.OK})
+            app_queue.wait_results({item_ids[1]: apps_pb2.QUEUE_ERROR_NONE})
             app_queue.wait_idle()
             _assert_installed(app_queue, storage_api, valid)
             assert (
@@ -321,7 +340,9 @@ class TestAppQueue:
             item_ids = app_queue.enqueue(
                 *[absent.remove() for _ in range(BURST_OPERATIONS_COUNT)]
             )
-            app_queue.wait_results(dict.fromkeys(item_ids, app_queue_pb2.NOT_FOUND))
+            app_queue.wait_results(
+                dict.fromkeys(item_ids, apps_pb2.QUEUE_ERROR_NOT_FOUND)
+            )
             app_queue.wait_idle()
 
         with allure.step("Verify one ordered final event for every accepted operation"):

@@ -9,7 +9,7 @@ import allure
 import pytest
 
 from clients.api import AppQueueAddResponse
-from clients.state_pb import app_queue_pb2
+from clients.state_pb import apps_pb2
 from utils.app_queue import AppQueueHarness
 
 
@@ -235,8 +235,8 @@ class TestAppQueueContract:
         app_queue.cancel(item_ids[0])
         app_queue.wait_results(
             {
-                item_ids[0]: app_queue_pb2.CANCELLED,
-                item.item_id: app_queue_pb2.NOT_FOUND,
+                item_ids[0]: apps_pb2.QUEUE_ERROR_CANCELLED,
+                item.item_id: apps_pb2.QUEUE_ERROR_NOT_FOUND,
             }
         )
         app_queue.wait_idle()

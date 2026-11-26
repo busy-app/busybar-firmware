@@ -170,7 +170,7 @@ brightness_pb2 = _safe_import("state.brightness_pb2")
 timezone_pb2 = _safe_import("state.timezone_pb2")
 wifi_pb2 = _safe_import("state.wifi_pb2")
 ble_pb2 = _safe_import("state.ble_pb2")
-app_queue_pb2 = _safe_import("state.app_queue_pb2")
+apps_pb2 = _safe_import("state.apps_pb2")
 
 __all__ = [
     "state_pb2",
@@ -185,5 +185,5 @@ __all__ = [
     "timezone_pb2",
     "wifi_pb2",
     "ble_pb2",
-    "app_queue_pb2",
+    "apps_pb2",
 ]

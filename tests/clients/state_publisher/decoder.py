@@ -25,8 +25,8 @@ STATE_UPDATE_FIELDS = {
     13: "ble",
     14: "auto_update_state",
     15: "timer_profiles",
-    16: "app_queue_state",
-    17: "app_queue_event",
+    16: "apps_state",
+    17: "apps_event",
 }
 
 

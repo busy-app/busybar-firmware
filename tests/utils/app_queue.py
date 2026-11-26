@@ -20,7 +20,7 @@ from clients.api import (
     AppsAPI,
     StorageAPI,
 )
-from clients.state_pb import app_queue_pb2
+from clients.state_pb import apps_pb2
 from clients.state_publisher import StatePublisherClient
 from utils.app_package_server import AppPackageDownload, AppPackageServer
 from utils.js_app_package import build_app_package
@@ -165,7 +165,7 @@ class AppQueueHarness:
         ), f"Unexpected cancel acknowledgement: {response!r}"
 
     def _record_result(self, update) -> None:
-        result = update.app_queue_event.result
+        result = update.apps_event.queue_operation_result
         item_id = result.item_id
         assert item_id in self.accepted_ids, (
             f"WS result has an unknown item ID: {result!r}; "
@@ -178,8 +178,8 @@ class AppQueueHarness:
     @staticmethod
     def _is_result(update) -> bool:
         return (
-            update.WhichOneof("state") == "app_queue_event"
-            and update.app_queue_event.WhichOneof("value") == "result"
+            update.WhichOneof("state") == "apps_event"
+            and update.apps_event.WhichOneof("value") == "queue_operation_result"
         )
 
     def wait_finished(self, item_ids) -> None:
@@ -204,8 +204,8 @@ class AppQueueHarness:
                 actual = self.results[item_id]
                 assert actual == error, (
                     f"Wrong result for item_id={item_id}: "
-                    f"{app_queue_pb2.AppQueueError.Name(actual)}, "
-                    f"expected {app_queue_pb2.AppQueueError.Name(error)}"
+                    f"{apps_pb2.QueueError.Name(actual)}, "
+                    f"expected {apps_pb2.QueueError.Name(error)}"
                 )
 
     def assert_no_more_results(self) -> None:

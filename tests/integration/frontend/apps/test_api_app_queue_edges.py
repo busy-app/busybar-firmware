@@ -11,7 +11,7 @@ import allure
 import pytest
 
 from clients.api import AppQueueCancelRequest, AppSettingsDocument
-from clients.state_pb import app_queue_pb2
+from clients.state_pb import apps_pb2
 from clients.state_publisher import StatePublisherClient
 from utils.app_queue import (
     AppQueueHarness,
@@ -44,7 +44,7 @@ pytestmark = [
 
 def _install(instance, *apps):
     item_ids = instance.enqueue(*(app.install() for app in apps))
-    instance.wait_results(dict.fromkeys(item_ids, app_queue_pb2.OK))
+    instance.wait_results(dict.fromkeys(item_ids, apps_pb2.QUEUE_ERROR_NONE))
     instance.wait_idle()
     return item_ids
 
@@ -58,7 +58,9 @@ def _block(instance):
 
 def _cancel_all(instance):
     instance.cancel()
-    instance.wait_results(dict.fromkeys(instance.accepted_ids, app_queue_pb2.CANCELLED))
+    instance.wait_results(
+        dict.fromkeys(instance.accepted_ids, apps_pb2.QUEUE_ERROR_CANCELLED)
+    )
     instance.wait_idle()
     instance.assert_no_more_results()
 
@@ -116,7 +118,7 @@ class TestAppQueueEdges:
         ):
             cancelled = initial_ids[len(initial_ids) // 2]
             app_queue.cancel(cancelled)
-            app_queue.wait_results({cancelled: app_queue_pb2.CANCELLED})
+            app_queue.wait_results({cancelled: apps_pb2.QUEUE_ERROR_CANCELLED})
             replacement = app_queue.enqueue(absent.remove())
             app_queue.snapshot(
                 [item_id for item_id in full_ids if item_id != cancelled] + replacement
@@ -134,7 +136,7 @@ class TestAppQueueEdges:
         with allure.step("Remove the selected pending item without moving the others"):
             cancelled = pending_ids[position]
             app_queue.cancel(cancelled)
-            app_queue.wait_results({cancelled: app_queue_pb2.CANCELLED})
+            app_queue.wait_results({cancelled: apps_pb2.QUEUE_ERROR_CANCELLED})
             survivors = [item_id for item_id in pending_ids if item_id != cancelled]
             app_queue.snapshot(active_ids + survivors)
             assert not pending[
@@ -143,7 +145,9 @@ class TestAppQueueEdges:
                 f"Cancelled download started: {pending[position].download.url}"
             )
         blocker.download.release.set()
-        app_queue.wait_results(dict.fromkeys(active_ids + survivors, app_queue_pb2.OK))
+        app_queue.wait_results(
+            dict.fromkeys(active_ids + survivors, apps_pb2.QUEUE_ERROR_NONE)
+        )
         app_queue.wait_idle()
         app_queue_assert_absent(app_queue, pending[position])
         for index, app in enumerate(pending):
@@ -173,7 +177,7 @@ class TestAppQueueEdges:
                 202,
                 404,
             }, f"Unexpected repeated cancel: {response.status_code}, {response.text!r}"
-        app_queue.wait_results(dict.fromkeys(item_ids, app_queue_pb2.CANCELLED))
+        app_queue.wait_results(dict.fromkeys(item_ids, apps_pb2.QUEUE_ERROR_CANCELLED))
         app_queue.wait_idle()
         app_queue.assert_no_more_results()
 
@@ -209,7 +213,9 @@ class TestAppQueueEdges:
                 app_queue_contract.assert_response(
                     "/api/apps/queue/cancel", "post", response
                 )
-                app_queue.wait_results(dict.fromkeys(item_ids, app_queue_pb2.CANCELLED))
+                app_queue.wait_results(
+                    dict.fromkeys(item_ids, apps_pb2.QUEUE_ERROR_CANCELLED)
+                )
                 app_queue.wait_idle()
             else:
                 app_queue_contract.assert_error(response)
@@ -263,7 +269,7 @@ class TestAppQueueEdges:
         operation = app.install()
         operation.operation.version = "9.9.9"
         item_ids = app_queue.enqueue(operation)
-        app_queue.wait_results(dict.fromkeys(item_ids, app_queue_pb2.OK))
+        app_queue.wait_results(dict.fromkeys(item_ids, apps_pb2.QUEUE_ERROR_NONE))
         app_queue.wait_idle()
         app_queue_assert_installed(app_queue, storage_api, app)
 
@@ -318,7 +324,7 @@ class TestAppQueueEdges:
         operation = app.install()
         operation.operation.url = url
         item_ids = app_queue.enqueue(operation)
-        app_queue.wait_results(dict.fromkeys(item_ids, app_queue_pb2.OK))
+        app_queue.wait_results(dict.fromkeys(item_ids, apps_pb2.QUEUE_ERROR_NONE))
         app_queue.wait_idle()
         app_queue_assert_installed(app_queue, storage_api, app)
         actual = app.download.request_target
@@ -331,10 +337,10 @@ class TestAppQueueEdges:
     @pytest.mark.parametrize(
         "options,error",
         [
-            ({"truncated": True}, app_queue_pb2.DOWNLOAD),
-            ({"body": b"invalid archive"}, app_queue_pb2.UNPACK),
-            ({"manifest_id": "test.queue.other"}, app_queue_pb2.MANIFEST),
-            ({"api_version": "999.0.0"}, app_queue_pb2.API_VERSION),
+            ({"truncated": True}, apps_pb2.QUEUE_ERROR_DOWNLOAD),
+            ({"body": b"invalid archive"}, apps_pb2.QUEUE_ERROR_UNPACK),
+            ({"manifest_id": "test.queue.other"}, apps_pb2.QUEUE_ERROR_MANIFEST),
+            ({"api_version": "999.0.0"}, apps_pb2.QUEUE_ERROR_API_VERSION),
         ],
         ids=["download", "unpack", "manifest", "api-version"],
     )
@@ -379,7 +385,10 @@ class TestAppQueueEdges:
             queue_launch_app(original)
         blocker.download.release.set()
         app_queue.wait_results(
-            {active_ids[0]: app_queue_pb2.OK, item_ids[0]: app_queue_pb2.APP_RUNNING}
+            {
+                active_ids[0]: apps_pb2.QUEUE_ERROR_NONE,
+                item_ids[0]: apps_pb2.QUEUE_ERROR_APP_RUNNING,
+            }
         )
         app_queue.wait_idle()
         app_queue_assert_installed(app_queue, storage_api, original)
@@ -401,7 +410,9 @@ class TestAppQueueEdges:
         update.download.wait_started()
         queue_launch_app(original)
         update.download.release.set()
-        app_queue.wait_results(dict.fromkeys(item_ids, app_queue_pb2.APP_RUNNING))
+        app_queue.wait_results(
+            dict.fromkeys(item_ids, apps_pb2.QUEUE_ERROR_APP_RUNNING)
+        )
         app_queue.wait_idle()
         app_queue_assert_installed(app_queue, storage_api, original)
 
@@ -434,7 +445,7 @@ class TestAppQueueEdges:
             app_queue.api.get_settings(app_id) == document
         ), f"Settings lost on update: {app_queue.api.get_settings(app_id)!r}"
         item_ids = app_queue.enqueue(updated.remove())
-        app_queue.wait_results(dict.fromkeys(item_ids, app_queue_pb2.OK))
+        app_queue.wait_results(dict.fromkeys(item_ids, apps_pb2.QUEUE_ERROR_NONE))
         app_queue.wait_idle()
         _install(app_queue, updated)
         actual = app_queue.api.get_settings(app_id)
@@ -456,7 +467,7 @@ class TestAppQueueEdges:
             observer = AppQueueHarness(app_queue.api, app_queue.server, second)
             observer.accepted_ids.update(active_ids + item_ids)
             blocker.download.release.set()
-            expected = dict.fromkeys(active_ids + item_ids, app_queue_pb2.OK)
+            expected = dict.fromkeys(active_ids + item_ids, apps_pb2.QUEUE_ERROR_NONE)
             app_queue.wait_results(expected)
             observer.wait_results(expected)
             observer.assert_no_more_results()
@@ -485,12 +496,12 @@ class TestAppQueueEdges:
         app.download.wait_started()
 
         def is_detail(update):
-            if update.WhichOneof("state") != "app_queue_state":
+            if update.WhichOneof("state") != "apps_state":
                 return False
-            state = update.app_queue_state
-            if state.WhichOneof("value") != "detail":
+            state = update.apps_state
+            if state.WhichOneof("value") != "queue_operation_detail":
                 return False
-            detail = state.detail
+            detail = state.queue_operation_detail
             return (
                 detail.item_id == item_ids[0]
                 and detail.step == "downloading"
@@ -505,7 +516,7 @@ class TestAppQueueEdges:
             "Observe partial download state without requiring every intermediate event"
         ):
             update = app_queue.ws.wait_for(is_detail, timeout=8)
-            detail = update.app_queue_state.detail
+            detail = update.apps_state.queue_operation_detail
             assert (
                 detail.HasField("progress") == known_length
             ), f"Unexpected progress presence: {detail!r}"
@@ -514,7 +525,7 @@ class TestAppQueueEdges:
                 snapshot.result[0].detail is not None
             ), f"Active operation has no detail: {snapshot!r}"
         app.download.release.set()
-        app_queue.wait_results(dict.fromkeys(item_ids, app_queue_pb2.OK))
+        app_queue.wait_results(dict.fromkeys(item_ids, apps_pb2.QUEUE_ERROR_NONE))
         app_queue.wait_idle()
 
     @allure.title(
@@ -541,7 +552,7 @@ class TestAppQueueEdges:
             ), f"Unexpected legacy conflict: {response.status_code}, {response.text!r}"
             app_queue.snapshot(item_ids)
         app_queue.cancel()
-        app_queue.wait_results(dict.fromkeys(item_ids, app_queue_pb2.CANCELLED))
+        app_queue.wait_results(dict.fromkeys(item_ids, apps_pb2.QUEUE_ERROR_CANCELLED))
         app_queue.wait_idle()
         with allure.step("Retry after the queue is empty"):
             if operation_type == "stage":
@@ -582,5 +593,5 @@ class TestAppQueueEdges:
         ), f"Valid additional fields rejected: {response.status_code}, {response.text!r}"
         app.download.wait_started()
         app.download.release.set()
-        app_queue.wait_results(dict.fromkeys(item_ids, app_queue_pb2.OK))
+        app_queue.wait_results(dict.fromkeys(item_ids, apps_pb2.QUEUE_ERROR_NONE))
         app_queue.wait_idle()
