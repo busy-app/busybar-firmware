@@ -26,7 +26,7 @@ pytestmark = [
 ]
 
 _INITIAL_ACCESS_KEY = "73916482"
-_CHANGED_ACCESS_KEY = "28461739"
+_CHANGED_ACCESS_KEY = "NewKeyA9" * 4
 _TOKEN_HEADER = "X-API-Token"
 _JS_FETCH_HEADER = "X-busybar-fetch"
 _JS_FETCH_HEADER_VALUES = ["js", "j", "", "jsX", "JS"]
@@ -228,7 +228,9 @@ class TestAPITokenAuthenticationWiFi:
                 f"{response.status_code}: {response.text!r}"
             )
 
-    @allure.title("Token remains valid after the numeric key changes")
+    @allure.title(
+        "Token remains valid after changing to a 32-character alphanumeric key"
+    )
     def test_token_survives_key_change(
         self,
         settings_api: SettingsAPI,
@@ -248,8 +250,23 @@ class TestAPITokenAuthenticationWiFi:
                 f"{before_change.status_code}: {before_change.text!r}"
             )
 
-        with allure.step("Change the numeric key"):
+        with allure.step("Change to a 32-character alphanumeric key"):
             settings_api.set_access("key", _CHANGED_ACCESS_KEY)
+
+        with allure.step(
+            "Verify the new key works over WiFi and the old key is rejected"
+        ):
+            for credential, expected_status in (
+                (_CHANGED_ACCESS_KEY, 200),
+                (_INITIAL_ACCESS_KEY, 403),
+            ):
+                response = wifi_token_api.get_raw(
+                    "/api/status", headers=_headers(credential)
+                )
+                assert response.status_code == expected_status, (
+                    f"Expected key authentication HTTP {expected_status}, got "
+                    f"{response.status_code}: {response.text!r}"
+                )
 
         with allure.step("Verify the existing token still works"):
             after_change = wifi_token_api.get_raw(
