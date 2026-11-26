@@ -809,10 +809,6 @@ schemas:
     properties:
       type:
         $ref: "#/components/schemas/AppQueueOperationType"
-      url:
-        $ref: "#/components/schemas/AppUrl"
-      version:
-        $ref: "#/components/schemas/AppVersion"
     required:
       - type
     if:
@@ -820,6 +816,11 @@ schemas:
         type:
           const: install
     then:
+      properties:
+        url:
+          $ref: "#/components/schemas/AppUrl"
+        version:
+          $ref: "#/components/schemas/AppVersion"
       required:
         - url
 
@@ -896,6 +897,9 @@ schemas:
         $ref: "#/components/schemas/AppQueueItemId"
     required:
       - item_id
+    not:
+      required:
+        - all
 
   AppQueueClearRequest:
     type: object
@@ -905,3 +909,6 @@ schemas:
         const: true
     required:
       - all
+    not:
+      required:
+        - item_id
