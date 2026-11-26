@@ -3,7 +3,8 @@
 #include "furi_hal_bus.h"
 #include "furi_hal_qspi_flash.h"
 
-#include <sli_wifi_utility.h>
+// #include <sli_wifi_utility.h>
+#include <sli_wifi_power_profile.h>
 #include <si91x_device.h>
 #include <rsi_wisemcu_hardware_setup.h>
 #include <rsi_rom_power_save.h>
