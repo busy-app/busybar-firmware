@@ -375,6 +375,38 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /api/apps/running:
+    get:
+      tags:
+        - Apps
+      summary: Get the running application
+      description: Returns the ID of the currently running JavaScript application.
+      operationId: getRunningApp
+      responses:
+        "200":
+          description: Done successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppRunningResult"
+        "404":
+          description: No app is running
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Unknown internal error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Operation timeout
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 schemas:
   AppId:
     type: string
@@ -473,3 +505,11 @@ schemas:
     required:
       - version
       - values
+
+  AppRunningResult:
+    type: object
+    properties:
+      app_id:
+        $ref: "#/components/schemas/AppId"
+    required:
+      - app_id
