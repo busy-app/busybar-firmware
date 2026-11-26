@@ -21,6 +21,8 @@ typedef enum {
     SceneIdOffBehavior,
     SceneIdOffBehaviorInformation,
 
+    SceneIdChargingMenu,
+
     SceneIdsCount,
 } SceneId;
 

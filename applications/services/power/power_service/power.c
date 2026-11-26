@@ -290,6 +290,14 @@ static void power_message_callback(FuriEventLoopObject* object, void* context) {
 #endif
         break;
 
+    case PowerMessageTypeGetChargeLimit:
+#if defined(POWER_USE_SETTINGS)
+        *(msg.param_int) = power->settings.charge_limit;
+#else
+        *(msg.param_int) = 0;
+#endif
+        break;
+
     case PowerMessageTypeSetChargeCurrent:
         power->charger_current_limit = *(msg.param_int);
         furi_hal_i2c_acquire(POWER_I2C);
