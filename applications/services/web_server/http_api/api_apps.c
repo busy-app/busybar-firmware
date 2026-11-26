@@ -918,7 +918,7 @@ static const char* api_apps_queue_operation_source_info_parse_url(cJSON* json) {
             break;
         }
 
-        const StringSlice* href = url_get_part(url, UrlPartIdHref);
+        const StringSlice* href = url_get_part(url, UrlPartIdRequest);
         char* href_str = string_slice_to_owned_cstr(href);
 
         url_str = cJSON_SetValuestring(url_json, href_str);
