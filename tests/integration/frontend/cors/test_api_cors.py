@@ -105,6 +105,7 @@ API_ENDPOINTS = [
     ("/api/apps/queue", "GET"),
     ("/api/apps/queue", "POST"),
     ("/api/apps/queue/cancel", "POST"),
+    ("/api/apps/running", "GET"),
 ]
 
 

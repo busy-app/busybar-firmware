@@ -36,6 +36,16 @@ class AppListResponse(BaseModel):
     apps: list[AppInfo]
 
 
+class AppRunningResponse(BaseModel):
+    """Response from GET /api/apps/running."""
+
+    app_id: str = Field(
+        min_length=1,
+        max_length=32,
+        pattern=r"^[a-zA-Z0-9_\-][a-zA-Z0-9_\-.]{0,31}$",
+    )
+
+
 class AppsResultResponse(BaseModel):
     """Successful JavaScript application management response."""
 
@@ -177,6 +187,13 @@ class AppsAPI(BaseAPI):
     def cancel_queue_raw(self, request: AppQueueCancelRequest | AppQueueClearRequest):
         """Cancel an operation or clear the queue, returning the raw response."""
         return self.post_raw("/api/apps/queue/cancel", json=request.model_dump())
+    def get_running(self) -> AppRunningResponse:
+        """Get the currently running JavaScript application's ID."""
+        return self.get("/api/apps/running", AppRunningResponse)
+
+    def get_running_raw(self):
+        """Get the running application response, including no-app errors."""
+        return self.get_raw("/api/apps/running")
 
     def stage(self, package: bytes) -> AppStageResponse:
         """Upload and validate a JavaScript application package."""

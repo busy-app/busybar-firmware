@@ -769,6 +769,49 @@ static bool api_apps_settings_callback(
     return true;
 }
 
+static char* api_apps_running_response_format(const char* app_id) {
+    cJSON* json = cJSON_CreateObject();
+    cJSON_AddStringToObject(json, "app_id", app_id);
+
+    char* json_str = cJSON_PrintUnformatted(json);
+    cJSON_Delete(json);
+
+    return json_str;
+}
+
+static bool api_apps_running_callback(
+    FuriString* path,
+    HttpMethod method,
+    struct mg_connection* conn,
+    struct mg_http_message* msg,
+    void* ctx) {
+    UNUSED(method);
+    UNUSED(ctx);
+    UNUSED(msg);
+
+    if(!IS_HTTP_ENDPOINT(path)) {
+        return false;
+    }
+
+    FuriString* app_id = furi_string_alloc();
+    const JsAppLauncherStatus status = js_app_launcher_get_running_app_id(app_id);
+
+    if(status == JsAppLauncherStatusOk) {
+        char* body = api_apps_running_response_format(furi_string_get_cstr(app_id));
+        MG_REPLY_OK_BODY(conn, "%s", body);
+        free(body);
+    } else if(status == JsAppLauncherStatusNotRunning) {
+        MG_REPLY_ERROR(conn, 404, "App is not running");
+    } else if(status == JsAppLauncherStatusTimeout) {
+        MG_REPLY_ERROR(conn, 503, "Operation timeout");
+    } else {
+        MG_REPLY_ERROR(conn, 500, "Internal error");
+    }
+
+    furi_string_free(app_id);
+    return true;
+}
+
 static void api_apps_queue_item_operation_format(
     cJSON* item_json,
     JsAppInstallerOperationType operation_type,
@@ -1283,6 +1326,12 @@ static const HttpHandler api_apps_handlers[] = {
         .method = HttpMethodGet | HttpMethodPut | HttpMethodDelete,
         .type = HttpHandlerCustom,
         .on_request = api_apps_settings_callback,
+    },
+    {
+        .uri = "running",
+        .method = HttpMethodGet,
+        .type = HttpHandlerCustom,
+        .on_request = api_apps_running_callback,
     },
     {
         .uri = "queue/cancel",
