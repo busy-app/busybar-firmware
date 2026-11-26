@@ -26,6 +26,7 @@ class BusyBarSettings(BaseModel):
     theme: str
     show_work_phase_only: bool
     trigger_smart_home: bool
+    show_time_left: bool = True
 
 
 class BusySnapshotData(BaseModel):
