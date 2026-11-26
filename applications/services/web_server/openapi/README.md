@@ -20,3 +20,14 @@ The generator script `scripts/openapi_merge.py` takes per-tag YAML files
   - Place your endpoints under the `paths` field
   - Place your schema components under the `schemas` field (not
     `components/schemas`)
+
+## Local-only operations
+`x-local-only: true` on an operation means that it is available only when
+calling the device directly over USB or the local network, and not through
+BUSY Cloud. The BUSY Cloud API reference uses it to mark these operations as
+"Local only".
+
+The firmware doesn't read the annotation. Requests coming through BUSY Cloud
+are filtered by the blocklist in
+`applications/services/mqtt/modules/mqtt_http_proxy.c`, so when adding or
+removing `x-local-only`, update the blocklist in the same change.
