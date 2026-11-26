@@ -21,6 +21,7 @@ static bool sysctl_exec_debug(PipeSide* pipe, const char* arg) {
         sysctl_set_debug_enabled(true);
         printf("Debug enabled.");
     } else {
+        printf("Current value: %d\r\n", sysctl_get_debug_enabled());
         return false;
     }
     cli_command_update_debug_mode();
@@ -41,6 +42,7 @@ static bool sysctl_exec_ui_debug(PipeSide* pipe, const char* arg) {
         mode = 2;
         printf("UI debug overlay enabled for all layers.");
     } else {
+        printf("Current value: %d\r\n", sysctl_get_ui_debug_mode());
         return false;
     }
     printf(" Restart device for changes to take effect.");
@@ -56,6 +58,9 @@ static bool sysctl_exec_storage_bkp_unlock(PipeSide* pipe, const char* arg) {
     } else if(strcmp(arg, "0") == 0) {
         unlock = false;
     } else {
+        Storage* storage = furi_record_open(RECORD_STORAGE);
+        printf("Current value: %d\r\n", !storage_backup_get_readonly(storage));
+        furi_record_close(RECORD_STORAGE);
         return false;
     }
     Storage* storage = furi_record_open(RECORD_STORAGE);
@@ -75,6 +80,7 @@ static bool sysctl_exec_cli_wifi_enabled(PipeSide* pipe, const char* arg) {
         sysctl_set_cli_wifi_enabled(true);
         printf("CLI over WiFi enabled.");
     } else {
+        printf("Current value: %d\r\n", sysctl_get_cli_wifi_enabled());
         return false;
     }
     return true;
@@ -85,7 +91,10 @@ static bool sysctl_exec_websrv_accesslog_level(PipeSide* pipe, const char* arg) 
     UNUSED(pipe);
     char* end;
     long val = strtol(arg, &end, 10);
-    if(end == arg || *end != '\0' || val < 0 || val > 3) return false;
+    if(end == arg || *end != '\0' || val < 0 || val > 3) {
+        printf("Current value: %d\r\n", sysctl_get_websrv_accesslog_level());
+        return false;
+    }
     sysctl_set_websrv_accesslog_level((int)val);
     printf("Web server access log level set to %ld.", val);
     return true;

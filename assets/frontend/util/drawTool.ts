@@ -30,14 +30,7 @@ export const DRAW_TOOL_DISPLAY_APPLICATION_NAME = 'draw_tool';
 export const DRAW_TOOL_TEMP_FILE_NAME = 'temp.png';
 export const DRAW_TOOL_TEMP_ANIMATION_FILE_NAME = 'temp.anim';
 export const DRAW_TOOL_SAVE_DIR = `${USER_ASSETS_DIR}/${DRAW_TOOL_DISPLAY_APPLICATION_NAME}`;
-export const DRAW_TOOL_DISPLAY_PRIORITY = 55;
-export const DRAW_TOOL_STATUS_NAME_MAX_LENGTH = 32;
-export const BUSY_THEMES_DIR = '/ext/apps_assets/busy/themes';
-export const BUSY_THEME_CONFIG_FILE_NAME = 'theme.json';
-export const BUSY_DEFAULT_THEME_NAME = 'busy';
-export const BUSY_THEME_USER_ORDER = 1000;
-const STATUS_API_NAME_FALLBACK = 'status';
-
+export const DRAW_TOOL_DISPLAY_PRIORITY = 40;
 export type DrawToolStatusKind = 'image' | 'animation';
 
 export function getStatusFileKind (fileName: string): DrawToolStatusKind {
