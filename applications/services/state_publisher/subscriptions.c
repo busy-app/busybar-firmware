@@ -532,10 +532,10 @@ static void js_app_installer_pubsub_callback(const void* message, void* context)
         update->which_state = BSB_State_StateUpdate_apps_state_tag;
 
         BSB_State_Apps_State* pb_state = &update->state.apps_state;
-        pb_state->which_value = BSB_State_Apps_State_detail_tag;
+        pb_state->which_value = BSB_State_Apps_State_queue_operation_detail_tag;
 
         const JsAppInstallerOperationDetail* detail = &event->detail.value;
-        BSB_State_Apps_QueueOperationDetail* pb_detail = &pb_state->value.detail;
+        BSB_State_Apps_QueueOperationDetail* pb_detail = &pb_state->value.queue_operation_detail;
 
         const size_t step_bufsize = sizeof(pb_detail->step);
         furi_check(strlcpy(pb_detail->step, detail->step, step_bufsize) < step_bufsize);
@@ -569,9 +569,9 @@ static void js_app_installer_pubsub_callback(const void* message, void* context)
         furi_assert(error < JsAppInstallerErrorMax);
 
         BSB_State_Apps_Event* pb_event = &update->state.apps_event;
-        pb_event->which_value = BSB_State_Apps_Event_result_tag;
+        pb_event->which_value = BSB_State_Apps_Event_queue_operation_result_tag;
 
-        BSB_State_Apps_QueueOperationResult* pb_result = &pb_event->value.result;
+        BSB_State_Apps_QueueOperationResult* pb_result = &pb_event->value.queue_operation_result;
 
         pb_result->item_id = event->item_id;
         pb_result->error = error_lookup[error];
