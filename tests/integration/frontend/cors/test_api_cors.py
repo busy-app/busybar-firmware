@@ -104,6 +104,7 @@ API_ENDPOINTS = [
     ("/api/apps/settings", "DELETE"),
     ("/api/power/sleep", "GET"),
     ("/api/power/sleep", "POST"),
+    ("/api/apps/running", "GET"),
 ]
 
 

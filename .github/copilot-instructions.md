@@ -61,3 +61,4 @@ When reviewing a pull request:
 ## Additional Notes
 
 - Keep in mind that this project uses a specialized malloc implementation which provides zeroed memory, refuses 0-byte allocations, and aborts on allocation failure. This may affect how you reason about memory safety and error handling.
+- If a changed/added header file has Doxygen-style comments, check that a `@file` Doxygen directive is present at the beginning of the file.
