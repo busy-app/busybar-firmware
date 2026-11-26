@@ -4,6 +4,9 @@ import argparse
 import io
 import os
 import time
+import struct
+from dataclasses import dataclass
+from enum import Enum
 
 import serial
 
@@ -28,6 +31,32 @@ Resoures used:
 
 """
 
+RPS_HDR_FORMAT = "<" "H H 4s I" "I I 4s 16s" "I 16s 4s"
+RPS_HDR_SIZE = struct.calcsize(RPS_HDR_FORMAT)
+
+class Si917Core(Enum):
+    M4 = "m4"
+    TA = "ta"
+
+@dataclass
+class RpsHeader:
+    core: Si917Core
+    # fill in more fields if eventually required
+
+class RpsFile:
+    def __init__(self, data: bytes):
+        if len(data) < RPS_HDR_SIZE:
+            self.raw_header = None
+            self.header = None
+            return
+
+        self.raw_header = data[:RPS_HDR_SIZE]
+        header_fields = struct.unpack(RPS_HDR_FORMAT, self.raw_header)
+
+        control_flags = header_fields[0]
+        core = Si917Core.M4 if control_flags & 1 else Si917Core.TA
+
+        self.header = RpsHeader(core)
 
 class Kermit:
     """
@@ -365,7 +394,15 @@ class Kermit:
 class RpsFlasher:
     RESET_DELAY_SEC = 0.8
 
-    def __init__(self, port_name: str, filename: str, image_type: str, debug=0):
+    @staticmethod
+    def _infer_image_type(filename: str) -> str|None:
+        with open(filename, "rb") as f:
+            header = RpsFile(f.read()).header
+            if not header:
+                return None
+            return header.core.value
+
+    def __init__(self, port_name: str, filename: str, user_image_type: str, ignore_incompatible_image: bool, debug=0):
         """
         Args:
             port_name: the path to the port to use (/dev/ttyXXX or COMX)
@@ -374,17 +411,31 @@ class RpsFlasher:
             debug: debug logging level (0 - no logging, 3 - max verbosity)
         """
 
+        self.debug = debug
+
+        inferred_image_type = RpsFlasher._infer_image_type(filename)
+        if self.debug >= 1:
+            print(f"Inferred image type: {inferred_image_type}")
+
+        if user_image_type == "infer" and not inferred_image_type:
+            raise Exception("Failed to infer image type")
+
+        if user_image_type == "infer":
+            image_type = inferred_image_type
+        else:
+            image_type = user_image_type
+            if user_image_type != inferred_image_type:
+                if ignore_incompatible_image:
+                    print(f'Warning: incompatible image: user provided "{user_image_type}", but image is of type "{inferred_image_type}"')
+                else:
+                    raise Exception(f'Incompatible image: user provided "{user_image_type}", but image is of type "{inferred_image_type}". Use -f option to force.')
+
         self.serial = None
         self.serial = serial.Serial(port_name, 115200)
         self.rps_file = open(filename, "rb")
         self.file_size = os.path.getsize(filename)
         self.image_type = image_type
         self.kermit = Kermit()
-        self.debug = debug
-
-    def __del__(self):
-        if self.serial:
-            self.serial.close()
 
     def init_device(self):
         """
@@ -605,15 +656,21 @@ def main():
     )
     parser.add_argument(
         "-t",
-        default="m4",
+        default="infer",
         metavar="TYPE",
-        help='image type to flash ("m4" or "ta")',
+        help='image type to flash: "m4" for the Cortex-M4 core, "ta" for the ThreadArch NWP, or "infer" to detect from provided file',
+    )
+    parser.add_argument(
+        "-f",
+        "--skip-cpu-check",
+        action="store_true",
+        help="don't check that the provided rps file is for the specified core (m4/ta)",
     )
     parser.add_argument("filename", metavar="FILE", help="full path to *.rps file")
 
     args = parser.parse_args()
 
-    if args.t != "m4" and args.t != "ta":
+    if args.t not in ["m4", "ta", "infer"]:
         print(f"Unknown image type: {args.t}\n")
         parser.print_help()
         exit(1)
@@ -623,7 +680,7 @@ def main():
         parser.print_help()
         exit(1)
 
-    flasher = RpsFlasher(args.p, args.filename, args.t, args.d)
+    flasher = RpsFlasher(args.p, args.filename, args.t, args.skip_cpu_check, args.d)
 
     flasher.init_device()
     flasher.flash_firmware()

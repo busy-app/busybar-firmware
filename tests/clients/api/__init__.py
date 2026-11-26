@@ -18,6 +18,9 @@ Usage:
 # Base
 from .base import APIError, BaseAPI
 
+# Power API
+from .power import PowerAPI, SleepSettings
+
 # System API
 from .system import (
     DeviceInfo,
@@ -156,6 +159,8 @@ from .matter import (
 __all__ = [
     "BaseAPI",
     "APIError",
+    "PowerAPI",
+    "SleepSettings",
     "SystemAPI",
     "VersionResponse",
     "StatusResponse",

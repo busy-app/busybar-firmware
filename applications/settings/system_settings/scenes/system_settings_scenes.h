@@ -18,6 +18,9 @@ typedef enum {
     SceneIdFactoryReset,
     SceneIdLowBattery,
 
+    SceneIdOffBehavior,
+    SceneIdOffBehaviorInformation,
+
     SceneIdsCount,
 } SceneId;
 

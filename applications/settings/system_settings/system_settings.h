@@ -12,6 +12,7 @@
 #include <back_display/back_display.h>
 #include <power/power_service/power.h>
 #include <updater/updater.h>
+#include <low_power/low_power.h>
 
 #include <gui/scene_manager.h>
 #include <gui/modules/nav_bar.h>
@@ -45,6 +46,7 @@ typedef struct {
     BackDisplaySrv* back_display;
     Power* power;
     Updater* updater;
+    LowPower* low_power;
 
     Widget* front_scene_window;
     Widget* back_scene_window;
@@ -59,6 +61,8 @@ void system_settings_send_custom_event(SystemSettings* instance, uint32_t event)
 void system_settings_push_location(SystemSettings* instance, const char* location_name);
 
 void system_settings_pop_location(SystemSettings* instance);
+
+void system_settings_show_location(SystemSettings* instance, bool visible);
 
 #ifdef __cplusplus
 }

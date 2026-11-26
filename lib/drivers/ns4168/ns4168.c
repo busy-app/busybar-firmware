@@ -25,9 +25,11 @@ void ns4168_free(NS4168* handle) {
 void ns4168_init(NS4168* handle) {
     furi_hal_gpio_write(handle->gpio_pin, false);
     furi_hal_gpio_init_simple(handle->gpio_pin, GpioModeOutputPushPull);
+    furi_hal_gpio_set_sleep_pull(handle->gpio_pin, GpioPullDown);
 }
 
 void ns4168_deinit(NS4168* handle) {
+    furi_hal_gpio_set_sleep_pull(handle->gpio_pin, GpioPullNo);
     furi_hal_gpio_write(handle->gpio_pin, false);
     furi_hal_gpio_init_simple(handle->gpio_pin, GpioModeAnalog);
 }
