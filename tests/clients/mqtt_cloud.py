@@ -4,6 +4,7 @@ import json
 import queue
 import ssl
 import subprocess
+import threading
 import time
 import uuid
 from dataclasses import dataclass
@@ -61,6 +62,8 @@ class MqttCloudClient:
         self.config = config
         self.messages: "queue.Queue[MqttMessage]" = queue.Queue()
         self.client = None
+        self._suback_condition = threading.Condition()
+        self._subacked_mids: set[int] = set()
 
     def connect(self) -> None:
         if self.client is not None:
@@ -68,19 +71,23 @@ class MqttCloudClient:
         try:
             import paho.mqtt.client as mqtt
         except ImportError as exc:
-            raise MqttDependencyError("Install paho-mqtt to run MQTT harness tests") from exc
+            raise MqttDependencyError(
+                "Install paho-mqtt to run MQTT harness tests"
+            ) from exc
 
         parsed = self.config.parsed_server_url
         if parsed.scheme not in {"mqtt", "mqtts"}:
             raise ValueError(f"Unsupported MQTT URL scheme: {parsed.scheme}")
 
         client_id = f"{self.config.client_id_prefix}-{uuid.uuid4().hex[:12]}"
-        client = mqtt.Client(client_id=client_id)
+        client = mqtt.Client(client_id=client_id, protocol=mqtt.MQTTv5)
         if self.config.username:
             client.username_pw_set(self.config.username, self.config.password)
         if parsed.scheme == "mqtts":
             client.tls_set(
-                ca_certs=str(self.config.ca_path) if self.config.ca_path else None,
+                ca_certs=(
+                    str(self.config.ca_path) if self.config.ca_path else None
+                ),
                 certfile=str(self.config.client_cert_path)
                 if self.config.client_cert_path
                 else None,
@@ -94,6 +101,14 @@ class MqttCloudClient:
             if self.config.ignore_server_cert:
                 client.tls_insecure_set(True)
 
+        connected = threading.Event()
+
+        def on_connect(
+            _client, _userdata, _flags, reason_code, _properties=None
+        ):
+            if reason_code == 0:
+                connected.set()
+
         def on_message(_client, _userdata, msg):
             self.messages.put(
                 MqttMessage(
@@ -105,13 +120,26 @@ class MqttCloudClient:
                 )
             )
 
+        def on_subscribe(_client, _userdata, mid, _granted_qos, *_args):
+            with self._suback_condition:
+                self._subacked_mids.add(mid)
+                self._suback_condition.notify_all()
+
+        client.on_connect = on_connect
         client.on_message = on_message
+        client.on_subscribe = on_subscribe
         client.connect(
             parsed.hostname,
             parsed.port or (8883 if parsed.scheme == "mqtts" else 1883),
             keepalive=30,
         )
         client.loop_start()
+        if not connected.wait(self.config.connect_timeout_s):
+            client.loop_stop()
+            client.disconnect()
+            raise RuntimeError(
+                "MQTT broker did not acknowledge the connection"
+            )
         self.client = client
 
     def disconnect(self) -> None:
@@ -124,17 +152,57 @@ class MqttCloudClient:
     def subscribe(self, topic_filter: str, qos: int = 1) -> None:
         if self.client is None:
             raise RuntimeError("MQTT client is not connected")
-        result, _mid = self.client.subscribe(topic_filter, qos=qos)
+        result, mid = self.client.subscribe(topic_filter, qos=qos)
         if result:
             raise RuntimeError(f"MQTT subscribe failed with code {result}")
+        with self._suback_condition:
+            acknowledged = self._suback_condition.wait_for(
+                lambda: mid in self._subacked_mids,
+                timeout=self.config.message_timeout_s,
+            )
+            if acknowledged:
+                self._subacked_mids.remove(mid)
+        if not acknowledged:
+            raise RuntimeError(
+                f"MQTT broker did not acknowledge subscription {mid}"
+            )
 
     def publish(
-        self, topic: str, payload: bytes | str = b"", qos: int = 1, retain: bool = False
+        self,
+        topic: str,
+        payload: bytes | str = b"",
+        qos: int = 1,
+        retain: bool = False,
+        *,
+        response_topic: str | None = None,
+        correlation_data: bytes | None = None,
     ) -> None:
         if self.client is None:
             raise RuntimeError("MQTT client is not connected")
-        payload_bytes = payload.encode("utf-8") if isinstance(payload, str) else payload
-        result = self.client.publish(topic, payload=payload_bytes, qos=qos, retain=retain)
+        if (response_topic is None) != (correlation_data is None):
+            raise ValueError(
+                "response_topic and correlation_data must be provided together"
+            )
+
+        properties = None
+        if response_topic is not None:
+            from paho.mqtt.packettypes import PacketTypes
+            from paho.mqtt.properties import Properties
+
+            properties = Properties(PacketTypes.PUBLISH)
+            properties.ResponseTopic = response_topic
+            properties.CorrelationData = correlation_data
+
+        payload_bytes = (
+            payload.encode("utf-8") if isinstance(payload, str) else payload
+        )
+        result = self.client.publish(
+            topic,
+            payload=payload_bytes,
+            qos=qos,
+            retain=retain,
+            properties=properties,
+        )
         result.wait_for_publish(timeout=self.config.message_timeout_s)
         if result.rc:
             raise RuntimeError(f"MQTT publish failed with code {result.rc}")
@@ -145,13 +213,19 @@ class MqttCloudClient:
         predicate: Callable[[MqttMessage], bool],
         timeout: float | None = None,
     ) -> MqttMessage:
-        deadline = time.monotonic() + (timeout or self.config.message_timeout_s)
+        deadline = time.monotonic() + (
+            timeout or self.config.message_timeout_s
+        )
         while time.monotonic() < deadline:
             try:
-                message = self.messages.get(timeout=max(0.1, deadline - time.monotonic()))
+                message = self.messages.get(
+                    timeout=max(0.1, deadline - time.monotonic())
+                )
             except queue.Empty:
                 break
-            if _topic_matches(topic_filter, message.topic) and predicate(message):
+            if _topic_matches(topic_filter, message.topic) and predicate(
+                message
+            ):
                 return message
         raise AssertionError(f"No MQTT message matched {topic_filter}")
 
@@ -160,7 +234,9 @@ class MqttCloudClient:
         matched: list[MqttMessage] = []
         while time.monotonic() < deadline:
             try:
-                message = self.messages.get(timeout=max(0.1, deadline - time.monotonic()))
+                message = self.messages.get(
+                    timeout=max(0.1, deadline - time.monotonic())
+                )
             except queue.Empty:
                 continue
             if _topic_matches(topic_filter, message.topic):
@@ -195,7 +271,8 @@ class CloudAccountClient:
         ):
             raise RuntimeError(
                 "Configure BSB_CLOUD_LINK_COMMAND or BSB_CLOUD_TEST_API_URL/"
-                "BSB_CLOUD_TEST_USER/BSB_CLOUD_TEST_PASSWORD to link test accounts"
+                "BSB_CLOUD_TEST_USER/BSB_CLOUD_TEST_PASSWORD to link test "
+                "accounts"
             )
 
         base = self.config.cloud_test_api_url.rstrip("/")
@@ -209,7 +286,9 @@ class CloudAccountClient:
         )
         login.raise_for_status()
 
-        response = self.session.post(f"{base}/devices/link", json={"code": code}, timeout=20)
+        response = self.session.post(
+            f"{base}/devices/link", json={"code": code}, timeout=20
+        )
         response.raise_for_status()
         data = response.json()
         return CloudLinkResult(
