@@ -117,7 +117,12 @@ bool anim_player_pause(AnimPlayer* instance);
 
 /**
  * @brief Playback frame callback
- * 
+ *
+ * If an error occurs during playback, `info->flags` will have `AnimFileFrameFlagFinished` set
+ * in addition to `AnimFileFrameFlagError`, and the animation will stop automatically.
+ * The source file is then unloaded and a placeholder image is shown, the same as after a failed
+ * `anim_player_set_source`. Playback functions will return `false` until a new source is set.
+ *
  * @param[in,out] instance Widget instance
  * @param[in] info Information about the just-displayed frame
  * @param[in,out] context Custom context

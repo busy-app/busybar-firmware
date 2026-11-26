@@ -17,17 +17,50 @@ static_assert((size_t)AnimPlayerOptionMAX == (size_t)AnimFileOptionMAX);
 // Internal functions
 // ==================
 
+static void anim_player_unload_file(AnimPlayer* instance) {
+    if(instance->file) {
+        anim_file_free(instance->file);
+        instance->file = NULL;
+    }
+
+    if(instance->file_path) {
+        free(instance->file_path);
+        instance->file_path = NULL;
+    }
+}
+
+static void anim_player_show_placeholder(AnimPlayer* instance) {
+    furi_assert(instance->file == NULL);
+
+    const lv_image_header_t* header = &I_load_error_9x9.header;
+    void* data = (void*)I_load_error_9x9.data;
+    lv_canvas_set_buffer(instance->canvas, data, header->w, header->h, header->cf);
+    lv_obj_invalidate(instance->canvas);
+}
+
 static void anim_player_timer_cb(lv_timer_t* timer) {
     AnimPlayer* instance = lv_timer_get_user_data(timer);
     furi_check(instance);
     furi_check(instance->file);
 
     AnimFileFrameInfo info = anim_file_frame(instance->file);
+
+    if(info.flags & AnimFileFrameFlagError) {
+        FURI_LOG_E(TAG, "Failed to play file: %s", instance->file_path);
+        info.flags |= AnimFileFrameFlagFinished;
+        anim_player_unload_file(instance);
+        anim_player_show_placeholder(instance);
+    }
+
     lv_obj_invalidate(instance->canvas);
 
-    if(info.flags & AnimFileFrameFlagFinished) lv_timer_pause(instance->timer);
+    if(info.flags & AnimFileFrameFlagFinished) {
+        lv_timer_pause(instance->timer);
+    }
 
-    if(instance->frame_cb) instance->frame_cb(instance, &info, instance->frame_cb_context);
+    if(instance->frame_cb) {
+        instance->frame_cb(instance, &info, instance->frame_cb_context);
+    }
 }
 
 static void anim_player_resize_canvas(AnimPlayer* player, size_t width, size_t height) {
@@ -177,10 +210,7 @@ bool anim_player_set_source_ex(
     bool loaded_successfully = !!instance->file;
 
     if(path_given && !loaded_successfully) {
-        const lv_image_header_t* header = &I_load_error_9x9.header;
-        void* data = (void*)I_load_error_9x9.data;
-        lv_canvas_set_buffer(instance->canvas, data, header->w, header->h, header->cf);
-        lv_obj_invalidate(instance->canvas);
+        anim_player_show_placeholder(instance);
     }
 
     return loaded_successfully;
