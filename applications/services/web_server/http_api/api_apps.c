@@ -12,6 +12,48 @@
 
 #include "../web_server.h"
 
+#include <telemetry/telemetry.h>
+#include <toolbox/sha256_calc.h>
+
+// The package staged last, kept until it is installed so the install can be reported
+typedef struct {
+    uint32_t install_key;
+    bool is_update;
+    char app_id[JS_APP_ID_LEN_MAX + 2];
+    char version[16];
+    char hash[65];
+} ApiAppsStagedPackage;
+
+static ApiAppsStagedPackage api_apps_staged_package;
+
+static void api_apps_format_version(const SemVer* version, char* out, size_t out_size) {
+    snprintf(
+        out,
+        out_size,
+        "%lu.%lu.%lu",
+        (unsigned long)version->major,
+        (unsigned long)version->minor,
+        (unsigned long)version->patch);
+}
+
+static void api_apps_report_telemetry(
+    TelemetryEventType type,
+    const char* app_id,
+    const char* version,
+    const char* hash) {
+    cJSON* d = cJSON_CreateObject();
+    cJSON_AddStringToObject(d, "app", app_id);
+    if(version && version[0]) {
+        cJSON_AddStringToObject(d, "version", version);
+    }
+    if(hash && hash[0]) {
+        cJSON_AddStringToObject(d, "hash", hash);
+    }
+    Telemetry* telemetry = furi_record_open(RECORD_TELEMETRY);
+    telemetry_report_event(telemetry, type, d);
+    furi_record_close(RECORD_TELEMETRY);
+}
+
 #define TAG "HttpApiApps"
 
 #define MAX_UPLOAD_FILE_SIZE (100 * 1024 * 1024)
@@ -93,6 +135,21 @@ static bool
     FURI_LOG_I(TAG, "upload completed");
     UNUSED(install_ctx);
 
+    // Hash of the uploaded package, reported with app.install / app.update
+    char package_hash[65] = {0};
+    {
+        Storage* storage = furi_record_open(RECORD_STORAGE);
+        File* file = storage_file_alloc(storage);
+        FuriString* hash = furi_string_alloc();
+        FS_Error file_error = FSE_OK;
+        if(sha256_string_calc_file(file, JS_APP_DOWNLOAD_PATH, hash, &file_error)) {
+            strlcpy(package_hash, furi_string_get_cstr(hash), sizeof(package_hash));
+        }
+        furi_string_free(hash);
+        storage_file_free(file);
+        furi_record_close(RECORD_STORAGE);
+    }
+
     JsAppInstaller* installer = furi_record_open(RECORD_JS_APP_INSTALLER);
 
     JsAppInstallerStageResult result = js_app_installer_stage(installer);
@@ -108,6 +165,19 @@ static bool
         furi_check(js_app_get_info(result.staged_app, &info));
         cJSON* staged = serialize_app_info(&info);
         cJSON_AddItemToObject(root, "staged", staged);
+
+        api_apps_staged_package.install_key = result.install_key;
+        api_apps_staged_package.is_update = result.installed_app != NULL;
+        strlcpy(
+            api_apps_staged_package.app_id,
+            info.manifest.id,
+            sizeof(api_apps_staged_package.app_id));
+        api_apps_format_version(
+            &info.manifest.version,
+            api_apps_staged_package.version,
+            sizeof(api_apps_staged_package.version));
+        strlcpy(api_apps_staged_package.hash, package_hash, sizeof(api_apps_staged_package.hash));
+
         js_app_free(result.staged_app);
 
         if(result.installed_app) {
@@ -349,6 +419,16 @@ static bool api_apps_install_request_callback(
         JsAppInstallerError error = js_app_installer_install(installer, install_key);
         success = error == JsAppInstallerErrorNone;
         furi_record_close(RECORD_JS_APP_INSTALLER);
+
+        if(success && install_key == api_apps_staged_package.install_key) {
+            api_apps_report_telemetry(
+                api_apps_staged_package.is_update ? TelemetryEventAppUpdate :
+                                                    TelemetryEventAppInstall,
+                api_apps_staged_package.app_id,
+                api_apps_staged_package.version,
+                api_apps_staged_package.hash);
+            api_apps_staged_package.install_key = 0;
+        }
     } while(false);
 
     if(success) {
@@ -559,10 +639,23 @@ static bool api_apps_delete_callback(
         return true;
     }
 
+    // Version of the app being removed, for app.uninstall
+    char uninstall_version[16] = {0};
+    JsApp* uninstalled_app = js_app_registry_get_app(app_id);
+    if(uninstalled_app) {
+        JsAppInfo uninstalled_info;
+        if(js_app_get_info(uninstalled_app, &uninstalled_info)) {
+            api_apps_format_version(
+                &uninstalled_info.manifest.version, uninstall_version, sizeof(uninstall_version));
+        }
+        js_app_free(uninstalled_app);
+    }
+
     JsAppRegistryAppUninstallResult uninstall_result = js_app_registry_uninstall_app(app_id);
     switch(uninstall_result) {
     case JsAppRegistryAppUninstallResultOk:
         MG_REPLY_OK(conn);
+        api_apps_report_telemetry(TelemetryEventAppUninstall, app_id, uninstall_version, NULL);
         break;
     case JsAppRegistryAppUninstallResultNotFound:
         MG_REPLY_NOT_FOUND(conn);

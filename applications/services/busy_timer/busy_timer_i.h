@@ -38,6 +38,7 @@ typedef enum {
 
 typedef struct {
     BusyTimerProfileId profile_id;
+    BusyTimerSessionSource source;
 } BusyTimerApiMessageStart;
 
 typedef struct {
@@ -45,11 +46,16 @@ typedef struct {
 } BusyTimerApiMessageAddTime;
 
 typedef struct {
+    bool is_interrupted;
+} BusyTimerApiMessageStop;
+
+typedef struct {
     BusyTimerSnapshot* snapshot;
 } BusyTimerApiMessageGetSnapshot;
 
 typedef struct {
     BusyTimerSnapshot snapshot;
+    BusyTimerSessionSource source;
 } BusyTimerApiMessageSetSnapshot;
 
 typedef struct {
@@ -64,6 +70,7 @@ typedef struct {
 typedef struct {
     BusyTimerProfileId profile_id;
     BusyTimerProfile profile;
+    BusyTimerSessionSource source;
 } BusyTimerApiMessageSetProfile;
 
 typedef struct {
@@ -82,6 +89,7 @@ typedef struct {
 
 typedef union {
     BusyTimerApiMessageStart start;
+    BusyTimerApiMessageStop stop;
     BusyTimerApiMessageAddTime add_time;
     BusyTimerApiMessageGetSnapshot get_snapshot;
     BusyTimerApiMessageSetSnapshot set_snapshot;
@@ -130,12 +138,16 @@ struct BusyTimer {
     uint32_t current_interval_index;
     uint32_t time_elapsed_s;
     uint32_t time_remaining_s;
+    uint32_t session_time_elapsed_s;
+    uint32_t session_cycles_completed;
     char card_id[BUSY_TIMER_CARD_ID_LEN + 1];
     // <----- Refactor section ends
     uint32_t snapshot_update_count;
     uint32_t profile_update_count[BusyTimerProfileIdMax];
     bool is_timer_running;
     bool is_demo_mode_enabled;
+    BusyTimerSessionSource session_source;
+    BusyTimerProfileId active_profile_id;
 };
 
 // busy_timer.c
@@ -147,6 +159,7 @@ bool busy_timer_is_running(const BusyTimer* instance);
 void busy_timer_start_internal(BusyTimer* instance);
 
 void busy_timer_stop_internal(BusyTimer* instance);
+void busy_timer_stop_internal_with_outcome(BusyTimer* instance, BusyTimerSessionOutcome outcome);
 
 void busy_timer_toggle_internal(BusyTimer* instance);
 

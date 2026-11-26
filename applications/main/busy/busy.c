@@ -112,6 +112,7 @@ static void busy_process_arguments(BusyApp* instance, const char* arg) {
 
 static BusyApp* busy_alloc(const char* arg) {
     BusyApp* instance = malloc(sizeof(BusyApp));
+    instance->is_user_exit = false;
 
     instance->event_loop = furi_event_loop_alloc();
     instance->input_queue = furi_message_queue_alloc(INPUT_QUEUE_SIZE, sizeof(InputEvent));
@@ -202,7 +203,13 @@ static void busy_free(BusyApp* instance) {
 
     furi_record_destroy(RECORD_BUSY_APP);
 
-    busy_timer_stop(instance->busy_timer);
+    // Leaving the app from its own UI stops the timer; being closed from outside
+    // (the selector switched away) interrupts it
+    if(instance->is_user_exit) {
+        busy_timer_stop(instance->busy_timer);
+    } else {
+        busy_timer_interrupt(instance->busy_timer);
+    }
 
     busy_set_front_display_blanking(instance, false);
 
@@ -317,6 +324,7 @@ bool busy_return_to_start_scene(BusyApp* instance) {
 
 void busy_exit(BusyApp* instance) {
     furi_assert(instance);
+    instance->is_user_exit = true;
     furi_event_loop_stop(instance->event_loop);
 }
 

@@ -217,6 +217,7 @@ static void mqtt_open_mg_event_handler(
         }
 
         mqtt_start_ping_timer(instance);
+        mqtt_inflight_retransmit(instance);
         mqtt_online_message_send(instance);
 
     } else {
@@ -279,6 +280,9 @@ static void mqtt_mqtt_cmd_mg_event_handler(
         } else {
             mqtt_reset_reconnect_delay(instance);
         }
+
+    } else if(cmd == MQTT_CMD_PUBACK) {
+        mqtt_inflight_ack(instance, message->id);
 
     } else if(cmd == MQTT_CMD_PINGRESP) {
         FURI_LOG_D(TAG, "<- PONG");
