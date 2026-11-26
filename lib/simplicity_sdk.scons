@@ -4,8 +4,6 @@ SDK_DIR = "simplicity_sdk"
 SDK_INCDIR = f"#/lib/{SDK_DIR}"
 
 # New SDK component directories
-SDK_PLATFORM_COMMON_DIR = f"{SDK_DIR}/platform_common"
-SDK_PLATFORM_COMMON_INCDIR = f"#/lib/{SDK_PLATFORM_COMMON_DIR}"
 SDK_PLATFORM_CORE_DIR = f"{SDK_DIR}/platform_core"
 SDK_PLATFORM_CORE_INCDIR = f"#/lib/{SDK_PLATFORM_CORE_DIR}"
 SDK_CMSIS_COMMON_DIR = f"{SDK_DIR}/cmsis_common"
@@ -30,7 +28,6 @@ SL_GLUE_INCDIR = f"#/lib/{SL_GLUE_DIR}"
 
 env.Append(
     CPPPATH=[
-        Dir(f"{SDK_PLATFORM_COMMON_INCDIR}/platform/common/inc").rdir(),
         Dir(f"{SDK_PLATFORM_CORE_INCDIR}/platform/common/inc").rdir(),
         Dir(f"{SDK_CMSIS_COMMON_INCDIR}/platform/common/inc").rdir(),
         Dir(f"{SDK_PLATFORM_CORE_INCDIR}/platform/service/sl_log/inc").rdir(),
@@ -124,6 +121,7 @@ env.Append(
         ("MBEDTLS_USER_CONFIG_FILE", '\\"siwx917-chip-mbedtls-config.h\\"'),
         "SL_CODE_COMPONENT_PSEC_OSAL=psec_osal",
         "SLI_AEAD_DEVICE_SI91X=1",
+        "SLI_POWER_MANAGER_USE_CRITICAL_IRQ_FOR_PS_API=1",
         # "SLI_CODE_CLASSIFICATION_DISABLE=1",
         "SLI_ECDH_DEVICE_SI91X=1",
         "SLI_ECDSA_DEVICE_SI91X=1",
@@ -145,6 +143,7 @@ sources = [
     f"{SDK_PLATFORM_CORE_DIR}/platform/common/src/sli_cmsis_os2_ext_task_register.c",
     f"{SDK_PLATFORM_CORE_DIR}/platform/common/src/sl_core_cortexm.c",
     f"{SDK_PLATFORM_CORE_DIR}/platform/common/src/sl_string.c",
+    f"{SDK_PLATFORM_CORE_DIR}/platform/common/src/sl_slist.c",
     f"{SDK_PLATFORM_CORE_DIR}/platform/service/mem_pool/src/sl_mem_pool.c",
     f"{SDK_PLATFORM_CORE_DIR}/platform/emdrv/nvm3/src/nvm3_default_common_linker.c",
     f"{SDK_PLATFORM_CORE_DIR}/platform/emdrv/nvm3/src/nvm3.c",

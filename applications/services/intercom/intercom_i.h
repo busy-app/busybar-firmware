@@ -110,4 +110,10 @@ size_t intercom_build_frame(
 
 void intercom_dump_frame(const IntercomFrame* frame);
 
+#if defined(BSB_MCU_U5)
 void intercom_reset_other_side(void);
+#endif
+
+#if defined(BSB_MCU_SI917)
+void intercom_wakeup_other_side(void);
+#endif

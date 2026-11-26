@@ -58,6 +58,21 @@ void var_item_list_free(VarItemList* instance);
 Widget* var_item_list_get_base(VarItemList* instance);
 
 /**
+ * @brief Add a simple button
+ * 
+ * @param[in,out] instance pointer to the VarItemList instance to be modified
+ * @param[in] label zero-terminated string containing the item label
+ * @param[in] callback pointer to the function to call upon value being changed
+ * @param[in,out] context pointer to a user-specific object, will be passed to callback
+ * @returns pointer to the newly created VarItem instance
+ */
+VarItem* var_item_list_add_button(
+    VarItemList* instance,
+    const char* label,
+    VarItemChangeCallback callback,
+    void* context);
+
+/**
  * @brief Add a time selection item.
  *
  * @param[in,out] instance pointer to the VarItemList instance to be modified

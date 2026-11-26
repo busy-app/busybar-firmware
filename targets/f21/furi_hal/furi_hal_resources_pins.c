@@ -16,7 +16,11 @@ const GpioPin gpio_usart2_rx = {.port = GPIOA, .pin = LL_GPIO_PIN_3};
 
 const GpioPin gpio_917_rst = {.port = GPIOA, .pin = LL_GPIO_PIN_4};
 const GpioPin gpio_917_swo = {.port = GPIOC, .pin = LL_GPIO_PIN_7};
-const GpioPin gpio_917_irq = {.port = GPIOA, .pin = LL_GPIO_PIN_0};
+const GpioPin gpio_917_irq = {
+    .port = GPIOA,
+    .pin = LL_GPIO_PIN_0,
+    .wakeup_line = GpioWakeupLine1,
+    .wakeup_mux = GpioWakeupMultiplex0};
 
 const GpioPin gpio_bq25798_qon = {.port = GPIOC, .pin = LL_GPIO_PIN_13};
 const GpioPin gpio_bq25798_irq = {.port = GPIOC, .pin = LL_GPIO_PIN_6};

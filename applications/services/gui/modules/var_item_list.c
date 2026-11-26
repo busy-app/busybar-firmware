@@ -29,6 +29,7 @@
     } while(0)
 
 typedef enum {
+    VarItemTypeButton,
     VarItemTypeSpinbox,
     VarItemTypeTimebox,
     VarItemTypeSelector,
@@ -228,6 +229,7 @@ static void var_item_editor_lvgl_constructor(const lv_obj_class_t* class_p, lv_o
 
     instance->arrow_left = lv_obj_class_create_obj(MY_ARROW_CLASS, obj);
     lv_obj_class_init_obj(instance->arrow_left);
+    lv_label_set_text(instance->arrow_left, SYM_EDIT_ARROW_LEFT);
 
     instance->text = lv_label_create(obj);
     lv_label_ext_set_max_lines(instance->text, 1);
@@ -235,8 +237,6 @@ static void var_item_editor_lvgl_constructor(const lv_obj_class_t* class_p, lv_o
 
     instance->arrow_right = lv_obj_class_create_obj(MY_ARROW_CLASS, obj);
     lv_obj_class_init_obj(instance->arrow_right);
-
-    lv_label_set_text(instance->arrow_left, SYM_EDIT_ARROW_LEFT);
     lv_label_set_text(instance->arrow_right, SYM_EDIT_ARROW_RIGHT);
 }
 
@@ -339,20 +339,32 @@ static void var_item_editor_update(VarItemEditor* instance) {
     const bool is_neg_infinity = is_lower_bound && (instance->flags & VarItemFlagMinIsInf);
     const bool is_pos_infinity = is_upper_bound && (instance->flags & VarItemFlagMaxIsInf);
 
-    if(is_lower_bound) {
-        lv_obj_add_state(instance->arrow_left, LV_STATE_DISABLED);
-    } else {
-        lv_obj_remove_state(instance->arrow_left, LV_STATE_DISABLED);
-    }
+    if(instance->type == VarItemTypeButton) {
+        lv_obj_add_flag(instance->arrow_left, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_remove_flag(instance->arrow_right, LV_OBJ_FLAG_HIDDEN);
 
-    if(is_upper_bound) {
-        lv_obj_add_state(instance->arrow_right, LV_STATE_DISABLED);
     } else {
-        lv_obj_remove_state(instance->arrow_right, LV_STATE_DISABLED);
+        lv_obj_remove_flag(instance->arrow_left, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_remove_flag(instance->arrow_right, LV_OBJ_FLAG_HIDDEN);
+
+        if(is_lower_bound) {
+            lv_obj_add_state(instance->arrow_left, LV_STATE_DISABLED);
+        } else {
+            lv_obj_remove_state(instance->arrow_left, LV_STATE_DISABLED);
+        }
+
+        if(is_upper_bound) {
+            lv_obj_add_state(instance->arrow_right, LV_STATE_DISABLED);
+        } else {
+            lv_obj_remove_state(instance->arrow_right, LV_STATE_DISABLED);
+        }
     }
 
     if(is_neg_infinity || is_pos_infinity) {
         lv_label_set_text_fmt(label, "%s", SYM_INFINITY);
+
+    } else if(instance->type == VarItemTypeButton) {
+        // no-op
 
     } else if(instance->type == VarItemTypeSpinbox) {
         if(instance->suffix) {
@@ -476,6 +488,7 @@ static bool var_item_list_input_callback(Widget* widget, const InputEvent* event
             VarItemEditor* editor = instance->edited;
 
             if(editor) {
+                furi_check(editor->type != VarItemTypeButton);
                 var_item_editor_set_edited(editor, false);
                 instance->edited = NULL;
 
@@ -483,8 +496,14 @@ static bool var_item_list_input_callback(Widget* widget, const InputEvent* event
                 VarItem* item = (VarItem*)lv_group_get_focused(instance->base.group);
                 editor = item->editor;
 
-                var_item_editor_set_edited(editor, true);
-                instance->edited = editor;
+                if(editor->type == VarItemTypeButton) {
+                    if(editor->callback) {
+                        editor->callback(item, editor->context);
+                    }
+                } else {
+                    var_item_editor_set_edited(editor, true);
+                    instance->edited = editor;
+                }
             }
 
             consumed = true;
@@ -549,6 +568,22 @@ void var_item_list_free(VarItemList* instance) {
 Widget* var_item_list_get_base(VarItemList* instance) {
     furi_check(instance);
     return (Widget*)instance;
+}
+
+VarItem* var_item_list_add_button(
+    VarItemList* instance,
+    const char* label,
+    VarItemChangeCallback callback,
+    void* context) {
+    furi_check(instance);
+    furi_check(label);
+
+    VarItem* item = var_item_alloc(instance, label, callback, context);
+
+    var_item_editor_set_type(item->editor, VarItemTypeButton);
+    var_item_editor_update(item->editor);
+
+    return item;
 }
 
 VarItem* var_item_list_add_timebox(

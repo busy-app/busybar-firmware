@@ -86,6 +86,7 @@ static SystemSettings* system_settings_alloc() {
     instance->back_display = furi_record_open(RECORD_BACK_DISPLAY);
     instance->power = furi_record_open(RECORD_POWER);
     instance->updater = furi_record_open(RECORD_UPDATER);
+    instance->low_power = furi_record_open(RECORD_LOW_POWER);
 
     with_gui(instance->gui, {
         GuiLayer* layer = gui_get_layer(instance->gui, GuiLayerIdMain);
@@ -138,6 +139,7 @@ static void system_settings_free(SystemSettings* instance) {
         flex_layout_free(instance->back_container);
     });
 
+    furi_record_close(RECORD_LOW_POWER);
     furi_record_close(RECORD_DESKTOP);
     furi_record_close(RECORD_GUI);
     furi_record_close(RECORD_FRONT_DISPLAY);
@@ -193,4 +195,12 @@ void system_settings_pop_location(SystemSettings* instance) {
     furi_assert(instance);
 
     with_gui(instance->gui, { nav_bar_pop_location(instance->back_nav_bar); });
+}
+
+void system_settings_show_location(SystemSettings* instance, bool visible) {
+    furi_assert(instance);
+
+    with_gui(instance->gui, {
+        widget_set_visible(nav_bar_get_base(instance->back_nav_bar), visible);
+    });
 }

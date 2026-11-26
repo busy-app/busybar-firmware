@@ -468,8 +468,14 @@ bool furi_hal_serial_tx_wait_complete(FuriHalSerialHandle* handle, uint32_t time
     furi_check(handle);
     USART0_Type* periph = furi_hal_serial_resources[handle->id].periph;
 
-    PreciseTimer timer = precise_timer_create(timeout * 1000);
-    return precise_timer_wait_for(timer, furi_hal_serial_is_tx_complete, periph);
+    if(timeout < FuriWaitForever) {
+        PreciseTimer timer = precise_timer_create(timeout * 1000);
+        return precise_timer_wait_for(timer, furi_hal_serial_is_tx_complete, periph);
+    } else {
+        while(!furi_hal_serial_is_tx_complete(periph))
+            ;
+        return true;
+    }
 }
 
 bool furi_hal_serial_rx_available(FuriHalSerialHandle* handle) {

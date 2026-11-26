@@ -52,6 +52,7 @@ typedef enum {
     GpioPullNo,
     GpioPullUp,
     GpioPullDown,
+    GpioPullMAX,
 } GpioPull;
 
 /**
@@ -203,12 +204,34 @@ typedef enum {
     GpioAltFnUnused = 16, /*!< just dummy value */
 } GpioAltFn;
 
+typedef enum {
+    GpioWakeupLineNone = 0,
+    GpioWakeupLine1 = 1,
+    GpioWakeupLine2 = 2,
+    GpioWakeupLine3 = 3,
+    GpioWakeupLine4 = 4,
+    GpioWakeupLine5 = 5,
+    GpioWakeupLine6 = 6,
+    GpioWakeupLine7 = 7,
+    GpioWakeupLine8 = 8,
+} GpioWakeupLine;
+
+typedef enum {
+    GpioWakeupMultiplex0 = 0,
+    GpioWakeupMultiplex1 = 1,
+    GpioWakeupMultiplex2 = 2,
+    GpioWakeupMultiplex3 = 3,
+    GpioWakeupMultiplexNone,
+} GpioWakeupMultiplex;
+
 /**
  * Gpio structure
  */
 typedef struct {
     GPIO_TypeDef* port;
     uint16_t pin;
+    GpioWakeupLine wakeup_line;
+    GpioWakeupMultiplex wakeup_mux;
 } GpioPin;
 
 /**
@@ -245,6 +268,14 @@ void furi_hal_gpio_init_ex(
     const GpioPull pull,
     const GpioSpeed speed,
     const GpioAltFn alt_fn);
+
+/**
+ * Selects the the pull of the GPIO pin while the chip is in sleep mode
+ * @param[in] gpio GPIO pin reference
+ * @param     pull Pull resistor selection: pull-up, pull-down or Z-state.
+ *                 It will only be applied while the device is in sleep mode.
+ */
+void furi_hal_gpio_set_sleep_pull(const GpioPin* gpio, const GpioPull pull);
 
 /**
  * Add and enable interrupt
