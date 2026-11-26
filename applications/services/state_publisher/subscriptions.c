@@ -529,13 +529,13 @@ static void js_app_installer_pubsub_callback(const void* message, void* context)
     BSB_State_StateUpdate* update = malloc(sizeof(BSB_State_StateUpdate));
 
     if(event_type == JsAppInstallerEventTypeOperationDetail) {
-        update->which_state = BSB_State_StateUpdate_app_queue_state_tag;
+        update->which_state = BSB_State_StateUpdate_apps_state_tag;
 
-        BSB_State_AppQueueState* pb_state = &update->state.app_queue_state;
-        pb_state->which_value = BSB_State_AppQueueState_detail_tag;
+        BSB_State_Apps_State* pb_state = &update->state.apps_state;
+        pb_state->which_value = BSB_State_Apps_State_detail_tag;
 
         const JsAppInstallerOperationDetail* detail = &event->detail.value;
-        BSB_State_AppQueueOperationDetail* pb_detail = &pb_state->value.detail;
+        BSB_State_Apps_QueueOperationDetail* pb_detail = &pb_state->value.detail;
 
         const size_t step_bufsize = sizeof(pb_detail->step);
         furi_check(strlcpy(pb_detail->step, detail->step, step_bufsize) < step_bufsize);
@@ -545,33 +545,33 @@ static void js_app_installer_pubsub_callback(const void* message, void* context)
         pb_detail->progress = detail->progress;
 
     } else if(event_type == JsAppInstallerEventTypeOperationFinished) {
-        update->which_state = BSB_State_StateUpdate_app_queue_event_tag;
+        update->which_state = BSB_State_StateUpdate_apps_event_tag;
 
-        static const BSB_State_AppQueueError error_lookup[] = {
-            [JsAppInstallerErrorNone] = BSB_State_AppQueueError_OK,
-            [JsAppInstallerErrorDownload] = BSB_State_AppQueueError_DOWNLOAD,
-            [JsAppInstallerErrorUnpack] = BSB_State_AppQueueError_UNPACK,
-            [JsAppInstallerErrorManifest] = BSB_State_AppQueueError_MANIFEST,
-            [JsAppInstallerErrorApiVersion] = BSB_State_AppQueueError_API_VERSION,
-            [JsAppInstallerErrorStorage] = BSB_State_AppQueueError_STORAGE,
-            [JsAppInstallerErrorTimeout] = BSB_State_AppQueueError_TIMEOUT,
-            [JsAppInstallerErrorNotFound] = BSB_State_AppQueueError_NOT_FOUND,
-            [JsAppInstallerErrorQueueFull] = BSB_State_AppQueueError_QUEUE_FULL,
-            [JsAppInstallerErrorCancelled] = BSB_State_AppQueueError_CANCELLED,
-            [JsAppInstallerErrorAppRunning] = BSB_State_AppQueueError_APP_RUNNING,
-            [JsAppInstallerErrorParameter] = BSB_State_AppQueueError_PARAMETER,
-            [JsAppInstallerErrorInternal] = BSB_State_AppQueueError_INTERNAL,
+        static const BSB_State_Apps_QueueError error_lookup[] = {
+            [JsAppInstallerErrorNone] = BSB_State_Apps_QueueError_QUEUE_ERROR_NONE,
+            [JsAppInstallerErrorDownload] = BSB_State_Apps_QueueError_QUEUE_ERROR_DOWNLOAD,
+            [JsAppInstallerErrorUnpack] = BSB_State_Apps_QueueError_QUEUE_ERROR_UNPACK,
+            [JsAppInstallerErrorManifest] = BSB_State_Apps_QueueError_QUEUE_ERROR_MANIFEST,
+            [JsAppInstallerErrorApiVersion] = BSB_State_Apps_QueueError_QUEUE_ERROR_API_VERSION,
+            [JsAppInstallerErrorStorage] = BSB_State_Apps_QueueError_QUEUE_ERROR_STORAGE,
+            [JsAppInstallerErrorTimeout] = BSB_State_Apps_QueueError_QUEUE_ERROR_TIMEOUT,
+            [JsAppInstallerErrorNotFound] = BSB_State_Apps_QueueError_QUEUE_ERROR_NOT_FOUND,
+            [JsAppInstallerErrorQueueFull] = BSB_State_Apps_QueueError_QUEUE_ERROR_QUEUE_FULL,
+            [JsAppInstallerErrorCancelled] = BSB_State_Apps_QueueError_QUEUE_ERROR_CANCELLED,
+            [JsAppInstallerErrorAppRunning] = BSB_State_Apps_QueueError_QUEUE_ERROR_APP_RUNNING,
+            [JsAppInstallerErrorParameter] = BSB_State_Apps_QueueError_QUEUE_ERROR_PARAMETER,
+            [JsAppInstallerErrorInternal] = BSB_State_Apps_QueueError_QUEUE_ERROR_INTERNAL,
         };
         static_assert(COUNT_OF(error_lookup) == JsAppInstallerErrorMax);
-        static_assert(COUNT_OF(error_lookup) == _BSB_State_AppQueueError_ARRAYSIZE);
+        static_assert(COUNT_OF(error_lookup) == _BSB_State_Apps_QueueError_ARRAYSIZE);
 
         const JsAppInstallerError error = event->finished.error;
         furi_assert(error < JsAppInstallerErrorMax);
 
-        BSB_State_AppQueueEvent* pb_event = &update->state.app_queue_event;
-        pb_event->which_value = BSB_State_AppQueueEvent_result_tag;
+        BSB_State_Apps_Event* pb_event = &update->state.apps_event;
+        pb_event->which_value = BSB_State_Apps_Event_result_tag;
 
-        BSB_State_AppQueueOperationResult* pb_result = &pb_event->value.result;
+        BSB_State_Apps_QueueOperationResult* pb_result = &pb_event->value.result;
 
         pb_result->item_id = event->item_id;
         pb_result->error = error_lookup[error];
