@@ -260,7 +260,7 @@ static bool update_task_handle_resources(UpdateExecutorTask* update_task) {
 
             update_executor_task_set_progress(
                 update_task, UpdateExecutorTaskStageResourcesFileUnpack, 0);
-            tar_archive_set_file_callback(archive, update_task_resource_unpack_cb, &progress);
+            tar_archive_set_entry_callback(archive, update_task_resource_unpack_cb, &progress);
             CHECK_RESULT(tar_archive_unpack_to(archive, STORAGE_EXT_PATH_PREFIX, NULL));
         }
         success = true;

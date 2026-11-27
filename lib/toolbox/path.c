@@ -2,6 +2,11 @@
 
 #include <core/check.h>
 
+// FatFS accepts both / and \ as a path separator
+#define PATH_SEPARATORS           "/\\"
+#define PATH_PARENT_REFERENCE     ".."
+#define PATH_PARENT_REFERENCE_LEN (sizeof(PATH_PARENT_REFERENCE) - 1)
+
 void path_extract_filename_no_ext(const char* path, FuriString* filename) {
     furi_check(path);
     furi_check(filename);
@@ -141,6 +146,28 @@ bool path_contains_only_ascii(const char* path) {
     }
 
     return true;
+}
+
+bool path_contains_parent_reference(const char* path) {
+    furi_check(path);
+
+    bool result = false;
+    const char* part = path;
+
+    while(part[0] != '\0') {
+        const size_t part_len = strcspn(part, PATH_SEPARATORS);
+
+        if((part_len == PATH_PARENT_REFERENCE_LEN) &&
+           (strncmp(part, PATH_PARENT_REFERENCE, part_len) == 0)) {
+            result = true;
+            break;
+        }
+
+        part += part_len;
+        part += strspn(part, PATH_SEPARATORS);
+    }
+
+    return result;
 }
 
 static size_t count_path_separators(const char* path) {

@@ -95,10 +95,23 @@ MU_TEST(path_tests_path_append) {
     check_path_append("", "", "");
 }
 
+MU_TEST(path_tests_path_contains_parent_reference) {
+    mu_check(path_contains_parent_reference(".."));
+    mu_check(path_contains_parent_reference("../foo"));
+    mu_check(path_contains_parent_reference("foo/.."));
+    mu_check(path_contains_parent_reference("/foo/../bar"));
+    mu_check(path_contains_parent_reference("foo\\..\\bar"));
+
+    mu_check(!path_contains_parent_reference(""));
+    mu_check(!path_contains_parent_reference("foo/bar"));
+    mu_check(!path_contains_parent_reference("foo../..bar/.../."));
+}
+
 MU_TEST_SUITE(path_test_suite) {
     MU_RUN_TEST(path_tests_path_normalize);
     MU_RUN_TEST(path_tests_path_replace_prefix);
     MU_RUN_TEST(path_tests_path_append);
+    MU_RUN_TEST(path_tests_path_contains_parent_reference);
 }
 
 int run_minunit_path_test(void) {

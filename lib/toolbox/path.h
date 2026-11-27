@@ -73,9 +73,19 @@ void path_concat(const char* path, const char* suffix, FuriString* out_path);
  * @brief Check that path contains only ascii characters
  *
  * @param path
- * @returns @c true if the paths contains only ASCII characters, @c false otherwise
+ * @returns @c true if the path contains only ASCII characters, @c false otherwise
  */
 bool path_contains_only_ascii(const char* path);
+
+/**
+ * @brief Check if the path contains at least one parent directory reference (..)
+ *
+ * @note Both `/` and `\` are considered as path separators.
+ *
+ * @param[in] path path tho be checked
+ * @returns @c true if the path references the parent directory, @c false otherwise
+ */
+bool path_contains_parent_reference(const char* path);
 
 /**
  * @brief Normalizes path (resolves current and parent directory references).
