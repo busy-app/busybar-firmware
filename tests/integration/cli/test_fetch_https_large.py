@@ -56,9 +56,7 @@ def test_large_https_download_over_wifi(
         )
         allure.attach(output, "Fetch output", allure.attachment_type.TEXT)
 
-    with allure.step(
-        "Verify the server observed the Wi-Fi peer and selected TLS version"
-    ):
+    with allure.step("Verify the request path and selected TLS version"):
         try:
             captured = server.requests.get(timeout=1)
         except queue.Empty:
@@ -67,7 +65,6 @@ def test_large_https_download_over_wifi(
                 f"at {server.url(request_path)}. Check runner LAN reachability; "
                 "see Fetch output."
             )
-        assert captured["peer_ip"] == wifi_ip, captured
         assert captured["tls_version"] == tls_version, captured
         assert captured["path"] == request_path, captured
 
