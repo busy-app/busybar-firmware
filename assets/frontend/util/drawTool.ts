@@ -22,6 +22,7 @@ export const DEFAULT_TEXT_VALUE = 'text';
 export const DEFAULT_TEXT_COLOR = '#ffffff';
 export const DEFAULT_TEXT_FONT_ID = 'busy_regular_7px';
 export const DEFAULT_STATUS_FILE_NAME = 'New status';
+export const DEFAULT_STATUS_NAME = 'New status';
 export const DRAW_TOOL_EXPORT_PIXEL_SIZE = 8;
 export const DRAW_TOOL_PIXEL_ART_MAX_DIMENSION = 72;
 export const USER_ASSETS_DIR = '/ext/user_assets';
@@ -30,10 +31,26 @@ export const DRAW_TOOL_TEMP_FILE_NAME = 'temp.png';
 export const DRAW_TOOL_TEMP_ANIMATION_FILE_NAME = 'temp.anim';
 export const DRAW_TOOL_SAVE_DIR = `${USER_ASSETS_DIR}/${DRAW_TOOL_DISPLAY_APPLICATION_NAME}`;
 export const DRAW_TOOL_DISPLAY_PRIORITY = 40;
+export const DRAW_TOOL_STATUS_NAME_MAX_LENGTH = 32;
+export const BUSY_THEMES_DIR = '/ext/apps_assets/busy/themes';
+export const BUSY_THEME_CONFIG_FILE_NAME = 'theme.json';
+export const BUSY_DEFAULT_THEME_NAME = 'busy';
+export const BUSY_THEME_USER_ORDER = 1000;
+const STATUS_API_NAME_FALLBACK = 'status';
 export type DrawToolStatusKind = 'image' | 'animation';
 
 export function getStatusFileKind (fileName: string): DrawToolStatusKind {
   return /\.anim$/i.test(fileName) ? 'animation' : 'image';
+}
+
+export function createStatusApiName (statusName: string) {
+  const apiName = statusName
+    .replace(/[^A-Za-z0-9\s_-]/g, '')
+    .trim()
+    .replace(/[\s_]+/g, '_')
+    .toLowerCase();
+
+  return apiName || STATUS_API_NAME_FALLBACK;
 }
 
 export function createStatusTimestamp (date = new Date()) {
