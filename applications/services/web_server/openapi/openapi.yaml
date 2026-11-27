@@ -7,7 +7,7 @@ info:
     Operations marked as local-only (`x-local-only: true`) are available only
     when calling the device directly over USB or the local network. They are
     not reachable through BUSY Cloud.
-  version: 27.18.0
+  version: 28.1.0
   contact:
     name: tbd
 

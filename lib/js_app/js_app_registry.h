@@ -17,6 +17,7 @@ typedef enum JsAppRegistryAppUninstallResult {
     JsAppRegistryAppUninstallResultOk,
     JsAppRegistryAppUninstallResultNotFound,
     JsAppRegistryAppUninstallResultStorageError,
+    JsAppRegistryAppUninstallResultMax,
 } JsAppRegistryAppUninstallResult;
 
 /**
@@ -53,7 +54,7 @@ JsApp* js_app_registry_get_app(const char* app_id);
 /**
  * @brief Validate app ID and get installation path for a JavaScript application by its ID.
  *
- * Valid app IDs correspond to the following regular expression: [a-zA-Z0-9_\-][a-zA-Z0-9_\-.]*
+ * @see @c js_app_is_valid_id for more info on which IDs are considered valid
  *
  * @param[in] app_id zero-terminated string containing the desired application's ID
  * @return path in filesystem or @c NULL if app_id is invalid
