@@ -451,8 +451,14 @@ static bool archive_extract_current_file(TarArchive* archive, const char* dst_pa
     return success;
 }
 
-static bool tar_archive_is_unsafe_entry_name(const char* name) {
-    return path_contains_parent_reference(name);
+static bool tar_archive_is_unsafe_entry_name(const char* entry_name) {
+    FuriString* trimmed = furi_string_alloc_set(entry_name);
+    furi_string_trim(trimmed, " /\\");
+
+    const bool is_unsafe = path_contains_parent_reference(furi_string_get_cstr(trimmed));
+
+    furi_string_free(trimmed);
+    return is_unsafe;
 }
 
 static bool tar_archive_should_extract_entry(TarArchive* instance, const mtar_header_t* header) {
@@ -474,18 +480,27 @@ static bool tar_archive_should_extract_entry(TarArchive* instance, const mtar_he
 static bool tar_archive_extract_directory_entry(
     TarArchiveDirectoryOpParams* params,
     const mtar_header_t* header) {
-    bool success = true;
+    bool success = false;
 
-    // Skip "/" entry since concat would leave it dangling, also want caller to mkdir destination
-    if(strcmp(header->name, "/") != 0) {
-        FuriString* full_extracted_fname = furi_string_alloc();
-        path_concat(params->work_dir, header->name, full_extracted_fname);
+    FuriString* extracted_path = furi_string_alloc();
 
-        success = storage_simply_mkpath(
-            params->archive->storage, furi_string_get_cstr(full_extracted_fname));
+    do {
+        // Skip "/" entry since concat would leave it dangling
+        if(strcmp(header->name, "/") == 0) {
+            success = true;
+            break;
+        }
 
-        furi_string_free(full_extracted_fname);
-    }
+        path_concat(params->work_dir, header->name, extracted_path);
+
+        if(!storage_simply_mkpath(params->archive->storage, furi_string_get_cstr(extracted_path))) {
+            break;
+        }
+
+        success = true;
+    } while(false);
+
+    furi_string_free(extracted_path);
 
     return success;
 }
@@ -493,31 +508,36 @@ static bool tar_archive_extract_directory_entry(
 static bool tar_archive_extract_file_entry(
     TarArchiveDirectoryOpParams* params,
     const mtar_header_t* header) {
-    FURI_LOG_D(TAG, "Extracting %u bytes to '%s'", header->size, header->name);
-
-    FuriString* converted_fname = furi_string_alloc_set(header->name);
-    FuriString* full_extracted_fname = furi_string_alloc();
     bool success = false;
+
+    FuriString* converted_name = furi_string_alloc_set(header->name);
+    FuriString* extracted_path = furi_string_alloc();
+
+    FURI_LOG_D(TAG, "Extracting %u bytes to '%s'", header->size, header->name);
 
     do {
         if(params->converter) {
-            params->converter(converted_fname);
+            params->converter(converted_name);
         }
 
-        const char* converted_fname_cstr = furi_string_get_cstr(converted_fname);
-        if(tar_archive_is_unsafe_entry_name(converted_fname_cstr)) {
-            FURI_LOG_E(TAG, "Unsafe converted name, aborting: \"%s\"", converted_fname_cstr);
+        const char* converted_name_str = furi_string_get_cstr(converted_name);
+
+        if(tar_archive_is_unsafe_entry_name(converted_name_str)) {
+            FURI_LOG_E(TAG, "Unsafe converted file name, aborting: \"%s\"", converted_name_str);
             break;
         }
 
-        path_concat(params->work_dir, converted_fname_cstr, full_extracted_fname);
+        path_concat(params->work_dir, converted_name_str, extracted_path);
 
-        success = archive_extract_current_file(
-            params->archive, furi_string_get_cstr(full_extracted_fname));
+        if(!archive_extract_current_file(params->archive, furi_string_get_cstr(extracted_path))) {
+            break;
+        }
+
+        success = true;
     } while(false);
 
-    furi_string_free(full_extracted_fname);
-    furi_string_free(converted_fname);
+    furi_string_free(extracted_path);
+    furi_string_free(converted_name);
 
     return success;
 }
@@ -561,7 +581,6 @@ static int archive_extract_foreach_cb(mtar_t* tar, const mtar_header_t* header, 
         }
 
         success = true;
-
     } while(false);
 
     return success ? MTAR_ESUCCESS : MTAR_EFAILURE;
