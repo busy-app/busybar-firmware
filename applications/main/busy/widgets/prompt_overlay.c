@@ -149,11 +149,12 @@ static void prompt_overlay_frame_callback(
     furi_assert(anim_player);
     UNUSED(context);
 
-    if(frame->flags & FuriFlagError) return;
-
     int8_t offset = 0;
-    if(frame->index < COUNT_OF(overlay_offset_animation)) {
-        offset = overlay_offset_animation[frame->index];
+
+    if((frame->flags & AnimFileFrameFlagError) == 0) {
+        if(frame->index < COUNT_OF(overlay_offset_animation)) {
+            offset = overlay_offset_animation[frame->index];
+        }
     }
 
     PromptOverlay* instance = (PromptOverlay*)anim_player;

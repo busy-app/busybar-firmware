@@ -34,13 +34,12 @@ static void
     furi_assert(context);
     AnimTitleCard* card = context;
 
-    if(info->flags & AnimFileFrameFlagError) return;
-
     int32_t offset = 0;
-    if(info->index >= COUNT_OF(card_offset_animation)) {
-        offset = 0;
-    } else {
-        offset = card_offset_animation[info->index];
+
+    if((info->flags & AnimFileFrameFlagError) == 0) {
+        if(info->index < COUNT_OF(card_offset_animation)) {
+            offset = card_offset_animation[info->index];
+        }
     }
 
     lv_obj_set_style_translate_y(TO_LV_OBJ(card->title_label), offset, LV_PART_MAIN);
