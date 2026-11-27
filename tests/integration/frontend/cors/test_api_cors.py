@@ -102,6 +102,7 @@ API_ENDPOINTS = [
     ("/api/apps/settings", "GET"),
     ("/api/apps/settings", "PUT"),
     ("/api/apps/settings", "DELETE"),
+    ("/api/apps/running", "GET"),
 ]
 
 

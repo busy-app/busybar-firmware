@@ -28,8 +28,6 @@ struct DesktopOverlay {
 static void
     desktop_overlay_mask_frame(AnimPlayer* anim, const AnimFileFrameInfo* frame, void* context) {
     UNUSED(context);
-    if(frame->flags & FuriFlagError) return;
-
     if(frame->flags & AnimFileFrameFlagFinished) {
         widget_set_visible(anim_player_get_base(anim), false);
     }
@@ -102,12 +100,13 @@ void desktop_overlay_hide(DesktopOverlay* instance, DesktopOverlayTransitionType
         widget_set_visible(instance->fade_out_widget, false);
 
         if(type != DesktopOverlayTransitionTypeNone) {
-            const char* section = (type == DesktopOverlayTransitionTypeUp) ? MASK_R_TO_L :
-                                                                             MASK_L_TO_R;
-            widget_set_visible(anim_player_get_base(instance->mask_anim), true);
+            const bool is_up = (type == DesktopOverlayTransitionTypeUp);
+            const char* section = is_up ? MASK_R_TO_L : MASK_L_TO_R;
 
             if(anim_player_set_section(instance->mask_anim, AnimFilePlayFlagNone, section)) {
-                anim_player_start(instance->mask_anim);
+                if(anim_player_start(instance->mask_anim)) {
+                    widget_set_visible(anim_player_get_base(instance->mask_anim), true);
+                }
             }
         }
     });
