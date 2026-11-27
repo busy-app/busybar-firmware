@@ -21,11 +21,8 @@ class FetchHTTPSServer(FetchHTTPServer):
         client_ca_pem: str | None = None,
         allow_partial_chain: bool = False,
         tls_version: str | None = None,
-        request_handler=FetchRequestHandler,
-        advertised_address: tuple[str, int] | None = None,
     ):
-        super().__init__(server_address, request_handler)
-        self._advertised_address = advertised_address
+        super().__init__(server_address, FetchRequestHandler)
 
         context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         context.minimum_version = ssl.TLSVersion.TLSv1_2
@@ -60,7 +57,7 @@ class FetchHTTPSServer(FetchHTTPServer):
         super().process_request_thread(tls_request, client_address)
 
     def url(self, path):
-        host, port = (self._advertised_address or self.server_address)[:2]
+        host, port = self.server_address[:2]
         return f"https://{host}:{port}{path}"
 
 

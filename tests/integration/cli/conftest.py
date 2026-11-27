@@ -23,7 +23,6 @@ from utils.cli_helpers import BLOB_PAYLOAD, TEXT_PAYLOAD, resync
 from utils.fetch_http_server import FetchHTTPServer, FetchRequestHandler
 from utils.fetch_mtls_mqtt_broker import FetchMTLSMQTTBroker
 from utils.fetch_mtls_server import FetchHTTPSServer, FetchMTLSServer
-from utils.fetch_large_https_server import LargeHTTPSRequestHandler
 from utils.js_test_runner import export_js_case, run_js_case
 from utils.mtls_certificates import generate_ca, generate_intermediate, generate_leaf
 from utils.wait import wait_for
@@ -190,21 +189,19 @@ def mtls_server_factory(persistent_cli_connection, tmp_path):
 
 
 @pytest.fixture
-def wifi_https_server(persistent_cli_connection, device_wifi_ready, tmp_path, tls_version):
+def wifi_https_server(
+    persistent_cli_connection, device_wifi_ready, tmp_path, tls_version
+):
     wifi_ip = device_wifi_ready.ip_config.address.split("/", 1)[0]
-    host = os.getenv("FETCH_WIFI_SERVER_HOST", "").strip()
-    if not host:
-        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as route:
-            route.connect((wifi_ip, 80))
-            host = route.getsockname()[0]
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as route:
+        route.connect((wifi_ip, 80))
+        host = route.getsockname()[0]
     address = ipaddress.IPv4Address(host)
     usb_host = persistent_cli_connection.tn.sock.getsockname()[0]
     assert not address.is_loopback and host not in (usb_host, wifi_ip), (
-        "FETCH_WIFI_SERVER_HOST must be the runner's Wi-Fi-reachable LAN address, "
+        "Route to the device's Wi-Fi IP must use the runner's LAN address, "
         f"not USB/loopback/device: host={host}, USB={usb_host}, Wi-Fi={wifi_ip}"
     )
-    port = int(os.getenv("FETCH_WIFI_SERVER_PORT") or "9443")
-    bind_port = int(os.getenv("FETCH_WIFI_SERVER_BIND_PORT") or str(port))
     identity = generate_leaf(
         generate_ca("Large HTTPS test root"),
         "Large HTTPS test server",
@@ -216,12 +213,10 @@ def wifi_https_server(persistent_cli_connection, device_wifi_ready, tmp_path, tl
     certificate.write_bytes(identity.certificate_pem)
     key.write_bytes(identity.private_key_pem)
     server = FetchHTTPSServer(
-        ("0.0.0.0", bind_port),
+        (host, 0),
         server_certificate_path=certificate,
         server_private_key_path=key,
         tls_version=tls_version,
-        request_handler=LargeHTTPSRequestHandler,
-        advertised_address=(host, port),
     )
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()

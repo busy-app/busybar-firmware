@@ -7,7 +7,7 @@ import allure
 import pytest
 
 from clients.api import StorageAPI
-from utils.fetch_large_https_server import LARGE_HTTPS_PAYLOAD
+from utils.fetch_http_server import LARGE_PAYLOAD
 
 
 pytestmark = [
@@ -46,10 +46,11 @@ def test_large_https_download_over_wifi(
 ):
     server, wifi_ip = wifi_https_server
     destination = f"{storage_dir}/large-https.bin"
+    request_path = f"/http11/large-{framing}"
     with allure.step("Download a bounded binary response over Wi-Fi"):
         # Trust validation has separate tests; this checks TLS body delivery/framing.
         output = persistent_cli_connection.execute_command(
-            f"fetch -v -k -a none -o {destination} {server.url('/large/' + framing)}",
+            f"fetch -v -k -a none -o {destination} {server.url(request_path)}",
             timeout=30,
             slow_command=True,
         )
@@ -62,12 +63,13 @@ def test_large_https_download_over_wifi(
             captured = server.requests.get(timeout=1)
         except queue.Empty:
             pytest.fail(
-                "HTTPS server received no request. Check FETCH_WIFI_SERVER_HOST/PORT "
-                "and publish the server port on Docker runners; see Fetch output."
+                f"HTTPS server received no request from Wi-Fi {wifi_ip} "
+                f"at {server.url(request_path)}. Check runner LAN reachability; "
+                "see Fetch output."
             )
         assert captured["peer_ip"] == wifi_ip, captured
         assert captured["tls_version"] == tls_version, captured
-        assert captured["framing"] == framing, captured
+        assert captured["path"] == request_path, captured
 
     with allure.step("Verify successful completion and exact file contents"):
         assert (
@@ -78,8 +80,8 @@ def test_large_https_download_over_wifi(
         assert (
             saved.status_code == 200
         ), f"Downloaded file is missing: HTTP {saved.status_code}"
-        assert len(saved.content) == len(LARGE_HTTPS_PAYLOAD), len(saved.content)
+        assert len(saved.content) == len(LARGE_PAYLOAD), len(saved.content)
         assert (
             hashlib.sha256(saved.content).digest()
-            == hashlib.sha256(LARGE_HTTPS_PAYLOAD).digest()
+            == hashlib.sha256(LARGE_PAYLOAD).digest()
         ), "Downloaded HTTPS payload checksum differs"
