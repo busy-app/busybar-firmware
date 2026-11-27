@@ -453,7 +453,7 @@ static bool archive_extract_current_file(TarArchive* archive, const char* dst_pa
 
 static bool tar_archive_is_unsafe_entry_name(const char* entry_name) {
     FuriString* trimmed = furi_string_alloc_set(entry_name);
-    furi_string_trim(trimmed, " /\\");
+    furi_string_trim(trimmed, " \n\r\t\\/");
 
     const bool is_unsafe = path_contains_parent_reference(furi_string_get_cstr(trimmed));
 

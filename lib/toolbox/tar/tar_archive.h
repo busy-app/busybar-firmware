@@ -56,6 +56,11 @@ typedef void (*TarArchiveNameConverter)(FuriString*);
  * @param[in]   destination   Destination path
  * @param       converter     Storage name converter
  *
+ * Upon encountering entries containing parent directory references (..),
+ * the function stops processing the archive and returns @c false.
+ *
+ * Entries with such names never reach the per-entry callback.
+ *
  * @return true if successful
  */
 bool tar_archive_unpack_to(

@@ -242,7 +242,7 @@ MU_TEST(tar_test_gzip) {
     furi_record_close(RECORD_STORAGE);
 }
 
-bool tar_test_parent_entry_callback(const char* name, bool is_directory, void* context) {
+static bool tar_test_parent_entry_callback(const char* name, bool is_directory, void* context) {
     UNUSED(name);
     UNUSED(is_directory);
     furi_assert(context);
