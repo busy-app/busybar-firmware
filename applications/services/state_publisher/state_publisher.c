@@ -14,6 +14,10 @@
 
 #define HEARTBEAT_INTERVAL_MS 991
 
+typedef enum {
+    StatePublisherCustomEventFlush = (1UL << 0),
+} StatePublisherCustomEvent;
+
 typedef bool (*MessageHandler)(StatePublisher* instance, const ControlMessage* message);
 
 static const MessageHandler message_handlers[];
@@ -29,6 +33,7 @@ void screen_streamer_callback(
     void* context);
 
 static void publish_queue_callback(FuriEventLoopObject* object, void* context);
+static void state_publisher_custom_event_callback(uint32_t events, void* context);
 
 static void control_queue_callback(FuriEventLoopObject* object, void* context) {
     UNUSED(object);
@@ -86,6 +91,9 @@ static StatePublisher* state_publisher_alloc(void) {
         FuriEventLoopEventIn,
         publish_queue_callback,
         instance);
+
+    furi_event_loop_set_custom_event_callback(
+        instance->event_loop, state_publisher_custom_event_callback, instance);
 
     instance->heartbeat_timer = furi_event_loop_timer_alloc(
         instance->event_loop, heartbeat_timer_callback, FuriEventLoopTimerTypePeriodic, instance);
@@ -254,6 +262,7 @@ static bool is_sequential_update(const BSB_State_StateUpdate* update) {
     if(update) {
         switch(update->which_state) {
         case BSB_State_StateUpdate_input_tag:
+        case BSB_State_StateUpdate_apps_event_tag:
             return true;
         default:
             return false;
@@ -421,11 +430,28 @@ static void publish_queue_callback(FuriEventLoopObject* object, void* context) {
     furi_event_loop_timer_start(instance->rate_limiter_timer, ms_to_ticks(sleep_time_ms));
 }
 
+static void state_publisher_send_out_all(StatePublisher* instance) {
+    const uint32_t sleep_time_ms = send_out(instance, StreamFlagAll, false);
+    furi_event_loop_timer_start(instance->rate_limiter_timer, ms_to_ticks(sleep_time_ms));
+}
+
 static void rate_limiter_timer_callback(void* context) {
     StatePublisher* instance = context;
-    uint32_t sleep_time_ms = send_out(instance, StreamFlagAll, false);
+    state_publisher_send_out_all(instance);
+}
 
-    furi_event_loop_timer_start(instance->rate_limiter_timer, ms_to_ticks(sleep_time_ms));
+static void state_publisher_custom_event_callback(uint32_t events, void* context) {
+    StatePublisher* instance = context;
+    furi_assert(instance);
+
+    if(events & StatePublisherCustomEventFlush) {
+        state_publisher_send_out_all(instance);
+    }
+}
+
+void state_publisher_flush(StatePublisher* instance) {
+    furi_assert(instance);
+    furi_event_loop_set_custom_event(instance->event_loop, StatePublisherCustomEventFlush);
 }
 
 static bool handle_transport_resumed(StatePublisher* instance, const ControlMessage* message) {
@@ -455,6 +481,10 @@ void state_publisher_schedule_state_update(
 
     if(queue_status != FuriStatusOk) {
         FURI_LOG_E(TAG, "Queue full, update dropped");
+        if(update) {
+            state_publisher_free_state_update(update);
+            free(update);
+        }
     }
 }
 
@@ -535,15 +565,7 @@ static int32_t fetch_thread_callback(void* context) {
         }
 
         if(result) {
-            PublishMessage msg = {
-                .heartbeat = false,
-            };
-
-            FuriStatus queue_status = furi_message_queue_put(instance->publish_queue, &msg, 0);
-
-            if(queue_status != FuriStatusOk) {
-                FURI_LOG_E(TAG, "Queue full, update postponed");
-            }
+            state_publisher_flush(instance);
         }
     }
     return 0;
