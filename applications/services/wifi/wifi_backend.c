@@ -283,6 +283,8 @@ static void wifi_net_intercom_rx_callback(const void* data, size_t data_size, vo
     furi_assert(context);
     Wifi* instance = context;
 
+    wifi_mdns_bridge_track_ipv4_source(instance, data, data_size);
+
     const sl_status_t status =
         sl_wifi_send_raw_data_frame(SL_WIFI_CLIENT_INTERFACE, data, data_size);
 

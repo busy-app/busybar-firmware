@@ -37,6 +37,7 @@ App(
     sources=[
         "wifi_backend.c",
         "wifi_backend_net.c",
+        "wifi_backend_mdns_bridge.c",
         "wifi_backend_util.c",
         "wifi_util.c",
     ],

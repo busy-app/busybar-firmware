@@ -46,6 +46,7 @@ sources = [
     "get_line.c",
     "hex.c",
     "md5_calc.c",
+    "mdns_bridge.c",
     "path.c",
     "profiler.c",
     "property.c",
