@@ -294,7 +294,7 @@ void tar_archive_free(TarArchive* archive) {
     free(archive);
 }
 
-void tar_archive_set_file_callback(
+void tar_archive_set_entry_callback(
     TarArchive* archive,
     TarArchiveEntryCallback callback,
     void* context) {

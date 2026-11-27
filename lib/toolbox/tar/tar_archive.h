@@ -138,7 +138,7 @@ typedef bool (*TarArchiveEntryCallback)(const char* name, bool is_directory, voi
  * @param       callback      Callback function
  * @param[in]   context       User context
  */
-void tar_archive_set_file_callback(
+void tar_archive_set_entry_callback(
     TarArchive* archive,
     TarArchiveEntryCallback callback,
     void* context);

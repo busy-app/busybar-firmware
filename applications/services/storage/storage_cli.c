@@ -556,7 +556,7 @@ static void storage_cli_extract(PipeSide* pipe, FuriString* old_path, FuriString
             break;
         }
         uint32_t start_tick = furi_get_tick();
-        tar_archive_set_file_callback(archive, tar_extract_file_callback, NULL);
+        tar_archive_set_entry_callback(archive, tar_extract_file_callback, NULL);
         printf("Unpacking to %s\r\n", furi_string_get_cstr(new_path));
         bool success = tar_archive_unpack_to(archive, furi_string_get_cstr(new_path), NULL);
         uint32_t end_tick = furi_get_tick();

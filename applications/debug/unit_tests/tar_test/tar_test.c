@@ -270,7 +270,7 @@ MU_TEST(tar_test_parent) {
     mu_assert_int_eq(1, entries_count);
 
     bool is_callback_called = false;
-    tar_archive_set_file_callback(tar, tar_test_parent_entry_callback, &is_callback_called);
+    tar_archive_set_entry_callback(tar, tar_test_parent_entry_callback, &is_callback_called);
 
     success = tar_archive_unpack_to(tar, PARENT_REFERENCE_EXTRACT_PATH, NULL);
     mu_assert(!success, "tar_archive_unpack_to must reject parent references");
