@@ -33,6 +33,10 @@
 #define GZIP_FILE         EXT_PATH("apps_assets/unit_tests/test.tgz")
 #define GZIP_EXTRACT_PATH UNIT_TESTS_PATH("ungzip")
 
+/* Contains a single "../test.txt" entry, created with python's tarfile module as described above */
+#define PARENT_REFERENCE_FILE         EXT_PATH("apps_assets/unit_tests/test_parent.tgz")
+#define PARENT_REFERENCE_EXTRACT_PATH UNIT_TESTS_PATH("ungzip_parent")
+
 static void tar_config_setup(void) {
     Storage* storage = furi_record_open(RECORD_STORAGE);
     File* file_handle1 = storage_file_alloc(storage);
@@ -238,10 +242,24 @@ MU_TEST(tar_test_gzip) {
     furi_record_close(RECORD_STORAGE);
 }
 
+MU_TEST(tar_test_parent) {
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+    TarArchive* tar = tar_archive_alloc(storage);
+
+    bool r = tar_archive_open(tar, PARENT_REFERENCE_FILE, TarOpenModeReadAuto);
+    mu_assert(r, "tar_archive_open");
+    r = tar_archive_unpack_to(tar, PARENT_REFERENCE_EXTRACT_PATH, NULL);
+    mu_assert(!r, "tar_archive_unpack_to must reject parent references");
+
+    tar_archive_free(tar);
+    furi_record_close(RECORD_STORAGE);
+}
+
 MU_TEST_SUITE(tar_test_suite) {
     MU_SUITE_CONFIGURE(&tar_config_setup, &tar_config_teardown);
     MU_RUN_TEST(tar_test_cli);
     MU_RUN_TEST(tar_test_gzip);
+    MU_RUN_TEST(tar_test_parent);
 }
 
 int run_minunit_tar_test(void) {
