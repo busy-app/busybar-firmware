@@ -605,10 +605,12 @@ schemas:
         - properties:
             stock_path:
               $ref: "#/components/schemas/StockPath"
-              description: Stock audio file name
+              description: >-
+                Path to a stock sound, in the <folder>/<file>.snd format
+                (for example shared/volume_change.snd).
               examples:
-                - "beep.snd"
-                - "sounds/alert.snd"
+                - "shared/volume_change.snd"
+                - "shared/calendar_event_starts.snd"
           required:
               - stock_path
 
