@@ -56,7 +56,6 @@ typedef struct FetchJobSlot FetchJobSlot;
 
 struct Fetch {
     Network* network;
-    struct mg_mgr mgr;
 
     FuriMutex* jobs_mutex;
     FuriSemaphore* jobs_semaphore;
@@ -194,6 +193,7 @@ static FetchJobSlot* fetch_take_job(Fetch* instance) {
 
 static void fetch_schedule_job(Fetch* instance, FetchJobSlot* slot) {
     furi_check(furi_mutex_acquire(instance->jobs_mutex, FuriWaitForever) == FuriStatusOk);
+    furi_check(slot->job.state == FetchJobStateFree);
     slot->job.state = FetchJobStateScheduled;
     furi_mutex_release(instance->jobs_mutex);
     furi_check(furi_semaphore_release(instance->jobs_semaphore) == FuriStatusOk);
@@ -614,27 +614,26 @@ static Fetch* fetch_alloc(void) {
     instance->network = furi_record_open(RECORD_NETWORK);
     network_init_current_thread(instance->network);
 
-#ifdef FETCH_DEBUG
-    mg_log_set(MG_LL_VERBOSE);
-#endif
-
-    mg_mgr_init(&instance->mgr);
-
     return instance;
 }
 
-static void fetch_process_job(Fetch* instance, FetchJob* job) {
+static void fetch_process_job(FetchJob* job) {
     if(job->is_stop_requested) {
         job->status = FetchStatusAborted;
         return;
     }
 
     const FetchRequest* request = job->request;
-    mongoose_dns_init(&instance->mgr);
+#ifdef FETCH_DEBUG
+    mg_log_set(MG_LL_VERBOSE);
+#endif
+
+    struct mg_mgr mgr;
+    mg_mgr_init(&mgr);
+    mongoose_dns_init(&mgr);
     FETCH_LOG_D(TAG, "job: %s", request->url);
 
-    struct mg_connection* conn =
-        mg_http_connect(&instance->mgr, request->url, fetch_mg_handler, job);
+    struct mg_connection* conn = mg_http_connect(&mgr, request->url, fetch_mg_handler, job);
 
     if(conn != NULL) {
         job->activity_timer = coarse_timer_create(FETCH_INACTIVITY_TIMEOUT_MS);
@@ -654,7 +653,7 @@ static void fetch_process_job(Fetch* instance, FetchJob* job) {
                 FETCH_LOG_I(TAG, "Connection closed");
             }
 
-            mg_mgr_poll(&instance->mgr, 1000);
+            mg_mgr_poll(&mgr, 1000);
         }
 
         if(!fetch_verify_response_body_size(job)) {
@@ -665,7 +664,8 @@ static void fetch_process_job(Fetch* instance, FetchJob* job) {
         fetch_raise_error(job, "Failed to connect to server");
     }
 
-    mongoose_dns_deinit(&instance->mgr);
+    mongoose_dns_deinit(&mgr);
+    mg_mgr_free(&mgr);
 
     if(job->chunked) {
         fetch_chunked_free(job->chunked);
@@ -683,7 +683,7 @@ static void fetch_loop(Fetch* instance) {
         }
         FetchJob* job = &slot->job;
         FETCH_LOG_D(TAG, "got job");
-        fetch_process_job(instance, job);
+        fetch_process_job(job);
         furi_check(furi_mutex_acquire(instance->jobs_mutex, FuriWaitForever) == FuriStatusOk);
         job->state = FetchJobStateDone;
         furi_event_flag_set(job->event_flag_done, FETCH_JOB_EVENT_FLAG_DONE);
@@ -699,7 +699,7 @@ static void fetch_loop(Fetch* instance) {
 // ==========
 
 FetchHandle*
-    fetch_run(Fetch* instance, const FetchRequest* request, const FetchCallbacks* callbacks) {
+    fetch_init(Fetch* instance, const FetchRequest* request, const FetchCallbacks* callbacks) {
     furi_check(instance);
 
     furi_check(request);
@@ -727,12 +727,18 @@ FetchHandle*
 
     job->callbacks = *callbacks;
 
-    fetch_schedule_job(instance, job_slot);
-
     FetchHandle* handle = &job_slot->handle;
     handle->instance = instance;
     handle->job_slot = job_slot;
+
     return handle;
+}
+
+void fetch_start(FetchHandle* handle) {
+    furi_check(handle);
+
+    Fetch* instance = handle->instance;
+    fetch_schedule_job(instance, handle->job_slot);
 }
 
 FetchStatus fetch_join(FetchHandle* handle, uint32_t timeout) {
@@ -745,6 +751,8 @@ FetchStatus fetch_join(FetchHandle* handle, uint32_t timeout) {
     uint32_t status = furi_event_flag_wait(
         job->event_flag_done, FETCH_JOB_EVENT_FLAG_DONE, FuriFlagWaitAny, timeout);
     if(status == (uint32_t)FuriStatusErrorTimeout) {
+        return FetchStatusTimeout;
+    } else if(timeout == 0 && status == (uint32_t)FuriStatusErrorResource) {
         return FetchStatusTimeout;
     }
 

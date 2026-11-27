@@ -181,7 +181,7 @@ static jerry_value_t fetch(
         .done_callback = fetch_done_callback,
     };
     Fetch* fetch = furi_record_open(RECORD_FETCH);
-    instance->fetch.handle = fetch_run(fetch, &instance->request, &callbacks);
+    instance->fetch.handle = fetch_init(fetch, &instance->request, &callbacks);
     furi_record_close(RECORD_FETCH);
     if(!instance->fetch.handle) {
         JS_TRACE("out of resources %p", instance);
@@ -189,6 +189,7 @@ static jerry_value_t fetch(
         jerry_value_free(instance->promise.promise);
         return js_rejected_promise("out of resources");
     } else {
+        fetch_start(instance->fetch.handle);
         WITH_JS_RUNNER_APP(app, { js_runner_add_fetch_op(app, instance); });
         return jerry_value_copy(instance->promise.promise);
     }
@@ -349,36 +350,30 @@ static void process_rx_data(JsFetch* instance, SizedBuffer data) {
     }
 }
 
-static void process_done(JsFetch* instance) {
-    JS_TRACE("done");
-    if(instance->promise.status == ChildStatusRunning) {
-        // Done before headers
-        process_error(instance, furi_string_alloc_set("Connection closed unexpectedly"));
-        return;
-    }
-    if(instance->response.status != ChildStatusDone || instance->sink.status != ChildStatusDone) {
-        DataEventQueue_push_back(
-            instance->chunk_queue,
-            (JsFetchDataEvent){
-                .type = JsFetchDataEventTypeDone,
-            });
-    }
-    if(instance->sink.status == ChildStatusRunning) {
-        feed_data_sink(instance);
-    }
-}
-
-static void process_fetch_joined(JsFetch* instance) {
-    JS_TRACE("fetch joined %p", instance);
+static void process_fetch_done(JsFetch* instance) {
+    JS_TRACE("fetch done %p", instance);
     FetchStatus status = fetch_join(instance->fetch.handle, FuriWaitForever);
+    instance->fetch.handle = NULL;
     if(status == FetchStatusOk) {
-        process_done(instance);
+        if(instance->promise.status == ChildStatusRunning) {
+            // Done before headers
+            process_error(instance, furi_string_alloc_set("Connection closed unexpectedly"));
+            return;
+        }
+        if(instance->response.status != ChildStatusDone ||
+           instance->sink.status != ChildStatusDone) {
+            DataEventQueue_push_back(
+                instance->chunk_queue,
+                (JsFetchDataEvent){
+                    .type = JsFetchDataEventTypeDone,
+                });
+        }
+        if(instance->sink.status == ChildStatusRunning) {
+            feed_data_sink(instance);
+        }
     } else {
         // aborted
     }
-
-    instance->fetch.handle = NULL;
-    instance->fetch.status = ChildStatusDone;
 
     JsRunnerApp* app = instance->app;
     js_runner_del_fetch_op(app, instance);
@@ -388,6 +383,7 @@ static void process_fetch_joined(JsFetch* instance) {
         process_error(instance, furi_string_alloc_set("Connection closed unexpectedly"));
         return;
     }
+    instance->fetch.status = ChildStatusDone;
 
     free_if_not_running(instance);
 }
@@ -405,7 +401,7 @@ void js_fetch_process_event(const JsFetchEvent* event) {
         process_error(instance, event->error);
         break;
     case JsFetchEventTypeFetchDone:
-        process_fetch_joined(instance);
+        process_fetch_done(instance);
         break;
     case JsFetchEventTypeInvalid:
         furi_check(false);

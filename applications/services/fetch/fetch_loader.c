@@ -96,6 +96,11 @@ static void fetch_done_callback(FetchHandle* handle, void* context) {
     FetchStatus status = fetch_join(handle, FuriWaitForever);
     instance->handle = NULL;
     fetch_loader_finalize(instance);
+    if(instance->is_stop_requested) {
+        status = FetchStatusAborted;
+    } else if(instance->is_error_occurred) {
+        status = FetchStatusError;
+    }
     fetch_loader_notify_done(instance, status);
 }
 
@@ -192,10 +197,19 @@ void fetch_loader_start(FetchLoader* instance, const char* remote_url, const cha
             .done_callback = fetch_done_callback,
         };
         Fetch* fetch = furi_record_open(RECORD_FETCH);
-        instance->handle = fetch_run(fetch, &instance->request, &callbacks);
+        instance->handle = fetch_init(fetch, &instance->request, &callbacks);
         furi_record_close(RECORD_FETCH);
+        if(instance->handle == NULL) {
+            instance->is_error_occurred = true;
+            fetch_loader_notify_state(instance, "No fetch slots available");
+            fetch_loader_finalize(instance);
+            fetch_loader_notify_done(instance, FetchStatusError);
+        } else {
+            fetch_start(instance->handle);
+        }
     } else {
         fetch_loader_notify_state(instance, "Failed to create file");
+        fetch_loader_notify_done(instance, FetchStatusError);
     }
 }
 

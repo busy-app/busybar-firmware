@@ -78,7 +78,7 @@ typedef struct FetchCallbacks {
 } FetchCallbacks;
 
 /**
- * @brief Run the fetch process.
+ * @brief Initialize a fetch handle.
  *
  * The callbacks will be executed in the fetch service thread's context.
  *
@@ -88,7 +88,14 @@ typedef struct FetchCallbacks {
  * @returns fetch handle on success, NULL if resources could not be allocated.
  */
 FetchHandle*
-    fetch_run(Fetch* instance, const FetchRequest* request, const FetchCallbacks* callbacks);
+    fetch_init(Fetch* instance, const FetchRequest* request, const FetchCallbacks* callbacks);
+
+/**
+ * @brief Schedule fetch request for execution.
+ *
+ * @param[in] handle request handle.
+ */
+void fetch_start(FetchHandle* handle);
 
 /**
  * @brief Wait until fetch request execution stops and free the handle.

@@ -280,13 +280,15 @@ static void fetch_cli_run(PipeSide* pipe, const FetchCliParams* params) {
     FetchCli* instance = fetch_cli_alloc(pipe);
 
     if(fetch_cli_prepare(instance, params)) {
-        instance->handle = fetch_run(instance->fetch, &params->request, &instance->callbacks);
+        instance->handle = fetch_init(instance->fetch, &params->request, &instance->callbacks);
         if(instance->handle) {
+            fetch_start(instance->handle);
             FetchStatus status = fetch_join(instance->handle, FuriWaitForever);
             if(status != FetchStatusOk) {
                 printf("Fetch failed (status code %d)\r\n", status);
             }
         } else {
+            instance->is_error = true;
             printf("Fetch error\r\n");
         }
     }
