@@ -200,11 +200,38 @@ size_t pipe_receive(PipeSide* pipe, void* data, size_t length);
  * requested `length`.
  * 
  * @param [in] pipe The pipe side to send data into
- * @param [out] data The buffer to get data from
+ * @param [in] data The buffer to get data from
  * @param length Maximum length of data to send
  * @returns The number of bytes actually read from the provided buffer
  */
 size_t pipe_send(PipeSide* pipe, const void* data, size_t length);
+
+/**
+ * @brief Sends a zero-terminated string into the pipe. The zero byte is not sent.
+ *
+ * This function will try to send the requested string to the pipe.
+ * If at some point during the operation the pipe becomes broken, this function
+ * will return prematurely, in which case the return value will be less than the
+ * length of the string.
+ *
+ * @param [in] pipe The pipe side to send data into
+ * @param [in] string The zero-terminated string
+ * @returns The number of bytes actually read from the provided buffer
+ */
+size_t pipe_send_cstr(PipeSide* pipe, const char* string);
+
+/**
+ * @brief Sends a single char into the pipe.
+ *
+ * This function will try to send the requested character to the pipe.
+ * If at some point during the operation the pipe becomes broken, this function
+ * will return prematurely, in which case the return value will be zero.
+ *
+ * @param [in] pipe The pipe side to send data into
+ * @param [in] c The character to send
+ * @returns 1 on success or 0 on failure
+ */
+size_t pipe_send_char(PipeSide* pipe, char c);
 
 /**
  * @brief Determines how many bytes there are in the pipe available to be read.

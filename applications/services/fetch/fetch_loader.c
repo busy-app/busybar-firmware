@@ -15,7 +15,8 @@ struct FetchLoader {
     FuriString* remote_url;
     FuriString* file_path;
 
-    Fetch* fetch;
+    FetchRequest request;
+    FetchHandle* handle;
     TempFile* file;
 
     FetchLoaderProgressCallback progress_callback;
@@ -27,19 +28,7 @@ struct FetchLoader {
     _Atomic bool is_stop_requested;
 };
 
-static FetchStatus fetch_loader_get_status(const FetchLoader* instance) {
-    FetchStatus status;
-
-    if(instance->is_stop_requested) {
-        status = FetchStatusAborted;
-    } else if(instance->is_error_occurred) {
-        status = FetchStatusError;
-    } else {
-        status = FetchStatusOk;
-    }
-
-    return status;
-}
+static void fetch_loader_finalize(FetchLoader* instance);
 
 static void fetch_loader_notify_state(const FetchLoader* instance, const char* message) {
     if(instance->state_callback) {
@@ -66,7 +55,7 @@ static void fetch_file_out_callback(const void* data, size_t data_size, void* co
 
     if(data_size > 0) {
         if(!temp_file_write(instance->file, data, data_size)) {
-            fetch_stop(instance->fetch);
+            fetch_stop(instance->handle);
 
             FURI_LOG_E(TAG, "Failed to write to output file");
             instance->is_error_occurred = true;
@@ -101,18 +90,27 @@ static void fetch_error_callback(const char* error, void* context) {
     instance->is_error_occurred = true;
 }
 
+static void fetch_done_callback(FetchHandle* handle, void* context) {
+    FetchLoader* instance = context;
+
+    FetchStatus status = fetch_join(handle, FuriWaitForever);
+    instance->handle = NULL;
+    fetch_loader_finalize(instance);
+    if(instance->is_stop_requested) {
+        status = FetchStatusAborted;
+    } else if(instance->is_error_occurred) {
+        status = FetchStatusError;
+    }
+    fetch_loader_notify_done(instance, status);
+}
+
 FetchLoader* fetch_loader_alloc(void) {
     FetchLoader* instance = malloc(sizeof(FetchLoader));
 
     instance->remote_url = furi_string_alloc();
     instance->file_path = furi_string_alloc();
-    instance->fetch = fetch_alloc();
+    instance->handle = NULL;
     instance->file = temp_file_alloc(furi_record_open(RECORD_STORAGE));
-
-    fetch_set_callback_context(instance->fetch, instance);
-    fetch_set_rx_data_callback(instance->fetch, fetch_file_out_callback);
-    fetch_set_progress_callback(instance->fetch, fetch_progress_callback);
-    fetch_set_error_callback(instance->fetch, fetch_error_callback);
 
     return instance;
 }
@@ -121,7 +119,9 @@ void fetch_loader_free(FetchLoader* instance) {
     furi_check(instance);
 
     temp_file_free(instance->file);
-    fetch_free(instance->fetch);
+    if(instance->handle) {
+        fetch_join(instance->handle, FuriWaitForever);
+    }
     furi_string_free(instance->remote_url);
     furi_string_free(instance->file_path);
 
@@ -134,7 +134,9 @@ void fetch_loader_stop(FetchLoader* instance) {
     furi_check(instance);
 
     instance->is_stop_requested = true;
-    fetch_stop(instance->fetch);
+    if(instance->handle) {
+        fetch_stop(instance->handle);
+    }
 }
 
 static bool fetch_loader_prepare(FetchLoader* instance) {
@@ -170,36 +172,6 @@ static void fetch_loader_finalize(FetchLoader* instance) {
     }
 }
 
-static void
-    fetch_loader_thread_state_callback(FuriThread* thread, FuriThreadState state, void* context) {
-    furi_assert(thread);
-    FetchLoader* instance = context;
-
-    if(state == FuriThreadStateStopped) {
-        fetch_loader_notify_done(instance, fetch_loader_get_status(instance));
-        furi_thread_free(thread);
-    }
-}
-
-static int32_t fetch_loader_thread_callback(void* context) {
-    furi_assert(context);
-    FetchLoader* instance = context;
-
-    if(fetch_loader_prepare(instance)) {
-        fetch_loader_notify_state(instance, "Connecting to server...");
-
-        const FetchRequest request = {
-            .url = furi_string_get_cstr(instance->remote_url),
-        };
-
-        fetch_run(instance->fetch, &request);
-
-        fetch_loader_finalize(instance);
-    }
-
-    return 0;
-}
-
 static void fetch_loader_reset(FetchLoader* instance) {
     instance->is_error_occurred = false;
     instance->is_stop_requested = false;
@@ -215,16 +187,34 @@ void fetch_loader_start(FetchLoader* instance, const char* remote_url, const cha
     furi_string_set(instance->remote_url, remote_url);
     furi_string_set(instance->file_path, file_path);
 
-    FuriThread* thread = furi_thread_alloc_ex(
-        FETCH_LOADER_THREAD_NAME,
-        FETCH_LOADER_THREAD_STACK_SIZE,
-        fetch_loader_thread_callback,
-        instance);
+    if(fetch_loader_prepare(instance)) {
+        fetch_loader_notify_state(instance, "Connecting to server...");
 
-    furi_thread_set_state_context(thread, instance);
-    furi_thread_set_state_callback(thread, fetch_loader_thread_state_callback);
-
-    furi_thread_start(thread);
+        instance->request = (FetchRequest){
+            .url = furi_string_get_cstr(instance->remote_url),
+        };
+        const FetchCallbacks callbacks = {
+            .callback_context = instance,
+            .rx_data_callback = fetch_file_out_callback,
+            .progress_callback = fetch_progress_callback,
+            .error_callback = fetch_error_callback,
+            .done_callback = fetch_done_callback,
+        };
+        Fetch* fetch = furi_record_open(RECORD_FETCH);
+        instance->handle = fetch_init(fetch, &instance->request, &callbacks);
+        furi_record_close(RECORD_FETCH);
+        if(instance->handle == NULL) {
+            instance->is_error_occurred = true;
+            fetch_loader_notify_state(instance, "No fetch slots available");
+            fetch_loader_finalize(instance);
+            fetch_loader_notify_done(instance, FetchStatusError);
+        } else {
+            fetch_start(instance->handle);
+        }
+    } else {
+        fetch_loader_notify_state(instance, "Failed to create file");
+        fetch_loader_notify_done(instance, FetchStatusError);
+    }
 }
 
 void fetch_loader_set_callback_context(FetchLoader* instance, void* context) {

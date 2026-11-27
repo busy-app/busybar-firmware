@@ -130,6 +130,7 @@ static JsAppInstallerError
         [FetchStatusOk] = JsAppInstallerErrorNone,
         [FetchStatusError] = JsAppInstallerErrorDownload,
         [FetchStatusAborted] = JsAppInstallerErrorCancelled,
+        [FetchStatusTimeout] = JsAppInstallerErrorInternal,
     };
 
     static_assert(COUNT_OF(error_table) == FetchStatusMax);
