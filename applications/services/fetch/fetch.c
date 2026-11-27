@@ -50,6 +50,7 @@ typedef enum FetchJobState {
     FetchJobStateScheduled,
     FetchJobStateRunning,
     FetchJobStateDone,
+    FetchJobStateGarbage,
 } FetchJobState;
 
 typedef struct FetchJobSlot FetchJobSlot;
@@ -149,7 +150,6 @@ static FetchJobSlot* fetch_alloc_job(Fetch* instance) {
 
 static void fetch_free_job(Fetch* instance, FetchJobSlot* slot) {
     FetchJob* job = &slot->job;
-    furi_check(furi_mutex_acquire(instance->jobs_mutex, FuriWaitForever) == FuriStatusOk);
 
     FetchJobSlot* prev = slot->prev;
     FetchJobSlot* next = slot->next;
@@ -172,7 +172,6 @@ static void fetch_free_job(Fetch* instance, FetchJobSlot* slot) {
         fetch_chunked_free(job->chunked);
     }
     memory_pool_free_object(instance->jobs_pool, slot);
-    furi_mutex_release(instance->jobs_mutex);
 }
 
 static FetchJobSlot* fetch_take_job(Fetch* instance) {
@@ -694,6 +693,19 @@ static void fetch_loop(Fetch* instance) {
     }
 }
 
+static void fetch_gc(Fetch* instance) {
+    furi_check(furi_mutex_acquire(instance->jobs_mutex, FuriWaitForever) == FuriStatusOk);
+    FetchJobSlot* slot = instance->jobs_head;
+    while(slot) {
+        FetchJobSlot* next = slot->next;
+        if(slot->job.state == FetchJobStateGarbage) {
+            fetch_free_job(instance, slot);
+        }
+        slot = next;
+    }
+    furi_mutex_release(instance->jobs_mutex);
+}
+
 // ==========
 // Public API
 // ==========
@@ -707,6 +719,8 @@ FetchHandle*
     furi_check(request->headers.count <= FETCH_HEADERS_COUNT_MAX);
 
     FETCH_LOG_D(TAG, "run %s", request->url);
+
+    fetch_gc(instance);
 
     FetchJobSlot* job_slot = fetch_alloc_job(instance);
 
@@ -760,7 +774,10 @@ FetchStatus fetch_join(FetchHandle* handle, uint32_t timeout) {
 
     FetchStatus job_status = job->status;
 
-    fetch_free_job(instance, handle->job_slot);
+    furi_check(furi_mutex_acquire(instance->jobs_mutex, FuriWaitForever) == FuriStatusOk);
+    furi_check(job->state = FetchJobStateDone);
+    job->state = FetchJobStateGarbage;
+    furi_mutex_release(instance->jobs_mutex);
 
     return job_status;
 }
