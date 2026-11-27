@@ -448,10 +448,19 @@ static bool archive_extract_current_file(TarArchive* archive, const char* dst_pa
     return success;
 }
 
+static bool tar_archive_is_unsafe_entry_name(const char* name) {
+    return path_contains_parent_reference(name);
+}
+
 static int archive_extract_foreach_cb(mtar_t* tar, const mtar_header_t* header, void* param) {
     UNUSED(tar);
     TarArchiveDirectoryOpParams* op_params = param;
     TarArchive* archive = op_params->archive;
+
+    if(tar_archive_is_unsafe_entry_name(header->name)) {
+        FURI_LOG_E(TAG, "Unsafe entry name, aborting: \"%s\"", header->name);
+        return MTAR_EFAILURE;
+    }
 
     bool skip_entry = false;
     if(archive->unpack_cb) {
@@ -492,8 +501,15 @@ static int archive_extract_foreach_cb(mtar_t* tar, const mtar_header_t* header, 
         op_params->converter(converted_fname);
     }
 
+    const char* converted_fname_cstr = furi_string_get_cstr(converted_fname);
+    if(tar_archive_is_unsafe_entry_name(converted_fname_cstr)) {
+        FURI_LOG_E(TAG, "Unsafe converted name, aborting: \"%s\"", converted_fname_cstr);
+        furi_string_free(converted_fname);
+        return MTAR_EFAILURE;
+    }
+
     full_extracted_fname = furi_string_alloc();
-    path_concat(op_params->work_dir, furi_string_get_cstr(converted_fname), full_extracted_fname);
+    path_concat(op_params->work_dir, converted_fname_cstr, full_extracted_fname);
 
     bool success =
         archive_extract_current_file(archive, furi_string_get_cstr(full_extracted_fname));
