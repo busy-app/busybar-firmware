@@ -16,7 +16,7 @@
  * @brief Check if an application ID is valid.
  *
  * Valid application IDs correspond to the following regular expression:
- * ^[a-zA-Z0-9_\-][a-zA-Z0-9_\-.]{0,31}$
+ * `^[a-z0-9_\-][a-z0-9_\-.]{0,31}$`
  *
  * @param[in] app_id zero-terminated string to be validated
  * @return true if app_id is a valid application ID

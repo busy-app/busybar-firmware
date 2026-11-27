@@ -58,6 +58,11 @@ SKIP_OPERATION_IDS: frozenset[str] = frozenset(
         "installApp",
         "launchApp",
         "quitApp",
+        # Queue mutations need controlled downloads, final WS events and cleanup;
+        # arbitrary fuzz cases can leave operations running across test cases.
+        # Covered by test_api_app_queue.py.
+        "addToAppQueue",
+        "cancelAppQueue",
         # BLE pairing — alters pairing state
         "setBleParingMode",
         # Matter commissioning — long-running background operation
