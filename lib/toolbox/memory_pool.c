@@ -1,9 +1,10 @@
 #include "memory_pool.h"
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdalign.h>
 #include <furi/core/check.h>
 
-#define MEMORY_POOL_ALIGNMENT 4
+#define MEMORY_POOL_ALIGNMENT (alignof(max_align_t))
 
 typedef struct MemoryPoolBlockHeader MemoryPoolBlockHeader;
 
@@ -16,7 +17,10 @@ typedef struct MemoryPool {
 } MemoryPool;
 
 typedef struct MemoryPoolBlockHeader {
-    MemoryPoolBlockHeader* next;
+    union {
+        MemoryPoolBlockHeader* next;
+        max_align_t _ensure_alignment;
+    };
 } MemoryPoolBlockHeader;
 static_assert(sizeof(MemoryPoolBlockHeader) % MEMORY_POOL_ALIGNMENT == 0);
 
