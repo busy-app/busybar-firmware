@@ -97,6 +97,7 @@ class TestUpdateAPI:
     @allure.title("POST /api/update/check")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_update_check_post(self, update_api: UpdateAPI):
         """Test POST /api/update/check endpoint starts update check"""
         update_api.check()
@@ -104,6 +105,7 @@ class TestUpdateAPI:
     @allure.title("GET /api/update/changelog (missing version)")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_update_changelog_missing_version(self, update_api: UpdateAPI):
         """Test GET /api/update/changelog without version parameter returns error"""
         response = update_api.get_changelog_raw()
@@ -113,6 +115,7 @@ class TestUpdateAPI:
     @allure.title("GET /api/update/changelog (non-existent version)")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_update_changelog_nonexistent_version(self, update_api: UpdateAPI):
         """Test GET /api/update/changelog with non-existent version returns error"""
         response = update_api.get_changelog(ERROR_FIRMWARE_VERSION)
@@ -122,6 +125,7 @@ class TestUpdateAPI:
     @allure.title("POST /api/update/install (missing version)")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_update_install_missing_version(self, update_api: UpdateAPI):
         """Test POST /api/update/install without version parameter returns error"""
         response = update_api.install_raw()
@@ -131,6 +135,7 @@ class TestUpdateAPI:
     @allure.title("POST /api/update/install (non-existent version)")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_update_install_nonexistent_version(self, update_api: UpdateAPI):
         """Test POST /api/update/install with non-existent version returns error"""
         response = update_api.install(ERROR_FIRMWARE_VERSION)
@@ -140,6 +145,7 @@ class TestUpdateAPI:
     @allure.title("POST /api/update/abort_download")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_update_abort_download(self, update_api: UpdateAPI):
         """Test POST /api/update/abort_download endpoint"""
         update_api.abort_download()
@@ -204,6 +210,7 @@ class TestAutoupdateAPI:
     @allure.title("POST /api/update/autoupdate (invalid time)")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_update_autoupdate_invalid_time(self, update_api: UpdateAPI):
         """Test POST /api/update/autoupdate rejects invalid time format"""
         response = update_api.set_autoupdate_raw({
@@ -215,7 +222,6 @@ class TestAutoupdateAPI:
     @allure.title("POST /api/update/autoupdate supports partial updates")
     @pytest.mark.api
     @pytest.mark.frontend
-    @pytest.mark.regression
     def test_autoupdate_partial_update_preserves_omitted_fields(
         self, update_api: UpdateAPI, autoupdate_guard
     ):
@@ -351,6 +357,7 @@ class TestUpdateStatusFlow:
     @allure.title("Update check status flow")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_update_check_status_flow(self, update_api: UpdateAPI):
         """Test status transitions during update check"""
 
@@ -397,6 +404,7 @@ class TestUpdateStatusFlow:
     @allure.title("Update install and abort status flow")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_update_install_abort_flow(self, update_api: UpdateAPI):
         """Test status transitions during install and abort"""
 
@@ -466,6 +474,7 @@ class TestUpdateStatusFlow:
     @allure.title("Verify idle state")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_verify_idle_state(self, update_api: UpdateAPI):
         """Test that updater is in idle state"""
 

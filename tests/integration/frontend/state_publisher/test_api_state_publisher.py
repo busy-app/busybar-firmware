@@ -33,6 +33,7 @@ class TestStatePublisherRegressions:
         assert result.status_code == 101
 
     @allure.title("/api/status/ws enable sends initial snapshot with frame")
+    @pytest.mark.regression
     def test_status_ws_enable_emits_frame_update(self, web_base_url):
         with StatePublisherWebSocket(web_base_url) as state_ws:
             state_ws.enable()
@@ -69,6 +70,7 @@ class TestStatePublisherRegressions:
         assert len(state.updates) >= 0
 
     @allure.title("/api/status/ws publishes input updates as protobuf state")
+    @pytest.mark.regression
     def test_status_ws_stream_publishes_input_update(
         self, web_base_url, input_api: InputAPI
     ):

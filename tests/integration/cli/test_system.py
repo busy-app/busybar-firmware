@@ -29,6 +29,7 @@ class TestCLISystemCommands:
     """Process/system commands: top, log, loader, update."""
 
     @allure.title("CLI. Command top (single snapshot).")
+    @pytest.mark.regression
     def test_top_snapshot(self, persistent_cli_connection):
         # `top <interval>` with interval 0 prints one frame and returns — no CTRL+C needed
         response = persistent_cli_connection.execute_command("top 0", timeout=15)
@@ -52,6 +53,7 @@ class TestCLISystemCommands:
         assert response.count("Threads:") >= 2, f"expected repeated frames: {response!r}"
 
     @allure.title("CLI. Command log (levels listing).")
+    @pytest.mark.regression
     def test_log_levels(self, persistent_cli_connection):
         response = persistent_cli_connection.execute_command("log ?")
         for level in ("error", "warn", "info", "debug", "trace"):
@@ -70,12 +72,14 @@ class TestCLISystemCommands:
         assert "Press CTRL+C to stop" in response, response
 
     @allure.title("CLI. Command loader (usage).")
+    @pytest.mark.regression
     def test_loader_usage(self, persistent_cli_connection):
         response = persistent_cli_connection.execute_command("loader")
         assert "loader <cmd> <args>" in response, response
         assert "open" in response and "kill" in response, response
 
     @allure.title("CLI. Command loader kill.")
+    @pytest.mark.regression
     def test_loader_kill(self, persistent_cli_connection):
         response = persistent_cli_connection.execute_command("loader kill")
         assert (
@@ -83,6 +87,7 @@ class TestCLISystemCommands:
         ), response
 
     @allure.title("CLI. Command update (usage).")
+    @pytest.mark.regression
     def test_update_usage(self, persistent_cli_connection):
         response = persistent_cli_connection.execute_command("update")
         assert "update <917|917_ta" in response, response

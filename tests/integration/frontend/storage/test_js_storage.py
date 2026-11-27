@@ -169,6 +169,7 @@ def protected_storage_dir(storage_api: StorageAPI):
 @allure.story("JavaScript storage sandbox")
 @allure.title("JS storage creates and maps the application's data root")
 @pytest.mark.parametrize("virtual_root", ["/ext/data", "/ext/data/"])
+@pytest.mark.regression
 def test_js_storage_maps_root(
     storage_app_runner, storage_api: StorageAPI, virtual_root
 ):
@@ -231,6 +232,7 @@ def test_js_storage_crud(storage_app_runner, storage_api: StorageAPI):
 )
 @pytest.mark.skip(reason="FW-1271: https://flipper.atlassian.net/browse/FW-1271")
 @pytest.mark.parametrize("path_kind", ["prefix_collision", "traversal", "relative"])
+@pytest.mark.regression
 def test_js_storage_rejects_outside_paths(
     storage_app_runner,
     storage_api: StorageAPI,

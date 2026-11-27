@@ -146,6 +146,7 @@ class TestTimeAPI:
     @allure.title("POST /api/time/timestamp")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_time_timestamp_post(self, system_api: SystemAPI, time_settings_guard):
         """Test POST /api/time/timestamp endpoint"""
         test_timestamp = "2025-06-15T12:30:45Z"
@@ -167,6 +168,7 @@ class TestTimeAPI:
             "2025-04-31T12:00:00Z",  # April has only 30 days
         ],
     )
+    @pytest.mark.regression
     def test_api_time_timestamp_post_invalid(
         self, system_api: SystemAPI, invalid_ts
     ):
@@ -212,6 +214,7 @@ class TestTimeAPI:
             "New York",
         ],
     )
+    @pytest.mark.regression
     def test_api_time_timezone_post(self, system_api: SystemAPI, test_tz, time_settings_guard):
         """Test POST /api/time/timezone endpoint"""
         system_api.set_timezone(test_tz)
@@ -226,6 +229,7 @@ class TestTimeAPI:
             "NonExistentTimezone12345",
         ],
     )
+    @pytest.mark.regression
     def test_api_time_timezone_post_invalid(
         self, system_api: SystemAPI, invalid_tz
     ):

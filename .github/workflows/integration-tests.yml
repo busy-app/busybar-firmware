@@ -26,7 +26,7 @@ on:
   workflow_dispatch:
     inputs:
       marker_filter:
-        description: 'Pytest -m expression. Default runs smoke only; "all" runs the full suite including regression.'
+        description: 'Pytest -m expression. Default runs the PR checks; "all" runs the full suite.'
         required: false
         type: string
         default: 'not regression'
@@ -262,27 +262,20 @@ jobs:
           CLI_HOST: ${{ secrets.CLI_HOST || '10.0.4.20' }}
           CLI_PORT: ${{ secrets.CLI_PORT || '23' }}
           WEB_BASE_URL: ${{ secrets.WEB_BASE_URL || 'http://10.0.4.20' }}
+          FETCH_WIFI_SERVER_HOST_OVERRIDE: ${{ vars.FETCH_WIFI_SERVER_HOST }}
+          FETCH_WIFI_SERVER_PORT_OVERRIDE: ${{ vars.FETCH_WIFI_SERVER_PORT }}
+          FETCH_WIFI_SERVER_BIND_PORT_OVERRIDE: ${{ vars.FETCH_WIFI_SERVER_BIND_PORT }}
           LOG_LEVEL: INFO
           LOG_TO_FILE: true
         run: |
           set +e
           cd tests
           PYTEST_OUTPUT=pytest-output.log
+          export FETCH_WIFI_SERVER_HOST="${FETCH_WIFI_SERVER_HOST_OVERRIDE:-${FETCH_WIFI_SERVER_HOST:-}}"
+          export FETCH_WIFI_SERVER_PORT="${FETCH_WIFI_SERVER_PORT_OVERRIDE:-${FETCH_WIFI_SERVER_PORT:-}}"
+          export FETCH_WIFI_SERVER_BIND_PORT="${FETCH_WIFI_SERVER_BIND_PORT_OVERRIDE:-${FETCH_WIFI_SERVER_BIND_PORT:-}}"
 
-          # MARKER_FILTER is a `-m` expression; an empty string means
-          # "no filter" (collect everything, including `regression`-tagged
-          # tests such as schemathesis).
-          pytest_args=(. -v --durations=25 --alluredir=allure-results --clean-alluredir --junitxml=test-results.xml)
-          if [ -n "$MARKER_FILTER" ]; then
-            pytest_args+=(-m "$MARKER_FILTER")
-            echo "Running pytest with marker filter: $MARKER_FILTER"
-          else
-            echo "Running pytest without marker filter (full suite)"
-          fi
-          if [ "$PYTEST_FAILED_TEST_RETRIES" -gt 0 ]; then
-            pytest_args+=(--reruns "$PYTEST_FAILED_TEST_RETRIES" --reruns-delay 1 -rR)
-          fi
-          test_command=(python3 -m pytest "${pytest_args[@]}")
+          test_command=(bash run_suite.sh)
           if [ -n "$ALLURE_JOB_RUN_ID" ]; then
             export ALLURE_RESULTS="$PWD/allure-results"
             test_command=(allurectl watch -- bash -c '

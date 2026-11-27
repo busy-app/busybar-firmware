@@ -140,6 +140,7 @@ class TestXpmBitmapElement:
     @allure.title("XPM bitmap requires data")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_missing_data(self, assets_api: AssetsAPI, busy_timer_stopped):
         with allure.step("Submit an XPM element without data"):
             element = xpm_element(self._FRONT_DATA)
@@ -263,6 +264,7 @@ class TestXpmBitmapElement:
             ),
         ],
     )
+    @pytest.mark.regression
     def test_api_limits_rejected(
         self,
         assets_api: AssetsAPI,
@@ -307,6 +309,7 @@ class TestXpmBitmapElement:
             ),
         ],
     )
+    @pytest.mark.regression
     def test_api_boundaries_accepted(
         self,
         assets_api: AssetsAPI,
@@ -325,6 +328,7 @@ class TestXpmBitmapElement:
     @pytest.mark.api
     @pytest.mark.frontend
     @pytest.mark.parametrize("opacity", [-1, 101])
+    @pytest.mark.regression
     def test_invalid_opacity_rejected(
         self,
         assets_api: AssetsAPI,
@@ -345,6 +349,7 @@ class TestXpmBitmapElement:
     @allure.title("XPM with zero opacity does not cover existing content")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_zero_opacity_rendering(
         self,
         assets_api: AssetsAPI,
@@ -380,6 +385,7 @@ class TestXpmBitmapElement:
     @allure.title("XPM opacity changes the rendered front pixel")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_opacity_rendering(
         self,
         assets_api: AssetsAPI,
@@ -454,6 +460,7 @@ class TestXpmBitmapElement:
     @allure.title("Transparent XPM pixels preserve underlying content")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_transparent_color_rendering(
         self,
         assets_api: AssetsAPI,
@@ -493,6 +500,7 @@ class TestXpmBitmapElement:
     @allure.title("XPM renders alongside another element in one request")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_mixed_element_request(
         self,
         assets_api: AssetsAPI,
@@ -590,6 +598,7 @@ class TestXpmBitmapElement:
     @allure.title("Shrinking an XPM element clears its previous bounds")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_shrinking_xpm_clears_previous_bounds(
         self,
         assets_api: AssetsAPI,
@@ -656,6 +665,7 @@ class TestXpmBitmapElement:
             ),
         ],
     )
+    @pytest.mark.regression
     def test_clipped_rendering(
         self,
         assets_api: AssetsAPI,
@@ -691,6 +701,7 @@ class TestXpmBitmapElement:
             pytest.param("#FFFFFF", "m", RGB_WHITE, id="visual-m"),
         ],
     )
+    @pytest.mark.regression
     def test_color_spec_variants(
         self,
         assets_api: AssetsAPI,
@@ -716,6 +727,7 @@ class TestXpmBitmapElement:
     @allure.title("Rectangle above XPM wins the overlapping pixel by z_index")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_rectangle_over_xpm_z_order(
         self,
         assets_api: AssetsAPI,

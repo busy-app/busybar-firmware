@@ -31,16 +31,19 @@ class TestCLIConfig:
     """Reversible config toggles and status_lights."""
 
     @allure.title("CLI. Command status_lights (usage).")
+    @pytest.mark.regression
     def test_status_lights_usage(self, persistent_cli_connection):
         response = persistent_cli_connection.execute_command("status_lights")
         assert "status_lights" in response and "0-255" in response, response
 
     @allure.title("CLI. Command status_lights set (off).")
+    @pytest.mark.regression
     def test_status_lights_set(self, persistent_cli_connection):
         response = persistent_cli_connection.execute_command("status_lights 0 0 0")
         assert "Usage" not in response
 
     @allure.title("CLI. Command sysctl (usage).")
+    @pytest.mark.regression
     def test_sysctl_usage(self, persistent_cli_connection):
         response = persistent_cli_connection.execute_command("sysctl")
         assert "sysctl <cmd>" in response and "Cmd list:" in response, response
@@ -61,6 +64,7 @@ class TestCLIConfig:
             assert "Debug enabled" in on, on
 
     @allure.title("CLI. Command sysctl ui_debug (toggle-and-restore).")
+    @pytest.mark.regression
     def test_sysctl_ui_debug_toggle(self, persistent_cli_connection):
         # ui_debug <0|1|2>; reversible, restore to 0 (off) afterwards
         cli = persistent_cli_connection
@@ -71,6 +75,7 @@ class TestCLIConfig:
             cli.execute_command("sysctl ui_debug 0")
 
     @allure.title("CLI. Command sysctl websrv_accesslog_level (toggle-and-restore).")
+    @pytest.mark.regression
     def test_sysctl_websrv_accesslog_toggle(self, persistent_cli_connection):
         # websrv_accesslog_level <0|1|2|3>; reversible, restore to 0 afterwards
         cli = persistent_cli_connection
@@ -81,6 +86,7 @@ class TestCLIConfig:
             cli.execute_command("sysctl websrv_accesslog_level 0")
 
     @allure.title("CLI. Command sysctl cli_wifi_enabled (toggle).")
+    @pytest.mark.regression
     def test_sysctl_cli_wifi_enabled_toggle(self, persistent_cli_connection):
         # cli_wifi_enabled <1|0> controls CLI over WiFi; this session runs over
         # USB-Ethernet, so toggling does not drop it
@@ -125,6 +131,7 @@ class TestCLIDebugGatedCommands:
         )
 
     @allure.title("CLI. Command sysctl gates storage_bkp_unlock behind debug mode.")
+    @pytest.mark.regression
     def test_sysctl_debug_gated_subcommand(self, persistent_cli_connection):
         # storage_bkp_unlock is gated inside `sysctl` itself, so it never shows up in
         # the top-level `?` diff above
@@ -137,24 +144,28 @@ class TestCLIDebugGatedCommands:
         assert "storage_bkp_unlock" in cli.execute_command("sysctl")
 
     @allure.title("CLI. Command gpio (usage).")
+    @pytest.mark.regression
     def test_gpio_usage(self, persistent_cli_connection):
         response = persistent_cli_connection.execute_command("gpio")
         assert "gpio <pin_name> <0|1>" in response, response
         assert "Pins:" in response and "en_audio" in response, response
 
     @allure.title("CLI. Command otp (usage).")
+    @pytest.mark.regression
     def test_otp_usage(self, persistent_cli_connection):
         response = persistent_cli_connection.execute_command("otp")
         assert "otp <cmd>" in response and "Cmd list:" in response, response
         assert "dump" in response and "program" in response, response
 
     @allure.title("CLI. Command otp dump.")
+    @pytest.mark.regression
     def test_otp_dump(self, persistent_cli_connection):
         # read-only; an unprovisioned bank reads back as all-ff, still a valid dump
         response = persistent_cli_connection.execute_command("otp dump OTP1")
         assert re.search(r"\b[0-9a-f]{32,}\b", response), f"expected a hex dump: {response!r}"
 
     @allure.title("CLI. Command factory_reset (help).")
+    @pytest.mark.regression
     def test_factory_reset_help(self, persistent_cli_connection):
         # `-h` prints usage and returns; a bare `factory_reset` prompts 'Are you sure? y/n'
         # and would eat the next command as the answer -> never run it here
@@ -163,6 +174,7 @@ class TestCLIDebugGatedCommands:
         assert "--shipping-mode" in response, response
 
     @allure.title("CLI. Command sysctl storage_bkp_unlock (toggle-and-restore).")
+    @pytest.mark.regression
     def test_sysctl_storage_bkp_unlock(self, persistent_cli_connection):
         cli = persistent_cli_connection
         try:

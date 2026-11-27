@@ -3,8 +3,10 @@
 Plain helpers and constants live in utils/cli_helpers.py.
 """
 
+import ipaddress
 import os
 import re
+import socket
 import threading
 from dataclasses import dataclass
 from datetime import timedelta
@@ -20,7 +22,8 @@ from clients.cli import SimpleCLIConnection
 from utils.cli_helpers import BLOB_PAYLOAD, TEXT_PAYLOAD, resync
 from utils.fetch_http_server import FetchHTTPServer, FetchRequestHandler
 from utils.fetch_mtls_mqtt_broker import FetchMTLSMQTTBroker
-from utils.fetch_mtls_server import FetchMTLSServer
+from utils.fetch_mtls_server import FetchHTTPSServer, FetchMTLSServer
+from utils.fetch_large_https_server import LargeHTTPSRequestHandler
 from utils.js_test_runner import export_js_case, run_js_case
 from utils.mtls_certificates import generate_ca, generate_intermediate, generate_leaf
 from utils.wait import wait_for
@@ -181,6 +184,50 @@ def mtls_server_factory(persistent_cli_connection, tmp_path):
 
     for server, thread in running_servers:
         server.release_stall.set()
+        server.shutdown()
+        thread.join(timeout=2)
+        server.server_close()
+
+
+@pytest.fixture
+def wifi_https_server(persistent_cli_connection, device_wifi_ready, tmp_path, tls_version):
+    wifi_ip = device_wifi_ready.ip_config.address.split("/", 1)[0]
+    host = os.getenv("FETCH_WIFI_SERVER_HOST", "").strip()
+    if not host:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as route:
+            route.connect((wifi_ip, 80))
+            host = route.getsockname()[0]
+    address = ipaddress.IPv4Address(host)
+    usb_host = persistent_cli_connection.tn.sock.getsockname()[0]
+    assert not address.is_loopback and host not in (usb_host, wifi_ip), (
+        "FETCH_WIFI_SERVER_HOST must be the runner's Wi-Fi-reachable LAN address, "
+        f"not USB/loopback/device: host={host}, USB={usb_host}, Wi-Fi={wifi_ip}"
+    )
+    port = int(os.getenv("FETCH_WIFI_SERVER_PORT") or "9443")
+    bind_port = int(os.getenv("FETCH_WIFI_SERVER_BIND_PORT") or str(port))
+    identity = generate_leaf(
+        generate_ca("Large HTTPS test root"),
+        "Large HTTPS test server",
+        client_auth=False,
+        server_ip=host,
+    )
+    certificate = tmp_path / "large-server.pem"
+    key = tmp_path / "large-server.key"
+    certificate.write_bytes(identity.certificate_pem)
+    key.write_bytes(identity.private_key_pem)
+    server = FetchHTTPSServer(
+        ("0.0.0.0", bind_port),
+        server_certificate_path=certificate,
+        server_private_key_path=key,
+        tls_version=tls_version,
+        request_handler=LargeHTTPSRequestHandler,
+        advertised_address=(host, port),
+    )
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        yield server, wifi_ip
+    finally:
         server.shutdown()
         thread.join(timeout=2)
         server.server_close()

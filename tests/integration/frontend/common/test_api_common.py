@@ -31,6 +31,7 @@ class TestAPIErrorHandling:
     @allure.title("GET /api/* (404 errors)")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_endpoints_404(self, api_session, web_base_url):
         """Test that non-existent API endpoints return 404"""
         api = BaseAPI(api_session, web_base_url)
@@ -50,6 +51,7 @@ class TestAPIErrorHandling:
     @allure.title("API endpoints (missing required parameters)")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_missing_required_parameters(
         self, storage_api: StorageAPI, input_api: InputAPI, streaming_api: StreamingAPI
     ):
@@ -70,6 +72,7 @@ class TestAPIErrorHandling:
     @allure.title("API endpoints (invalid parameter values)")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_invalid_parameter_values(
         self, input_api: InputAPI, streaming_api: StreamingAPI, settings_api: SettingsAPI
     ):
@@ -90,6 +93,7 @@ class TestAPIErrorHandling:
     @allure.title("GET /api/version (concurrent requests)")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_concurrent_requests(self, api_session, web_base_url):
         """Test API behavior under concurrent requests"""
         results = queue.Queue()
@@ -133,6 +137,7 @@ class TestAPIAuthentication:
     @pytest.mark.api
     @pytest.mark.frontend
     @pytest.mark.skip(reason="Authentication not implemented yet")
+    @pytest.mark.regression
     def test_api_without_auth_token(self, api_session, web_base_url):
         """Test API access without authentication token"""
         headers = api_session.headers.copy()
@@ -150,6 +155,7 @@ class TestAPIAuthentication:
     @pytest.mark.api
     @pytest.mark.frontend
     @pytest.mark.skip(reason="Authentication not implemented yet")
+    @pytest.mark.regression
     def test_api_with_invalid_auth_token(self, api_session, web_base_url):
         """Test API access with invalid authentication token"""
         headers = api_session.headers.copy()
@@ -166,6 +172,7 @@ class TestAPIAuthentication:
     @pytest.mark.api
     @pytest.mark.frontend
     @pytest.mark.skip(reason="Authentication not implemented yet")
+    @pytest.mark.regression
     def test_api_with_valid_auth_token(self, api_auth_session, web_base_url):
         """Test API access with valid authentication token"""
         with allure.step("Access protected endpoint with valid auth"):
@@ -179,7 +186,6 @@ class TestAPIAuthentication:
 @allure.story("Common")
 @pytest.mark.api
 @pytest.mark.frontend
-@pytest.mark.regression
 class TestAPIContractRegressions:
     @allure.title("GET /api/transport returns current connection type")
     def test_transport_endpoint_returns_usb_or_wifi(self, api_session, web_base_url):

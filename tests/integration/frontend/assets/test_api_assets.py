@@ -85,6 +85,7 @@ class TestAssetsManagement:
         assets_api.delete_assets(test_app_id)
 
     @allure.title("POST /api/assets/upload (re-upload replaces the file)")
+    @pytest.mark.regression
     def test_api_assets_reupload_replaces(
         self, assets_api: AssetsAPI, storage_api: StorageAPI, asset_cleanup
     ):
@@ -143,6 +144,7 @@ class TestDisplayDraw:
         assets_api.clear_display()
 
     @allure.title("POST /api/display/draw (image)")
+    @pytest.mark.regression
     def test_api_display_draw_image(
         self, assets_api: AssetsAPI, asset_cleanup
     ):
@@ -177,11 +179,13 @@ class TestDisplayDraw:
         assets_api.clear_display()
 
     @allure.title("DELETE /api/display/draw")
+    @pytest.mark.regression
     def test_api_display_clear(self, assets_api: AssetsAPI):
         """Test DELETE /api/display/draw endpoint"""
         assets_api.clear_display()
 
     @allure.title("POST /api/display/draw (malformed JSON)")
+    @pytest.mark.regression
     def test_api_malformed_json(self, api_session, web_base_url):
         """Test API endpoints with malformed JSON"""
         malformed_json = '{"invalid": "json", "missing": quote}'
@@ -243,6 +247,7 @@ class TestAudioPlay:
             assert response.status_code == 410
 
     @allure.title("DELETE /api/audio/play during holdoff period")
+    @pytest.mark.regression
     def test_api_audio_stop_holdoff_period(
         self, assets_api: AssetsAPI, low_volume, asset_cleanup
     ):
@@ -300,6 +305,7 @@ class TestAudioPlay:
             assert result.result == "OK"
 
     @allure.title("POST /api/audio/play (stock_path)")
+    @pytest.mark.regression
     def test_api_audio_play_stock_path(
         self, assets_api: AssetsAPI, low_volume
     ):
@@ -321,10 +327,10 @@ class TestAudioPlay:
 @allure.story("Assets")
 @pytest.mark.api
 @pytest.mark.frontend
-@pytest.mark.regression
 class TestSharedAssetRegressions:
     @allure.title("External shared font assets are deployed")
     @pytest.mark.parametrize("font_name", REQUIRED_SHARED_FONTS)
+    @pytest.mark.regression
     def test_shared_font_asset_exists(self, storage_api: StorageAPI, font_name: str):
         response = storage_api.read(f"/ext/apps_assets/shared/fonts/{font_name}")
 
@@ -333,6 +339,7 @@ class TestSharedAssetRegressions:
 
     @allure.title("External shared font assets have plausible binary content")
     @pytest.mark.parametrize("font_name", REQUIRED_SHARED_FONTS)
+    @pytest.mark.regression
     def test_shared_font_asset_has_plausible_content(
         self, storage_api: StorageAPI, font_name: str
     ):

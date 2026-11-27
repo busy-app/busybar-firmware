@@ -326,6 +326,7 @@ class TestJSFetch:
             assert captured["body"] == b"", f"captured={captured!r}"
 
     @allure.title("JavaScript fetch adds one reserved marker header.")
+    @pytest.mark.regression
     def test_adds_reserved_marker_header(self, js_case_runner, http_server):
         case_name = "reserved_marker_header"
         url = json.dumps(http_server.url("/request"))
@@ -393,6 +394,7 @@ class TestJSFetch:
                 assert_js_fetch_header(captured)
 
     @allure.title("JavaScript fetch permits a colon in a header value.")
+    @pytest.mark.regression
     def test_reserved_marker_value_allows_colon(self, js_case_runner, http_server):
         case_name = "reserved_marker_value_colon"
         url = json.dumps(http_server.url("/request"))
@@ -414,6 +416,7 @@ class TestJSFetch:
             assert_js_fetch_header(captured)
 
     @allure.title("JavaScript fetch rejects a colon in a header name.")
+    @pytest.mark.regression
     def test_header_name_with_colon_rejects(self, js_case_runner, http_server):
         case_name = "header_name_colon_rejects"
         url = json.dumps(http_server.url("/request"))
@@ -449,6 +452,7 @@ class TestJSFetch:
         ],
         ids=["path", "query"],
     )
+    @pytest.mark.regression
     def test_url_with_http_request_line_is_encoded(
         self, js_case_runner, http_server, request_target, encoded_target
     ):
@@ -472,6 +476,7 @@ class TestJSFetch:
             assert "x-junk" not in captured["headers"], f"captured={captured!r}"
 
     @allure.title("JavaScript fetch rejects an HTTP request line as a method.")
+    @pytest.mark.regression
     def test_method_with_http_request_line_rejects(self, js_case_runner):
         case_name = "method_with_request_line_rejects"
         method = "GET /api/apps/list HTTP/1.0\r\n"
@@ -529,6 +534,7 @@ class TestJSFetch:
         js_case_runner(case_name, body)
 
     @allure.title("JavaScript fetch preserves encoded query parameters.")
+    @pytest.mark.regression
     def test_get_query_parameters(self, js_case_runner, http_server):
         case_name = "get_query_parameters"
         request_path = (
@@ -558,6 +564,7 @@ class TestJSFetch:
             assert captured["path"] == request_path, f"captured={captured!r}"
 
     @allure.title("JavaScript fetch decodes a Unicode text response.")
+    @pytest.mark.regression
     def test_get_unicode_text_response(self, js_case_runner, http_server):
         case_name = "get_unicode_text_response"
         url = json.dumps(http_server.url("/unicode"))
@@ -574,6 +581,7 @@ class TestJSFetch:
         js_case_runner(case_name, body)
 
     @allure.title("JavaScript fetch decodes a non-BMP Unicode text response.")
+    @pytest.mark.regression
     def test_get_non_bmp_unicode_text_response(self, js_case_runner, http_server):
         case_name = "get_non_bmp_unicode_text_response"
         url = json.dumps(http_server.url("/unicode-non-bmp"))
@@ -590,6 +598,7 @@ class TestJSFetch:
         js_case_runner(case_name, body)
 
     @allure.title("JavaScript Request constructor requires new.")
+    @pytest.mark.regression
     def test_request_constructor_requires_new(self, js_case_runner):
         case_name = "request_requires_new"
         body = dedent(
@@ -607,6 +616,7 @@ class TestJSFetch:
         js_case_runner(case_name, body)
 
     @allure.title("JavaScript fetch init overrides a Request object.")
+    @pytest.mark.regression
     def test_request_init_overrides_request(self, js_case_runner, http_server):
         case_name = "request_init_override"
         url = json.dumps(http_server.url("/request"))
@@ -645,6 +655,7 @@ class TestJSFetch:
             assert "x-js-original" not in captured["headers"], f"captured={captured!r}"
 
     @allure.title("JavaScript fetch performs a POST without a body.")
+    @pytest.mark.regression
     def test_post_without_body(self, js_case_runner, http_server):
         case_name = "post_without_body"
         url = json.dumps(http_server.url("/request"))
@@ -707,6 +718,7 @@ class TestJSFetch:
             ), f"captured={captured!r}"
 
     @allure.title("JavaScript fetch sends a plain-text POST body.")
+    @pytest.mark.regression
     def test_post_text_request(self, js_case_runner, http_server):
         case_name = "post_text_request"
         url = json.dumps(http_server.url("/request"))
@@ -753,6 +765,7 @@ class TestJSFetch:
 
     @allure.title("JavaScript fetch reads the production update directory over HTTPS.")
     @pytest.mark.external_service
+    @pytest.mark.regression
     def test_https_get_json(
         self,
         js_case_runner,
@@ -806,6 +819,7 @@ class TestJSFetch:
         js_case_runner(case_name, body, timeout=60)
 
     @allure.title("JavaScript fetch rejects json() for malformed JSON.")
+    @pytest.mark.regression
     def test_invalid_json_rejects(self, js_case_runner, http_server):
         case_name = "invalid_json"
         url = json.dumps(http_server.url("/invalid-json"))
@@ -818,6 +832,7 @@ class TestJSFetch:
         js_case_runner(case_name, body)
 
     @allure.title("JavaScript fetch rejects text() for invalid UTF-8 with TypeError.")
+    @pytest.mark.regression
     def test_invalid_utf8_rejects(self, js_case_runner, http_server):
         url = json.dumps(http_server.url("/invalid-utf8"))
         body = (
@@ -832,6 +847,7 @@ class TestJSFetch:
 
     @allure.title("Unimplemented JavaScript response body methods reject with Error.")
     @pytest.mark.parametrize("method", ["blob", "formData"])
+    @pytest.mark.regression
     def test_unimplemented_body_method_rejects(
         self, js_case_runner, http_server, method
     ):
@@ -848,6 +864,7 @@ class TestJSFetch:
         js_case_runner(f"unimplemented_{method}", body)
 
     @allure.title("JavaScript fetch rejects a call without a URL.")
+    @pytest.mark.regression
     def test_missing_url_rejects(self, js_case_runner):
         case_name = "missing_url"
         body = build_promise_rejection_check(
@@ -858,6 +875,7 @@ class TestJSFetch:
         js_case_runner(case_name, body)
 
     @allure.title("JavaScript fetch rejects an invalid init argument.")
+    @pytest.mark.regression
     def test_invalid_init_rejects(self, js_case_runner, http_server):
         case_name = "invalid_init"
         url = json.dumps(http_server.url("/text"))
@@ -868,6 +886,7 @@ class TestJSFetch:
         js_case_runner(case_name, body)
 
     @allure.title("JavaScript fetch rejects a disconnect before response headers.")
+    @pytest.mark.regression
     def test_disconnect_before_headers_rejects(self, js_case_runner, http_server):
         case_name = "disconnect_before_headers"
         url = json.dumps(http_server.url("/disconnect"))
@@ -878,6 +897,7 @@ class TestJSFetch:
     @allure.title("JavaScript fetch supports multiple concurrent requests.")
     @allure.issue("https://flipper.atlassian.net/browse/FW-1102")
     @pytest.mark.skip(reason="concurrent fetch returns socket error/inactivity timeout")
+    @pytest.mark.regression
     def test_concurrent_requests(self, js_case_runner, http_server):
         case_name = "concurrent_requests"
         text_url = json.dumps(http_server.url("/text"))
@@ -908,6 +928,7 @@ class TestJSFetch:
         js_case_runner(case_name, body)
 
     @allure.title("JavaScript response headers support entries, keys, and values.")
+    @pytest.mark.regression
     def test_headers_iterators(self, js_case_runner, http_server):
         case_name = "headers_iterators"
         url = json.dumps(http_server.url("/headers"))
@@ -950,6 +971,7 @@ class TestJSFetch:
         ],
         ids=["ok", "home-assistant-unauthorized", "no-content"],
     )
+    @pytest.mark.regression
     def test_empty_response_headers(
         self, js_case_runner, http_server, path, status, status_text, payload
     ):
@@ -1023,6 +1045,7 @@ class TestJSFetch:
             "repeated-rejections",
         ],
     )
+    @pytest.mark.regression
     def test_malformed_response_headers_reject_fetch(
         self, js_case_runner, http_server, path, error_type, error_message, attempts
     ):
@@ -1065,6 +1088,7 @@ class TestJSFetch:
                 )
 
     @allure.title("JavaScript Headers.has is case-insensitive.")
+    @pytest.mark.regression
     def test_headers_has_is_case_insensitive(self, js_case_runner, http_server):
         case_name = "headers_has_case_insensitive"
         url = json.dumps(http_server.url("/headers"))
@@ -1081,6 +1105,7 @@ class TestJSFetch:
         js_case_runner(case_name, body)
 
     @allure.title("JavaScript Headers.forEach uses value-key-parent arguments.")
+    @pytest.mark.regression
     def test_headers_for_each_argument_order(self, js_case_runner, http_server):
         case_name = "headers_foreach_order"
         url = json.dumps(http_server.url("/headers"))
@@ -1106,6 +1131,7 @@ class TestJSFetch:
         js_case_runner(case_name, body)
 
     @allure.title("JavaScript Response.url contains the final request URL.")
+    @pytest.mark.regression
     def test_response_url(self, js_case_runner, http_server):
         case_name = "response_url"
         raw_url = http_server.url("/text")
@@ -1137,6 +1163,7 @@ class TestJSFetch:
         js_case_runner(case_name, body)
 
     @allure.title("JavaScript fetch exposes a successful HTTP 201 response.")
+    @pytest.mark.regression
     def test_http_201_created(self, js_case_runner, http_server):
         case_name = "http_201_created"
         url = json.dumps(http_server.url("/created"))
@@ -1155,6 +1182,7 @@ class TestJSFetch:
         js_case_runner(case_name, body)
 
     @allure.title("JavaScript fetch resolves an HTTP 500 response.")
+    @pytest.mark.regression
     def test_http_500_resolves(self, js_case_runner, http_server):
         case_name = "http_500"
         url = json.dumps(http_server.url("/server-error"))
@@ -1173,6 +1201,7 @@ class TestJSFetch:
         js_case_runner(case_name, body)
 
     @allure.title("JavaScript fetch exposes an HTTP 204 response with an empty body.")
+    @pytest.mark.regression
     def test_empty_body(self, js_case_runner, http_server):
         case_name = "empty_body"
         url = json.dumps(http_server.url("/empty"))
@@ -1223,6 +1252,7 @@ class TestJSFetch:
         js_case_runner(case_name, body)
 
     @allure.title("JavaScript fetch rejects inactivity after response headers.")
+    @pytest.mark.regression
     def test_inactivity_after_headers_rejects(self, js_case_runner, http_server):
         case_name = "inactivity_after_headers"
         url = json.dumps(http_server.url("/stall"))
@@ -1241,6 +1271,7 @@ class TestJSFetch:
         [("/text", False), ("/truncated", True)],
         ids=["complete", "truncated"],
     )
+    @pytest.mark.regression
     def test_reader_closed(self, js_case_runner, http_server, path, has_error):
         url = json.dumps(http_server.url(path))
         body = dedent(
@@ -1288,6 +1319,7 @@ class TestJSFetch:
         js_case_runner("reader_closed", body)
 
     @allure.title("JavaScript fetch accepts the documented ten request headers.")
+    @pytest.mark.regression
     def test_ten_request_headers(self, js_case_runner, http_server):
         case_name = "ten_request_headers"
         url = json.dumps(http_server.url("/request"))
@@ -1434,6 +1466,7 @@ class TestJSFetch:
 
     @allure.title("JavaScript fetch releases resources across repeated requests.")
     @pytest.mark.long_running
+    @pytest.mark.regression
     def test_repeated_requests(self, js_case_runner, http_server):
         case_name = "repeated_requests"
         url = json.dumps(http_server.url("/text"))
@@ -1452,7 +1485,16 @@ class TestJSFetch:
         js_case_runner(case_name, body, timeout=60)
 
     @allure.title("JavaScript fetch decodes HTTP/1.1 data: {case_name}, {consumer}.")
-    @pytest.mark.parametrize("case_name", HTTP11_SUCCESS_RESPONSES)
+    @pytest.mark.parametrize(
+        "case_name",
+        [
+            pytest.param(
+                case_name,
+                marks=pytest.mark.regression if case_name != "simple" else (),
+            )
+            for case_name in HTTP11_SUCCESS_RESPONSES
+        ],
+    )
     @pytest.mark.parametrize("consumer", ["bytes", "reader"])
     def test_http11_response(self, js_case_runner, http_server, case_name, consumer):
         case = HTTP11_SUCCESS_RESPONSES[case_name]
@@ -1477,7 +1519,14 @@ class TestJSFetch:
             assert_js_fetch_header(captured)
 
     @allure.title("JavaScript fetch consumes chunked UTF-8 JSON with {method}.")
-    @pytest.mark.parametrize("method", ["text", "json", "arrayBuffer"])
+    @pytest.mark.parametrize(
+        "method",
+        [
+            "text",
+            "json",
+            pytest.param("arrayBuffer", marks=pytest.mark.regression),
+        ],
+    )
     def test_http11_body_methods(self, js_case_runner, http_server, method):
         url = json.dumps(http_server.url("/http11/utf8-and-json"))
         body = f"const response = await fetch({url});\n"
@@ -1514,10 +1563,13 @@ class TestJSFetch:
             (
                 pytest.param(
                     case_name,
-                    marks=pytest.mark.skip(reason="FW-1313"),
+                    marks=(pytest.mark.regression, pytest.mark.skip(reason="FW-1313")),
                 )
                 if case_name in HTTP11_INCOMPLETE_TRAILER_CASES
-                else case_name
+                else pytest.param(
+                    case_name,
+                    marks=pytest.mark.regression if case_name != "invalid-size" else (),
+                )
             )
             for case_name in HTTP11_ERROR_RESPONSES
         ],
@@ -1562,6 +1614,7 @@ class TestJSFetch:
     @allure.title("JavaScript fetch rejects a 1xx response: {case_name}, {method}.")
     @pytest.mark.parametrize("case_name", HTTP11_INFORMATIONAL_RESPONSES)
     @pytest.mark.parametrize("method", ["GET", "HEAD"])
+    @pytest.mark.regression
     def test_http11_informational_response(
         self, js_case_runner, http_server, case_name, method
     ):
@@ -1611,6 +1664,7 @@ class TestJSFetch:
     )
     @pytest.mark.parametrize("framing", ["absent", "content-length", "chunked"])
     @pytest.mark.parametrize("connection", ["close", "keep-alive"])
+    @pytest.mark.regression
     def test_http11_bodyless_response(
         self, js_case_runner, http_server, method, status, framing, connection
     ):
@@ -1637,6 +1691,7 @@ class TestJSFetch:
 
     @allure.title("JavaScript fetch rejects contradictory HTTP/1.1 framing headers.")
     @pytest.mark.parametrize("case_name", HTTP11_HEADER_ERROR_RESPONSES)
+    @pytest.mark.regression
     def test_http11_response_headers_error(
         self, js_case_runner, http_server, case_name
     ):
@@ -1664,6 +1719,7 @@ class TestJSFetch:
     @allure.title(
         "JavaScript fetch cancels a chunked transfer and releases the connection."
     )
+    @pytest.mark.regression
     def test_http11_cancel(self, js_case_runner, http_server):
         url = json.dumps(http_server.url("/http11/stalled-data"))
         recovery_url = json.dumps(http_server.url("/http11/simple"))

@@ -325,6 +325,7 @@ class TestAppsAPI:
         "key,native_app_id",
         [("apps", "apps_menu"), ("settings", "settings_menu"), ("busy", "busy")],
     )
+    @pytest.mark.regression
     def test_running_app_without_js_app(
         self,
         apps_api: AppsAPI,
@@ -347,6 +348,7 @@ class TestAppsAPI:
 
     @allure.title("/api/apps/running rejects unsupported HTTP methods")
     @pytest.mark.parametrize("method", ["POST", "PUT", "DELETE"])
+    @pytest.mark.regression
     def test_running_app_unsupported_method(
         self, web_session, web_base_url: str, method: str
     ):
@@ -370,6 +372,7 @@ class TestAppsAPI:
     @allure.title(
         "GET /api/apps/list returns valid application metadata"
     )
+    @pytest.mark.regression
     def test_list_apps(self, apps_api: AppsAPI):
         response = apps_api.list_apps()
 
@@ -563,6 +566,7 @@ class TestAppsAPI:
         "screen,app_id",
         [("busy", "busy"), ("settings", "settings_menu"), ("apps", "apps_menu")],
     )
+    @pytest.mark.regression
     def test_launch_from_nonblocking_screen(
         self,
         apps_api,
@@ -697,6 +701,7 @@ class TestAppsAPI:
     @allure.title(
         "Immediate quit during launch returns a valid transition response"
     )
+    @pytest.mark.regression
     def test_quit_while_app_is_starting(
         self,
         apps_api: AppsAPI,
@@ -844,6 +849,7 @@ class TestAppsAPI:
         [None, "", ".invalid", "invalid/id", "a" * 33],
         ids=["missing", "empty", "leading-dot", "slash", "too-long"],
     )
+    @pytest.mark.regression
     def test_launch_validation(
         self,
         apps_api: AppsAPI,
@@ -858,6 +864,7 @@ class TestAppsAPI:
             )
 
     @allure.title("POST /api/apps/launch rejects an unknown application")
+    @pytest.mark.regression
     def test_launch_unknown_app(
         self,
         apps_api: AppsAPI,
@@ -872,6 +879,7 @@ class TestAppsAPI:
             )
 
     @allure.title("POST /api/apps/launch accepts a 32-character app id")
+    @pytest.mark.regression
     def test_launch_max_length_app_id(
         self,
         apps_api: AppsAPI,
@@ -965,6 +973,7 @@ class TestAppsAPI:
             apps_api.delete_app_raw(max_length_app_id)
 
     @allure.title("POST /api/apps/launch replaces a running JS app")
+    @pytest.mark.regression
     def test_launch_replaces_running_app(
         self,
         apps_api: AppsAPI,
@@ -1137,6 +1146,7 @@ class TestAppsAPI:
             storage_api.remove_raw(storage_path)
 
     @allure.title("A plain TAR application package can be installed")
+    @pytest.mark.regression
     def test_plain_tar_package(
         self,
         apps_api: AppsAPI,
@@ -1226,6 +1236,7 @@ class TestAppsAPI:
 
     @allure.title("Install allows a same or older application version")
     @pytest.mark.parametrize("candidate_version", ["2.0.0", "1.9.9"])
+    @pytest.mark.regression
     def test_install_allows_non_newer_version(
         self,
         apps_api: AppsAPI,
@@ -1321,6 +1332,7 @@ class TestAppsAPI:
             )
 
     @allure.title("Optional manifest fields use documented defaults")
+    @pytest.mark.regression
     def test_optional_manifest_defaults(
         self,
         apps_api: AppsAPI,
@@ -1365,6 +1377,7 @@ class TestAppsAPI:
             )
 
     @allure.title("A newer staged package invalidates the previous key")
+    @pytest.mark.regression
     def test_new_stage_invalidates_previous_install_key(
         self,
         apps_api: AppsAPI,
@@ -1418,6 +1431,7 @@ class TestAppsAPI:
         "install_key",
         [None, 0, -1, "not-a-number", "123suffix", "4294967296"],
     )
+    @pytest.mark.regression
     def test_install_key_validation(
         self,
         apps_api: AppsAPI,
@@ -1458,6 +1472,7 @@ class TestAppsAPI:
             )
 
     @allure.title("A failed stage invalidates the previous install key")
+    @pytest.mark.regression
     def test_failed_stage_invalidates_previous_key(
         self,
         apps_api: AppsAPI,
@@ -1500,6 +1515,7 @@ class TestAppsAPI:
             # "invalid_version",
         ],
     )
+    @pytest.mark.regression
     def test_stage_rejects_invalid_package(
         self,
         apps_api: AppsAPI,
@@ -1565,6 +1581,7 @@ class TestAppsAPI:
         "missing_field",
         ["format_version", "id", "name", "version"],
     )
+    @pytest.mark.regression
     def test_manifest_required_fields(
         self,
         apps_api: AppsAPI,
@@ -1592,6 +1609,7 @@ class TestAppsAPI:
         ("heap_size_kib", "expected_status"),
         [(1, 200), (512, 200), (0, 400), (513, 400)],
     )
+    @pytest.mark.regression
     def test_manifest_heap_size_boundaries(
         self,
         apps_api: AppsAPI,
@@ -1675,6 +1693,7 @@ class TestAppsAPI:
             apps_api.stage_raw(b"cleanup invalid archive")
 
     @allure.title("Application IDs enforce the documented 32-char limit")
+    @pytest.mark.regression
     def test_app_id_length_boundary(self, apps_api: AppsAPI):
         valid_id = "t" + uuid.uuid4().hex[:31]
         invalid_id = f"{valid_id}x"
@@ -1707,6 +1726,7 @@ class TestAppsAPI:
             )
 
     @allure.title("DELETE /api/apps validates IDs and missing applications")
+    @pytest.mark.regression
     def test_delete_validation(self, apps_api: AppsAPI):
         cases = (
             (None, 400, "missing id"),

@@ -136,6 +136,7 @@ class TestMdnsDiscovery:
             )
 
     @allure.title("BusyBar discovery service uses the local API port")
+    @pytest.mark.regression
     def test_discovery_service_uses_local_api_port(
         self,
         mdns_interface_ip: str,
@@ -201,6 +202,7 @@ class TestMdnsDiscovery:
             )
 
     @allure.title("Discovery publishes the device name without display quoting")
+    @pytest.mark.regression
     def test_service_advertises_device_name(
         self,
         mdns_interface_ip: str,
@@ -226,6 +228,7 @@ class TestMdnsDiscovery:
 
     @allure.title("Changing the device name reannounces discovery metadata")
     @pytest.mark.usefixtures("preserve_device_name")
+    @pytest.mark.regression
     def test_name_change_is_reannounced(
         self,
         mdns_interface_ip: str,
@@ -264,6 +267,7 @@ class TestMdnsDiscovery:
 
     @allure.title("Discovery identity survives a device reboot")
     @pytest.mark.long_running
+    @pytest.mark.regression
     def test_identity_survives_reboot(
         self,
         mdns_interface_ip: str,

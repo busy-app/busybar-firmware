@@ -312,6 +312,7 @@ class TestDrawPriorityValidation:
     @allure.title("POST /api/display/draw – priority=0 → 400")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_priority_zero_rejected(self, assets_api: AssetsAPI):
         """
         Priority 0 violates the `if(priority <= 0) break` firmware check.
@@ -329,6 +330,7 @@ class TestDrawPriorityValidation:
     @allure.title("POST /api/display/draw – priority=-1 → 400")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_priority_negative_rejected(self, assets_api: AssetsAPI):
         """Negative priority values are invalid."""
         try:
@@ -340,6 +342,7 @@ class TestDrawPriorityValidation:
     @allure.title("POST /api/display/draw – priority=101 above LOADER_MAX → 400")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_priority_above_maximum_rejected(self, assets_api: AssetsAPI):
         """
         Values above LOADER_MAX_PRIORITY (100) must be rejected with 400.
@@ -357,6 +360,7 @@ class TestDrawPriorityValidation:
     @allure.title("POST /api/display/draw – missing application_name → 400")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_missing_app_id_rejected(self, assets_api: AssetsAPI):
         """Request body without application_name must be rejected."""
         try:
@@ -368,6 +372,7 @@ class TestDrawPriorityValidation:
     @allure.title("POST /api/display/draw – missing elements → 400")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_missing_elements_rejected(self, assets_api: AssetsAPI):
         """Request body without elements array must be rejected."""
         try:
@@ -379,6 +384,7 @@ class TestDrawPriorityValidation:
     @allure.title("POST /api/display/draw – empty elements array → 400")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_empty_elements_array_rejected(self, assets_api: AssetsAPI):
         """An empty elements array contains nothing to draw; must be rejected."""
         resp = assets_api.draw_raw({"application_name": _APP_ID, "elements": []})
@@ -403,6 +409,7 @@ class TestDrawInDefaultState:
     @allure.title("Draw at DEFAULT_ELEMENT_PRIORITY (50) succeeds when idle")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_default_element_priority_accepted(
         self, assets_api: AssetsAPI, busy_timer_stopped
     ):
@@ -413,6 +420,7 @@ class TestDrawInDefaultState:
     @allure.title("Draw at maximum (100) succeeds when idle")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_maximum_priority_accepted(self, assets_api: AssetsAPI, busy_timer_stopped):
         """priority=100 must succeed when loader priority is 9."""
         resp = _simple_draw(assets_api, priority=LOADER_MAX_PRIORITY)
@@ -421,6 +429,7 @@ class TestDrawInDefaultState:
     @allure.title("Draw with no explicit priority uses server default (50) – succeeds")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_omitted_priority_uses_default(
         self, assets_api: AssetsAPI, busy_timer_stopped
     ):
@@ -450,6 +459,7 @@ class TestDrawBusyTimerTransitions:
     @allure.title("Active busy timer (prio 101) blocks default draw (50 < 101)")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_active_timer_blocks_default_priority(
         self, assets_api: AssetsAPI, busy_timer_active
     ):
@@ -472,6 +482,7 @@ class TestDrawBusyTimerTransitions:
     @allure.title("Active busy timer blocks high app priority (89 < 101)")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_active_timer_blocks_just_below_busy_priority(
         self, assets_api: AssetsAPI, busy_timer_active
     ):
@@ -606,6 +617,7 @@ class TestDeleteDisplayPriority:
     @allure.title("DELETE by application returns 409 while a timer holds the display")
     @pytest.mark.parametrize("app_name_in_body", [False, True], ids=["query", "body"])
     @pytest.mark.parametrize("element_ids", [None, ["e1"]], ids=["all", "selected"])
+    @pytest.mark.regression
     def test_timer_blocks_application_delete(
         self,
         assets_api: AssetsAPI,
@@ -634,6 +646,7 @@ class TestDeleteDisplayPriority:
             assert actual == blocking_timer, f"Timer changed after DELETE: {actual}"
 
     @allure.title("DELETE without application_name succeeds while a timer runs")
+    @pytest.mark.regression
     def test_timer_allows_unconditional_delete(
         self, assets_api: AssetsAPI, busy_api: BusyAPI, blocking_timer: dict
     ):
@@ -646,6 +659,7 @@ class TestDeleteDisplayPriority:
             assert actual == blocking_timer, f"Timer changed after DELETE: {actual}"
 
     @allure.title("Stopping the timer allows application DELETE and redraw")
+    @pytest.mark.regression
     def test_stopped_timer_allows_application_delete(
         self,
         assets_api: AssetsAPI,
@@ -684,6 +698,7 @@ class TestDrawDisplayLifecycle:
     @allure.title("Draw then clear all returns 200 for both calls")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_draw_then_clear_all(self, assets_api: AssetsAPI, busy_timer_stopped):
         """Successful draw followed by unconditional clear must both return 200."""
         draw_resp = _simple_draw(assets_api, priority=DEFAULT_ELEMENT_PRIORITY)
@@ -695,6 +710,7 @@ class TestDrawDisplayLifecycle:
     @allure.title("Clear display by specific app_id removes only that app's elements")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_clear_by_app_id(self, assets_api: AssetsAPI, busy_timer_stopped):
         """
         After drawing as app A, clearing by app A's id must succeed (200).
@@ -725,6 +741,7 @@ class TestDrawDisplayLifecycle:
     @allure.title("Redrawing with same app_id is idempotent (200 both times)")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_redraw_same_app_id_is_idempotent(
         self, assets_api: AssetsAPI, busy_timer_stopped
     ):
@@ -742,6 +759,7 @@ class TestDrawDisplayLifecycle:
     @allure.title("Draw after clear succeeds (clear resets canvas state)")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_draw_after_clear_succeeds(self, assets_api: AssetsAPI, busy_timer_stopped):
         """Clearing the display and then redrawing must return 200."""
         assets_api.clear_display()
@@ -754,6 +772,7 @@ class TestDrawDisplayLifecycle:
     @allure.title("Two concurrent app_ids at the same priority level – both succeed")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_two_apps_same_priority_both_accepted(
         self, assets_api: AssetsAPI, busy_timer_stopped
     ):
@@ -779,6 +798,7 @@ class TestDrawDisplayLifecycle:
     @allure.title("All element types accepted in a single draw call")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_multiple_element_types_in_one_request(
         self, assets_api: AssetsAPI, busy_timer_stopped
     ):
@@ -836,6 +856,7 @@ class TestCanvasEvictionOnPriorityChange:
     )
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_busy_active_evicts_existing_canvas_content(
         self,
         assets_api: AssetsAPI,

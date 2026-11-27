@@ -352,6 +352,7 @@ class TestDisplayScreenshot:
     @pytest.mark.api
     @pytest.mark.frontend
     @pytest.mark.parametrize("display_id, expected_size", FORMAT_PARAMS)
+    @pytest.mark.regression
     def test_screen_api_format(
         self,
         display_id: int,
@@ -378,6 +379,7 @@ class TestDisplayAlignment:
     @pytest.mark.api
     @pytest.mark.frontend
     @pytest.mark.parametrize("align", ALL_ALIGNMENTS)
+    @pytest.mark.regression
     def test_text_alignment(
         self,
         align: str,
@@ -411,6 +413,7 @@ class TestDisplayAlignment:
     @allure.title("Alignment grid: positions are consistent and ordered")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_alignment_positions_differ(
         self,
         assets_api: AssetsAPI,
@@ -505,6 +508,7 @@ class TestDisplayPriority:
     @allure.title("Lower priority draw is rejected (409)")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_low_priority_rejected(
         self,
         assets_api: AssetsAPI,
@@ -541,6 +545,7 @@ class TestDisplayPriority:
     @allure.title("Higher priority draw replaces lower")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_higher_priority_replaces(
         self,
         assets_api: AssetsAPI,

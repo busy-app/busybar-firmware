@@ -62,6 +62,7 @@ def _assert_tls_rejected(cli, response: str, server) -> None:
 @allure.feature("Outbound HTTP/TLS")
 class TestFetchTLSArguments:
     @allure.title("CLI. Fetch usage documents all mTLS options exactly once.")
+    @pytest.mark.regression
     def test_help_documents_mtls_options(self, persistent_cli_connection):
         response = persistent_cli_connection.execute_command("fetch")
         expected_options = [
@@ -92,6 +93,7 @@ class TestFetchTLSArguments:
             assert "Error: Invalid client auth type" in response, response
 
     @allure.title("CLI. Fetch requires a certificate path for custom mTLS.")
+    @pytest.mark.regression
     def test_custom_auth_requires_certificate(self, persistent_cli_connection):
         response = persistent_cli_connection.execute_command(
             "fetch -a cert -K /ext/missing.key https://example.invalid"
@@ -100,6 +102,7 @@ class TestFetchTLSArguments:
             assert "Error: No certificate file specified" in response, response
 
     @allure.title("CLI. Fetch requires a private-key path for custom mTLS.")
+    @pytest.mark.regression
     def test_custom_auth_requires_private_key(self, persistent_cli_connection):
         response = persistent_cli_connection.execute_command(
             "fetch -a cert -C /ext/missing.pem https://example.invalid"
@@ -108,6 +111,7 @@ class TestFetchTLSArguments:
             assert "Error: No private key file specified" in response, response
 
     @allure.title("CLI. Fetch rejects a missing custom certificate file.")
+    @pytest.mark.regression
     def test_custom_auth_rejects_missing_certificate_file(
         self, persistent_cli_connection
     ):
@@ -119,6 +123,7 @@ class TestFetchTLSArguments:
             assert "Error: Certificate file does not exist" in response, response
 
     @allure.title("CLI. Fetch rejects a missing custom private-key file.")
+    @pytest.mark.regression
     def test_custom_auth_rejects_missing_private_key_file(
         self,
         persistent_cli_connection,
@@ -189,6 +194,7 @@ class TestFetchCustomMTLS:
             ), f"unexpected peer subject={peer.subject!r}, captured={captured!r}"
 
     @allure.title("CLI. Fetch presents a custom intermediate certificate chain.")
+    @pytest.mark.regression
     def test_custom_certificate_chain_success(
         self,
         persistent_cli_connection,
@@ -236,6 +242,7 @@ class TestFetchCustomMTLS:
         _assert_tls_rejected(persistent_cli_connection, response, server)
 
     @allure.title("CLI. Fetch is rejected for an untrusted custom certificate.")
+    @pytest.mark.regression
     def test_server_rejects_untrusted_client_certificate(
         self,
         persistent_cli_connection,
@@ -258,6 +265,7 @@ class TestFetchCustomMTLS:
         _assert_tls_rejected(persistent_cli_connection, response, server)
 
     @allure.title("CLI. Fetch is rejected for a client certificate with wrong EKU.")
+    @pytest.mark.regression
     def test_server_rejects_wrong_eku_client_certificate(
         self,
         persistent_cli_connection,
@@ -290,6 +298,7 @@ class TestFetchCustomMTLS:
             "encrypted-private-key",
         ],
     )
+    @pytest.mark.regression
     def test_custom_certificate_parse_failure(
         self,
         case,
@@ -337,6 +346,7 @@ class TestFetchCustomMTLS:
 
     @allure.title("CLI. Fetch is rejected for an invalid client validity period.")
     @pytest.mark.parametrize("case", ["expired", "not-yet-valid"])
+    @pytest.mark.regression
     def test_server_rejects_invalid_client_validity(
         self,
         case,
@@ -369,6 +379,7 @@ class TestFetchCustomMTLS:
         _assert_tls_rejected(persistent_cli_connection, response, server)
 
     @allure.title("CLI. Fetch rejects a certificate/private-key mismatch.")
+    @pytest.mark.regression
     def test_custom_certificate_key_mismatch(
         self,
         persistent_cli_connection,
@@ -462,6 +473,7 @@ class TestFetchDeviceMTLS:
             )
 
     @allure.title("CLI. Fetch authenticates with the hardware-backed device key.")
+    @pytest.mark.regression
     def test_device_certificate_success(
         self,
         persistent_cli_connection,
@@ -554,6 +566,7 @@ class TestFetchDeviceMTLS:
 
     @allure.title("CLI. Fetch mTLS does not interrupt an active MQTT mTLS session.")
     @pytest.mark.mqtt
+    @pytest.mark.regression
     def test_device_fetch_preserves_mqtt_mtls_session(
         self,
         persistent_cli_connection,

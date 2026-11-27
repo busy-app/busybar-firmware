@@ -1,9 +1,8 @@
-import time
-
 import allure
 import pytest
 
 from clients.api import BleAPI
+from utils.wait import wait_for
 
 
 pytestmark = [
@@ -29,17 +28,25 @@ def _wait_for_ble_status(
 ) -> str:
     """Poll /api/ble/status until it lands in `expected` (str or set) or times out."""
     expected_set = {expected} if isinstance(expected, str) else set(expected)
-    deadline = time.monotonic() + timeout
-    last = ""
-    while time.monotonic() < deadline:
-        try:
-            last = ble_api.get_status().status
-            if last in expected_set:
-                return last
-        except Exception as exc:
-            last = f"<{type(exc).__name__}: {exc}>"
-        time.sleep(interval)
-    return last
+    return wait_for(
+        f"BLE status in {sorted(expected_set)}",
+        lambda: ble_api.get_status().status,
+        lambda status: status in expected_set,
+        timeout=timeout,
+        interval=interval,
+    )
+
+
+@pytest.fixture
+def ble_state_guard(ble_api: BleAPI):
+    original = _wait_for_ble_status(
+        ble_api, BLE_ENABLED_STATES | BLE_DISABLED_STATES, timeout=15
+    )
+    yield original
+    expected = BLE_DISABLED_STATES if original == "disabled" else BLE_ENABLED_STATES
+    response = ble_api.disable() if original == "disabled" else ble_api.enable()
+    assert response.status_code == 200, response.text
+    _wait_for_ble_status(ble_api, expected)
 
 
 @allure.epic("BusyBar & Local Control")
@@ -52,20 +59,22 @@ class TestBleAPI:
     @allure.title("POST /api/ble/enable")
     @pytest.mark.api
     @pytest.mark.frontend
-    def test_api_ble_enable(self, ble_api: BleAPI):
+    def test_api_ble_enable(self, ble_api: BleAPI, ble_state_guard):
         """Test POST /api/ble/enable endpoint"""
         response = ble_api.enable()
 
-        assert response.status_code == 200
+        assert response.status_code == 200, response.text
+        _wait_for_ble_status(ble_api, BLE_ENABLED_STATES)
 
     @allure.title("POST /api/ble/disable")
     @pytest.mark.api
     @pytest.mark.frontend
-    def test_api_ble_disable(self, ble_api: BleAPI):
+    def test_api_ble_disable(self, ble_api: BleAPI, ble_state_guard):
         """Test POST /api/ble/disable endpoint"""
         response = ble_api.disable()
 
-        assert response.status_code == 200
+        assert response.status_code == 200, response.text
+        _wait_for_ble_status(ble_api, BLE_DISABLED_STATES)
 
     @allure.title("#3564 BLE. Preserve status over reboot")
     @pytest.mark.api
@@ -98,16 +107,11 @@ class TestBleStatusAPI:
     @allure.title("GET /api/ble/status")
     @pytest.mark.api
     @pytest.mark.frontend
-    def test_api_ble_status_get(self, ble_api: BleAPI):
+    def test_api_ble_status_get(self, ble_api: BleAPI, ble_state_guard):
         """Test GET /api/ble/status endpoint"""
         response = ble_api.get_status()
 
-        # Status enum validated by pydantic
-        valid_states = [
-            "reset", "initialization", "disabled",
-            "enabled", "connectable", "connected", "internal error",
-        ]
-        assert response.status in valid_states
+        assert response.status in BLE_ENABLED_STATES | BLE_DISABLED_STATES, response
 
         # Address field may be present when BLE is active
         if response.status == "connected":
@@ -116,6 +120,7 @@ class TestBleStatusAPI:
     @allure.title("DELETE /api/ble/pairing")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_ble_pairing_delete(self, ble_api: BleAPI):
         """Test DELETE /api/ble/pairing endpoint"""
         response = ble_api.remove_pairing()

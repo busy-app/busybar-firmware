@@ -55,6 +55,7 @@ class TestStreamingAPI:
     @allure.title("GET /api/screen (invalid display)")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_screen_invalid_display(self, streaming_api: StreamingAPI):
         """Test GET /api/screen endpoint with invalid display number"""
         response = streaming_api.get_screen(display=2)

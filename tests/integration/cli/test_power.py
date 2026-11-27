@@ -27,6 +27,7 @@ class TestCLIPower:
 
     @allure.title("CLI. Command Power.")
     @pytest.mark.story_commands_check
+    @pytest.mark.regression
     def test_cli_command_power(self, persistent_cli_connection):
         response = persistent_cli_connection.execute_command("power")
         assert "Usage:" in response, "Power command should provide help information"
@@ -40,6 +41,7 @@ class TestCLIPower:
             assert field in response, f"missing field {field}: {response!r}"
 
     @allure.title("CLI. Command power pd_info.")
+    @pytest.mark.regression
     def test_power_pd_info(self, persistent_cli_connection):
         response = persistent_cli_connection.execute_command("power pd_info")
         for field in ("PD.cc_line", "PD.voltage", "PD.current"):

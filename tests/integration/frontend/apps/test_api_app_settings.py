@@ -466,6 +466,7 @@ class TestAppSettingsAPI:
                 )
 
     @allure.title("Settings endpoints reject uninstalled asset directories")
+    @pytest.mark.regression
     def test_settings_reject_uninstalled_asset_directory(
         self,
         apps_api: AppsAPI,
@@ -528,6 +529,7 @@ class TestAppSettingsAPI:
             )
 
     @allure.title("GET heals incomplete and corrupted stored settings")
+    @pytest.mark.regression
     def test_get_heals_stored_document(
         self,
         apps_api: AppsAPI,
@@ -613,6 +615,7 @@ class TestAppSettingsAPI:
             assert reset.model_dump() == _document(defaults_v8, 8)
 
     @allure.title("Settings endpoints report identifier and schema errors")
+    @pytest.mark.regression
     def test_settings_errors(
         self,
         apps_api: AppsAPI,

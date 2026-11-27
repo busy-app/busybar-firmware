@@ -27,6 +27,7 @@ class TestCLIShell:
 
     @allure.title("CLI. Command ?.")
     @pytest.mark.story_commands_check
+    @pytest.mark.regression
     def test_cli_command_question_mark(self, persistent_cli_connection, test_logger):
         with allure.step("Execute ? command"):
             response = persistent_cli_connection.execute_command("?", timeout=20)
@@ -89,6 +90,7 @@ class TestCLIUI:
 
     @allure.title("CLI. UI. Render")
     @pytest.mark.story_ui_validation
+    @pytest.mark.regression
     def test_cli_ui_render(self, fresh_cli_connection):
         response = fresh_cli_connection.execute_command("?")
         assert response.strip(), "CLI should render help properly"
@@ -96,6 +98,7 @@ class TestCLIUI:
 
     @allure.title("CLI. UI. Welcome message.")
     @pytest.mark.story_ui_validation
+    @pytest.mark.regression
     def test_cli_ui_welcome_message(self, fresh_cli_connection):
         assert fresh_cli_connection.connected, "CLI should be connected and show welcome"
         response = fresh_cli_connection.execute_command("?")
