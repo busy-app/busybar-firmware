@@ -242,14 +242,35 @@ MU_TEST(tar_test_gzip) {
     furi_record_close(RECORD_STORAGE);
 }
 
+bool tar_test_parent_entry_callback(const char* name, bool is_directory, void* context) {
+    UNUSED(name);
+    UNUSED(is_directory);
+    furi_assert(context);
+
+    bool* is_callback_called = context;
+    *is_callback_called = true;
+
+    return true;
+}
+
 MU_TEST(tar_test_parent) {
     Storage* storage = furi_record_open(RECORD_STORAGE);
     TarArchive* tar = tar_archive_alloc(storage);
 
-    bool r = tar_archive_open(tar, PARENT_REFERENCE_FILE, TarOpenModeReadAuto);
-    mu_assert(r, "tar_archive_open");
-    r = tar_archive_unpack_to(tar, PARENT_REFERENCE_EXTRACT_PATH, NULL);
-    mu_assert(!r, "tar_archive_unpack_to must reject parent references");
+    bool success;
+
+    success = tar_archive_open(tar, PARENT_REFERENCE_FILE, TarOpenModeReadAuto);
+    mu_assert(success, "tar_archive_open");
+
+    const int32_t entries_count = tar_archive_get_entries_count(tar, false);
+    mu_assert_int_eq(1, entries_count);
+
+    bool is_callback_called = false;
+    tar_archive_set_file_callback(tar, tar_test_parent_entry_callback, &is_callback_called);
+
+    success = tar_archive_unpack_to(tar, PARENT_REFERENCE_EXTRACT_PATH, NULL);
+    mu_assert(!success, "tar_archive_unpack_to must reject parent references");
+    mu_assert(!is_callback_called, "tar_test_parent_entry_callback must not be called");
 
     tar_archive_free(tar);
     furi_record_close(RECORD_STORAGE);
