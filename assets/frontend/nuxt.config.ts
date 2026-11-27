@@ -57,7 +57,8 @@ export default defineNuxtConfig({
   },
   experimental: {
     appManifest: false,
-    buildCache: true
+    buildCache: true,
+    emitRouteChunkError: 'automatic-immediate'
   },
   compatibilityDate: '2025-05-15',
   nitro: {
