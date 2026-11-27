@@ -82,7 +82,7 @@ typedef struct FetchCallbacks {
  *
  * The callbacks will be executed in the fetch service thread's context.
  *
- * @param[in] fetch fetch service instance.
+ * @param[in] instance fetch service instance.
  * @param[in] request Pointer to the request to be executed. Must be valid through the entire execution time (until fetch_join returns).
  * @param[in] callbacks Pointer to the callbacks description. Unused callbacks can be set to NULL.
  * @returns fetch handle on success, NULL if resources could not be allocated.
