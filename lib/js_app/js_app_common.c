@@ -9,8 +9,7 @@ bool js_app_is_valid_id(const char* app_id) {
     }
     for(size_t i = 0; i != len; ++i) {
         char c = app_id[i];
-        bool is_word = (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
-                       (c >= '0' && c <= '9') || c == '_' || c == '-';
+        bool is_word = (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_' || c == '-';
         bool is_dot = c == '.';
         if(i == 0) {
             if(!is_word) {

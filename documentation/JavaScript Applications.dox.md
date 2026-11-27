@@ -269,7 +269,7 @@ A long press of the Back button is handled outside of the application and is use
             "type": "string",
             "minLength": 1,
             "maxLength": 32,
-            "pattern": "^[a-zA-Z0-9_\\-][a-zA-Z0-9_\\-.]{0,31}$",
+            "pattern": "^[a-z0-9_\\-][a-z0-9_\\-.]{0,31}$",
             "description": "Unique application ID (must match the root directory name)"
         },
         "name": {

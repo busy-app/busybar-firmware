@@ -168,9 +168,15 @@ static bool api_audio_play_handler(
             file_path = furi_string_alloc_printf(SHARED_SOUND_PATH("%s"), file_name);
         }
 
-        Audio* audio = furi_record_open(RECORD_AUDIO);
-        success = audio_play_file(audio, furi_string_get_cstr(file_path));
-        furi_record_close(RECORD_AUDIO);
+        Storage* storage = furi_record_open(RECORD_STORAGE);
+        success = storage_file_exists(storage, furi_string_get_cstr(file_path));
+        furi_record_close(RECORD_STORAGE);
+
+        if(success) {
+            Audio* audio = furi_record_open(RECORD_AUDIO);
+            success = audio_play_file(audio, furi_string_get_cstr(file_path));
+            furi_record_close(RECORD_AUDIO);
+        }
 
         if(success) {
             MG_REPLY_OK(conn);
