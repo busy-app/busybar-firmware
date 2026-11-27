@@ -6,7 +6,7 @@ export const useTzListStore = defineStore('tzList', () => {
   const timezoneOptions = ref<TimezoneItem[]>();
 
   async function fetchTimezoneOptions (): Promise<TimezoneItem[] | undefined> {
-    return await deviceStore.busyBar.TimeTzListGet()
+    return await deviceStore.busyBar.timeTzListGet()
       .then(data => {
         timezoneOptions.value = data.list;
         return data.list;

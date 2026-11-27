@@ -6,7 +6,7 @@ export const useTimezoneStore = defineStore('timezone', () => {
 
   const timezone = ref<string | undefined>(undefined);
   async function fetchTimezone (): Promise<TimezoneInfo | undefined> {
-    const tz = await deviceStore.busyBar.TimeTimezoneGet()
+    const tz = await deviceStore.busyBar.timeTimezoneGet()
       .then(response => {
         timezone.value = response.name;
         return response;
@@ -19,7 +19,7 @@ export const useTimezoneStore = defineStore('timezone', () => {
     return tz;
   }
   async function setTimezone (tz: string): Promise<boolean> {
-    return await deviceStore.busyBar.TimeTimezoneSet({ timezone: tz })
+    return await deviceStore.busyBar.timeTimezoneSet({ timezone: tz })
       .then(() => {
         timezone.value = tz;
         return true;

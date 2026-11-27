@@ -94,7 +94,7 @@ export const useDrawToolStore = defineStore('drawTool', () => {
 
   async function readStatusFile (path: string) {
     const deviceStore = useDeviceStore();
-    const file = await deviceStore.busyBar.StorageRead({ path }, { timeout: 0 });
+    const file = await deviceStore.busyBar.storageRead({ path }, { timeout: 0 });
     const mimeType = getStatusFileKind(path) === 'animation' ? 'application/octet-stream' : 'image/png';
 
     return file instanceof Blob ? file : new Blob([file], { type: mimeType });
@@ -182,7 +182,7 @@ export const useDrawToolStore = defineStore('drawTool', () => {
 
   async function listStatusDirectory () {
     const deviceStore = useDeviceStore();
-    const result = await deviceStore.busyBar.StorageListGet({ path: DRAW_TOOL_SAVE_DIR });
+    const result = await deviceStore.busyBar.storageListGet({ path: DRAW_TOOL_SAVE_DIR });
 
     if (!result.list) {
       throw new Error('Empty response');
@@ -195,7 +195,7 @@ export const useDrawToolStore = defineStore('drawTool', () => {
     const deviceStore = useDeviceStore();
 
     try {
-      await deviceStore.busyBar.StorageMkdir({ path: DRAW_TOOL_SAVE_DIR });
+      await deviceStore.busyBar.storageMkdir({ path: DRAW_TOOL_SAVE_DIR });
     } catch {
       // Ignore mkdir failure and rely on the follow-up list call.
     }
@@ -234,13 +234,13 @@ export const useDrawToolStore = defineStore('drawTool', () => {
     const path = createStatusFilePath(fileName);
 
     try {
-      await deviceStore.busyBar.StorageWrite({ path, file }, { timeout: 0 });
+      await deviceStore.busyBar.storageWrite({ path, file }, { timeout: 0 });
     } catch (error) {
       try {
         await listStatusDirectory();
       } catch {
         await ensureStatusDirectoryExists();
-        await deviceStore.busyBar.StorageWrite({ path, file }, { timeout: 0 });
+        await deviceStore.busyBar.storageWrite({ path, file }, { timeout: 0 });
         return path;
       }
 
@@ -266,7 +266,7 @@ export const useDrawToolStore = defineStore('drawTool', () => {
   async function requestClearStatusDisplay () {
     const deviceStore = useDeviceStore();
 
-    return deviceStore.busyBar.DisplayClear({
+    return deviceStore.busyBar.displayClear({
       application_name: DRAW_TOOL_DISPLAY_APPLICATION_NAME
     });
   }
@@ -299,7 +299,7 @@ export const useDrawToolStore = defineStore('drawTool', () => {
   async function drawStatusOnBusyBar (fileName: string) {
     const deviceStore = useDeviceStore();
 
-    return deviceStore.busyBar.DisplayDraw({
+    return deviceStore.busyBar.displayDraw({
       application_name: DRAW_TOOL_DISPLAY_APPLICATION_NAME,
       elements: [createDisplayElement(fileName)],
       priority: DRAW_TOOL_DISPLAY_PRIORITY
@@ -321,7 +321,7 @@ export const useDrawToolStore = defineStore('drawTool', () => {
     await clearStatusDisplay();
 
     try {
-      await deviceStore.busyBar.AssetsUpload({
+      await deviceStore.busyBar.assetsUpload({
         application_name: DRAW_TOOL_DISPLAY_APPLICATION_NAME,
         data: animation,
         file: DRAW_TOOL_TEMP_ANIMATION_FILE_NAME
@@ -356,7 +356,7 @@ export const useDrawToolStore = defineStore('drawTool', () => {
     const deviceStore = useDeviceStore();
 
     try {
-      await deviceStore.busyBar.StorageRemove({ path }, { timeout: 0 });
+      await deviceStore.busyBar.storageRemove({ path }, { timeout: 0 });
 
       return null;
     } catch (error) {

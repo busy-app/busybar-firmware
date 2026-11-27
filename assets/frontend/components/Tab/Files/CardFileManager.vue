@@ -530,7 +530,7 @@ async function onInputMenuModelUpdate (newValue: string) {
     filter = '';
   }
 
-  const options = await deviceStore.busyBar.StorageListGet({ path: `/ext${dir}` })
+  const options = await deviceStore.busyBar.storageListGet({ path: `/ext${dir}` })
     .then(result => {
       if (!result.list) {
         throw new Error('Empty response');
@@ -585,7 +585,7 @@ async function list (path: string, options: ListOptions = {}) {
   selectedItems.value.clear();
   loading.value.list = true;
   try {
-    const result = await deviceStore.busyBar.StorageListGet({ path });
+    const result = await deviceStore.busyBar.storageListGet({ path });
     if (!result.list) {
       throw new Error('Empty response');
     }
@@ -635,7 +635,7 @@ async function read (fileName: string) {
   loading.value.read = true;
 
   const path = `${currentPath.value}/${fileName}`;
-  const file = await deviceStore.busyBar.StorageRead({ path }, { timeout: 0 })
+  const file = await deviceStore.busyBar.storageRead({ path }, { timeout: 0 })
     .catch(async error => {
       await handleHTTPError(error, `Couldn't read file ${path}`, false, 0);
       return null;
@@ -889,7 +889,7 @@ async function remove () {
     const items = new Set(selectedItems.value);
     for (const name of items) {
       const fullPath = `${currentPath.value}/${name}`;
-      await deviceStore.busyBar.StorageRemove({ path: fullPath }, { timeout: 0 })
+      await deviceStore.busyBar.storageRemove({ path: fullPath }, { timeout: 0 })
         .catch(async error => {
           await handleHTTPError(error, `Couldn't delete ${fullPath}`, false, 0);
         });
@@ -917,7 +917,7 @@ async function remove () {
 
   loading.value.remove = true;
 
-  await deviceStore.busyBar.StorageRemove({ path: fullPath }, { timeout: 0 })
+  await deviceStore.busyBar.storageRemove({ path: fullPath }, { timeout: 0 })
     .then(() => {
       itemToDelete.value = null;
       showDeleteModal.value = false;
@@ -988,7 +988,7 @@ async function uploadFiles () {
 
     try {
       file.status = 'uploading';
-      await deviceStore.busyBar.StorageWrite({
+      await deviceStore.busyBar.storageWrite({
         path: `${_currentPath}/${getUploadPath(file.blob)}`,
         file: file.blob
       }, { timeout: 0 });
@@ -1113,7 +1113,7 @@ async function mkdir () {
   loading.value.mkdir = true;
 
   const fullPath = `${currentPath.value}/${mkdirNameModel.value}`;
-  await deviceStore.busyBar.StorageMkdir({ path: fullPath })
+  await deviceStore.busyBar.storageMkdir({ path: fullPath })
     .then(() => {
       showMkdirModal.value = false;
     })

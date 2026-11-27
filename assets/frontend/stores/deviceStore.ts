@@ -12,7 +12,7 @@ import type {
 type ConnCheckResult = true | false | 'aborted';
 
 export const useDeviceStore = defineStore('device', () => {
-  const apiRequest = useApiStore().apiRequest;
+  const apiStore = useApiStore();
   const wifiStore = useWifiStore();
   const firmwareStore = useFirmwareStore();
   const stateStreamStore = useStateStreamStore();
@@ -20,7 +20,8 @@ export const useDeviceStore = defineStore('device', () => {
 
   const busyBar = shallowRef(new BusyBar({
     addr: useRuntimeConfig().public.barUrl || window.location.origin,
-    timeout: Number(configStore.get('httpRequestTimeout'))
+    timeout: Number(configStore.get('httpRequestTimeout')),
+    HTTPAccessPassword: apiStore.apiKey ?? undefined
   }));
 
   const refreshInterval = ref<NodeJS.Timeout>();
@@ -47,7 +48,7 @@ export const useDeviceStore = defineStore('device', () => {
     const wasConnected = isConnected.value;
     try {
       // No retry: a silent retry would hide a reboot and device-reconnected would never be triggered
-      await apiRequest('/api/name', { timeout: Number(configStore.get('httpRequestTimeout')), retry: 0 });
+      await busyBar.value.settingsNameGet({ timeout: Number(configStore.get('httpRequestTimeout')) });
       if (!isConnected.value) {
         window.dispatchEvent(new Event('device-reconnected'));
         if (firmwareStore.autoUpdate.stage === UpdateStage.UPDATING) {
@@ -174,7 +175,7 @@ export const useDeviceStore = defineStore('device', () => {
   // Connection type
   const connectionType = ref<NetworkInterfaceInfo['type']>('wifi');
   async function detectConnectionType () {
-    await busyBar.value.SystemTransportGet()
+    await busyBar.value.systemTransportGet()
       .then(response => {
         connectionType.value = response.type;
         console.debug('Detected connection type:', connectionType.value);
@@ -188,7 +189,7 @@ export const useDeviceStore = defineStore('device', () => {
   // API version
   const apiVersion = ref<VersionInfo | undefined>(undefined);
   async function fetchApiVersion (): Promise<VersionInfo | undefined> {
-    const version = await busyBar.value.SystemVersionGet()
+    const version = await busyBar.value.systemVersionGet()
       .then(response => {
         apiVersion.value = response;
         return response;
@@ -205,7 +206,7 @@ export const useDeviceStore = defineStore('device', () => {
   const deviceStatus = ref<DeviceStatus | undefined>(undefined);
   const deviceStatusFetchedAt = ref<number | undefined>(undefined);
   async function fetchDeviceStatus (): Promise<DeviceStatus | undefined> {
-    const status = await busyBar.value.SystemStatusGet()
+    const status = await busyBar.value.systemStatusGet()
       .then(response => {
         deviceStatus.value = response;
         deviceStatusFetchedAt.value = Date.now();
@@ -223,7 +224,7 @@ export const useDeviceStore = defineStore('device', () => {
   const DEFAULT_DEVICE_NAME = 'BUSY Bar';
   const deviceName = ref<string | undefined>(undefined);
   async function fetchDeviceName (throwError: boolean = false): Promise<string> {
-    const name = await busyBar.value.SettingsNameGet()
+    const name = await busyBar.value.settingsNameGet()
       .then(response => {
         deviceName.value = response.name;
         return response.name;
@@ -239,7 +240,7 @@ export const useDeviceStore = defineStore('device', () => {
     return name;
   }
   async function setDeviceName (name: string): Promise<boolean> {
-    return await busyBar.value.SettingsNameSet({ name })
+    return await busyBar.value.settingsNameSet({ name })
       .then(() => {
         deviceName.value = name;
         toast.add({
@@ -258,7 +259,7 @@ export const useDeviceStore = defineStore('device', () => {
   // HTTP API
   const httpAPIAccess = ref<HttpAccessInfo | undefined>(undefined);
   async function fetchHttpAPIAccess (): Promise<HttpAccessInfo | undefined> {
-    const access = await busyBar.value.SettingsAccessGet()
+    const access = await busyBar.value.settingsAccessGet()
       .then(response => {
         httpAPIAccess.value = response;
         return response;
@@ -279,7 +280,7 @@ export const useDeviceStore = defineStore('device', () => {
       payload['key'] = key;
     }
 
-    return await busyBar.value.SettingsAccessSet(payload as HttpAccessParams)
+    return await busyBar.value.settingsAccessSet(payload as HttpAccessParams)
       .then(async () => {
         httpAPIAccess.value = await fetchHttpAPIAccess();
         toast.add({
@@ -298,7 +299,7 @@ export const useDeviceStore = defineStore('device', () => {
   // Debug log
   const DEBUG_LOG_FILENAME = 'web-debug-log';
   async function requestDebugLogDump () {
-    return await busyBar.value.SystemLogDump({ filename: DEBUG_LOG_FILENAME })
+    return await busyBar.value.systemLogDump({ filename: DEBUG_LOG_FILENAME })
       .then(({ path }) => path)
       .catch(async error => {
         await handleHTTPError(error, 'Failed to generate debug log due to an internal error. Please try again.', true);
@@ -306,7 +307,7 @@ export const useDeviceStore = defineStore('device', () => {
       });
   }
   async function fetchDebugLog (path: string) {
-    return await busyBar.value.StorageRead({ path })
+    return await busyBar.value.storageRead({ path })
       .then(file => file instanceof Blob ? file : new Blob([file], { type: 'text/plain' }))
       .catch(async error => {
         await handleHTTPError(error, 'Unable to download debug log. Please try again.', true);
@@ -317,7 +318,7 @@ export const useDeviceStore = defineStore('device', () => {
   // Account
   const accountInfo = ref<AccountInfo | null>(null);
   async function fetchAccountInfo () {
-    const info = await busyBar.value.AccountInfoGet()
+    const info = await busyBar.value.accountInfoGet()
       .then(response => {
         accountInfo.value = response;
         return response;

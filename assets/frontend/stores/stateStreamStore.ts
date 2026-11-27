@@ -73,12 +73,17 @@ export const useStateStreamStore = defineStore('stateStream', () => {
     }
   });
 
-  function stopStream () {
-    stream.value.stop();
+  async function stopStream () {
     if (streamStatus.value?.data.status === DataStatus.STALE) {
       streamStatus.value.data.status = DataStatus.NONE;
     }
     doCheckConnectionOnStreamDataStale.value = true;
+
+    try {
+      await stream.value.stop();
+    } catch (error) {
+      console.warn('State stream did not close cleanly:', error);
+    }
   }
 
   function applyDeviceNameUpdate (payload: BSB_State.DeviceName) {
