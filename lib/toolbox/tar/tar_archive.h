@@ -126,14 +126,17 @@ bool tar_archive_unpack_file(
  * @param[in]   context       User context
  * @return true to process the entry, false to skip
  */
-typedef bool (*tar_unpack_file_cb)(const char* name, bool is_directory, void* context);
+typedef bool (*TarArchiveEntryCallback)(const char* name, bool is_directory, void* context);
 
 /** Set per-entry callback on unpacking
  * @param       archive       Tar archive object
  * @param       callback      Callback function
  * @param[in]   context       User context
  */
-void tar_archive_set_file_callback(TarArchive* archive, tar_unpack_file_cb callback, void* context);
+void tar_archive_set_file_callback(
+    TarArchive* archive,
+    TarArchiveEntryCallback callback,
+    void* context);
 
 /* Low-level API */
 

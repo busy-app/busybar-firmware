@@ -18,8 +18,8 @@ typedef struct TarArchive {
     Storage* storage;
     File* stream;
     mtar_t tar;
-    tar_unpack_file_cb unpack_cb;
-    void* unpack_cb_context;
+    TarArchiveEntryCallback entry_callback;
+    void* entry_callback_context;
 } TarArchive;
 
 /* Plain file backend - uncompressed, supports read and write */
@@ -194,7 +194,7 @@ TarArchive* tar_archive_alloc(Storage* storage) {
     TarArchive* archive = malloc(sizeof(TarArchive));
     archive->storage = storage;
     archive->stream = storage_file_alloc(archive->storage);
-    archive->unpack_cb = NULL;
+    archive->entry_callback = NULL;
     return archive;
 }
 
@@ -294,10 +294,13 @@ void tar_archive_free(TarArchive* archive) {
     free(archive);
 }
 
-void tar_archive_set_file_callback(TarArchive* archive, tar_unpack_file_cb callback, void* context) {
+void tar_archive_set_file_callback(
+    TarArchive* archive,
+    TarArchiveEntryCallback callback,
+    void* context) {
     furi_check(archive);
-    archive->unpack_cb = callback;
-    archive->unpack_cb_context = context;
+    archive->entry_callback = callback;
+    archive->entry_callback_context = context;
 }
 
 typedef struct CounterData {
@@ -455,9 +458,10 @@ static bool tar_archive_is_unsafe_entry_name(const char* name) {
 static bool tar_archive_should_extract_entry(TarArchive* instance, const mtar_header_t* header) {
     bool should_extract = true;
 
-    if(instance->unpack_cb) {
+    if(instance->entry_callback) {
         const bool is_dir = (header->type == MTAR_TDIR);
-        should_extract = instance->unpack_cb(header->name, is_dir, instance->unpack_cb_context);
+        should_extract =
+            instance->entry_callback(header->name, is_dir, instance->entry_callback_context);
     }
 
     if(!should_extract) {
