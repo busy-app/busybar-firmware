@@ -69,7 +69,7 @@ my-app/
 - The entry point is executed top to bottom, nothing is imported or called. It must start the app itself
   (the template calls `main()` at the end) and **must not export anything**, or the build fails. Imported
   modules may use exports normally.
-- The manifest `id` must match the package root directory name: at most 32 characters, ASCII letters,
+- The manifest `id` must match the package root directory name: at most 32 characters, lowercase ASCII letters,
   digits, `_`, `-` and `.`, not starting with `.`. Use a reverse-domain id (`app.<author>.<app>`), and
   replace a placeholder `app.example` before publishing.
 - `api_version` is the minimum HTTP API version the app needs. Installing or launching on firmware with an

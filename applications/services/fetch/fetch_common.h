@@ -32,6 +32,7 @@ typedef enum {
     FetchStatusError, /**< Operation failed due to an error */
     FetchStatusAborted, /**< Operation was aborted (cancelled) */
     FetchStatusTimeout, /**< Operation timed out */
+    FetchStatusMax, /**< Special value for bounds checking */
 } FetchStatus;
 
 #ifdef __cplusplus
