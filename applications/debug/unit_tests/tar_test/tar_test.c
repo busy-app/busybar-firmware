@@ -33,7 +33,11 @@
 #define GZIP_FILE         EXT_PATH("apps_assets/unit_tests/test.tgz")
 #define GZIP_EXTRACT_PATH UNIT_TESTS_PATH("ungzip")
 
-/* Contains a single "../test.txt" entry, created with python's tarfile module as described above */
+/*
+ * Contains a single " \t\n\r../test.txt" entry, created with python's tarfile module.
+ * The prefix has every whitespace character that path_concat() trims, so the test will
+ * fail if any of them is removed from the unsafe entry name check.
+ */
 #define PARENT_REFERENCE_FILE         EXT_PATH("apps_assets/unit_tests/test_parent.tgz")
 #define PARENT_REFERENCE_EXTRACT_PATH UNIT_TESTS_PATH("ungzip_parent")
 
