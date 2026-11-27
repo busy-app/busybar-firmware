@@ -1,0 +1,79 @@
+name: Publish build artifacts
+description: Upload build artifacts to R2 and register them with update-indexer
+inputs:
+  project_name:
+    description: Project name used in the R2 path and update-indexer URL
+    required: true
+  artifacts_dir:
+    description: Directory containing the build artifacts to upload
+    required: true
+  branch_name:
+    description: Branch used in the uploaded artifact path
+    required: true
+  version_token:
+    description: Commit token used in the uploaded artifact path
+    required: true
+  indexer_url:
+    description: Base URL of update-indexer
+    required: true
+  indexer_token:
+    description: CI token for the update-indexer project
+    required: true
+  s3_access_key_id:
+    description: R2 access key ID
+    required: true
+  s3_secret_access_key:
+    description: R2 secret access key
+    required: true
+  s3_endpoint_url:
+    description: R2 S3 endpoint URL
+    required: true
+  s3_bucket:
+    description: R2 bucket for firmware artifacts
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Install rclone
+      uses: AnimMouse/setup-rclone@26ef2133e09fd383329a1d4c1fbe6a71db1976c9 # v1
+      with:
+        version: v1.75.2
+
+    - name: Upload build artifacts to R2
+      shell: bash
+      env:
+        PROJECT_NAME: ${{ inputs.project_name }}
+        ARTIFACTS_DIR: ${{ inputs.artifacts_dir }}
+        BRANCH_NAME: ${{ inputs.branch_name }}
+        VERSION_TOKEN: ${{ inputs.version_token }}
+        RCLONE_CONFIG: /dev/null
+        RCLONE_CONFIG_R2_TYPE: s3
+        RCLONE_CONFIG_R2_PROVIDER: Cloudflare
+        RCLONE_CONFIG_R2_ACCESS_KEY_ID: ${{ inputs.s3_access_key_id }}
+        RCLONE_CONFIG_R2_SECRET_ACCESS_KEY: ${{ inputs.s3_secret_access_key }}
+        RCLONE_CONFIG_R2_ENDPOINT: ${{ inputs.s3_endpoint_url }}
+        RCLONE_CONFIG_R2_REGION: auto
+        S3_BUCKET: ${{ inputs.s3_bucket }}
+      run: |
+        rclone copy "$ARTIFACTS_DIR" "r2:${S3_BUCKET}/${PROJECT_NAME}/${BRANCH_NAME}/${VERSION_TOKEN}/" \
+          --checksum --fast-list --transfers 64 --checkers 64 --stats 10s --stats-one-line --log-level INFO
+
+    - name: Notify update-indexer
+      shell: bash
+      env:
+        PROJECT_NAME: ${{ inputs.project_name }}
+        ARTIFACTS_DIR: ${{ inputs.artifacts_dir }}
+        BRANCH_NAME: ${{ inputs.branch_name }}
+        VERSION_TOKEN: ${{ inputs.version_token }}
+        INDEXER_URL: ${{ inputs.indexer_url }}
+        INDEXER_TOKEN: ${{ inputs.indexer_token }}
+      run: |
+        set -euo pipefail
+        manifest=$(python3 "$GITHUB_ACTION_PATH/build_manifest.py")
+        printf '%s' "$manifest" | curl --fail-with-body --silent --show-error \
+          --connect-timeout 15 --max-time 120 \
+          --retry 3 --retry-all-errors \
+          --header "Token: $INDEXER_TOKEN" \
+          --header 'Content-Type: application/json' \
+          --data-binary @- \
+          "${INDEXER_URL%/}/${PROJECT_NAME}/notify"
