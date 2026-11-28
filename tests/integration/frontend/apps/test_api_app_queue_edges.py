@@ -171,7 +171,11 @@ class TestAppQueueEdges:
     @allure.title(
         "Cancelling first, middle or last pending install keeps the other items in order"
     )
-    @pytest.mark.parametrize("position", [0, 1, 2], ids=["first", "middle", "last"])
+    @pytest.mark.parametrize(
+        "position",
+        [0, pytest.param(1, marks=pytest.mark.regression), 2],
+        ids=["first", "middle", "last"],
+    )
     def test_cancel_pending_positions(self, app_queue, storage_api, position):
         blocker, active_ids = _block(app_queue)
         pending = [app_queue.package() for _ in range(3)]
@@ -287,7 +291,12 @@ class TestAppQueueEdges:
         "Optional version metadata supports zero and uint32 boundary components"
     )
     @pytest.mark.parametrize(
-        "version", ["0.0.0", "1.2.3", "4294967295.4294967295.4294967295"]
+        "version",
+        [
+            "0.0.0",
+            pytest.param("1.2.3", marks=pytest.mark.regression),
+            "4294967295.4294967295.4294967295",
+        ],
     )
     def test_version_metadata_boundaries(self, app_queue, version):
         blocker, active_ids = _block(app_queue)
@@ -317,6 +326,7 @@ class TestAppQueueEdges:
         app_queue_assert_installed(app_queue, storage_api, app)
 
     @allure.title("Plain TAR and close-delimited downloads install successfully")
+    @pytest.mark.regression
     @pytest.mark.parametrize(
         "options",
         [{"gzip": False}, {"known_length": False}],
@@ -328,6 +338,7 @@ class TestAppQueueEdges:
         app_queue_assert_installed(app_queue, storage_api, app)
 
     @allure.title("An unknown numeric manifest format remains forward compatible")
+    @pytest.mark.regression
     def test_unknown_manifest_format(self, app_queue, storage_api):
         app = app_queue.package(manifest_updates={"format_version": 99})
         _install(app_queue, app)
@@ -336,7 +347,14 @@ class TestAppQueueEdges:
     @allure.title(
         "Every punctuation character permitted in application IDs is supported"
     )
-    @pytest.mark.parametrize("prefix", ["_", "-", "queue_1-a.b-"])
+    @pytest.mark.parametrize(
+        "prefix",
+        [
+            pytest.param("_", marks=pytest.mark.regression),
+            pytest.param("-", marks=pytest.mark.regression),
+            "queue_1-a.b-",
+        ],
+    )
     def test_app_id_characters(self, app_queue, storage_api, prefix):
         app = app_queue.package(app_id=prefix + uuid.uuid4().hex[:12])
         _install(app_queue, app)
@@ -346,8 +364,8 @@ class TestAppQueueEdges:
     @pytest.mark.parametrize(
         "filename,encoded",
         [
-            ("with space.tgz", False),
-            ("РїР°РєРµС‚.tgz", False),
+            pytest.param("with space.tgz", False, marks=pytest.mark.regression),
+            pytest.param("РїР°РєРµС‚.tgz", False, marks=pytest.mark.regression),
             ("with space.tgz", True),
         ],
         ids=["space", "unicode", "escaped-space"],
@@ -571,6 +589,7 @@ class TestAppQueueEdges:
                 app_queue_assert_installed(app_queue, storage_api, app)
 
     @allure.title("Add requests retain metadata and permit additional OpenAPI fields")
+    @pytest.mark.regression
     def test_additional_enqueue_fields(
         self, app_queue, app_queue_contract, web_session, web_base_url
     ):
