@@ -329,7 +329,11 @@ class TestAccessTokensAPI:
 class TestAccessTokenPersistence:
     @allure.title("Minted tokens survive an immediate reboot")
     @allure.issue("https://flipper.atlassian.net/browse/FW-1099")
-    @pytest.mark.skip(reason="FW-1099: https://flipper.atlassian.net/browse/FW-1099")
+    @pytest.mark.xfail(
+        reason="FW-1099: https://flipper.atlassian.net/browse/FW-1099",
+        raises=AssertionError,
+        strict=False,
+    )
     @pytest.mark.regression
     def test_minted_tokens_survive_immediate_reboot(
         self,
@@ -374,7 +378,11 @@ class TestAccessTokenPersistence:
 
     @allure.title("Revoked token remains revoked after an immediate reboot")
     @allure.issue("https://flipper.atlassian.net/browse/FW-1099")
-    @pytest.mark.skip(reason="FW-1099: https://flipper.atlassian.net/browse/FW-1099")
+    @pytest.mark.xfail(
+        reason="FW-1099: https://flipper.atlassian.net/browse/FW-1099",
+        raises=AssertionError,
+        strict=False,
+    )
     @pytest.mark.regression
     def test_revoked_token_stays_revoked_after_reboot(
         self,

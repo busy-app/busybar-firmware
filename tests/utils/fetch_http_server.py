@@ -58,6 +58,7 @@ HTTP11_INCOMPLETE_TRAILER_CASES = frozenset(
 )
 CHUNKED_BINARY_PAYLOAD = bytes(range(256)) * 4
 LARGE_PAYLOAD = bytes(range(256)) * 256
+LARGE_CLOSE_PAYLOAD = bytes(range(256)) * (512 * 1024 // 256)
 LARGE_CHUNK_SIZE = 4096
 CHUNKED_JSON_PAYLOAD = json.dumps(
     {"message": NON_BMP_UNICODE_TEXT, "value": 42}, ensure_ascii=False
@@ -172,6 +173,9 @@ HTTP11_LARGE_RESPONSES = {
         LARGE_PAYLOAD,
     ),
     "large-close": FetchHTTP11Response((LARGE_PAYLOAD,), LARGE_PAYLOAD, headers=()),
+    "large-close-512k": FetchHTTP11Response(
+        (LARGE_CLOSE_PAYLOAD,), LARGE_CLOSE_PAYLOAD, headers=()
+    ),
 }
 
 HTTP11_ERROR_RESPONSES = {

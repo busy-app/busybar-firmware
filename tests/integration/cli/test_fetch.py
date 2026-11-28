@@ -391,7 +391,12 @@ class TestCLIFetch:
             (
                 pytest.param(
                     case_name,
-                    marks=(pytest.mark.regression, pytest.mark.skip(reason="FW-1313")),
+                    marks=(
+                        pytest.mark.regression,
+                        pytest.mark.xfail(
+                            reason="FW-1313", raises=AssertionError, strict=False
+                        ),
+                    ),
                 )
                 if case_name in HTTP11_INCOMPLETE_TRAILER_CASES
                 else pytest.param(

@@ -896,7 +896,11 @@ class TestJSFetch:
 
     @allure.title("JavaScript fetch supports multiple concurrent requests.")
     @allure.issue("https://flipper.atlassian.net/browse/FW-1102")
-    @pytest.mark.skip(reason="concurrent fetch returns socket error/inactivity timeout")
+    @pytest.mark.xfail(
+        reason="FW-1102: concurrent fetch returns socket error/inactivity timeout",
+        raises=AssertionError,
+        strict=False,
+    )
     @pytest.mark.regression
     def test_concurrent_requests(self, js_case_runner, http_server):
         case_name = "concurrent_requests"
@@ -1563,7 +1567,12 @@ class TestJSFetch:
             (
                 pytest.param(
                     case_name,
-                    marks=(pytest.mark.regression, pytest.mark.skip(reason="FW-1313")),
+                    marks=(
+                        pytest.mark.regression,
+                        pytest.mark.xfail(
+                            reason="FW-1313", raises=AssertionError, strict=False
+                        ),
+                    ),
                 )
                 if case_name in HTTP11_INCOMPLETE_TRAILER_CASES
                 else pytest.param(
