@@ -54,6 +54,7 @@ typedef struct {
 
 struct Wifi {
     FuriEventLoop* event_loop;
+    FuriEventLoopTimer* reconnect_timer;
     FuriMessageQueue* api_queue;
     FuriMessageQueue* event_queue;
     FuriMessageQueue* priority_queue;
@@ -67,6 +68,8 @@ struct Wifi {
     struct netif netif;
     WifiMessage api_message;
     WifiRequest request;
+    uint32_t reconnect_delay_ms;
+    bool should_reconnect;
     bool is_processing;
 };
 

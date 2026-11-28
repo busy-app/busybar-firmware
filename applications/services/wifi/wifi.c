@@ -10,7 +10,9 @@
 #define RESPONSE_QUEUE_SIZE       (4)
 #define RESPONSE_QUEUE_TIMEOUT_MS (200)
 
-#define WIFI_REQUEST_TIMEOUT_MS (5000)
+#define WIFI_REQUEST_TIMEOUT_MS      (5000)
+#define WIFI_RECONNECT_DELAY_INIT_MS (5000UL)
+#define WIFI_RECONNECT_DELAY_MAX_MS  (60000UL)
 
 #if(API_QUEUE_SIZE != 1)
 #error "API logic will break with API_QUEUE_SIZE other than 1"
@@ -75,6 +77,24 @@ static void wifi_print_connection_info(Wifi* instance) {
     });
 }
 
+static void wifi_reconnect_stop(Wifi* instance) {
+    furi_event_loop_timer_stop(instance->reconnect_timer);
+    instance->reconnect_delay_ms = 0;
+}
+
+static void wifi_reconnect_schedule(Wifi* instance) {
+    if(instance->should_reconnect) {
+        const uint32_t delay_ms =
+            (instance->reconnect_delay_ms == 0) ?
+                WIFI_RECONNECT_DELAY_INIT_MS :
+                MIN(instance->reconnect_delay_ms * 2, WIFI_RECONNECT_DELAY_MAX_MS);
+        instance->reconnect_delay_ms = delay_ms;
+
+        FURI_LOG_I(TAG, "Scheduling reconnect in %lu ms", delay_ms);
+        furi_event_loop_timer_start(instance->reconnect_timer, furi_ms_to_ticks(delay_ms));
+    }
+}
+
 static void wifi_apply_settings_pending_callback(void* context) {
     furi_assert(context);
     Wifi* instance = context;
@@ -85,12 +105,30 @@ static void wifi_apply_settings_pending_callback(void* context) {
 
         if(strnlen(settings.credentials.ssid, SSID_MAX_LEN) == 0) {
             FURI_LOG_I(TAG, "No SSID specified");
+            instance->should_reconnect = false;
             break;
         }
 
+        instance->should_reconnect = true;
         wifi_schedule_connect_request(instance, &settings);
 
     } while(false);
+}
+
+static void wifi_reconnect_timer_callback(void* context) {
+    furi_assert(context);
+    Wifi* instance = context;
+
+    WifiInfo wifi_info;
+    furi_state_get(instance->state, &wifi_info);
+
+    if(instance->should_reconnect && (wifi_info.state == WifiStateDisconnected)) {
+        if(instance->is_processing || (furi_message_queue_get_count(instance->api_queue) != 0)) {
+            wifi_reconnect_schedule(instance);
+        } else {
+            wifi_apply_settings_pending_callback(instance);
+        }
+    }
 }
 
 static WifiStatus wifi_send_request(Wifi* instance, WifiRequestType request_type) {
@@ -115,6 +153,11 @@ static void wifi_process_request(Wifi* instance) {
     bool unlock_api = true;
 
     do {
+        if((request_type == WifiRequestTypeDisconnect) && (message->lock != NULL)) {
+            instance->should_reconnect = false;
+            wifi_reconnect_stop(instance);
+        }
+
         status = wifi_state_check_request_type(instance, request_type);
 
         if(status != WifiStatusOk) {
@@ -136,6 +179,7 @@ static void wifi_process_request(Wifi* instance) {
             WifiConnectRequest* connect_request = &request->connect_request;
             connect_request->credentials = *credentials;
 
+            furi_event_loop_timer_stop(instance->reconnect_timer);
             wifi_state_transition(instance, WifiStateConnecting, credentials);
             FURI_LOG_I(TAG, "Connecting to \"%s\"", credentials->ssid);
 
@@ -145,11 +189,14 @@ static void wifi_process_request(Wifi* instance) {
 
         } else if(request_type == WifiRequestTypeForget) {
             FURI_LOG_I(TAG, "Forgetting saved network");
+            instance->should_reconnect = false;
+            wifi_reconnect_stop(instance);
             wifi_settings_reset(NULL);
             break; // No backend request necessary
 
         } else if(request_type == WifiRequestTypeDeinit) {
             FURI_LOG_W(TAG, "Deinitializing due to error");
+            wifi_reconnect_stop(instance);
             wifi_net_down(instance);
             wifi_state_transition(instance, WifiStateUnknown);
             break; // No backend request necessary
@@ -177,7 +224,9 @@ static void wifi_process_request(Wifi* instance) {
 static void
     wifi_followup_request(Wifi* instance, WifiRequestType request_type, WifiStatus prev_status) {
     instance->api_message.request_type = request_type;
-    *instance->api_message.status = prev_status;
+    if(instance->api_message.status) {
+        *instance->api_message.status = prev_status;
+    }
 
     wifi_process_request(instance);
 }
@@ -223,6 +272,8 @@ static void wifi_process_response(Wifi* instance, const WifiResponse* response) 
                 wifi_net_get_ip_config(instance, &new_ip_config);
 
                 wifi_state_transition(instance, WifiStateConnected, &new_ip_config);
+                instance->should_reconnect = true;
+                wifi_reconnect_stop(instance);
                 wifi_settings_save(&(const WifiSettings){
                     .credentials = *credentials,
                     .ip_config = *ip_config,
@@ -240,6 +291,7 @@ static void wifi_process_response(Wifi* instance, const WifiResponse* response) 
         } else if(request_type == WifiRequestTypeDisconnect) {
             wifi_net_down(instance);
             wifi_state_transition(instance, WifiStateDisconnected);
+            wifi_reconnect_schedule(instance);
         }
 
     } else {
@@ -247,8 +299,10 @@ static void wifi_process_response(Wifi* instance, const WifiResponse* response) 
 
         if(request_type == WifiRequestTypeConnect) {
             wifi_state_transition(instance, WifiStateDisconnected);
+            wifi_reconnect_schedule(instance);
         } else if(request_type == WifiRequestTypeDisconnect) {
             wifi_state_transition(instance, WifiStateDisconnected);
+            wifi_reconnect_schedule(instance);
         }
     }
 
@@ -268,6 +322,14 @@ static void
 
             wifi_net_down(instance);
             wifi_state_transition(instance, WifiStateReconnecting);
+
+        } else if(backend_info->state == WifiBackendStateDisconnected) {
+            FURI_LOG_W(
+                TAG, "Backend disconnected from \"%s\", scheduling reconnect", wifi_info.ssid);
+
+            wifi_net_down(instance);
+            wifi_state_transition(instance, WifiStateDisconnected);
+            wifi_reconnect_schedule(instance);
         }
 
     } else if(wifi_info.state == WifiStateReconnecting) {
@@ -279,6 +341,7 @@ static void
                 wifi_net_get_ip_config(instance, &new_ip_config);
 
                 wifi_state_transition(instance, WifiStateConnected, &new_ip_config);
+                wifi_reconnect_stop(instance);
                 wifi_print_connection_info(instance);
 
             } else {
@@ -286,7 +349,10 @@ static void
             }
 
         } else if(backend_info->state == WifiBackendStateDisconnected) {
+            FURI_LOG_W(TAG, "Reconnect to \"%s\" failed, scheduling retry", wifi_info.ssid);
+
             wifi_state_transition(instance, WifiStateDisconnected);
+            wifi_reconnect_schedule(instance);
         }
     }
 
@@ -387,6 +453,8 @@ static Wifi* wifi_alloc(void) {
     Wifi* instance = malloc(sizeof(Wifi));
 
     instance->event_loop = furi_event_loop_alloc();
+    instance->reconnect_timer = furi_event_loop_timer_alloc(
+        instance->event_loop, wifi_reconnect_timer_callback, FuriEventLoopTimerTypeOnce, instance);
     instance->api_queue = furi_message_queue_alloc(API_QUEUE_SIZE, sizeof(WifiMessage));
     instance->event_queue = furi_message_queue_alloc(EVENT_QUEUE_SIZE, sizeof(WifiEvent));
     instance->priority_queue = furi_message_queue_alloc(PRIORITY_QUEUE_SIZE, sizeof(WifiMessage));
