@@ -49,7 +49,9 @@ void wifi_state_transition(Wifi* instance, WifiState new_state, ...) {
             }
 
         } else if(current_state == WifiStateConnected) {
-            if(new_state == WifiStateDisconnecting || new_state == WifiStateReconnecting) {
+            if(new_state == WifiStateDisconnected) {
+                wifi_state_reset_info(info);
+            } else if(new_state == WifiStateDisconnecting || new_state == WifiStateReconnecting) {
                 /* Nothing */
             } else {
                 furi_crash("Invalid transition from WifiStateConnected");
