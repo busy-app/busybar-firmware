@@ -73,7 +73,6 @@ def _call_schema_case(case: schemathesis.Case, web_session):
 @allure.feature("Device HTTP API")
 @allure.story("Schema Conformance")
 @pytest.mark.schemathesis
-@pytest.mark.regression
 @pytest.mark.frontend
 @_schema.include(
     method="GET",

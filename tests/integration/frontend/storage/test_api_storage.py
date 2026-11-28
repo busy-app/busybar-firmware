@@ -57,6 +57,7 @@ class TestStorageAPI:
     @allure.title("GET /api/storage/list")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_storage_list(self, storage_api: StorageAPI):
         """Test GET /api/storage/list endpoint"""
         response = storage_api.list(path="/ext")
@@ -74,6 +75,7 @@ class TestStorageAPI:
     @allure.title("POST /api/storage/mkdir")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_storage_mkdir(self, storage_api: StorageAPI):
         """Test POST /api/storage/mkdir endpoint"""
         test_dir = f"/ext/test_mkdir_{int(time.time())}"
@@ -111,6 +113,7 @@ class TestStorageAPI:
     @pytest.mark.api
     @pytest.mark.frontend
     @pytest.mark.parametrize("path_length", [63, 64, 255])
+    @pytest.mark.regression
     def test_api_storage_path_length_roundtrip(
         self, storage_api: StorageAPI, storage_path_test_dir: str, path_length: int
     ):

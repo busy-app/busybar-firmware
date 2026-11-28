@@ -65,6 +65,49 @@ def _cancel_all(instance):
     instance.assert_no_more_results()
 
 
+def _observe_download_progress(instance, *, known_length):
+    # Progress is coalesced; keep enough uncompressed data before the release gate.
+    app_id = "test.queue." + uuid.uuid4().hex[:12]
+    app = instance.package(
+        app_id=app_id,
+        held=True,
+        known_length=known_length,
+        gzip=False,
+        extra_files={f"{app_id}/resources/payload.bin": b"x" * PROGRESS_PAYLOAD_SIZE},
+    )
+    item_ids = instance.enqueue(app.install())
+    app.download.wait_started()
+
+    def is_detail(update):
+        if update.WhichOneof("state") != "apps_state":
+            return False
+        state = update.apps_state
+        if state.WhichOneof("value") != "queue_operation_detail":
+            return False
+        detail = state.queue_operation_detail
+        return (
+            detail.item_id == item_ids[0]
+            and detail.step == "downloading"
+            and (
+                detail.HasField("progress") and 0 < detail.progress < 100
+                if known_length
+                else not detail.HasField("progress")
+            )
+        )
+
+    with allure.step("Observe download progress and active queue details"):
+        update = instance.ws.wait_for(is_detail, timeout=8)
+        detail = update.apps_state.queue_operation_detail
+        assert (
+            detail.HasField("progress") == known_length
+        ), f"Unexpected progress presence: {detail!r}"
+        snapshot = instance.snapshot(item_ids)
+        assert (
+            snapshot.result[0].detail is not None
+        ), f"Active operation has no detail: {snapshot!r}"
+    return app, item_ids
+
+
 @allure.epic("BusyBar & Local Control")
 @allure.feature("JavaScript applications")
 @allure.story("Application queue boundaries")
@@ -128,7 +171,11 @@ class TestAppQueueEdges:
     @allure.title(
         "Cancelling first, middle or last pending install keeps the other items in order"
     )
-    @pytest.mark.parametrize("position", [0, 1, 2], ids=["first", "middle", "last"])
+    @pytest.mark.parametrize(
+        "position",
+        [0, pytest.param(1, marks=pytest.mark.regression), 2],
+        ids=["first", "middle", "last"],
+    )
     def test_cancel_pending_positions(self, app_queue, storage_api, position):
         blocker, active_ids = _block(app_queue)
         pending = [app_queue.package() for _ in range(3)]
@@ -244,7 +291,12 @@ class TestAppQueueEdges:
         "Optional version metadata supports zero and uint32 boundary components"
     )
     @pytest.mark.parametrize(
-        "version", ["0.0.0", "1.2.3", "4294967295.4294967295.4294967295"]
+        "version",
+        [
+            "0.0.0",
+            pytest.param("1.2.3", marks=pytest.mark.regression),
+            "4294967295.4294967295.4294967295",
+        ],
     )
     def test_version_metadata_boundaries(self, app_queue, version):
         blocker, active_ids = _block(app_queue)
@@ -274,6 +326,7 @@ class TestAppQueueEdges:
         app_queue_assert_installed(app_queue, storage_api, app)
 
     @allure.title("Plain TAR and close-delimited downloads install successfully")
+    @pytest.mark.regression
     @pytest.mark.parametrize(
         "options",
         [{"gzip": False}, {"known_length": False}],
@@ -285,6 +338,7 @@ class TestAppQueueEdges:
         app_queue_assert_installed(app_queue, storage_api, app)
 
     @allure.title("An unknown numeric manifest format remains forward compatible")
+    @pytest.mark.regression
     def test_unknown_manifest_format(self, app_queue, storage_api):
         app = app_queue.package(manifest_updates={"format_version": 99})
         _install(app_queue, app)
@@ -293,7 +347,14 @@ class TestAppQueueEdges:
     @allure.title(
         "Every punctuation character permitted in application IDs is supported"
     )
-    @pytest.mark.parametrize("prefix", ["_", "-", "queue_1-a.b-"])
+    @pytest.mark.parametrize(
+        "prefix",
+        [
+            pytest.param("_", marks=pytest.mark.regression),
+            pytest.param("-", marks=pytest.mark.regression),
+            "queue_1-a.b-",
+        ],
+    )
     def test_app_id_characters(self, app_queue, storage_api, prefix):
         app = app_queue.package(app_id=prefix + uuid.uuid4().hex[:12])
         _install(app_queue, app)
@@ -303,8 +364,8 @@ class TestAppQueueEdges:
     @pytest.mark.parametrize(
         "filename,encoded",
         [
-            ("with space.tgz", False),
-            ("РїР°РєРµС‚.tgz", False),
+            pytest.param("with space.tgz", False, marks=pytest.mark.regression),
+            pytest.param("РїР°РєРµС‚.tgz", False, marks=pytest.mark.regression),
             ("with space.tgz", True),
         ],
         ids=["space", "unicode", "escaped-space"],
@@ -399,7 +460,7 @@ class TestAppQueueEdges:
     @allure.title(
         "An app launched during an update download is protected before replacement"
     )
-    @pytest.mark.skip(reason="FW-1321")
+    @pytest.mark.xfail(reason="FW-1321", raises=AssertionError, strict=False)
     def test_app_launch_during_update_download(
         self, app_queue, storage_api, queue_launch_app
     ):
@@ -473,60 +534,18 @@ class TestAppQueueEdges:
             observer.assert_no_more_results()
         app_queue.wait_idle()
 
-    @allure.title(
-        "Progress is optional for unknown length and bounded for known length"
-    )
-    @pytest.mark.parametrize(
-        "known_length", [True, False], ids=["known-length", "unknown-length"]
-    )
-    @pytest.mark.skip(reason="unstable performance")
-    def test_download_progress(self, app_queue, known_length):
-        app_id = "test.queue." + uuid.uuid4().hex[:12]
-        # Progress is coalesced; a tiny archive can finish without any partial
-        # notification. Keep enough uncompressed data before the release gate.
-        app = app_queue.package(
-            app_id=app_id,
-            held=True,
-            known_length=known_length,
-            gzip=False,
-            extra_files={
-                f"{app_id}/resources/payload.bin": b"x" * PROGRESS_PAYLOAD_SIZE
-            },
-        )
-        item_ids = app_queue.enqueue(app.install())
-        app.download.wait_started()
-
-        def is_detail(update):
-            if update.WhichOneof("state") != "apps_state":
-                return False
-            state = update.apps_state
-            if state.WhichOneof("value") != "queue_operation_detail":
-                return False
-            detail = state.queue_operation_detail
-            return (
-                detail.item_id == item_ids[0]
-                and detail.step == "downloading"
-                and (
-                    detail.HasField("progress") and 0 < detail.progress < 100
-                    if known_length
-                    else not detail.HasField("progress")
-                )
-            )
-
-        with allure.step(
-            "Observe partial download state without requiring every intermediate event"
-        ):
-            update = app_queue.ws.wait_for(is_detail, timeout=8)
-            detail = update.apps_state.queue_operation_detail
-            assert (
-                detail.HasField("progress") == known_length
-            ), f"Unexpected progress presence: {detail!r}"
-            snapshot = app_queue.snapshot(item_ids)
-            assert (
-                snapshot.result[0].detail is not None
-            ), f"Active operation has no detail: {snapshot!r}"
+    @allure.title("Known-length download reports partial progress and completes")
+    def test_download_progress_known_length(self, app_queue):
+        app, item_ids = _observe_download_progress(app_queue, known_length=True)
         app.download.release.set()
         app_queue.wait_results(dict.fromkeys(item_ids, apps_pb2.QUEUE_ERROR_NONE))
+        app_queue.wait_idle()
+
+    @allure.title("Unknown-length download omits progress and can be cancelled")
+    def test_download_progress_unknown_length(self, app_queue):
+        _, item_ids = _observe_download_progress(app_queue, known_length=False)
+        app_queue.cancel(item_ids[0])
+        app_queue.wait_results(dict.fromkeys(item_ids, apps_pb2.QUEUE_ERROR_CANCELLED))
         app_queue.wait_idle()
 
     @allure.title(
@@ -570,6 +589,7 @@ class TestAppQueueEdges:
                 app_queue_assert_installed(app_queue, storage_api, app)
 
     @allure.title("Add requests retain metadata and permit additional OpenAPI fields")
+    @pytest.mark.regression
     def test_additional_enqueue_fields(
         self, app_queue, app_queue_contract, web_session, web_base_url
     ):

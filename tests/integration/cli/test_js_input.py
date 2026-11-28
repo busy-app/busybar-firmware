@@ -139,6 +139,7 @@ class TestJSInput:
         )
 
     @allure.title("JavaScript listen maps short, long, and repeat actions.")
+    @pytest.mark.regression
     def test_extended_button_actions(
         self,
         persistent_cli_connection,
@@ -190,6 +191,7 @@ class TestJSInput:
         )
 
     @allure.title("JavaScript listen filters unsupported input events.")
+    @pytest.mark.regression
     def test_unsupported_events_are_filtered(
         self,
         persistent_cli_connection,
@@ -273,6 +275,7 @@ class TestJSInput:
         )
 
     @allure.title("JavaScript input listener survives a handler exception.")
+    @pytest.mark.regression
     def test_handler_exception_does_not_stop_listener(
         self,
         persistent_cli_connection,

@@ -84,6 +84,7 @@ class TestCLIFetch:
             assert captured["method"] == method, f"captured={captured!r}"
 
     @allure.title("CLI. Command fetch requires a URL.")
+    @pytest.mark.regression
     def test_fetch_requires_url(self, persistent_cli_connection):
         response = persistent_cli_connection.execute_command("fetch")
 
@@ -92,6 +93,7 @@ class TestCLIFetch:
             assert "fetch [options] <url>" in response, response
 
     @allure.title("CLI. Command fetch prints the complete usage contract.")
+    @pytest.mark.regression
     def test_fetch_usage_contract(self, persistent_cli_connection):
         response = persistent_cli_connection.execute_command("fetch")
 
@@ -109,6 +111,7 @@ class TestCLIFetch:
         ["fetch -Z", "fetch -o"],
         ids=["unknown-option", "missing-option-value"],
     )
+    @pytest.mark.regression
     def test_fetch_rejects_invalid_arguments(self, persistent_cli_connection, command):
         response = persistent_cli_connection.execute_command(command)
 
@@ -121,6 +124,7 @@ class TestCLIFetch:
             ), f"expected Fetch usage for {command!r}, got {response!r}"
 
     @allure.title("CLI. Command fetch streams verbose response to stdout.")
+    @pytest.mark.regression
     def test_fetch_to_stdout(self, persistent_cli_connection, http_server):
         response = persistent_cli_connection.execute_command(
             f"fetch -v {http_server.url('/known.bin')}",
@@ -152,6 +156,7 @@ class TestCLIFetch:
     @allure.title(
         "CLI. Fetch completes a known-length response before the connection closes."
     )
+    @pytest.mark.regression
     def test_fetch_known_length_does_not_wait_for_connection_close(
         self, persistent_cli_connection, http_server
     ):
@@ -283,6 +288,7 @@ class TestCLIFetch:
             cli.execute_command(f"storage remove {self.UNKNOWN_DEST}")
 
     @allure.title("CLI. Command fetch accepts a scheme-less explicit-port URL.")
+    @pytest.mark.regression
     def test_fetch_scheme_less_url(self, persistent_cli_connection, http_server):
         scheme_less_url = http_server.url("/known.bin").removeprefix("http://")
         response = persistent_cli_connection.execute_command(
@@ -313,6 +319,7 @@ class TestCLIFetch:
             )
 
     @allure.title("CLI. Command fetch removes output after inactivity timeout.")
+    @pytest.mark.regression
     def test_fetch_inactivity_removes_output(
         self, persistent_cli_connection, http_server
     ):
@@ -337,7 +344,20 @@ class TestCLIFetch:
             cli.execute_command(f"storage remove {self.TIMEOUT_DEST}")
 
     @allure.title("CLI. Fetch saves decoded HTTP/1.1 data: {case_name}.")
-    @pytest.mark.parametrize("case_name", HTTP11_SUCCESS_RESPONSES)
+    @pytest.mark.parametrize(
+        "case_name",
+        [
+            pytest.param(
+                case_name,
+                marks=(
+                    pytest.mark.regression
+                    if case_name not in {"simple", "trailers"}
+                    else ()
+                ),
+            )
+            for case_name in HTTP11_SUCCESS_RESPONSES
+        ],
+    )
     def test_fetch_http11_download(
         self, persistent_cli_connection, http_server, storage_dir, case_name
     ):
@@ -371,10 +391,22 @@ class TestCLIFetch:
             (
                 pytest.param(
                     case_name,
-                    marks=pytest.mark.skip(reason="FW-1313"),
+                    marks=(
+                        pytest.mark.regression,
+                        pytest.mark.xfail(
+                            reason="FW-1313", raises=AssertionError, strict=False
+                        ),
+                    ),
                 )
                 if case_name in HTTP11_INCOMPLETE_TRAILER_CASES
-                else case_name
+                else pytest.param(
+                    case_name,
+                    marks=(
+                        pytest.mark.regression
+                        if case_name not in {"conflicting-framing", "stalled-size"}
+                        else ()
+                    ),
+                )
             )
             for case_name in HTTP11_FAILED_RESPONSES
         ],
@@ -415,6 +447,7 @@ class TestCLIFetch:
     @allure.title("CLI. Fetch rejects a 1xx response: {case_name}, {method}.")
     @pytest.mark.parametrize("case_name", HTTP11_INFORMATIONAL_RESPONSES)
     @pytest.mark.parametrize("method", ["GET", "HEAD"])
+    @pytest.mark.regression
     def test_fetch_http11_informational_response(
         self, persistent_cli_connection, http_server, storage_dir, case_name, method
     ):
@@ -462,6 +495,7 @@ class TestCLIFetch:
     )
     @pytest.mark.parametrize("framing", ["absent", "content-length", "chunked"])
     @pytest.mark.parametrize("connection", ["close", "keep-alive"])
+    @pytest.mark.regression
     def test_fetch_http11_bodyless_response(
         self,
         persistent_cli_connection,

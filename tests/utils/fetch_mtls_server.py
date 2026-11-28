@@ -1,4 +1,4 @@
-"""Local HTTPS server requiring a client certificate for Fetch tests."""
+"""Local HTTPS and mutual TLS servers for Fetch tests."""
 
 from __future__ import annotations
 
@@ -9,8 +9,8 @@ from pathlib import Path
 from utils.fetch_http_server import FetchHTTPServer, FetchRequestHandler
 
 
-class FetchMTLSServer(FetchHTTPServer):
-    """Fetch test server with TLS client-certificate verification enabled."""
+class FetchHTTPSServer(FetchHTTPServer):
+    """Local TLS server with optional client-certificate authentication."""
 
     def __init__(
         self,
@@ -18,11 +18,13 @@ class FetchMTLSServer(FetchHTTPServer):
         *,
         server_certificate_path: Path,
         server_private_key_path: Path,
-        client_ca_pem: str,
+        client_ca_pem: str | None = None,
         allow_partial_chain: bool = False,
         tls_version: str | None = None,
+        advertised_address: tuple[str, int] | None = None,
     ):
         super().__init__(server_address, FetchRequestHandler)
+        self._advertised_address = advertised_address
 
         context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         context.minimum_version = ssl.TLSVersion.TLSv1_2
@@ -35,8 +37,9 @@ class FetchMTLSServer(FetchHTTPServer):
             context.minimum_version = selected_version
             context.maximum_version = selected_version
         context.load_cert_chain(server_certificate_path, server_private_key_path)
-        context.load_verify_locations(cadata=client_ca_pem)
-        context.verify_mode = ssl.CERT_REQUIRED
+        if client_ca_pem is not None:
+            context.load_verify_locations(cadata=client_ca_pem)
+            context.verify_mode = ssl.CERT_REQUIRED
         if allow_partial_chain:
             context.verify_flags |= ssl.VERIFY_X509_PARTIAL_CHAIN
         self._tls_context = context
@@ -56,5 +59,12 @@ class FetchMTLSServer(FetchHTTPServer):
         super().process_request_thread(tls_request, client_address)
 
     def url(self, path):
-        host, port = self.server_address[:2]
+        host, port = (self._advertised_address or self.server_address)[:2]
         return f"https://{host}:{port}{path}"
+
+
+class FetchMTLSServer(FetchHTTPSServer):
+    """Fetch test server requiring an authenticated client certificate."""
+
+    def __init__(self, server_address, *, client_ca_pem: str, **kwargs):
+        super().__init__(server_address, client_ca_pem=client_ca_pem, **kwargs)

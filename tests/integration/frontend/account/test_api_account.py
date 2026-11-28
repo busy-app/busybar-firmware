@@ -80,6 +80,7 @@ class TestAccountBackendAPI:
     @allure.title("PUT /api/account/backend (custom URL)")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_account_backend_put_custom_url(self, account_api: AccountAPI):
         """Test PUT /api/account/backend with a custom server URL."""
         custom_url = "mqtts://mqtt.example.com:8883"
@@ -109,6 +110,7 @@ class TestAccountBackendAPI:
     @allure.title("PUT /api/account/backend (default)")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_account_backend_put_default(self, account_api: AccountAPI):
         """Test PUT /api/account/backend with server_url='default'."""
         with allure.step("Capture original config"):
@@ -150,6 +152,7 @@ class TestAccountBackendAPI:
             ),
         ],
     )
+    @pytest.mark.regression
     def test_api_account_backend_put_invalid(
         self, account_api: AccountAPI, payload, reason
     ):
@@ -170,6 +173,7 @@ class TestAccountLinkAPI:
     @allure.title("POST /api/account/link")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_account_link_post(self, account_api: AccountAPI):
         """Test POST /api/account/link endpoint"""
         with allure.step("Check account info before linking"):
@@ -203,6 +207,7 @@ class TestAccountUnlinkAPI:
     @allure.title("DELETE /api/account")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_account_delete(self, account_api: AccountAPI):
         """Test DELETE /api/account endpoint (unlink)"""
         account_api.unlink()

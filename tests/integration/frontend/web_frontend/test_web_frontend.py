@@ -54,6 +54,7 @@ class TestWebFrontendBasic:
 
     @allure.title("BSB Front. API Documentation Available")
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_docs_available(self, web_session, web_base_url):
         """Test that Swagger API documentation is accessible"""
         docs_url = f"{web_base_url}/docs/"
@@ -107,6 +108,7 @@ class TestWebFrontendAPI:
 
     @allure.title("BSB API. Version Endpoint")
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_version_endpoint(self, web_session, web_base_url):
         """Test /api/version endpoint responds"""
         response = web_session.get(f"{web_base_url}/api/version", timeout=10)
@@ -131,6 +133,7 @@ class TestWebFrontendAPI:
 
     @allure.title("BSB API. Status Endpoint")
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_status_endpoint(self, web_session, web_base_url):
         """Test /api/status endpoint responds"""
         response = web_session.get(f"{web_base_url}/api/status", timeout=10)
@@ -155,6 +158,7 @@ class TestWebFrontendAPI:
 
     @allure.title("BSB API. WiFi Status Endpoint")
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_wifi_status_endpoint(self, web_session, web_base_url):
         """Test /api/wifi/status endpoint responds"""
         response = web_session.get(f"{web_base_url}/api/wifi/status", timeout=10)
@@ -177,6 +181,7 @@ class TestWebFrontendAPI:
 
     @allure.title("BSB API. System Status Endpoint")
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_system_status_endpoint(self, web_session, web_base_url):
         """Test /api/status/system endpoint responds"""
         response = web_session.get(f"{web_base_url}/api/status/system", timeout=10)
@@ -229,6 +234,7 @@ class TestWebFrontendErrorHandling:
 
     @allure.title("BSB Front. Invalid API Path")
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_invalid_api_path(self, web_session, web_base_url):
         """Test invalid API endpoint returns appropriate error"""
         response = web_session.get(f"{web_base_url}/api/invalid-endpoint", timeout=10)
@@ -245,6 +251,7 @@ class TestWebFrontendErrorHandling:
     )
     @allure.title("BSB Front. Response Time Test")
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_response_times(self, web_session, web_base_url, endpoint):
         """Test that API endpoints respond within reasonable time"""
         start_time = time.time()
@@ -320,6 +327,7 @@ class TestWebFrontendGzip:
 
     @allure.title("BSB Front. Accept-Encoding: gzip serves gzip (Case B)")
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_explicit_gzip_serves_gzip(self, web_session, web_base_url):
         """Explicit Accept-Encoding: gzip results in 200 with Content-Encoding: gzip."""
         response = web_session.get(
@@ -357,6 +365,7 @@ class TestWebFrontendGzip:
         "BSB Front. Accept-Encoding: identity serves uncompressed asset (Case C, uncompressed)"
     )
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_identity_only_serves_uncompressed_asset(self, web_session, web_base_url):
         """When gzip is excluded, an uncompressed asset (e.g. .yaml) is served normally."""
         response = web_session.get(
@@ -383,6 +392,7 @@ class TestWebFrontendIntegration:
 
     @allure.title("BSB Front. Complete Stack Test")
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_complete_stack_functional(self, web_session, web_base_url):
         """Test that web interface, API docs, and core API endpoints all work together"""
 

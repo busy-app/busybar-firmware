@@ -143,6 +143,7 @@ class TestBusySnapshotAPI:
     @allure.title("GET /api/busy/snapshot (verify NOT_STARTED structure)")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_busy_snapshot_not_started(self, busy_api: BusyAPI):
         """Test that NOT_STARTED snapshot has expected structure"""
         response = busy_api.get_snapshot()
@@ -155,6 +156,7 @@ class TestBusySnapshotAPI:
     @allure.title("PUT /api/busy/snapshot")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_busy_snapshot_put(self, busy_api: BusyAPI):
         """Test PUT /api/busy/snapshot accepts valid snapshot data"""
         # Save original snapshot
@@ -222,6 +224,7 @@ class TestBusyProfileAPI:
     @allure.title("GET /api/busy/profiles/custom")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_busy_profile_get_custom(self, busy_api: BusyAPI):
         """Test GET /api/busy/profiles/custom returns valid profile"""
         response = busy_api.get_profile("custom")
@@ -277,6 +280,7 @@ class TestBusyProfileAPI:
     @allure.title("GET /api/busy/profiles/{invalid_slot}")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_busy_profile_invalid_slot(self, busy_api: BusyAPI):
         """Test GET /api/busy/profiles with invalid slot returns error"""
         response = busy_api.get_profile_raw("invalid_slot")
@@ -347,7 +351,6 @@ class TestBusyThemeRegressions:
 @allure.story("Busy Timer")
 @pytest.mark.api
 @pytest.mark.frontend
-@pytest.mark.regression
 class TestBusySnapshotRegressions:
     @allure.title("BUSY {expected_type} snapshot round-trips")
     @pytest.mark.parametrize(
@@ -548,6 +551,7 @@ class TestBusySnapshotRegressions:
             ),
         ],
     )
+    @pytest.mark.regression
     def test_busy_timer_invalid_field_matrix_does_not_apply(
         self,
         busy_api: BusyAPI,
@@ -627,6 +631,7 @@ class TestBusySnapshotRegressions:
             assert updated.snapshot["busy_bar_settings"] == settings
 
     @allure.title("Paused BUSY SIMPLE snapshot is restored after reboot")
+    @pytest.mark.regression
     def test_busy_timer_paused_simple_snapshot_persists_after_reboot(
         self,
         busy_api: BusyAPI,

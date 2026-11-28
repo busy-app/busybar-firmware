@@ -27,6 +27,7 @@ class TestJSLocalStorage:
     """Exercise localStorage through independent JS CLI processes."""
 
     @allure.title("JavaScript localStorage exposes an empty storage contract.")
+    @pytest.mark.regression
     def test_empty_storage_contract(self, js_case_runner):
         body = dedent(
             """
@@ -102,6 +103,7 @@ assert(
     @allure.title(
         "JavaScript localStorage enumerates keys without fixed order."
     )
+    @pytest.mark.regression
     def test_key_enumeration(self, js_case_runner):
         body = dedent(
             """
@@ -168,6 +170,7 @@ assert(
         js_case_runner("local_storage_persist_verify_clear", verify_clear_body)
 
     @allure.title("JavaScript localStorage preserves strings and Unicode.")
+    @pytest.mark.regression
     def test_string_roundtrip(self, js_case_runner):
         unicode_key = "ключ"
         unicode_value = 'Привет, BUSY Bar! "quotes" \\ slash\nnext line'
@@ -206,6 +209,7 @@ assert(
         js_case_runner("local_storage_strings_long", long_body)
 
     @allure.title("JavaScript localStorage rejects invalid argument types.")
+    @pytest.mark.regression
     def test_invalid_arguments(self, js_case_runner):
         body = dedent(
             """
@@ -234,6 +238,7 @@ assert(
         js_case_runner("local_storage_invalid_arguments", body)
 
     @allure.title("JavaScript localStorage writes its versioned backing file.")
+    @pytest.mark.regression
     def test_backing_file_format(
         self,
         js_case_runner,
@@ -281,6 +286,7 @@ assert(
             ),
         ],
     )
+    @pytest.mark.regression
     def test_invalid_backing_file_recovers(
         self,
         case_name,
@@ -327,6 +333,7 @@ assert(
             )
 
     @allure.title("JavaScript localStorage survives repeated mutations.")
+    @pytest.mark.regression
     def test_repeated_mutations(self, js_case_runner):
         mutate_body = dedent(
             """
@@ -454,6 +461,7 @@ assert(
     @allure.title(
         "JavaScript localStorage supports maximum-length application IDs."
     )
+    @pytest.mark.regression
     def test_max_length_app_id_backing_file(self, storage_api):
         app_id = "app.busy.localstorage.max.id.000"
         assert len(app_id) == 32, f"invalid boundary app ID: {app_id!r}"
@@ -494,6 +502,7 @@ assert(
     @allure.title(
         "JavaScript localStorage stores repeated non-BMP characters."
     )
+    @pytest.mark.regression
     def test_repeated_non_bmp_roundtrip(self, js_case_runner):
         value = "🚀" * 16
         body = dedent(

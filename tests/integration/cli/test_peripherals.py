@@ -34,6 +34,7 @@ class TestCLIPeripheralCommands:
 
     @allure.title("CLI. Command Audio.")
     @pytest.mark.story_commands_check
+    @pytest.mark.regression
     def test_cli_command_audio(self, persistent_cli_connection):
         # a bare `audio` prints nothing at all; usage only comes with a bad subcommand
         response = persistent_cli_connection.execute_command("audio bogus")
@@ -42,17 +43,20 @@ class TestCLIPeripheralCommands:
 
     @allure.title("CLI. Command Display.")
     @pytest.mark.story_commands_check
+    @pytest.mark.regression
     def test_cli_command_display(self, persistent_cli_connection):
         response = persistent_cli_connection.execute_command("display")
         assert "Usage: display <action>" in response, response
         assert "show <front|back>" in response and "brightness" in response, response
 
     @allure.title("CLI. Command audio start (missing file).")
+    @pytest.mark.regression
     def test_audio_start_missing_file(self, persistent_cli_connection):
         response = persistent_cli_connection.execute_command("audio start /ext/nope.wav")
         assert "File /ext/nope.wav does not exist" in response, response
 
     @allure.title("CLI. Command audio start (real sound file).")
+    @pytest.mark.regression
     def test_audio_start_real_file(self, persistent_cli_connection):
         # playback is fire-and-forget (the command returns at once); that the sound
         # is actually audible is checked separately, out of this suite
@@ -63,12 +67,14 @@ class TestCLIPeripheralCommands:
         assert "Failed to play" not in response, response
 
     @allure.title("CLI. Command audio stop.")
+    @pytest.mark.regression
     def test_audio_stop(self, persistent_cli_connection):
         # idempotent: stopping while nothing plays is accepted silently
         response = persistent_cli_connection.execute_command("audio stop")
         assert "Usage" not in response and "Invalid command" not in response, response
 
     @allure.title("CLI. Command display show (missing file).")
+    @pytest.mark.regression
     def test_display_show_missing_file(self, persistent_cli_connection):
         # the missing-file path returns at once; the happy path streams until CTRL+C
         # and is covered by test_display_show_screenshot
@@ -87,11 +93,13 @@ class TestCLIPeripheralCommands:
             cli.execute_command("display brightness auto")
 
     @allure.title("CLI. Command display brightness (invalid value).")
+    @pytest.mark.regression
     def test_display_brightness_invalid(self, persistent_cli_connection):
         response = persistent_cli_connection.execute_command("display brightness bogus")
         assert "Unable to parse 'bogus' as brightness value" in response, response
 
     @allure.title("CLI. Command input (usage).")
+    @pytest.mark.regression
     def test_input_usage(self, persistent_cli_connection):
         response = persistent_cli_connection.execute_command("input")
         assert "Usage: input" in response, response

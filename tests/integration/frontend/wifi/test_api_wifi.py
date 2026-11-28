@@ -124,7 +124,6 @@ def wifi_setup_teardown(web_base_url):
 @allure.epic("BusyBar & Local Control")
 @allure.feature("Wi-Fi")
 @allure.story("Connection lifecycle")
-@pytest.mark.regression
 class TestWifiAPI:
     """Test cases for WiFi API endpoints"""
 
@@ -151,6 +150,7 @@ class TestWifiAPI:
     @allure.title("GET /api/wifi/networks")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_wifi_networks(self, wifi_api: WifiAPI):
         """Test GET /api/wifi/networks endpoint"""
         if wifi_api.get_status().state in ["connected", "connecting"]:
@@ -168,6 +168,7 @@ class TestWifiAPI:
     @allure.title("POST /api/wifi/connect")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_wifi_connect_invalid(self, wifi_api: WifiAPI):
         """Test POST /api/wifi/connect endpoint with invalid data"""
         response = wifi_api.connect(
@@ -183,6 +184,7 @@ class TestWifiAPI:
     @allure.title("POST /api/wifi/disconnect")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_wifi_disconnect(self, wifi_api: WifiAPI):
         """Test POST /api/wifi/disconnect endpoint"""
         with allure.step("Ensure connected to test network before disconnect"):
@@ -202,6 +204,7 @@ class TestWifiAPI:
     @allure.title("WiFi regression: access key auth works over Wi-Fi API")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_wifi_access_key_after_connect(
         self,
         wifi_api: WifiAPI,
@@ -276,6 +279,7 @@ class TestWifiAPI:
     @allure.title("WiFi regression: connect → disconnect → scan x3")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_wifi_connect_disconnect_then_repeated_scan(self, wifi_api: WifiAPI):
         """Reproduces the UI flow: connect, disconnect, then repeatedly press
         'Select network' (= GET /api/wifi/networks).
@@ -340,6 +344,7 @@ class TestWifiFetch:
 
     @allure.title("GET /api/wifi/status reports connected state with IP")
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_wifi_status_after_connect(self, wifi_api):
         if wifi_api.get_status().state != "connected":
             status = connect_to_test_network_or_fail(wifi_api)
@@ -356,6 +361,7 @@ class TestWifiFetch:
     @pytest.mark.cli
     @pytest.mark.frontend
     @pytest.mark.external_service
+    @pytest.mark.regression
     def test_cli_fetch_smoke(self, persistent_cli_connection, wifi_api):
         if wifi_api.get_status().state != "connected":
             connect_to_test_network_or_fail(wifi_api)

@@ -57,6 +57,9 @@ HTTP11_INCOMPLETE_TRAILER_CASES = frozenset(
     }
 )
 CHUNKED_BINARY_PAYLOAD = bytes(range(256)) * 4
+LARGE_PAYLOAD = bytes(range(256)) * 256
+LARGE_CLOSE_PAYLOAD = bytes(range(256)) * (512 * 1024 // 256)
+LARGE_CHUNK_SIZE = 4096
 CHUNKED_JSON_PAYLOAD = json.dumps(
     {"message": NON_BMP_UNICODE_TEXT, "value": 42}, ensure_ascii=False
 ).encode("utf-8")
@@ -151,6 +154,27 @@ HTTP11_SUCCESS_RESPONSES = {
     ),
     "close-delimited": FetchHTTP11Response(
         (UNKNOWN_LENGTH_PAYLOAD,), UNKNOWN_LENGTH_PAYLOAD, headers=()
+    ),
+}
+
+HTTP11_LARGE_RESPONSES = {
+    "large-length": FetchHTTP11Response(
+        (LARGE_PAYLOAD,),
+        LARGE_PAYLOAD,
+        headers=(("Content-Length", str(len(LARGE_PAYLOAD))),),
+    ),
+    "large-chunked": FetchHTTP11Response(
+        (
+            _encode_chunks(
+                LARGE_PAYLOAD[offset : offset + LARGE_CHUNK_SIZE]
+                for offset in range(0, len(LARGE_PAYLOAD), LARGE_CHUNK_SIZE)
+            ),
+        ),
+        LARGE_PAYLOAD,
+    ),
+    "large-close": FetchHTTP11Response((LARGE_PAYLOAD,), LARGE_PAYLOAD, headers=()),
+    "large-close-512k": FetchHTTP11Response(
+        (LARGE_CLOSE_PAYLOAD,), LARGE_CLOSE_PAYLOAD, headers=()
     ),
 }
 
@@ -291,6 +315,7 @@ class FetchRequestHandler(http.server.BaseHTTPRequestHandler):
                 "headers": headers,
                 "header_items": header_items,
                 "peer_certificate": peer_certificate,
+                "peer_ip": self.client_address[0],
                 "tls_version": tls_version,
             }
         )
@@ -312,6 +337,7 @@ class FetchRequestHandler(http.server.BaseHTTPRequestHandler):
             name = request_path.removeprefix("/http11/")
             response = {
                 **HTTP11_SUCCESS_RESPONSES,
+                **HTTP11_LARGE_RESPONSES,
                 **HTTP11_ERROR_RESPONSES,
                 **HTTP11_HEADER_ERROR_RESPONSES,
                 **HTTP11_INFORMATIONAL_RESPONSES,

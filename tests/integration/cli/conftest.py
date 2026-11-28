@@ -3,8 +3,11 @@
 Plain helpers and constants live in utils/cli_helpers.py.
 """
 
+import ipaddress
+import json
 import os
 import re
+import socket
 import threading
 from dataclasses import dataclass
 from datetime import timedelta
@@ -20,7 +23,7 @@ from clients.cli import SimpleCLIConnection
 from utils.cli_helpers import BLOB_PAYLOAD, TEXT_PAYLOAD, resync
 from utils.fetch_http_server import FetchHTTPServer, FetchRequestHandler
 from utils.fetch_mtls_mqtt_broker import FetchMTLSMQTTBroker
-from utils.fetch_mtls_server import FetchMTLSServer
+from utils.fetch_mtls_server import FetchHTTPSServer, FetchMTLSServer
 from utils.js_test_runner import export_js_case, run_js_case
 from utils.mtls_certificates import generate_ca, generate_intermediate, generate_leaf
 from utils.wait import wait_for
@@ -32,6 +35,18 @@ from utils.wifi_helpers import (
 
 
 JS_CLI_LOCAL_STORAGE_PATH = "/ext/apps_data/jsrunner/app.busy.cli.localstorage.json"
+WIFI_HTTPS_ENDPOINT_PATH = Path("/run/busybar-runner/wifi-https.json")
+
+
+def _load_wifi_https_endpoint(path: Path) -> tuple[str, int, int] | None:
+    try:
+        endpoint = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return None
+
+    if endpoint["version"] != 1:
+        raise ValueError(f"Unsupported Wi-Fi HTTPS endpoint version in {path}")
+    return endpoint["host"], endpoint["port"], endpoint["bind_port"]
 
 
 @dataclass(frozen=True)
@@ -181,6 +196,55 @@ def mtls_server_factory(persistent_cli_connection, tmp_path):
 
     for server, thread in running_servers:
         server.release_stall.set()
+        server.shutdown()
+        thread.join(timeout=2)
+        server.server_close()
+
+
+@pytest.fixture
+def wifi_https_server(
+    persistent_cli_connection, device_wifi_ready, tmp_path, tls_version
+):
+    wifi_ip = device_wifi_ready.ip_config.address.split("/", 1)[0]
+    endpoint = _load_wifi_https_endpoint(WIFI_HTTPS_ENDPOINT_PATH)
+    if endpoint is None:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as route:
+            route.connect((wifi_ip, 80))
+            host = route.getsockname()[0]
+        bind_address = (host, 0)
+        advertised_address = None
+    else:
+        host, port, bind_port = endpoint
+        bind_address = ("0.0.0.0", bind_port)
+        advertised_address = (host, port)
+    address = ipaddress.IPv4Address(host)
+    usb_host = persistent_cli_connection.tn.sock.getsockname()[0]
+    assert not address.is_loopback and host not in (usb_host, wifi_ip), (
+        "HTTPS endpoint must use the runner's Wi-Fi-reachable LAN address, "
+        f"not USB/loopback/device: host={host}, USB={usb_host}, Wi-Fi={wifi_ip}"
+    )
+    identity = generate_leaf(
+        generate_ca("Large HTTPS test root"),
+        "Large HTTPS test server",
+        client_auth=False,
+        server_ip=host,
+    )
+    certificate = tmp_path / "large-server.pem"
+    key = tmp_path / "large-server.key"
+    certificate.write_bytes(identity.certificate_pem)
+    key.write_bytes(identity.private_key_pem)
+    server = FetchHTTPSServer(
+        bind_address,
+        server_certificate_path=certificate,
+        server_private_key_path=key,
+        tls_version=tls_version,
+        advertised_address=advertised_address,
+    )
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        yield server, wifi_ip
+    finally:
         server.shutdown()
         thread.join(timeout=2)
         server.server_close()

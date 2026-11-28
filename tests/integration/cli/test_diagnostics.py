@@ -27,24 +27,28 @@ class TestCLIDiagnostics:
     """Read-only diagnostics: nothing here changes device state."""
 
     @allure.title("CLI. Command netstat.")
+    @pytest.mark.regression
     def test_netstat(self, persistent_cli_connection):
         response = persistent_cli_connection.execute_command("netstat")
         assert "Proto" in response and "Local Address" in response, response
         assert "LISTEN" in response, "expected at least one listening socket"
 
     @allure.title("CLI. Command fontstat.")
+    @pytest.mark.regression
     def test_fontstat(self, persistent_cli_connection):
         response = persistent_cli_connection.execute_command("fontstat")
         assert "Loaded:" in response and "fonts" in response, response
         assert "Font" in response and "Size" in response, "expected a font table"
 
     @allure.title("CLI. Command light_sensor.")
+    @pytest.mark.regression
     def test_light_sensor(self, persistent_cli_connection):
         response = persistent_cli_connection.execute_command("light_sensor")
         assert "data0:" in response and "data1:" in response, response
         assert "lux" in response, "expected an illuminance value"
 
     @allure.title("CLI. Command date.")
+    @pytest.mark.regression
     def test_date(self, persistent_cli_connection):
         response = persistent_cli_connection.execute_command("date")
         # ISO-8601, e.g. 2026-06-29T12:37:41+01:00
@@ -53,6 +57,7 @@ class TestCLIDiagnostics:
         ), f"expected an ISO-8601 timestamp, got: {response!r}"
 
     @allure.title("CLI. Command timezone.")
+    @pytest.mark.regression
     def test_timezone(self, persistent_cli_connection):
         response = persistent_cli_connection.execute_command("timezone")
         assert response.strip(), "timezone should return a non-empty zone name"
@@ -78,6 +83,7 @@ class TestCLIDiagnostics:
 
     @allure.title("CLI. Command Free_blocks.")
     @pytest.mark.story_commands_check
+    @pytest.mark.regression
     def test_cli_command_free_blocks(self, persistent_cli_connection):
         response = persistent_cli_connection.execute_command("free_blocks")
         # heap block dump: lines like 'A 200B2660 S 1821080'

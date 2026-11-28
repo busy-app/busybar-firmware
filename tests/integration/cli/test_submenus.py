@@ -30,6 +30,7 @@ class TestCLISlCli:
 
     @allure.title("CLI. Command Sl_cli.")
     @pytest.mark.story_commands_check
+    @pytest.mark.regression
     def test_cli_command_sl_cli(self, fresh_cli_connection):
         # a fresh connection: sl_cli is exclusive and must not be entered on the
         # module-scoped one that the read-only command tests keep at the main prompt
@@ -47,6 +48,7 @@ class TestCLISlCli:
 
     @allure.title("CLI. Command sl_cli is exclusive (only one instance allowed).")
     @pytest.mark.story_commands_check
+    @pytest.mark.regression
     def test_cli_command_sl_cli_exclusive(self, fresh_cli_connection):
         """sl_cli is marked CliCommandFlagExclusive — a second concurrent instance
         from another shell must be rejected with the run-once notice."""
@@ -87,17 +89,20 @@ class TestCLIMatterReadOnly:
             cli.execute_command("exit")  # leave matter>: back to the main CLI
 
     @allure.title("CLI. matter. Command fabrics.")
+    @pytest.mark.regression
     def test_matter_fabrics(self, fresh_cli_connection):
         response = self._matter(fresh_cli_connection, "fabrics")
         assert "fabric" in response.lower(), response
 
     @allure.title("CLI. matter. Command comm.")
+    @pytest.mark.regression
     def test_matter_comm(self, fresh_cli_connection):
         response = self._matter(fresh_cli_connection, "comm")
         assert "pairing code" in response.lower(), response
         assert "QR code payload" in response, response
 
     @allure.title("CLI. matter. Command cd.")
+    @pytest.mark.regression
     def test_matter_cd(self, fresh_cli_connection):
         response = self._matter(fresh_cli_connection, "cd")
         assert "available CDs" in response, response
@@ -119,28 +124,33 @@ class TestCLI917ReadOnlyCommands:
         assert "sl_wifi_mac" in response and "sl_ble_mac" in response, response
 
     @allure.title("CLI. 917. Command free.")
+    @pytest.mark.regression
     def test_917_free(self, sl_cli):
         response = sl_cli.execute_917_command("free")
         assert "Free heap size:" in response, response
         assert "Total heap size:" in response, response
 
     @allure.title("CLI. 917. Command netstat.")
+    @pytest.mark.regression
     def test_917_netstat(self, sl_cli):
         response = sl_cli.execute_917_command("netstat")
         assert "Proto" in response and "Local Address" in response, response
 
     @allure.title("CLI. 917. Command uptime.")
+    @pytest.mark.regression
     def test_917_uptime(self, sl_cli):
         response = sl_cli.execute_917_command("uptime")
         assert "Uptime:" in response, response
 
     @allure.title("CLI. 917. Command crypto (usage).")
+    @pytest.mark.regression
     def test_917_crypto_usage(self, sl_cli):
         response = sl_cli.execute_917_command("crypto")
         assert "crypto" in response and "Cmd list:" in response, response
         assert "list" in response and "dump" in response, response
 
     @allure.title("CLI. 917. Command crypto list (main partition).")
+    @pytest.mark.regression
     def test_917_crypto_list_main(self, sl_cli):
         response = sl_cli.execute_917_command("crypto list 0")
         assert "RET: 0" in response, response
@@ -148,6 +158,7 @@ class TestCLI917ReadOnlyCommands:
         assert "key:" in response, f"expected key entries on partition 0: {response!r}"
 
     @allure.title("CLI. 917. Command crypto list (user partition).")
+    @pytest.mark.regression
     def test_917_crypto_list_user(self, sl_cli):
         # user partition may be empty, but the command must succeed
         response = sl_cli.execute_917_command("crypto list 1")
@@ -161,6 +172,7 @@ class TestCLI917ReadOnlyCommands:
         assert "illegal option" not in response and "usage:" not in response.lower(), response
 
     @allure.title("CLI. 917. Command free_blocks.")
+    @pytest.mark.regression
     def test_917_free_blocks(self, sl_cli):
         response = sl_cli.execute_917_command("free_blocks")
         # heap block dump: lines like 'A 00041FC0 S 55864'
@@ -172,6 +184,7 @@ class TestCLI917ReadOnlyCommands:
         assert "hi917" in response, response
 
     @allure.title("CLI. 917. Command log (levels listing).")
+    @pytest.mark.regression
     def test_917_log_levels(self, sl_cli):
         response = sl_cli.execute_917_command("log ?")
         for level in ("error", "warn", "info", "debug", "trace"):

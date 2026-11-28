@@ -32,6 +32,7 @@ class TestCLIStorageReadOnly:
 
     @allure.title("CLI. Command Storage.")
     @pytest.mark.story_commands_check
+    @pytest.mark.regression
     def test_cli_command_storage(self, persistent_cli_connection):
         response = persistent_cli_connection.execute_command("storage")
         assert response.strip(), "Storage command should return storage information"
@@ -44,18 +45,21 @@ class TestCLIStorageReadOnly:
             assert field in response, f"missing field {field}: {response!r}"
 
     @allure.title("CLI. storage. Command list.")
+    @pytest.mark.regression
     def test_storage_list(self, persistent_cli_connection):
         response = persistent_cli_connection.execute_command("storage list /ext")
         # /ext always has at least one directory ([D]) or file ([F])
         assert "[D]" in response or "[F]" in response, response
 
     @allure.title("CLI. storage. Command stat.")
+    @pytest.mark.regression
     def test_storage_stat(self, persistent_cli_connection):
         response = persistent_cli_connection.execute_command("storage stat /ext")
         assert response.strip(), "stat should return directory info"
         assert "Usage" not in response and "Error" not in response, response
 
     @allure.title("CLI. storage. Command tree.")
+    @pytest.mark.regression
     def test_storage_tree(self, persistent_cli_connection):
         # recursive listing of a small standard dir; 'Empty' is a valid result
         response = persistent_cli_connection.execute_command("storage tree /ext/update")
@@ -63,6 +67,7 @@ class TestCLIStorageReadOnly:
         assert "Storage error" not in response and "Usage" not in response, response
 
     @allure.title("CLI. storage. Command read.")
+    @pytest.mark.regression
     def test_storage_read(self, persistent_cli_connection):
         # small text file that always exists on /ext
         response = persistent_cli_connection.execute_command(
@@ -72,6 +77,7 @@ class TestCLIStorageReadOnly:
         assert "Storage error" not in response, response
 
     @allure.title("CLI. storage. Command timestamp.")
+    @pytest.mark.regression
     def test_storage_timestamp(self, persistent_cli_connection):
         response = persistent_cli_connection.execute_command(
             "storage timestamp /ext/.sys_update.txt"
@@ -108,6 +114,7 @@ class TestCLIStorageMutating:
         assert "error" not in rm.lower(), rm
 
     @allure.title("CLI. storage. Command extract (tar archive).")
+    @pytest.mark.regression
     def test_storage_extract(
         self, persistent_cli_connection, storage_dir, tar_seed_dir
     ):
@@ -119,6 +126,7 @@ class TestCLIStorageMutating:
         assert "Storage error" not in ex, ex
 
     @allure.title("CLI. Command tar (compress + extract).")
+    @pytest.mark.regression
     def test_tar_compress_extract(
         self, persistent_cli_connection, storage_dir, tar_seed_dir
     ):
@@ -129,6 +137,7 @@ class TestCLIStorageMutating:
         assert "RET: 0" in x and "success" in x.lower(), x
 
     @allure.title("CLI. storage. Command write (interactive text).")
+    @pytest.mark.regression
     def test_storage_write(self, persistent_cli_connection, storage_dir):
         cli = persistent_cli_connection
         path = f"{storage_dir}/written.txt"
@@ -162,6 +171,7 @@ class TestCLIStorageMutating:
         assert data == BLOB_PAYLOAD, "read_chunks returned different bytes than were written"
 
     @allure.title("CLI. Command log_dump.")
+    @pytest.mark.regression
     def test_log_dump(self, persistent_cli_connection):
         cli = persistent_cli_connection
         # LOG_STORAGE_DUMP_DEFAULT_FILE_PATH in applications/services/log_storage/log_storage.h

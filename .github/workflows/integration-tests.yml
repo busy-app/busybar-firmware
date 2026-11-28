@@ -26,7 +26,7 @@ on:
   workflow_dispatch:
     inputs:
       marker_filter:
-        description: 'Pytest -m expression. Default runs smoke only; "all" runs the full suite including regression.'
+        description: 'Pytest -m expression. Default runs the PR checks; "all" runs the full suite.'
         required: false
         type: string
         default: 'not regression'
@@ -269,19 +269,23 @@ jobs:
           cd tests
           PYTEST_OUTPUT=pytest-output.log
 
-          # MARKER_FILTER is a `-m` expression; an empty string means
-          # "no filter" (collect everything, including `regression`-tagged
-          # tests such as schemathesis).
+          retries="${PYTEST_FAILED_TEST_RETRIES-1}"
+          if [[ ! "$retries" =~ ^[0-9]+$ ]]; then
+            echo 'PYTEST_FAILED_TEST_RETRIES must be a nonnegative integer.' >&2
+            exit 2
+          fi
+
           pytest_args=(. -v --durations=25 --alluredir=allure-results --clean-alluredir --junitxml=test-results.xml)
           if [ -n "$MARKER_FILTER" ]; then
             pytest_args+=(-m "$MARKER_FILTER")
             echo "Running pytest with marker filter: $MARKER_FILTER"
           else
-            echo "Running pytest without marker filter (full suite)"
+            echo 'Running pytest without marker filter (full suite)'
           fi
-          if [ "$PYTEST_FAILED_TEST_RETRIES" -gt 0 ]; then
-            pytest_args+=(--reruns "$PYTEST_FAILED_TEST_RETRIES" --reruns-delay 1 -rR)
+          if [ "$retries" -gt 0 ]; then
+            pytest_args+=(--reruns "$retries" --reruns-delay 1 -rR)
           fi
+
           test_command=(python3 -m pytest "${pytest_args[@]}")
           if [ -n "$ALLURE_JOB_RUN_ID" ]; then
             export ALLURE_RESULTS="$PWD/allure-results"

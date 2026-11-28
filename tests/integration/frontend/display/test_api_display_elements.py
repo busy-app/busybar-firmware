@@ -142,6 +142,7 @@ class TestSelectiveDisplayDeletion:
     @allure.title("DELETE with matching application_name clears the owned canvas")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_delete_all_with_matching_app_name(
         self,
         assets_api: AssetsAPI,
@@ -181,6 +182,7 @@ class TestSelectiveDisplayDeletion:
     @allure.title("DELETE with an empty JSON object clears all elements")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_empty_object_deletes_all_elements(
         self,
         assets_api: AssetsAPI,
@@ -220,6 +222,7 @@ class TestSelectiveDisplayDeletion:
     @allure.title("DELETE with an empty element_ids array is a no-op")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_empty_element_ids_is_no_op(
         self,
         assets_api: AssetsAPI,
@@ -313,6 +316,7 @@ class TestSelectiveDisplayDeletion:
     @allure.title("DELETE with a mismatched application_name is rejected")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_delete_with_wrong_app_name(
         self,
         assets_api: AssetsAPI,
@@ -341,6 +345,7 @@ class TestSelectiveDisplayDeletion:
     @allure.title("Selective DELETE with a mismatched application_name is rejected")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_delete_selected_with_wrong_app_name(
         self,
         assets_api: AssetsAPI,
@@ -403,6 +408,7 @@ class TestSelectiveDisplayDeletion:
     @allure.title("DELETE removes multiple requested elements")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_delete_multiple_elements(
         self,
         assets_api: AssetsAPI,
@@ -470,6 +476,7 @@ class TestSelectiveDisplayDeletion:
     @allure.title("Duplicate element IDs are deleted once")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_duplicate_element_ids_are_idempotent(
         self,
         assets_api: AssetsAPI,
@@ -520,6 +527,7 @@ class TestSelectiveDisplayDeletion:
     @allure.title("DELETE rejects a non-array element_ids value")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_delete_rejects_non_array_element_ids(
         self,
         assets_api: AssetsAPI,
@@ -536,6 +544,7 @@ class TestSelectiveDisplayDeletion:
     @allure.title("DELETE rejects a non-string element ID without changing canvas")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_delete_rejects_non_string_element_id(
         self,
         assets_api: AssetsAPI,
@@ -567,6 +576,7 @@ class TestSelectiveDisplayDeletion:
     @allure.title("DELETE rejects null element_ids without changing canvas")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_delete_rejects_null_element_ids(
         self,
         assets_api: AssetsAPI,
@@ -593,6 +603,7 @@ class TestSelectiveDisplayDeletion:
     @allure.title("DELETE rejects an unknown element ID without changing canvas")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_delete_rejects_unknown_element_id(
         self,
         assets_api: AssetsAPI,
@@ -619,6 +630,7 @@ class TestSelectiveDisplayDeletion:
     @allure.title("DELETE rejects an invalid element ID without changing canvas")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_delete_rejects_invalid_element_id(
         self,
         assets_api: AssetsAPI,
@@ -645,6 +657,7 @@ class TestSelectiveDisplayDeletion:
     @allure.title("DELETE rejects malformed JSON when a body is provided")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_delete_rejects_malformed_json(
         self,
         assets_api: AssetsAPI,
@@ -661,6 +674,7 @@ class TestSelectiveDisplayDeletion:
     @allure.title("Deleting the last element closes canvas for another application")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_delete_last_element_closes_canvas(
         self,
         assets_api: AssetsAPI,
@@ -746,6 +760,7 @@ class TestDisplayZIndex:
     @allure.title("z_index ordering is preserved across separate draw requests")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_z_index_is_global_across_draw_requests(
         self,
         assets_api: AssetsAPI,
@@ -784,6 +799,7 @@ class TestDisplayZIndex:
     @allure.title("Elements without z_index preserve their payload order")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_default_z_index_preserves_payload_order(
         self,
         assets_api: AssetsAPI,
@@ -813,6 +829,7 @@ class TestDisplayZIndex:
         [(1, 1, False), (2, 5, True), (3, 15, True)],
         ids=["default-0", "default-10", "default-20"],
     )
+    @pytest.mark.regression
     def test_default_z_index_values_start_at_zero(
         self,
         assets_api: AssetsAPI,
@@ -859,6 +876,7 @@ class TestDisplayZIndex:
     @allure.title("Explicit z_index does not consume the next default z_index")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_explicit_z_index_does_not_advance_default_sequence(
         self,
         assets_api: AssetsAPI,
@@ -889,6 +907,7 @@ class TestDisplayZIndex:
     @allure.title("Explicit z_index takes precedence over default payload ordering")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_explicit_z_index_with_default_z_index(
         self,
         assets_api: AssetsAPI,
@@ -915,6 +934,7 @@ class TestDisplayZIndex:
     @allure.title("Updating existing elements applies their new z_index ordering")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_updating_elements_reorders_z_index(
         self,
         assets_api: AssetsAPI,
@@ -961,6 +981,7 @@ class TestDisplayZIndex:
     @allure.title("Omitted z_index resets an existing element to the default value")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_updating_element_without_z_index_uses_default(
         self,
         assets_api: AssetsAPI,
@@ -1010,6 +1031,7 @@ class TestDisplayZIndex:
         [-1, "10"],
         ids=["negative", "string"],
     )
+    @pytest.mark.regression
     def test_invalid_z_index_is_rejected(
         self,
         assets_api: AssetsAPI,
@@ -1030,6 +1052,7 @@ class TestDisplayZIndex:
     @pytest.mark.api
     @pytest.mark.frontend
     @pytest.mark.parametrize("z_index", [0, 2147483647], ids=["minimum", "maximum"])
+    @pytest.mark.regression
     def test_boundary_z_index_is_accepted(
         self,
         assets_api: AssetsAPI,

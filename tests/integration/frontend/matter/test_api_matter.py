@@ -8,6 +8,8 @@ import requests
 from clients.api import SmartHomeAPI
 
 from clients.api.base import APIError
+from clients.api.matter import SmartHomeSwitchState
+from utils.wait import wait_for
 
 
 pytestmark = [
@@ -51,10 +53,12 @@ def _wait_for_device(smart_home_api: SmartHomeAPI, timeout_s: float = 30) -> Non
     pytest.fail(f"Device did not come back within {timeout_s}s")
 
 
-def _get_switch_state_safe(smart_home_api: SmartHomeAPI) -> bool | None:
+def _get_switch_state_safe(smart_home_api: SmartHomeAPI, timeout_s: float = 5) -> bool | None:
     """Get switch state, returning None on 503 or timeout (service unavailable)."""
     try:
-        return smart_home_api.get_switch_state().state
+        return smart_home_api.get(
+            "/api/smart_home/switch", SmartHomeSwitchState, timeout=timeout_s
+        ).state
     except APIError as e:
         if e.status_code == 503:
             return None
@@ -102,6 +106,7 @@ class TestSmartHomePairingAPI:
     @allure.title("POST /api/smart_home/pairing (start)")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_smart_home_pairing_start(self, smart_home_api: SmartHomeAPI):
         """Test POST /api/smart_home/pairing starts pairing"""
         try:
@@ -121,6 +126,7 @@ class TestSmartHomePairingAPI:
     @allure.title("DELETE /api/smart_home/pairing (factory reset)")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_smart_home_pairing_delete(self, smart_home_api: SmartHomeAPI):
         """Test DELETE /api/smart_home/pairing resets pairing info"""
         response = smart_home_api.erase_pairing()
@@ -202,15 +208,20 @@ class TestSmartHomeSwitchAPI:
     @pytest.mark.frontend
     def test_api_smart_home_switch_get(self, smart_home_api: SmartHomeAPI):
         """Test GET /api/smart_home/switch returns switch state"""
-        state = _get_switch_state_safe(smart_home_api)
-        if state is None:
-            pytest.skip("Smart home service is unavailable")
+        state = wait_for(
+            "Smart Home switch service to report a state",
+            lambda: _get_switch_state_safe(smart_home_api, timeout_s=1),
+            lambda value: isinstance(value, bool),
+            timeout=15,
+            interval=0.25,
+        )
 
         assert isinstance(state, bool)
 
     @allure.title("POST /api/smart_home/switch (set state)")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_smart_home_switch_set_state(self, smart_home_api: SmartHomeAPI):
         """Test POST /api/smart_home/switch sets switch state"""
         # After a reboot (e.g. triggered by DELETE /pairing), the Si917
@@ -251,6 +262,7 @@ class TestSmartHomeSwitchAPI:
     @allure.title("POST /api/smart_home/switch (set startup mode)")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_smart_home_switch_set_startup(self, smart_home_api: SmartHomeAPI):
         """Test POST /api/smart_home/switch sets startup mode"""
         for mode in ("off", "on", "toggle", "last"):
@@ -263,6 +275,7 @@ class TestSmartHomeSwitchAPI:
     @allure.title("POST /api/smart_home/switch (set state and startup together)")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_smart_home_switch_set_combined(self, smart_home_api: SmartHomeAPI):
         """Test POST /api/smart_home/switch with both state and startup"""
         response = smart_home_api.set_switch_state(True, startup="last")
@@ -277,6 +290,7 @@ class TestSmartHomeSwitchAPI:
     @allure.title("POST /api/smart_home/switch returns 400 on empty body")
     @pytest.mark.api
     @pytest.mark.frontend
+    @pytest.mark.regression
     def test_api_smart_home_switch_empty_body_returns_400(
         self, smart_home_api: SmartHomeAPI
     ):

@@ -63,16 +63,18 @@ def _post(instance, session, base_url, **kwargs):
 INVALID_ROOTS = [
     pytest.param(None, id="null"),
     pytest.param([], id="array"),
-    pytest.param(True, id="boolean"),
-    pytest.param(1, id="number"),
-    pytest.param("operations", id="string"),
+    pytest.param(True, id="boolean", marks=pytest.mark.regression),
+    pytest.param(1, id="number", marks=pytest.mark.regression),
+    pytest.param("operations", id="string", marks=pytest.mark.regression),
     pytest.param({}, id="missing-operations"),
     pytest.param({"operations": None}, id="null-operations"),
     pytest.param({"operations": {}}, id="object-operations"),
-    pytest.param({"operations": "remove"}, id="string-operations"),
+    pytest.param(
+        {"operations": "remove"}, id="string-operations", marks=pytest.mark.regression
+    ),
     pytest.param({"operations": [None]}, id="null-item"),
-    pytest.param({"operations": [[]]}, id="array-item"),
-    pytest.param({"operations": [1]}, id="number-item"),
+    pytest.param({"operations": [[]]}, id="array-item", marks=pytest.mark.regression),
+    pytest.param({"operations": [1]}, id="number-item", marks=pytest.mark.regression),
 ]
 
 INVALID_FIELDS = [
@@ -105,18 +107,18 @@ INVALID_FIELDS = [
 
 INVALID_CANCEL = [
     pytest.param(None, id="null"),
-    pytest.param([], id="array"),
+    pytest.param([], id="array", marks=pytest.mark.regression),
     pytest.param({}, id="empty-object"),
     pytest.param({"all": False}, id="all-false"),
-    pytest.param({"all": None}, id="all-null"),
-    pytest.param({"all": 1}, id="all-number"),
-    pytest.param({"all": "true"}, id="all-string"),
-    pytest.param({"item_id": None}, id="id-null"),
+    pytest.param({"all": None}, id="all-null", marks=pytest.mark.regression),
+    pytest.param({"all": 1}, id="all-number", marks=pytest.mark.regression),
+    pytest.param({"all": "true"}, id="all-string", marks=pytest.mark.regression),
+    pytest.param({"item_id": None}, id="id-null", marks=pytest.mark.regression),
     pytest.param({"item_id": True}, id="id-boolean"),
     pytest.param({"item_id": 0.5}, id="id-fraction"),
-    pytest.param({"item_id": "1"}, id="id-string"),
-    pytest.param({"item_id": []}, id="id-array"),
-    pytest.param({"item_id": {}}, id="id-object"),
+    pytest.param({"item_id": "1"}, id="id-string", marks=pytest.mark.regression),
+    pytest.param({"item_id": []}, id="id-array", marks=pytest.mark.regression),
+    pytest.param({"item_id": {}}, id="id-object", marks=pytest.mark.regression),
     pytest.param({"item_id": -1}, id="id-negative"),
     pytest.param({"item_id": UINT32_MAX + 1}, id="id-above-uint32"),
     pytest.param({"all": True, "item_id": 1}, id="both-alternatives"),
@@ -167,12 +169,12 @@ class TestAppQueueContract:
         "version",
         [
             "",
-            "1",
+            pytest.param("1", marks=pytest.mark.regression),
             "1.2",
-            "1.2.3.4",
-            "a.2.3",
+            pytest.param("1.2.3.4", marks=pytest.mark.regression),
+            pytest.param("a.2.3", marks=pytest.mark.regression),
             "-1.2.3",
-            "1.2.-3",
+            pytest.param("1.2.-3", marks=pytest.mark.regression),
             "1.2.3suffix",
             "\u0661.2.3",
         ],
@@ -207,7 +209,13 @@ class TestAppQueueContract:
 
     @allure.title("Remove operations ignore optional download fields")
     @pytest.mark.parametrize(
-        "field,value", [("url", None), ("url", 1), ("version", None), ("version", 1)]
+        "field,value",
+        [
+            ("url", None),
+            pytest.param("url", 1, marks=pytest.mark.regression),
+            pytest.param("version", None, marks=pytest.mark.regression),
+            pytest.param("version", 1, marks=pytest.mark.regression),
+        ],
     )
     def test_remove_ignores_download_fields(
         self, app_queue, app_queue_contract, web_session, web_base_url, field, value
@@ -253,7 +261,16 @@ class TestAppQueueContract:
     )
     @pytest.mark.parametrize(
         "character",
-        ["\n", "\r", "\t", '"', "'", "\\", "%", "\u2603"],
+        [
+            "\n",
+            pytest.param("\r", marks=pytest.mark.regression),
+            pytest.param("\t", marks=pytest.mark.regression),
+            pytest.param('"', marks=pytest.mark.regression),
+            pytest.param("'", marks=pytest.mark.regression),
+            pytest.param("\\", marks=pytest.mark.regression),
+            pytest.param("%", marks=pytest.mark.regression),
+            "\u2603",
+        ],
         ids=[
             "newline",
             "carriage-return",
@@ -313,7 +330,15 @@ class TestAppQueueContract:
     @allure.title(
         "A later invalid item prevents every operation in its batch from being enqueued"
     )
-    @pytest.mark.parametrize("position", [0, 1, 2], ids=["first", "middle", "last"])
+    @pytest.mark.parametrize(
+        "position",
+        [
+            pytest.param(0, marks=pytest.mark.regression),
+            1,
+            pytest.param(2, marks=pytest.mark.regression),
+        ],
+        ids=["first", "middle", "last"],
+    )
     def test_batch_validation_is_atomic(
         self, app_queue, app_queue_contract, web_session, web_base_url, position
     ):
@@ -350,7 +375,13 @@ class TestAppQueueContract:
 
     @allure.title("Malformed JSON is rejected without affecting active work")
     @pytest.mark.parametrize(
-        "body", [b"", b"{", b'{"operations":', b'{"operations":[,]}']
+        "body",
+        [
+            pytest.param(b"", marks=pytest.mark.regression),
+            b"{",
+            pytest.param(b'{"operations":', marks=pytest.mark.regression),
+            pytest.param(b'{"operations":[,]}', marks=pytest.mark.regression),
+        ],
     )
     def test_malformed_json(self, app_queue, web_session, web_base_url, body):
         item_ids = _blocked_queue(app_queue)
@@ -424,10 +455,10 @@ class TestAppQueueContract:
         "path,method",
         [
             (QUEUE_PATH, "PUT"),
-            (QUEUE_PATH, "DELETE"),
+            pytest.param(QUEUE_PATH, "DELETE", marks=pytest.mark.regression),
             (CANCEL_PATH, "GET"),
-            (CANCEL_PATH, "PUT"),
-            (CANCEL_PATH, "DELETE"),
+            pytest.param(CANCEL_PATH, "PUT", marks=pytest.mark.regression),
+            pytest.param(CANCEL_PATH, "DELETE", marks=pytest.mark.regression),
         ],
     )
     def test_wrong_methods(
