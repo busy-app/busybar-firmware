@@ -416,7 +416,10 @@ static void wifi_module_stats_event_handler(Wifi* instance, const WifiModuleStat
             if(instance->state == WifiBackendStateReconnecting) {
                 wifi_disconnect(instance);
 
-                FURI_LOG_W(TAG, "AP credentials were changed, disconnecting");
+                FURI_LOG_W(
+                    TAG,
+                    "Association rejected during reconnect (reason: 0x%02hhX), disconnecting",
+                    reason_code);
 
             } else {
                 FURI_LOG_T(TAG, "Authentication error");
